@@ -2,23 +2,39 @@
 pragma solidity ^0.8.9;
 
 import "../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import "./HLMToken.sol";
-import "./RWDToken.sol";
+import "./LocksToken.sol";
+import "./PorridgeToken.sol";
+import "./Borrow.sol";
 
 contract AMM {
 
   IERC20 usdc;
-  HLMToken hlm;
-  RWDToken rwd;
-  uint256 public tokenDecimals = 10**18;
-  uint256 public targetRatio = (tokenDecimals*3)/2;
+  LocksToken locks;
+  PorridgeToken prg;
+  Borrow borrow;
+  address public adminAddress;
+  uint256 public targetRatio = 3*(10**18) / 2*(10**18);
   uint256 public fsl = (AMMBalance()*92783) / 100000;
   uint256 public psl = AMMBalance() - fsl;
 
 
-  constructor(address _hlmAddress) {
+  constructor(address _locksAddress, address _prgAddress, address _borrowAddress, address _adminAddress) {
     usdc = IERC20(0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8);
-    hlm = HLMToken(_hlmAddress);
+    locks = LocksToken(_locksAddress);
+    prg = PorridgeToken(_prgAddress);
+    borrow = Borrow(_borrowAddress);
+    adminAddress = _adminAddress;
+
+    usdc.approve(address(borrow), locks.getHardCap());
+  }
+
+  modifier onlyAdmin() {
+    require(msg.sender == adminAddress, "not authorized");
+    _;
+  }
+
+  function updateApproval(uint256 _amount) public onlyAdmin() {
+    usdc.approve(address(borrow), _amount);
   }
 
   function AMMBalance() public view returns (uint256) {
@@ -30,7 +46,7 @@ contract AMM {
   }
 
   function marketPrice(uint256 _fsl, uint256 _psl, uint256 _supply) public pure returns (uint256) {
-    return ((_fsl+_psl)/_supply)*((_fsl+_psl)/_fsl);
+    return ((_fsl+_psl) / _supply) * ((_fsl+_psl) / _fsl);
   }
 
   function floorRaise() public {
@@ -44,11 +60,10 @@ contract AMM {
     } 
   }
 
-  function purchase(uint256 amount) public {
-    uint256 _amount = amount * tokenDecimals;
+  function purchase(uint256 _amount) public {
     uint256 _fsl = fsl;
     uint256 _psl = psl;
-    uint256 _supply = hlm.totalSupply();
+    uint256 _supply = locks.totalSupply();
     uint256 _floorPrice = floorPrice(_fsl, _supply);
     uint256 _index;
     uint256 _cumulativePrice;
@@ -59,26 +74,25 @@ contract AMM {
       _cumulativePrice += currentPrice;
       _cumulativeFloorPrice += _floorPrice;
       _cumulativePremium += currentPrice - _floorPrice;
-      _supply += tokenDecimals;
+      _supply += 1;
       _fsl += _floorPrice;
       _psl += currentPrice - _floorPrice;
       _floorPrice = _fsl / _supply;
-      _index += tokenDecimals;
+      _index += 1;
     }
     require(usdc.balanceOf(msg.sender) >= _cumulativePrice, "insufficient usdc balance");
     usdc.transferFrom(msg.sender, address(this), _cumulativePrice);
-    hlm.mint(msg.sender, _amount);
+    locks.mint(msg.sender, _amount);
     fsl += _cumulativeFloorPrice;
     psl += _cumulativePremium;
     floorRaise();    
   }
 
-  function sale(uint256 amount) public {
-    uint256 _amount = amount * tokenDecimals;
-    require(hlm.balanceOf(msg.sender) >= amount, "insufficient HLM balance");
+  function sale(uint256 _amount) public {
+    require(locks.balanceOf(msg.sender) >= _amount, "insufficient locks balance");
     uint256 _fsl = fsl;
     uint256 _psl = psl;
-    uint256 _supply = hlm.totalSupply();
+    uint256 _supply = locks.totalSupply();
     uint256 _floorPrice = floorPrice(_fsl, _supply);
     uint256 _index;
     uint256 _cumulativePrice;
@@ -89,30 +103,29 @@ contract AMM {
       _cumulativePrice += currentPrice;
       _cumulativeFloorPrice += _floorPrice;
       _cumulativePremium += currentPrice - _floorPrice;
-      _supply -= tokenDecimals;
+      _supply -= 1;
       _fsl -= _floorPrice;
       _psl -= currentPrice - _floorPrice;
       _floorPrice = _fsl / _supply;
-      _index += tokenDecimals;
+      _index += 1;
     }
     uint256 tax = _cumulativePrice / 20;
     usdc.transfer(msg.sender, _cumulativePrice - tax);
-    hlm.burn(msg.sender, _amount);
+    locks.burn(msg.sender, _amount);
     uint256 floorLoss = _cumulativeFloorPrice + tax;
     fsl -= floorLoss;
     psl -= _cumulativePremium;
     floorRaise();
   }
 
-  function redeem(uint256 amount) public {
-    uint256 _amount = amount * tokenDecimals;
-    require(hlm.balanceOf(msg.sender) >= _amount, "insufficient balance");
+  function redeem(uint256 _amount) public {
+    require(locks.balanceOf(msg.sender) >= _amount, "insufficient balance");
     require(_amount > 0, "cannot stake zero");
-    uint256 _floorPrice = fsl / hlm.totalSupply();
-    rwd.burn(msg.sender, _amount);
+    uint256 _floorPrice = fsl / locks.totalSupply();
+    prg.burn(msg.sender, _amount);
     uint256 _rawTotal = _amount * _floorPrice;
     uint256 _tax = (_rawTotal * 3) / 100;
-    hlm.burn(msg.sender, _amount);
+    locks.burn(msg.sender, _amount);
     usdc.transfer(msg.sender, _rawTotal - _tax);
     fsl -= _rawTotal - _tax;
   }
