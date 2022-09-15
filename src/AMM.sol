@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import "./LocksToken.sol";
 import "./PorridgeToken.sol";
 import "./Borrow.sol";
@@ -14,23 +14,29 @@ contract AMM {
   Borrow borrow;
   address public adminAddress;
   uint256 public targetRatio = 3*(10**18) / 2*(10**18);
-  uint256 public fsl = (AMMBalance()*92783) / 100000;
-  uint256 public psl = AMMBalance() - fsl;
+  uint256 public fsl;
+  uint256 public psl;
 
 
   constructor(address _locksAddress, address _prgAddress, address _borrowAddress, address _adminAddress) {
-    usdc = IERC20(0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8);
     locks = LocksToken(_locksAddress);
     prg = PorridgeToken(_prgAddress);
     borrow = Borrow(_borrowAddress);
+    usdc = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
     adminAddress = _adminAddress;
-
-    usdc.approve(address(borrow), locks.getHardCap());
   }
 
   modifier onlyAdmin() {
     require(msg.sender == adminAddress, "not authorized");
     _;
+  }
+
+  function updateFSL() public {
+    fsl = (AMMBalance()*92783) / 100000;
+  }
+
+  function updatePSL() public {
+    psl = AMMBalance() - fsl;
   }
 
   function updateApproval(uint256 _amount) public onlyAdmin() {
@@ -80,12 +86,12 @@ contract AMM {
       _floorPrice = _fsl / _supply;
       _index += 1;
     }
-    require(usdc.balanceOf(msg.sender) >= _cumulativePrice, "insufficient usdc balance");
+    require(usdc.balanceOf(msg.sender) >= _cumulativePrice*(10**6), "insufficient usdc balance");
     usdc.transferFrom(msg.sender, address(this), _cumulativePrice);
     locks.mint(msg.sender, _amount);
     fsl += _cumulativeFloorPrice;
     psl += _cumulativePremium;
-    floorRaise();    
+    floorRaise();
   }
 
   function sale(uint256 _amount) public {
@@ -112,7 +118,7 @@ contract AMM {
     uint256 tax = _cumulativePrice / 20;
     usdc.transfer(msg.sender, _cumulativePrice - tax);
     locks.burn(msg.sender, _amount);
-    uint256 floorLoss = _cumulativeFloorPrice + tax;
+    uint256 floorLoss = _cumulativeFloorPrice - tax;
     fsl -= floorLoss;
     psl -= _cumulativePremium;
     floorRaise();

@@ -1,8 +1,8 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "../../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
-import "../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import "../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 // need to change allocations mappings to merkle tree hash system
 
@@ -21,7 +21,7 @@ contract LocksToken is ERC20("Locks Token", "LOCKS") {
   constructor(address _ammAddress, address _porridgeAddress) {
     ammAddress = _ammAddress;
     porridgeAddress = _porridgeAddress;
-    usdc = IERC20(0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8);
+    usdc = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
   }
 
   event Contribution(address indexed user, uint256 indexed amountPaid, uint256 indexed amountRecieved);
@@ -35,12 +35,12 @@ contract LocksToken is ERC20("Locks Token", "LOCKS") {
     return hardCap;
   }
 
-  function mint(address _to, uint256 _amount) public onlyAdmin() {
+  function mint(address _to, uint256 _amount) public {
     require(totalSupply() + _amount <= hardCap, "mint would exceed hard cap");
     _mint(_to, _amount);
   }
 
-  function burn(address _from, uint256 _amount) public onlyAdmin() {
+  function burn(address _from, uint256 _amount) public {
     _burn(_from, _amount);
   }
 
