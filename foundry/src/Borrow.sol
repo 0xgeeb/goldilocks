@@ -38,8 +38,8 @@ contract Borrow {
     require(_floorPrice * _stakedLocks >= _amount, "insufficient borrow limit");
     lockedLocks[msg.sender] += _amount / _floorPrice;
     borrowedUsdc[msg.sender] += _amount;
-    uint256 _fee = (_amount / 100) * 3;
-    locks.transferFrom(address(prg), address(this), lockedLocks[msg.sender]);
+    uint256 _fee = _amount / 100 * 3;
+    locks.transferFrom(address(prg), address(this), _amount / _floorPrice);
     usdc.transferFrom(address(amm), msg.sender, _amount - _fee);
     usdc.transferFrom(address(amm), dev, _fee);
   }
@@ -47,11 +47,11 @@ contract Borrow {
   function repay(uint256 _amount) public {
     require(_amount > 0, "cannot repay zero");
     require(usdc.balanceOf(msg.sender) >= _amount*(10**6) && usdc.allowance(msg.sender, address(this)) >= _amount*(10**6), "insufficient funds/allowance");
-    uint256 floorPrice = amm.fsl() / locks.totalSupply();
-    require(_amount <= borrowedUsdc[msg.sender], "repaying too much");
-    lockedLocks[msg.sender] -= _amount / floorPrice;
+    uint256 _floorPrice = amm.fsl() / locks.totalSupply();
+    require(_amount >= lockedLocks[msg.sender] * _floorPrice, "insufficient borrowed amount");
+    lockedLocks[msg.sender] -= _amount / _floorPrice;
     borrowedUsdc[msg.sender] -= _amount;
-    locks.transfer(msg.sender, lockedLocks[msg.sender]);
+    locks.transferFrom(address(this), address(prg), _amount / _floorPrice);
     usdc.transferFrom(msg.sender, address(amm), _amount*(10**6));
   }
 

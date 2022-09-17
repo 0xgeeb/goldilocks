@@ -47,14 +47,14 @@ contract PorridgeToken is ERC20("Porridge Token", "PRG") {
 
   function calculateYield(address _user) public view returns (uint256) {
     uint256 _time = timeStaked(_user);
-    // uint256 _yieldPortion = staked[_user] / DAILY_EMISSISIONS;
-    uint256 rawYield = (_time * staked[_user]/100)/86400;
-    return rawYield;
+    uint256 _yieldPortion = staked[_user] / DAILY_EMISSISIONS;
+    uint256 _yield = _yieldPortion * (_time / DAYS_SECONDS);
+    return _yield;
   }
 
   function stake(uint256 _amount) public {
     require(_amount > 0, "cannot stake zero");
-    require(locks.balanceOf(msg.sender) >= _amount, "insufficient locks balance");
+    require(locks.balanceOf(msg.sender) >= _amount && locks.allowance(msg.sender, address(this)) >= _amount, "insufficient locks balance/allowance");
     if(staked[msg.sender] > 0) {
       _distributeYield(msg.sender);
     }
@@ -79,6 +79,7 @@ contract PorridgeToken is ERC20("Porridge Token", "PRG") {
     require(_amount > 0, "cannot realize 0");
     require(balanceOf(msg.sender) >= _amount, "insufficient balance");
     uint256 floorPrice = amm.fsl() / locks.totalSupply();
+    require(usdc.balanceOf(msg.sender) >= (_amount*(10**6) * floorPrice) && usdc.allowance(msg.sender, address(this)) >= (_amount*(10**6) * floorPrice), "insufficient funds/allowance");
     _burn(msg.sender, _amount);
     usdc.transferFrom(msg.sender, address(amm), (_amount*(10**6)) * floorPrice);
     locks.mint(msg.sender, _amount);
