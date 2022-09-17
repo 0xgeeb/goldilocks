@@ -6,6 +6,8 @@ import "./LocksToken.sol";
 import "./PorridgeToken.sol";
 import "./Borrow.sol";
 
+// need to add onlyAdmin() modifier
+
 contract AMM {
 
   IERC20 usdc;
@@ -26,11 +28,6 @@ contract AMM {
     adminAddress = _adminAddress;
   }
 
-  modifier onlyAdmin() {
-    require(msg.sender == adminAddress, "not authorized");
-    _;
-  }
-
   function updateFSL() public {
     fsl = (AMMBalance()*92783) / 100000;
   }
@@ -39,8 +36,8 @@ contract AMM {
     psl = AMMBalance() - fsl;
   }
 
-  function updateApproval(uint256 _amount) public onlyAdmin() {
-    usdc.approve(address(borrow), _amount);
+  function updateApproval(uint256 _amount) public {
+    usdc.approve(address(borrow), _amount*(10**6));
   }
 
   function AMMBalance() public view returns (uint256) {
@@ -87,7 +84,7 @@ contract AMM {
       _index += 1;
     }
     require(usdc.balanceOf(msg.sender) >= _cumulativePrice*(10**6), "insufficient usdc balance");
-    usdc.transferFrom(msg.sender, address(this), _cumulativePrice);
+    usdc.transferFrom(msg.sender, address(this), _cumulativePrice*(10**6));
     locks.mint(msg.sender, _amount);
     fsl += _cumulativeFloorPrice;
     psl += _cumulativePremium;
@@ -116,7 +113,7 @@ contract AMM {
       _index += 1;
     }
     uint256 tax = _cumulativePrice / 20;
-    usdc.transfer(msg.sender, _cumulativePrice - tax);
+    usdc.transfer(msg.sender, (_cumulativePrice - tax)*(10**6));
     locks.burn(msg.sender, _amount);
     uint256 floorLoss = _cumulativeFloorPrice - tax;
     fsl -= floorLoss;
@@ -132,7 +129,7 @@ contract AMM {
     uint256 _rawTotal = _amount * _floorPrice;
     uint256 _tax = (_rawTotal * 3) / 100;
     locks.burn(msg.sender, _amount);
-    usdc.transfer(msg.sender, _rawTotal - _tax);
+    usdc.transfer(msg.sender, (_rawTotal - _tax)*(10**6));
     fsl -= _rawTotal - _tax;
   }
 }
