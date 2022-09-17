@@ -4,7 +4,6 @@ pragma solidity ^0.8.9;
 import "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import "./LocksToken.sol";
 import "./PorridgeToken.sol";
-import "./Borrow.sol";
 
 // need to add onlyAdmin() modifier
 
@@ -12,24 +11,16 @@ contract AMM {
 
   IERC20 usdc;
   LocksToken locks;
-  PorridgeToken prg;
-  Borrow borrow;
   uint256 public targetRatio = 3*(10**18) / 2*(10**18);
   uint256 public fsl;
   uint256 public psl;
 
-  constructor(address _locksAddress, address _prgAddress, address _borrowAddress) {
+  constructor(address _locksAddress) {
     locks = LocksToken(_locksAddress);
-    prg = PorridgeToken(_prgAddress);
-    borrow = Borrow(_borrowAddress);
     usdc = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
   }
 
-  function updateApproval(uint256 _amount) public {
-    usdc.approve(address(borrow), _amount*(10**6));
-  }
-
-  function updateFloors() public {
+  function updatePools() public {
     fsl = ammBalance() * 92783 / 100000;
     psl = ammBalance() - fsl;
   }
@@ -63,7 +54,7 @@ contract AMM {
   }
 
   function purchase(uint256 _amount) public {
-    updateFloors();
+    updatePools();
     uint256 _fsl = fsl;
     uint256 _psl = psl;
     uint256 _supply = locks.totalSupply();
@@ -72,7 +63,7 @@ contract AMM {
     uint256 _cumulativePrice;
     uint256 _cumulativeFloorPrice;
     uint256 _cumulativePremium;
-    while(_index <= _amount) {
+    while(_index < _amount) {
       uint256 currentPrice = oldMarketPrice(_fsl, _psl, _supply);
       _cumulativePrice += currentPrice;
       _cumulativeFloorPrice += _floorPrice;
@@ -83,8 +74,8 @@ contract AMM {
       _floorPrice = _fsl / _supply;
       _index += 1;
     }
-    require(usdc.balanceOf(msg.sender) >= _cumulativePrice*(10**6), "insufficient usdc balance");
-    usdc.transferFrom(msg.sender, address(this), _cumulativePrice*(10**6));
+    require(usdc.balanceOf(msg.sender) >= _cumulativePrice, "insufficient usdc balance");
+    usdc.transferFrom(msg.sender, address(this), _cumulativePrice);
     locks.mint(msg.sender, _amount);
     fsl += _cumulativeFloorPrice;
     psl += _cumulativePremium;
@@ -92,7 +83,7 @@ contract AMM {
   }
 
   function sale(uint256 _amount) public {
-    updateFloors();
+    updatePools();
     require(locks.balanceOf(msg.sender) >= _amount, "insufficient locks balance");
     uint256 _fsl = fsl;
     uint256 _psl = psl;
@@ -114,7 +105,7 @@ contract AMM {
       _index += 1;
     }
     uint256 _tax = _cumulativePrice / 20;
-    usdc.transfer(msg.sender, (_cumulativePrice - _tax)*(10**6));
+    usdc.transfer(msg.sender, (_cumulativePrice - _tax));
     locks.burn(msg.sender, _amount);
     fsl -= _cumulativeFloorPrice - _tax;
     psl -= _cumulativePremium;
@@ -122,14 +113,28 @@ contract AMM {
   }
 
   function purchase1(uint256 _amount) public {
-      
+    updatePools();
+    require(_amount > 0, "cannot purchase zero");
+    uint256 _price = _amount * marketPrice();
+    require(usdc.balanceOf(msg.sender) >= _price && usdc.allowance(msg.sender, address(this)) >= _price, "insufficient funds/allowance");
+    usdc.transferFrom(msg.sender, address(this), _price);
+    locks.mint(msg.sender, _amount);
+    floorRaise();
   }
 
   function sale1(uint256 _amount) public {
-
+    updatePools();
+    require(_amount > 0, "cannot purchase zero");
+    uint256 _price = _amount * marketPrice();
+    require(locks.balanceOf(msg.sender) >= _amount && locks.allowance(msg.sender, address(this)) >= _amount, "insufficient funds/allowance");
+    uint256 _tax = _price / 20;
+    usdc.transfer(msg.sender, (_price - _tax));
+    locks.burn(msg.sender, _amount);
+    floorRaise();
   }
 
   function redeem(uint256 _amount) public {
+    updatePools();
     require(_amount > 0, "cannot redeem zero");
     require(locks.balanceOf(msg.sender) >= _amount, "insufficient balance");
     uint256 _rawTotal = _amount * floorPrice();
@@ -137,5 +142,6 @@ contract AMM {
     locks.burn(msg.sender, _amount);
     usdc.transfer(msg.sender, (_rawTotal - _tax)*(10**6));
     fsl -= _rawTotal - _tax;
+    floorRaise();
   }
 }
