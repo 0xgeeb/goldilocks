@@ -45,14 +45,14 @@
 }
 
 /* Chrome, Safari, Edge, Opera */
-#bankroll-input::-webkit-outer-spin-button,
-#bankroll-input::-webkit-inner-spin-button {
+#input::-webkit-outer-spin-button,
+#input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
 /* Firefox */
-#bankroll-input {
+#input {
   -moz-appearance: textfield;
 }
 
