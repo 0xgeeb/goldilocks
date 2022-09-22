@@ -31,6 +31,10 @@ contract Borrow {
     return lockedLocks[_user];
   }
 
+  function getBorrowed(address _user) public view returns (uint256) {
+    return borrowedUsdc[_user];
+  }
+
   function borrow(uint256 _amount) public {
     require(_amount > 0, "cannot borrow zero");
     uint256 _floorPrice = amm.fsl() / locks.totalSupply();

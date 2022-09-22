@@ -6,6 +6,7 @@ foundry/out/
 foundry/!/broadcast
 foundry/broadcast/*
 foundry/broadcast/*/31337/
+foundry/broadcast
 
 # Dotenv file
 .env

@@ -14,10 +14,12 @@ contract AMM {
   uint256 public targetRatio = 3*(10**18) / 2*(10**18);
   uint256 public fsl;
   uint256 public psl;
+  uint256 public lastFloorRaise;
 
   constructor(address _locksAddress) {
     locks = LocksToken(_locksAddress);
     usdc = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+    lastFloorRaise = block.timestamp;
   }
 
   function updatePools() public {
@@ -42,6 +44,7 @@ contract AMM {
       psl -= psl / 10;
       fsl += psl / 10;
       targetRatio += targetRatio / 10;
+      lastFloorRaise = block.timestamp;
     } 
   }
 
