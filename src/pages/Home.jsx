@@ -74,7 +74,6 @@ export default function Home() {
   }
 
   async function checkBorrowed(account) {
-    console.log('hello')
     const provider = new ethers.providers.Web3Provider(ethereum);
     const signer = provider.getSigner();
     const borrowContract = new ethers.Contract(borrowContractAddress, BorrowContract.abi, signer);
