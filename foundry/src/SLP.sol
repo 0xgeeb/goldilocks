@@ -9,17 +9,17 @@ import "./PorridgeToken.sol";
 
 contract SLP {
 
+  uint256 fsl = 75e18;
+  uint256 psl = 25e18;
+  uint256 supply = 110e18;
+
+  uint256 mfsl = 75e18;
+  uint256 mpsl = 25e18;
+  uint256 msupply = 110e18;
+
   IERC20 usdc;
   LocksToken locks;
   uint256 public lastFloorRaise;
-
-  struct Info {
-    uint256 fsl;
-    uint256 psl;
-    uint256 supply;
-    uint8 exponent;
-    uint8 target;
-  }
 
   constructor(address _locksAddress) {
     locks = LocksToken(_locksAddress);
@@ -28,32 +28,35 @@ contract SLP {
   }
 
   function floorPrice(uint256 _fsl, uint256 _supply) public pure returns (uint256) {
-    return _fsl / _supply;
+    return (_fsl*(10**18)) / _supply;
   }
 
-  function marketPrice(uint256 _fsl, uint256 _psl, uint256 _supply, uint8 _exponent) public pure returns (uint256) {
-    return floorPrice(_fsl, _supply) + ((_psl / _supply) * ((_psl + _fsl) / _fsl)**_exponent);
+  function marketPrice(uint256 _fsl, uint256 _psl, uint256 _supply) public pure returns (uint256) {
+    return floorPrice(_fsl, _supply) + (((_psl*(10**18) / _supply) * (((_psl + _fsl)*(10**18)) / _fsl))/(10**18));
   }
 
-  function purchase(uint256 _amount, Info memory _info) public {
-    require(_amount <= usdc.balanceOf(msg.sender), "insufficient funds");
-    uint256 _cumulativeFsl = _info.fsl;
-    uint256 _cumulativePsl = _info.psl;
+  function purchase(uint256 _amount) public returns (uint256) {
     for(uint256 i; i < _amount; i++) {
-      _info.supply += 1;
-      _info.fsl += floorPrice(_info.fsl, _info.supply);
-      _info.psl += marketPrice(_info.fsl, _info.psl, _info.supply, _info.exponent) - floorPrice(_info.fsl, _info.supply);
-      if(_info.psl / _info.fsl >_info.target) {
-        _info.psl -= _info.psl / 20;
-        _info.fsl += _info.psl / 20;
-        _info.target += _info.target / 16;
-        lastFloorRaise = block.timestamp;
-      }
+      supply += 1e18;
+      fsl += floorPrice(fsl, supply);
+      psl += marketPrice(fsl, psl, supply) - floorPrice(fsl, supply);
     }
-    require(usdc.balanceOf(msg.sender) >= _cumulativeFsl + _cumulativePsl, "insufficient usdc balance");
-    usdc.transferFrom(msg.sender, address(this), _cumulativeFsl + _cumulativePsl);
-    locks.mint(msg.sender, _amount);
+    return marketPrice(fsl, psl, supply);
+  }
 
+  function mpurchase(uint256 _amount) public returns (uint256) {
+    uint256 _mfsl = mfsl;
+    uint256 _mpsl = mpsl;
+    uint256 _msupply = msupply;
+    for(uint256 i; i < _amount; i++) {
+      _msupply += 1e18;
+      _mfsl += floorPrice(_mfsl, _msupply);
+      _mpsl += marketPrice(_mfsl, _mpsl, _msupply) - floorPrice(_mfsl, _msupply);
+    }
+    mfsl = _mfsl;
+    mpsl = _mpsl;
+    msupply = _msupply;
+    return marketPrice(mfsl, mpsl, msupply);
   }
 
 }

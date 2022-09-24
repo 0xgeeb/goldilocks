@@ -4,15 +4,15 @@ struct = {
   "fsl": 75,
   "supply": 110,
   "psl": 25,
-  "exponent": 2.7,
-  "target": 0.5
+  "exponent": 2.775,
+  "target": 0.4
 }
 
 floor_price = struct["fsl"] / struct["supply"]
 market_price = floor_price + ((struct["psl"] / struct["supply"]) * ((struct["psl"] + struct["fsl"]) / struct["fsl"])**struct["exponent"])
 ratio = struct["psl"] / struct["fsl"]
 
-# print(market_price)
+print(market_price)
 
 def buy(amount):
   global floor_price
@@ -29,7 +29,7 @@ def buy(amount):
       floor_price = struct["fsl"] / struct["supply"]
       struct["target"] = struct["target"] * 1.1
       print("floor raise!")
-    market_price = floor_price + ((struct["psl"] / max(struct["supply"], 1))*((struct["psl"] + struct["fsl"]) / max(struct["fsl"], 1)) * struct["exponent"])
+    market_price = floor_price + ((struct["psl"] / max(struct["supply"], 1))*((struct["psl"] + struct["fsl"]) / max(struct["fsl"], 1)) ** struct["exponent"])
     print("market price:", round(market_price, 5), " | ", "floor price:", round(floor_price, 5))
   return market_price
 
@@ -42,7 +42,7 @@ def sell(amount):
       struct["supply"] -= 1
       struct["fsl"] -= floor_price
       struct["psl"] -= (market_price - floor_price)
-      market_price = floor_price + ((struct["psl"] / max(struct["supply"], 1)) * ((struct["psl"] + struct["fsl"]) / max(struct["fsl"], 1)) * struct["exponent"])
+      market_price = floor_price + ((struct["psl"] / max(struct["supply"], 1)) * ((struct["psl"] + struct["fsl"]) / max(struct["fsl"], 1)) ** struct["exponent"])
       tax = market_price*0.05
       struct["fsl"] += tax
       floor_price = struct["fsl"] / max(struct["supply"], 1)
