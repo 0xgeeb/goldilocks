@@ -26,7 +26,6 @@ contract LocksToken is ERC20("Locks Token", "LOCKS") {
   }
 
   function mint(address _to, uint256 _amount) public {
-    require(totalSupply() + _amount <= hardCap, "mint would exceed hard cap");
     _mint(_to, _amount);
   }
 

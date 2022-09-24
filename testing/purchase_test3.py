@@ -49,28 +49,28 @@ def sell(amount):
       print("market price:", round(market_price, 5), " | ", "floor price:", round(floor_price, 5))
   return market_price
 
-# buy(130)
+buy(5)
 # sell(130)
 
-for i in range(0, 150):
-  rando = random.random()
-  if(rando < 0.25):
-    if(rando < 0.125):
-      buy(5)
-    else:
-      buy(10)
-  elif(rando < 0.5):
-    if(rando < 0.375):
-      sell(5)
-    else:
-      sell(10)
-  elif(rando < 0.75):
-    if(rando < 0.625):
-      buy(5)
-    else:
-      buy(10)
-  else:
-    if(rando < 0.875):
-      sell(5)
-    else:
-      sell(10)
+# for i in range(0, 150):
+#   rando = random.random()
+#   if(rando < 0.25):
+#     if(rando < 0.125):
+#       buy(5)
+#     else:
+#       buy(10)
+#   elif(rando < 0.5):
+#     if(rando < 0.375):
+#       sell(5)
+#     else:
+#       sell(10)
+#   elif(rando < 0.75):
+#     if(rando < 0.625):
+#       buy(5)
+#     else:
+#       buy(10)
+#   else:
+#     if(rando < 0.875):
+#       sell(5)
+#     else:
+#       sell(10)

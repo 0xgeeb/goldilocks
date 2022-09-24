@@ -11,7 +11,8 @@ contract AMM {
 
   IERC20 usdc;
   LocksToken locks;
-  uint256 public targetRatio = 3*(10**18) / 2*(10**18);
+  uint256 public targetRatio = 4*(10**18) / 10*(10**18);
+  uint256 public exponent = 2775*(10**18) / 1000*(10**18);
   uint256 public fsl;
   uint256 public psl;
   uint256 public lastFloorRaise;
@@ -36,14 +37,14 @@ contract AMM {
   }
 
   function marketPrice() public view returns (uint256) {
-    return ((fsl+psl) / locks.totalSupply()) * ((fsl+psl) / fsl);
+    return floorPrice() + ((psl / locks.totalSupply()) * ((psl + fsl) / fsl)**exponent);
   }
 
   function floorRaise() public {
     if((psl + fsl) / fsl >= targetRatio) {
-      psl -= psl / 10;
-      fsl += psl / 10;
-      targetRatio += targetRatio / 10;
+      psl -= psl / 20;
+      fsl += psl / 20;
+      targetRatio += targetRatio / 16;
       lastFloorRaise = block.timestamp;
     } 
   }
@@ -57,7 +58,6 @@ contract AMM {
   }
 
   function purchase(uint256 _amount) public {
-    updatePools();
     uint256 _fsl = fsl;
     uint256 _psl = psl;
     uint256 _supply = locks.totalSupply();
@@ -86,7 +86,6 @@ contract AMM {
   }
 
   function sale(uint256 _amount) public {
-    updatePools();
     require(locks.balanceOf(msg.sender) >= _amount, "insufficient locks balance");
     uint256 _fsl = fsl;
     uint256 _psl = psl;
@@ -112,7 +111,6 @@ contract AMM {
     locks.burn(msg.sender, _amount);
     fsl -= _cumulativeFloorPrice - _tax;
     psl -= _cumulativePremium;
-    floorRaise();
   }
 
   function purchase1(uint256 _amount) public {
@@ -141,10 +139,8 @@ contract AMM {
     require(_amount > 0, "cannot redeem zero");
     require(locks.balanceOf(msg.sender) >= _amount, "insufficient balance");
     uint256 _rawTotal = _amount * floorPrice();
-    uint256 _tax = _rawTotal / 100 * 3;
     locks.burn(msg.sender, _amount);
-    usdc.transfer(msg.sender, (_rawTotal - _tax)*(10**6));
-    fsl -= _rawTotal - _tax;
+    usdc.transfer(msg.sender, (_rawTotal)*(10**6));
     floorRaise();
   }
 }

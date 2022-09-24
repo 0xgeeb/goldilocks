@@ -55,8 +55,8 @@ contract Borrow {
     require(_amount >= lockedLocks[msg.sender] * _floorPrice, "insufficient borrowed amount");
     lockedLocks[msg.sender] -= _amount / _floorPrice;
     borrowedUsdc[msg.sender] -= _amount;
-    locks.transferFrom(address(this), address(prg), _amount / _floorPrice);
     usdc.transferFrom(msg.sender, address(amm), _amount*(10**6));
+    locks.transferFrom(address(this), address(prg), _amount / _floorPrice);
   }
 
 }
