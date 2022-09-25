@@ -36,11 +36,18 @@ contract SLP {
   }
 
   function purchase(uint256 _amount) public returns (uint256) {
+    uint256 _cumulativePrice;
+    uint256 _cumulativeFloorPrice;
+    uint256 _cumulativePremium;
     for(uint256 i; i < _amount; i++) {
+      _cumulativePrice += marketPrice(fsl, psl, supply);
+      _cumulativeFloorPrice += floorPrice(fsl, supply);
+      _cumulativePremium += marketPrice(fsl, psl, supply) - floorPrice(fsl, supply);
       supply += 1e18;
       fsl += floorPrice(fsl, supply);
       psl += marketPrice(fsl, psl, supply) - floorPrice(fsl, supply);
     }
+    locks.mint(msg.sender, _amount);
     return marketPrice(fsl, psl, supply);
   }
 
@@ -48,7 +55,9 @@ contract SLP {
     uint256 _mfsl = mfsl;
     uint256 _mpsl = mpsl;
     uint256 _msupply = msupply;
+    uint256 _purchasePrice;
     for(uint256 i; i < _amount; i++) {
+      _purchasePrice += marketPrice(_mfsl, _mpsl, _msupply);
       _msupply += 1e18;
       _mfsl += floorPrice(_mfsl, _msupply);
       _mpsl += marketPrice(_mfsl, _mpsl, _msupply) - floorPrice(_mfsl, _msupply);
@@ -56,7 +65,8 @@ contract SLP {
     mfsl = _mfsl;
     mpsl = _mpsl;
     msupply = _msupply;
+    usdc.transferFrom(msg.sender, address(this), _purchasePrice);
+    locks.mint(msg.sender, _amount);
     return marketPrice(mfsl, mpsl, msupply);
   }
-
 }

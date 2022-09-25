@@ -10,7 +10,6 @@ contract SLPTest is Test {
   SLP slp;
   LocksToken locks;
 
-
   function setUp() public {
     locks = new LocksToken();
     slp = new SLP(address(locks));
