@@ -7,9 +7,11 @@ import "../src/LocksToken.sol";
 
 contract LocksTokenScript is Script {
 
+  LocksToken lockstoken;
+
   function run() public {
     vm.startBroadcast();
-    LocksToken lockstoken = new LocksToken();
+    lockstoken = new LocksToken();
     vm.stopBroadcast();
   }
 
