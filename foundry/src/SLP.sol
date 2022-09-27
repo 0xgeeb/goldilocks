@@ -9,17 +9,18 @@ import "./PorridgeToken.sol";
 
 contract SLP {
 
-  uint256 fsl = 75e18;
-  uint256 psl = 25e18;
-  uint256 supply = 110e18;
-
-  uint256 mfsl = 75e18;
-  uint256 mpsl = 25e18;
-  uint256 msupply = 110e18;
 
   IERC20 usdc;
   LocksToken locks;
   uint256 public lastFloorRaise;
+
+  uint256 fsl = 75e18;
+  uint256 psl = 25e18;
+  uint256 supply = 110e18;
+
+  uint256 public mfsl = 75e18;
+  uint256 public mpsl = 25e18;
+  uint256 public msupply = 110e18;
 
   constructor(address _locksAddress) {
     locks = LocksToken(_locksAddress);
@@ -65,7 +66,7 @@ contract SLP {
     mfsl = _mfsl;
     mpsl = _mpsl;
     msupply = _msupply;
-    usdc.transferFrom(msg.sender, address(this), _purchasePrice);
+    usdc.transferFrom(msg.sender, address(this), _purchasePrice / (10**6));
     locks.mint(msg.sender, _amount);
     return marketPrice(mfsl, mpsl, msupply);
   }

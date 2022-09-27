@@ -25,5 +25,10 @@ contract SLPTest is Test {
     console.log(mresult);
   }
 
+  function testFloorPrice() public {
+    uint256 fpresult = slp.floorPrice(75e18, 110e18);
+    console.log(fpresult);
+  }
+
 
 }

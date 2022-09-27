@@ -17,7 +17,9 @@ def buy(amount):
   global floor_price
   global market_price
   global ratio
+  purchase_price = 0
   for i in range(0, amount):
+    purchase_price += market_price
     struct["supply"] += 1
     struct["fsl"] += floor_price
     struct["psl"] += (market_price - floor_price)
@@ -28,8 +30,9 @@ def buy(amount):
       floor_price = struct["fsl"] / struct["supply"]
       struct["target"] = struct["target"] * 1.1
       print("floor raise!")
-    market_price = floor_price + ((struct["psl"] / max(struct["supply"], 1))*((struct["psl"] + struct["fsl"]) / max(struct["fsl"], 1)))
+    market_price = floor_price + ((struct["psl"] / struct["supply"]))*((struct["psl"] + struct["fsl"]) / struct["fsl"])
     print("market price:", market_price, " | ", "floor price:", floor_price)
+  print(purchase_price)
   return market_price
 
 def sell(amount):

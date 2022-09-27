@@ -4,6 +4,7 @@ import LocksTokenContract from "../utils/LocksToken.json";
 import PorridgeTokenContract from "../utils/PorridgeToken.json";
 import AMMContract from "../utils/AMM.json";
 import BorrowContract from "../utils/Borrow.json";
+import SLPContract from "../utils/SLP.json";
 
 export default function Home() {
 
@@ -21,30 +22,36 @@ export default function Home() {
   const [redeem, setRedeem] = useState();
   const [fsl, setFsl] = useState();
   const [psl, setPsl] = useState();
+  const [slpfsl, setslpFsl] = useState();
+  const [slppsl, setslpPsl] = useState();
   const [lastFloorRaise, setLastFloorRaise] = useState();
   const [targetRatio, setTargetRatio] = useState();
   const [locksBalance, setLocksBalance] = useState();
   const [porridgeBalance, setPorridgeBalance] = useState();
   const [totalLocks, setTotalLocks] = useState();
   const [totalPorridge, setTotalPorridge] = useState();
+  const [purchase, setPurchase] = useState();
 
-  const porridgeContractAddress = "0x627b9a657eac8c3463ad17009a424dfe3fdbd0b1";
-  const borrowContractAddress = "0x5ffe31e4676d3466268e28a75e51d1efa4298620";
-  const locksContractAddress = "0x325c8df4cfb5b068675aff8f62aa668d1dec3c4b";
-  const ammContractAddress = "0x4eab29997d332a666c3c366217ab177cf9a7c436";
+  const porridgeContractAddress = "0xc32609c91d6b6b51d48f2611308fef121b02041f";
+  const borrowContractAddress = "0x262e2b50219620226c5fb5956432a88fffd94ba7";
+  const locksContractAddress = "0x8e45c0936fa1a65bdad3222befec6a03c83372ce";
+  const ammContractAddress = "0xbee6ffc1e8627f51ccdf0b4399a1e1abc5165f15";
+  const slpContractAddress = "0xbee6ffc1e8627f51ccdf0b4399a1e1abc5165f15";
 
   function checkEffect() {
-    checkStaked(currentAccount);
-    checkBorrowed(currentAccount);
-    checkLocked(currentAccount);
-    checkFsl();
-    checkPsl();
-    checkLastFloorRaise();
-    checkTargetRatio();
-    checkTotalLocks();
-    checkTotalPorridge();
-    checkLocksBalance(currentAccount);
-    checkPorridgeBalance(currentAccount);
+    // checkStaked(currentAccount);
+    // checkBorrowed(currentAccount);
+    // checkLocked(currentAccount);
+    // checkFsl();
+    // checkPsl();
+    checkslpFsl();
+    checkslpPsl();
+    // checkLastFloorRaise();
+    // checkTargetRatio();
+    // checkTotalLocks();
+    // checkTotalPorridge();
+    // checkLocksBalance(currentAccount);
+    // checkPorridgeBalance(currentAccount);
   }
 
   async function checkStaked(account) {
@@ -239,7 +246,7 @@ export default function Home() {
   async function buyFunction() {
     const provider = new ethers.providers.Web3Provider(ethereum);
     const signer = provider.getSigner();
-    const ammContract = new ethers.Contract(ammContractAddress, ammContract.abi, signer);
+    const ammContract = new ethers.Contract(ammContractAddress, AMMContract.abi, signer);
     const buyTx = await ammContract.purchase(buy);
     await buyTx.wait();
   }
@@ -247,7 +254,7 @@ export default function Home() {
   async function sellFunction() {
     const provider = new ethers.providers.Web3Provider(ethereum);
     const signer = provider.getSigner();
-    const ammContract = new ethers.Contract(ammContractAddress, ammContract.abi, signer);
+    const ammContract = new ethers.Contract(ammContractAddress, AMMContract.abi, signer);
     const sellTx = await ammContract.sell(sell);
     await sellTx.wait();
   }
@@ -255,9 +262,45 @@ export default function Home() {
   async function redeemFunction() {
     const provider = new ethers.providers.Web3Provider(ethereum);
     const signer = provider.getSigner();
-    const ammContract = new ethers.Contract(ammContractAddress, ammContract.abi, signer);
+    const ammContract = new ethers.Contract(ammContractAddress, AMMContract.abi, signer);
     const redeemTx = await ammContract.redeem(redeem);
     await redeemTx.wait();
+  }
+
+  async function purchaseFunction() {
+    const provider = new ethers.providers.Web3Provider(ethereum);
+    const signer = provider.getSigner();
+    const slpContract = new ethers.Contract(slpContractAddress, SLPContract.abi, signer);
+    const purchaseTx = await slpContract.mpurchase(purchase);
+    await purchaseTx.wait();
+  }
+
+  async function checkslpFsl() {
+    const provider = new ethers.providers.Web3Provider(ethereum);
+    const signer = provider.getSigner();
+    const slpContract = new ethers.Contract(slpContractAddress, SLPContract.abi, signer);
+    const checkFslTx = await slpContract.mfsl();
+    console.log(checkFslTx)
+    if(checkFslTx._hex == "0x00") {
+      setslpFsl(0);
+    }
+    else {
+      setslpFsl(parseInt(checkFslTx._hex, 16) / (10**18));
+    }
+  }
+
+  async function checkslpPsl() {
+    const provider = new ethers.providers.Web3Provider(ethereum);
+    const signer = provider.getSigner();
+    const slpContract = new ethers.Contract(slpContractAddress, SLPContract.abi, signer);
+    const checkPslTx = await slpContract.mpsl();
+    console.log(checkPslTx)
+    if(checkPslTx._hex == "0x00") {
+      setslpPsl(0);
+    }
+    else {
+      setslpPsl(parseInt(checkPslTx._hex, 16) / (10**18));
+    }
   }
 
   return (
@@ -302,7 +345,12 @@ export default function Home() {
           <button className="mx-auto mt-8 px-12 py-3 w-48 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={claimFunction}>claim yield</button>
         </div>
         <div className="w-[25%] flex flex-col p-4 rounded-xl bg-yellow-100 mr-4" id="card-div-shadow">
-          <h2 className="mx-auto text-xl">borrowing</h2>
+          <h2 className="mx-auto text-xl">slp</h2>
+          <div className="flex justify-around flex-row items-center mt-16">
+            <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={purchaseFunction}>purchase</button>
+            <input type="number" value={purchase} id="input" className="w-24 pl-3 rounded" onChange={(e) => setPurchase(e.target.value)}/>
+          </div>
+          {/* <h2 className="mx-auto text-xl">borrowing</h2>
           <div className="flex justify-around flex-row items-center mt-16">
             <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={borrowFunction}>borrow</button>
             <input type="number" value={borrow} id="input" className="w-24 pl-3 rounded" onChange={(e) => setBorrow(e.target.value)}/>
@@ -310,7 +358,7 @@ export default function Home() {
           <div className="flex justify-around flex-row items-center mt-8">
             <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={repayFunction}>repay</button>
             <input type="number" value={repay} id="input" className="w-24 pl-3 rounded" onChange={(e) => setRepay(e.target.value)}/>
-          </div>
+          </div> */}
         </div>
         <div className="w-[25%] flex flex-col p-4 rounded-xl bg-yellow-100 mr-4" id="card-div-shadow">
           <h2 className="mx-auto text-xl">wallet</h2>
@@ -353,13 +401,21 @@ export default function Home() {
         </div>
         <div className="w-[25%] flex flex-col px-24">
           <div className="mt-8 flex flex-row justify-between">
+            <p className="">fsl balance: </p>
+            <p>{slpfsl}</p>
+          </div>
+          <div className="mt-8 flex flex-row justify-between">
+            <p className="">psl balance: </p>
+            <p>{slppsl}</p>
+          </div>
+          {/* <div className="mt-8 flex flex-row justify-between">
             <p className="">borrowed $USDC: </p>
             <p>{borrowed}</p>
           </div>
           <div className="mt-8 flex flex-row justify-between">
             <p>locked $LOCKS: </p>
             <p>{locked}</p>
-          </div>
+          </div> */}
         </div>
         <div className="w-[25%] flex flex-col px-24">
           <div className="mt-8 flex flex-row justify-between">
