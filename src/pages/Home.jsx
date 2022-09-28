@@ -39,19 +39,19 @@ export default function Home() {
   const slpContractAddress = "0xbee6ffc1e8627f51ccdf0b4399a1e1abc5165f15";
 
   function checkEffect() {
-    // checkStaked(currentAccount);
-    // checkBorrowed(currentAccount);
-    // checkLocked(currentAccount);
-    // checkFsl();
-    // checkPsl();
-    checkslpFsl();
-    checkslpPsl();
-    // checkLastFloorRaise();
-    // checkTargetRatio();
-    // checkTotalLocks();
-    // checkTotalPorridge();
-    // checkLocksBalance(currentAccount);
-    // checkPorridgeBalance(currentAccount);
+    checkStaked(currentAccount);
+    checkBorrowed(currentAccount);
+    checkLocked(currentAccount);
+    checkFsl();
+    checkPsl();
+    // checkslpFsl();
+    // checkslpPsl();
+    checkLastFloorRaise();
+    checkTargetRatio();
+    checkTotalLocks();
+    checkTotalPorridge();
+    checkLocksBalance(currentAccount);
+    checkPorridgeBalance(currentAccount);
   }
 
   async function checkStaked(account) {
@@ -345,12 +345,12 @@ export default function Home() {
           <button className="mx-auto mt-8 px-12 py-3 w-48 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={claimFunction}>claim yield</button>
         </div>
         <div className="w-[25%] flex flex-col p-4 rounded-xl bg-yellow-100 mr-4" id="card-div-shadow">
-          <h2 className="mx-auto text-xl">slp</h2>
+          {/* <h2 className="mx-auto text-xl">slp</h2>
           <div className="flex justify-around flex-row items-center mt-16">
             <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={purchaseFunction}>purchase</button>
             <input type="number" value={purchase} id="input" className="w-24 pl-3 rounded" onChange={(e) => setPurchase(e.target.value)}/>
-          </div>
-          {/* <h2 className="mx-auto text-xl">borrowing</h2>
+          </div> */}
+          <h2 className="mx-auto text-xl">borrowing</h2>
           <div className="flex justify-around flex-row items-center mt-16">
             <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={borrowFunction}>borrow</button>
             <input type="number" value={borrow} id="input" className="w-24 pl-3 rounded" onChange={(e) => setBorrow(e.target.value)}/>
@@ -358,7 +358,7 @@ export default function Home() {
           <div className="flex justify-around flex-row items-center mt-8">
             <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={repayFunction}>repay</button>
             <input type="number" value={repay} id="input" className="w-24 pl-3 rounded" onChange={(e) => setRepay(e.target.value)}/>
-          </div> */}
+          </div>
         </div>
         <div className="w-[25%] flex flex-col p-4 rounded-xl bg-yellow-100 mr-4" id="card-div-shadow">
           <h2 className="mx-auto text-xl">wallet</h2>
@@ -400,22 +400,22 @@ export default function Home() {
           </div>
         </div>
         <div className="w-[25%] flex flex-col px-24">
-          <div className="mt-8 flex flex-row justify-between">
+          {/* <div className="mt-8 flex flex-row justify-between">
             <p className="">fsl balance: </p>
             <p>{slpfsl}</p>
           </div>
           <div className="mt-8 flex flex-row justify-between">
             <p className="">psl balance: </p>
             <p>{slppsl}</p>
-          </div>
-          {/* <div className="mt-8 flex flex-row justify-between">
+          </div> */}
+          <div className="mt-8 flex flex-row justify-between">
             <p className="">borrowed $USDC: </p>
             <p>{borrowed}</p>
           </div>
           <div className="mt-8 flex flex-row justify-between">
             <p>locked $LOCKS: </p>
             <p>{locked}</p>
-          </div> */}
+          </div>
         </div>
         <div className="w-[25%] flex flex-col px-24">
           <div className="mt-8 flex flex-row justify-between">

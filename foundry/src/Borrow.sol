@@ -6,8 +6,6 @@ import "./AMM.sol";
 import "./LocksToken.sol";
 import "./PorridgeToken.sol";
 
-// bug with staked tokens not earning yield
-
 contract Borrow {
 
   AMM amm;
@@ -50,9 +48,9 @@ contract Borrow {
 
   function repay(uint256 _amount) public {
     require(_amount > 0, "cannot repay zero");
+    require(borrowedUsdc[msg.sender] >= _amount, "repaying too much");
     require(usdc.balanceOf(msg.sender) >= _amount*(10**6) && usdc.allowance(msg.sender, address(this)) >= _amount*(10**6), "insufficient funds/allowance");
     uint256 _floorPrice = amm.fsl() / locks.totalSupply();
-    require(_amount >= lockedLocks[msg.sender] * _floorPrice, "insufficient borrowed amount");
     lockedLocks[msg.sender] -= _amount / _floorPrice;
     borrowedUsdc[msg.sender] -= _amount;
     usdc.transferFrom(msg.sender, address(amm), _amount*(10**6));

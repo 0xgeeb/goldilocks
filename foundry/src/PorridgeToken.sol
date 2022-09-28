@@ -58,6 +58,7 @@ contract PorridgeToken is ERC20("Porridge Token", "PRG") {
     if(staked[msg.sender] > 0) {
       _distributeYield(msg.sender);
     }
+    stakeStartTime[msg.sender] = block.timestamp;
     staked[msg.sender] += _amount;
     locks.transferFrom(msg.sender, address(this), _amount);
   }
