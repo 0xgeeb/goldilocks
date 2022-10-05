@@ -11,10 +11,10 @@ contract AMM {
 
   IERC20 usdc;
   LocksToken locks;
-  uint256 public targetRatio = 4*(10**18) / 10*(10**18);
-  uint256 public exponent = 2775*(10**18) / 1000*(10**18);
-  uint256 public fsl;
-  uint256 public psl;
+  uint256 public targetRatio = 1;
+  uint256 public fsl = 750e18;
+  uint256 public psl = 250e18;
+  uint256 public supply;
   uint256 public lastFloorRaise;
 
   constructor(address _locksAddress) {
@@ -23,124 +23,79 @@ contract AMM {
     lastFloorRaise = block.timestamp;
   }
 
-  function updatePools() public {
-    fsl = ammBalance() * 92783 / 100000;
-    psl = ammBalance() - fsl;
-  }
-
-  function ammBalance() public view returns (uint256) {
-    return usdc.balanceOf(address(this));
-  }
-
-  function floorPrice() public view returns (uint256) {
-    return fsl / locks.totalSupply();
-  }
-
-  function marketPrice() public view returns (uint256) {
-    return floorPrice() + ((psl / locks.totalSupply()) * ((psl + fsl) / fsl)**exponent);
-  }
-
-  function floorRaise() public {
+  function floorRaise() public returns (uint256) {
     if((psl + fsl) / fsl >= targetRatio) {
+      // use new formula
       psl -= psl / 20;
       fsl += psl / 20;
       targetRatio += targetRatio / 16;
       lastFloorRaise = block.timestamp;
-    } 
+    }
+    return psl + fsl;
   }
 
-  function oldFloorPrice(uint256 _fsl, uint256 _supply) public pure returns (uint256) {
-    return _fsl/_supply;
+  function floorPrice() public view returns (uint256) {
+    return (fsl*(10**18)) / locks.totalSupply();
   }
 
-  function oldMarketPrice(uint256 _fsl, uint256 _psl, uint256 _supply) public pure returns (uint256) {
-    return ((_fsl+_psl)/_supply) * ((_fsl+_psl)/_fsl);
+  function marketPrice() public view returns (uint256) {
+    return floorPrice() + (((psl*(10**18) / locks.totalSupply()) * (((psl + fsl)*(10**18)) / fsl))/(10**18));
   }
 
-  function purchase(uint256 _amount) public {
+  function buy(uint256 _amount) public returns (uint256) {
     uint256 _fsl = fsl;
     uint256 _psl = psl;
-    uint256 _supply = locks.totalSupply();
-    uint256 _floorPrice = oldFloorPrice(_fsl, _supply);
-    uint256 _index;
-    uint256 _cumulativePrice;
-    uint256 _cumulativeFloorPrice;
-    uint256 _cumulativePremium;
-    while(_index < _amount) {
-      uint256 currentPrice = oldMarketPrice(_fsl, _psl, _supply);
-      _cumulativePrice += currentPrice;
-      _cumulativeFloorPrice += _floorPrice;
-      _cumulativePremium += currentPrice - _floorPrice;
-      _supply += 1;
-      _fsl += _floorPrice;
-      _psl += currentPrice - _floorPrice;
-      _floorPrice = _fsl / _supply;
-      _index += 1;
+    uint256 _supply = supply;
+    uint256 _purchasePrice;
+    for(uint256 i; i < _amount; i++) {
+      _purchasePrice += _marketPrice(_fsl, _psl, _supply);
+      _supply += 1e18;
+      _fsl += _floorPrice(_fsl, _supply);
+      _psl += _marketPrice(_fsl, _psl, _supply) - _floorPrice(_fsl, _supply);
     }
-    require(usdc.balanceOf(msg.sender) >= _cumulativePrice, "insufficient usdc balance");
-    usdc.transferFrom(msg.sender, address(this), _cumulativePrice);
+    fsl = _fsl;
+    psl = _psl;
+    supply = _supply;
+    // add tax
+    usdc.transferFrom(msg.sender, address(this), _purchasePrice / (10**6));
     locks.mint(msg.sender, _amount);
-    fsl += _cumulativeFloorPrice;
-    psl += _cumulativePremium;
     floorRaise();
+    return _marketPrice(fsl, psl, supply);
   }
 
-  function sale(uint256 _amount) public {
+  function sell(uint256 _amount) public returns (uint256) {
     require(locks.balanceOf(msg.sender) >= _amount, "insufficient locks balance");
     uint256 _fsl = fsl;
     uint256 _psl = psl;
-    uint256 _supply = locks.totalSupply();
-    uint256 _floorPrice = oldFloorPrice(_fsl, _supply);
-    uint256 _index;
-    uint256 _cumulativePrice;
-    uint256 _cumulativeFloorPrice;
-    uint256 _cumulativePremium;
-    while(_index <= _amount) {
-      uint256 currentPrice = oldMarketPrice(_fsl, _psl, _supply);
-      _cumulativePrice += currentPrice;
-      _cumulativeFloorPrice += _floorPrice;
-      _cumulativePremium += currentPrice - _floorPrice;
-      _supply -= 1;
-      _fsl -= _floorPrice;
-      _psl -= currentPrice - _floorPrice;
-      _floorPrice = _fsl / _supply;
-      _index += 1;
+    uint256 _supply = supply;
+    uint256 _saleAmount;
+    for(uint256 i; i < _amount; i++) {
+      _saleAmount += _marketPrice(_fsl, _psl, _supply);
+      _supply -= 1e18;
+      _fsl -= _floorPrice(_fsl, _supply);
+      _psl -= _marketPrice(_fsl, _psl, _supply) - _floorPrice(_fsl, _supply);
     }
-    uint256 _tax = _cumulativePrice / 20;
-    usdc.transfer(msg.sender, (_cumulativePrice - _tax));
+    // change tax
+    uint256 _tax = _saleAmount / 20;
+    usdc.transfer(msg.sender, _saleAmount - _tax);
     locks.burn(msg.sender, _amount);
-    fsl -= _cumulativeFloorPrice - _tax;
-    psl -= _cumulativePremium;
-  }
-
-  function purchase1(uint256 _amount) public {
-    updatePools();
-    require(_amount > 0, "cannot purchase zero");
-    uint256 _price = _amount * marketPrice();
-    require(usdc.balanceOf(msg.sender) >= _price && usdc.allowance(msg.sender, address(this)) >= _price, "insufficient funds/allowance");
-    usdc.transferFrom(msg.sender, address(this), _price);
-    locks.mint(msg.sender, _amount);
-    floorRaise();
-  }
-
-  function sale1(uint256 _amount) public {
-    updatePools();
-    require(_amount > 0, "cannot purchase zero");
-    uint256 _price = _amount * marketPrice();
-    require(locks.balanceOf(msg.sender) >= _amount && locks.allowance(msg.sender, address(this)) >= _amount, "insufficient funds/allowance");
-    uint256 _tax = _price / 20;
-    usdc.transfer(msg.sender, (_price - _tax));
-    locks.burn(msg.sender, _amount);
-    floorRaise();
+    return _marketPrice(fsl, psl, supply);
   }
 
   function redeem(uint256 _amount) public {
-    updatePools();
     require(_amount > 0, "cannot redeem zero");
     require(locks.balanceOf(msg.sender) >= _amount, "insufficient balance");
     uint256 _rawTotal = _amount * floorPrice();
     locks.burn(msg.sender, _amount);
     usdc.transfer(msg.sender, (_rawTotal)*(10**6));
     floorRaise();
+  }
+
+  function _floorPrice(uint256 _fsl, uint256 _supply) private pure returns (uint256) {
+    return (_fsl*(10**18)) / _supply;
+  }
+
+  function _marketPrice(uint256 _fsl, uint256 _psl, uint256 _supply) private pure returns (uint256) {
+    return _floorPrice(_fsl, _supply) + (((_psl*(10**18) / _supply) * (((_psl + _fsl)*(10**18)) / _fsl))/(10**18));
   }
 }

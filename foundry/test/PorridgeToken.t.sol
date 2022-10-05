@@ -41,7 +41,7 @@ contract PorridgeTokenTest is Test {
     lockstoken.approve(address(porridgetoken), 1000000000);
     vm.prank(jeff);
     porridgetoken.stake(100);
-    vm.warp(block.timestamp + )
+    vm.warp(block.timestamp + 9);
   }
 
 

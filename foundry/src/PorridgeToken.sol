@@ -54,7 +54,7 @@ contract PorridgeToken is ERC20("Porridge Token", "PRG") {
 
   function stake(uint256 _amount) public {
     require(_amount > 0, "cannot stake zero");
-    require(locks.balanceOf(msg.sender) >= _amount && locks.allowance(msg.sender, address(this)) >= _amount, "insufficient locks balance/allowance");
+    require(locks.balanceOf(msg.sender) >= _amount, "insufficient locks balance");
     if(staked[msg.sender] > 0) {
       _distributeYield(msg.sender);
     }
