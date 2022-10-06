@@ -24,8 +24,8 @@ contract PorridgeTokenTest is Test {
 
   function testMint() public {
     porridgetoken.mint(msg.sender, 100);
-    assertEq(porridgetoken.totalSupply(), 100);
-    assertEq(porridgetoken.balanceOf(msg.sender), 100);
+    assertEq(porridgetoken.totalSupply(), 100e18);
+    assertEq(porridgetoken.balanceOf(msg.sender), 100e18);
   }
 
   function testBurn() public {
@@ -36,9 +36,9 @@ contract PorridgeTokenTest is Test {
   }
 
   function testCalculateYield() public {
-    deal(address(lockstoken), jeff, 100);
+    deal(address(lockstoken), jeff, 100e18);
     vm.prank(jeff);
-    lockstoken.approve(address(porridgetoken), 1000000000);
+    lockstoken.approve(address(porridgetoken), 100e18);
     vm.prank(jeff);
     porridgetoken.stake(100);
     vm.warp(block.timestamp + 9);

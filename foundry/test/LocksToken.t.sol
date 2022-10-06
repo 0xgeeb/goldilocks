@@ -13,13 +13,13 @@ contract LocksTokenTest is Test {
   }
 
   function testHardCap() public {
-    assertEq(lockstoken.getHardCap(), 1000000);
+    assertEq(lockstoken.getHardCap(), 1000000e18);
   }
 
   function testMint() public {
     lockstoken.mint(msg.sender, 100);
-    assertEq(lockstoken.totalSupply(), 100);
-    assertEq(lockstoken.balanceOf(msg.sender), 100);
+    assertEq(lockstoken.totalSupply(), 100e18);
+    assertEq(lockstoken.balanceOf(msg.sender), 100e18);
   }
 
   function testBurn() public {
@@ -28,8 +28,5 @@ contract LocksTokenTest is Test {
     assertEq(lockstoken.totalSupply(), 0);
     assertEq(lockstoken.balanceOf(msg.sender), 0);
   }
-
-
-
 
 }

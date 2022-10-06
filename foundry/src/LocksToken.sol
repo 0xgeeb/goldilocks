@@ -11,8 +11,7 @@ contract LocksToken is ERC20("Locks Token", "LOCKS") {
 
   uint256 public startTime;
   uint256 public totalContribution;
-  uint256 hardCap = 1000000;
-  uint256 softCap = hardCap / 10;
+  uint256 public hardCap = 1000000e18;
   IERC20 usdc;
 
   mapping(address => uint256) public allocations;
@@ -26,11 +25,11 @@ contract LocksToken is ERC20("Locks Token", "LOCKS") {
   }
 
   function mint(address _to, uint256 _amount) public {
-    _mint(_to, _amount);
+    _mint(_to, _amount*(10**18));
   }
 
   function burn(address _from, uint256 _amount) public {
-    _burn(_from, _amount);
+    _burn(_from, _amount*(10**18));
   }
 
   function setup() public {
@@ -40,7 +39,7 @@ contract LocksToken is ERC20("Locks Token", "LOCKS") {
   function contribute(uint256 _amount) public {
     require(_amount <= allocations[msg.sender],"insufficient allocations");
     require(totalContribution + _amount <= hardCap, "hardcap hit");
-    require(usdc.balanceOf(msg.sender) >= _amount*(10**6) && usdc.allowance(msg.sender, address(this)) >= _amount*(10**6), "insufficient funds/allowance");
+    require(usdc.balanceOf(msg.sender) >= _amount*(10**6), "insufficient funds");
     require(block.timestamp - startTime < 24 hours, "presale has already concluded");
     allocations[msg.sender] -= _amount;
     totalContribution += _amount;

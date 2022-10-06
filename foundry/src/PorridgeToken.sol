@@ -30,11 +30,11 @@ contract PorridgeToken is ERC20("Porridge Token", "PRG") {
   }
 
   function mint(address _to, uint256 _amount) public {
-    _mint(_to, _amount);
+    _mint(_to, _amount*(10**18));
   }
 
   function burn(address _from, uint256 _amount) public {
-    _burn(_from, _amount);
+    _burn(_from, _amount*(10**18));
   }
 
   function getStaked(address _user) public view returns (uint256) {

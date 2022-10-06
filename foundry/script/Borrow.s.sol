@@ -7,6 +7,8 @@ import "../src/Borrow.sol";
 
 contract BorrowScript is Script {
 
+  //use other contract objects and address(contract object) in new Borrow line duh
+
   Borrow borrow;
 
   function run() public {

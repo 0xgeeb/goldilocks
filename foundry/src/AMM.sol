@@ -11,7 +11,7 @@ contract AMM {
 
   IERC20 usdc;
   LocksToken locks;
-  uint256 public targetRatio = 1;
+  uint256 public targetRatio = 4e17;
   uint256 public fsl = 750e18;
   uint256 public psl = 250e18;
   uint256 public supply;
@@ -21,17 +21,6 @@ contract AMM {
     locks = LocksToken(_locksAddress);
     usdc = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
     lastFloorRaise = block.timestamp;
-  }
-
-  function floorRaise() public returns (uint256) {
-    if((psl + fsl) / fsl >= targetRatio) {
-      // use new formula
-      psl -= psl / 20;
-      fsl += psl / 20;
-      targetRatio += targetRatio / 16;
-      lastFloorRaise = block.timestamp;
-    }
-    return psl + fsl;
   }
 
   function floorPrice() public view returns (uint256) {
@@ -56,10 +45,11 @@ contract AMM {
     fsl = _fsl;
     psl = _psl;
     supply = _supply;
-    // add tax
-    usdc.transferFrom(msg.sender, address(this), _purchasePrice / (10**6));
+    uint256 _tax = (_amount / 1000) * 3;
+    fsl += _tax;
+    usdc.transferFrom(msg.sender, address(this), (_purchasePrice - _tax) / (10**12));
     locks.mint(msg.sender, _amount);
-    floorRaise();
+    _floorRaise();
     return _marketPrice(fsl, psl, supply);
   }
 
@@ -88,7 +78,7 @@ contract AMM {
     uint256 _rawTotal = _amount * floorPrice();
     locks.burn(msg.sender, _amount);
     usdc.transfer(msg.sender, (_rawTotal)*(10**6));
-    floorRaise();
+    _floorRaise();
   }
 
   function _floorPrice(uint256 _fsl, uint256 _supply) private pure returns (uint256) {
@@ -98,4 +88,15 @@ contract AMM {
   function _marketPrice(uint256 _fsl, uint256 _psl, uint256 _supply) private pure returns (uint256) {
     return _floorPrice(_fsl, _supply) + (((_psl*(10**18) / _supply) * (((_psl + _fsl)*(10**18)) / _fsl))/(10**18));
   }
+
+  function _floorRaise() private {
+    if(((psl + fsl)*(10**18)) / fsl >= targetRatio) {
+      uint256 _raiseAmount = ((((psl*(10**18)) / fsl)*(10**18)) / 38e16) / 100;
+      psl -= _raiseAmount;
+      fsl += _raiseAmount;
+      targetRatio += targetRatio / 50;
+      lastFloorRaise = block.timestamp;
+    }
+  }
+
 }
