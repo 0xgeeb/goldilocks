@@ -33,7 +33,6 @@ contract Borrow {
     return borrowedUsdc[_user];
   }
 
-  // need to fix math on _fee variable 
   function borrow(uint256 _amount) public {
     require(_amount > 0, "cannot borrow zero");
     uint256 _floorPrice = amm.fsl() / locks.totalSupply();
@@ -41,7 +40,7 @@ contract Borrow {
     require(_floorPrice * _stakedLocks >= _amount, "insufficient borrow limit");
     lockedLocks[msg.sender] += _amount / _floorPrice;
     borrowedUsdc[msg.sender] += _amount;
-    uint256 _fee = _amount / 100 * 3;
+    uint256 _fee = (_amount / 100) * 3;
     locks.transferFrom(address(prg), address(this), _amount / _floorPrice);
     usdc.transferFrom(address(amm), msg.sender, _amount - _fee);
     usdc.transferFrom(address(amm), dev, _fee);

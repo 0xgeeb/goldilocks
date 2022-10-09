@@ -27,6 +27,7 @@ contract AMM {
     return (fsl*(10**18)) / locks.totalSupply();
   }
 
+  // use temporary variables to compartimentalize the formula to make the exponent possible
   function marketPrice() public view returns (uint256) {
     return floorPrice() + (((psl*(10**18) / locks.totalSupply()) * (((psl + fsl)*(10**18)) / fsl))/(10**18));
   }
@@ -65,9 +66,8 @@ contract AMM {
       _fsl -= _floorPrice(_fsl, _supply);
       _psl -= _marketPrice(_fsl, _psl, _supply) - _floorPrice(_fsl, _supply);
     }
-    // change tax
-    uint256 _tax = _saleAmount / 20;
-    usdc.transfer(msg.sender, _saleAmount - _tax);
+    uint256 _tax = (_saleAmount / 1000) * 53;
+    usdc.transfer(msg.sender, (_saleAmount - _tax) / (10**12));
     locks.burn(msg.sender, _amount);
     return _marketPrice(fsl, psl, supply);
   }
