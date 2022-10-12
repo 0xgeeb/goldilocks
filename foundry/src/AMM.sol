@@ -2,23 +2,22 @@
 pragma solidity ^0.8.9;
 
 import "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import "./LocksToken.sol";
-import "./PorridgeToken.sol";
+import "./Locks.sol";
 
 // need to add onlyAdmin() modifier
 
 contract AMM {
 
   IERC20 usdc;
-  LocksToken locks;
+  Locks locks;
   uint256 public targetRatio = 4e17;
   uint256 public fsl = 750e18;
   uint256 public psl = 250e18;
-  uint256 public supply;
+  uint256 public supply = 100e18;
   uint256 public lastFloorRaise;
 
   constructor(address _locksAddress) {
-    locks = LocksToken(_locksAddress);
+    locks = Locks(_locksAddress);
     usdc = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
     lastFloorRaise = block.timestamp;
   }
@@ -46,11 +45,11 @@ contract AMM {
     fsl = _fsl;
     psl = _psl;
     supply = _supply;
-    uint256 _tax = (_amount / 1000) * 3;
-    fsl += _tax;
-    usdc.transferFrom(msg.sender, address(this), (_purchasePrice - _tax) / (10**12));
-    locks.mint(msg.sender, _amount);
-    _floorRaise();
+    // uint256 _tax = (_amount / 1000) * 3;
+    // fsl += _tax;
+    // usdc.transferFrom(msg.sender, address(this), (_purchasePrice - _tax) / (10**12));
+    // locks.mint(msg.sender, _amount);
+    // _floorRaise();
     return _marketPrice(fsl, psl, supply);
   }
 

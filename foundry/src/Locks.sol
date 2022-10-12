@@ -7,7 +7,7 @@ import "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 // need to change allocations mappings to merkle tree hash system
 // need to add onlyAdmin() modifier
 
-contract LocksToken is ERC20("Locks Token", "LOCKS") {
+contract Locks is ERC20("Locks Token", "LOCKS") {
 
   uint256 public startTime;
   uint256 public totalContribution;

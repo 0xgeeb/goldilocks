@@ -3,16 +3,16 @@ pragma solidity ^0.8.9;
 
 import "../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import "./Locks.sol";
 import "./AMM.sol";
-import "./LocksToken.sol";
 import "./Borrow.sol";
 
 // need to add onlyAdmin() modifier
 
-contract PorridgeToken is ERC20("Porridge Token", "PRG") {
+contract Porridge is ERC20("Porridge Token", "PRG") {
 
   IERC20 usdc;
-  LocksToken locks;
+  Locks locks;
   AMM amm;
   Borrow borrow;
 
@@ -23,8 +23,8 @@ contract PorridgeToken is ERC20("Porridge Token", "PRG") {
   uint8 public constant DAILY_EMISSISIONS = 200;
 
   constructor(address _ammAddress, address _locksAddress, address _borrowAddress) {
+    locks = Locks(_locksAddress);
     amm = AMM(_ammAddress);
-    locks = LocksToken(_locksAddress);
     borrow = Borrow(_borrowAddress);
     usdc = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
   }

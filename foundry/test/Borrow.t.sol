@@ -2,15 +2,15 @@
 pragma solidity ^0.8.9;
 
 import "../lib/forge-std/src/Test.sol";
-import "../src/LocksToken.sol";
-import "../src/PorridgeToken.sol";
+import "../src/Locks.sol";
+import "../src/Porridge.sol";
 import "../src/AMM.sol";
 import "../src/Borrow.sol";
 
-contract LocksTokenTest is Test {
+contract BorrowTest is Test {
 
-  LocksToken lockstoken;
-  PorridgeToken porridgetoken;
+  Locks locks;
+  Porridge porridge;
   AMM amm;
   Borrow borrow;
 

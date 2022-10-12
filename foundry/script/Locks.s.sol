@@ -2,16 +2,16 @@
 pragma solidity ^0.8.9;
 
 import "../lib/forge-std/src/Script.sol";
-import "../src/LocksToken.sol";
+import "../src/Locks.sol";
 
 
-contract LocksTokenScript is Script {
+contract LocksScript is Script {
 
-  LocksToken lockstoken;
+  Locks locks;
 
   function run() public {
     vm.startBroadcast();
-    lockstoken = new LocksToken();
+    locks = new Locks();
     vm.stopBroadcast();
   }
 
