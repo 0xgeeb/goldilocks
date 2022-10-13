@@ -20,7 +20,8 @@ contract AMMTest is Test {
   }
 
   function testBuy() public {
-    uint256 result = amm.buy(5000);
+    usdc.approve(address(amm), 10000000e6);
+    uint256 result = amm.buy(500);
     console.log(result);
   }
 

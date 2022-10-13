@@ -23,33 +23,65 @@ contract AMM {
   }
 
   function floorPrice() public view returns (uint256) {
-    return (fsl*(10**18)) / locks.totalSupply();
+    return (fsl*(10**18)) / supply;
   }
 
   // use temporary variables to compartimentalize the formula to make the exponent possible
   function marketPrice() public view returns (uint256) {
-    return floorPrice() + (((psl*(10**18) / locks.totalSupply()) * (((psl + fsl)*(10**18)) / fsl))/(10**18));
+    return floorPrice() + (((psl*(10**18) / supply) * (((psl + fsl)*(10**18)) / fsl))/(10**18));
   }
 
   function buy(uint256 _amount) public returns (uint256) {
+    require(_amount < supply / 20, "price impact too large");
     uint256 _fsl = fsl;
     uint256 _psl = psl;
     uint256 _supply = supply;
     uint256 _purchasePrice;
+    uint256 _market;
+    uint256 _floor;
     for(uint256 i; i < _amount; i++) {
-      _purchasePrice += _marketPrice(_fsl, _psl, _supply);
+      _market = _marketPrice(_fsl, _psl, _supply);
+      _floor = _floorPrice(_fsl, _supply);
+      _purchasePrice += _market;
       _supply += 1e18;
-      _fsl += _floorPrice(_fsl, _supply);
-      _psl += _marketPrice(_fsl, _psl, _supply) - _floorPrice(_fsl, _supply);
+      _psl += _market - _floor;
+      _fsl += _floor;
     }
     fsl = _fsl;
     psl = _psl;
     supply = _supply;
-    // uint256 _tax = (_amount / 1000) * 3;
-    // fsl += _tax;
-    // usdc.transferFrom(msg.sender, address(this), (_purchasePrice - _tax) / (10**12));
-    // locks.mint(msg.sender, _amount);
-    // _floorRaise();
+    uint256 _tax = (_amount / 1000) * 3;
+    fsl += _tax;
+    usdc.transferFrom(msg.sender, address(this), (_purchasePrice - _tax) / (10**12));
+    locks.mint(msg.sender, _amount);
+    _floorRaise();
+    return _marketPrice(fsl, psl, supply);
+  }
+
+    function newBuy(uint256 _amount) public returns (uint256) {
+    require(_amount < supply / 20, "price impact too large");
+    uint256 _fsl = fsl;
+    uint256 _psl = psl;
+    uint256 _supply = supply;
+    uint256 _purchasePrice;
+    uint256 _market;
+    uint256 _floor;
+    for(uint256 i; i < _amount; i++) {
+      _market = _marketPrice(_fsl, _psl, _supply);
+      _floor = _floorPrice(_fsl, _supply);
+      _purchasePrice += _market;
+      _supply += 1e18;
+      _psl += _market - _floor;
+      _fsl += _floor;
+    }
+    fsl = _fsl;
+    psl = _psl;
+    supply = _supply;
+    uint256 _tax = (_amount / 1000) * 3;
+    fsl += _tax;
+    usdc.transferFrom(msg.sender, address(this), (_purchasePrice - _tax) / (10**12));
+    locks.mint(msg.sender, _amount);
+    _floorRaise();
     return _marketPrice(fsl, psl, supply);
   }
 
