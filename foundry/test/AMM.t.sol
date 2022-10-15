@@ -28,7 +28,7 @@ contract AMMTest is Test {
 
   function testPriceImpact() public {
     usdc.approve(address(amm), 10000000e6);
-    vm.expectRevert(bytes("price impact too large"));
+    vm.expectRevert(bytes("price impact too large yo"));
     amm.buy(500);
   }
 
