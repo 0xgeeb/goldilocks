@@ -21,6 +21,7 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
 
   uint32 public constant DAYS_SECONDS = 86400;
   uint8 public constant DAILY_EMISSISIONS = 200;
+  uint256 public stableDecimals = 10e12;
 
   constructor(address _ammAddress, address _locksAddress, address _borrowAddress) {
     locks = Locks(_locksAddress);
@@ -30,11 +31,11 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
   }
 
   function mint(address _to, uint256 _amount) public {
-    _mint(_to, _amount*(10**18));
+    _mint(_to, _amount);
   }
 
   function burn(address _from, uint256 _amount) public {
-    _burn(_from, _amount*(10**18));
+    _burn(_from, _amount);
   }
 
   function getStaked(address _user) public view returns (uint256) {
@@ -54,7 +55,7 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
 
   function stake(uint256 _amount) public {
     require(_amount > 0, "cannot stake zero");
-    require(locks.balanceOf(msg.sender) >= _amount, "insufficient locks balance");
+    require(locks.balanceOf(msg.sender) >= _amount && locks.allowance(msg.sender, address(this)) >= _amount, "insufficient locks balance/allowance");
     if(staked[msg.sender] > 0) {
       _distributeYield(msg.sender);
     }
@@ -80,13 +81,13 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
     require(_amount > 0, "cannot realize 0");
     require(balanceOf(msg.sender) >= _amount, "insufficient balance");
     uint256 floorPrice = amm.fsl() / locks.totalSupply();
-    require(usdc.balanceOf(msg.sender) >= (_amount*(10**6) * floorPrice) && usdc.allowance(msg.sender, address(this)) >= (_amount*(10**6) * floorPrice), "insufficient funds/allowance");
+    require(usdc.balanceOf(msg.sender) >= (_amount * floorPrice ) / stableDecimals && usdc.allowance(msg.sender, address(this)) >= (_amount * floorPrice) / stableDecimals, "insufficient funds/allowance");
     _burn(msg.sender, _amount);
-    usdc.transferFrom(msg.sender, address(amm), (_amount*(10**6)) * floorPrice);
+    usdc.transferFrom(msg.sender, address(amm), (_amount * floorPrice) / stableDecimals);
     locks.mint(msg.sender, _amount);
   }
 
-  function _distributeYield(address _user) internal {
+  function _distributeYield(address _user) private {
     uint256 _yield = calculateYield(_user);
     require(_yield > 0, "nothing to distribute");
     stakeStartTime[_user] = block.timestamp;

@@ -13,7 +13,7 @@ contract LocksTest is Test {
   }
 
   function testHardCap() public {
-    assertEq(locks.getHardCap(), 1000000e18);
+    assertEq(locks.hardCap(), 1000000e18);
   }
 
   function testMint() public {

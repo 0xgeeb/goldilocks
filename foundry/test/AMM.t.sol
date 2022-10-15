@@ -17,12 +17,19 @@ contract AMMTest is Test {
     amm = new AMM(address(locks));
     usdc = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
     deal(address(usdc), address(this), 1000000e6, true);
+    deal(address(locks), address(this), 100e18, true);
   }
 
   function testBuy() public {
     usdc.approve(address(amm), 10000000e6);
-    uint256 result = amm.buy(500);
+    uint256 result = amm.buy(50);
     console.log(result);
+  }
+
+  function testPriceImpact() public {
+    usdc.approve(address(amm), 10000000e6);
+    vm.expectRevert(bytes("price impact too large"));
+    amm.buy(500);
   }
 
 }
