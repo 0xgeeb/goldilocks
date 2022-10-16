@@ -13,7 +13,7 @@ contract AMMTest is Test {
   IERC20 usdc;
 
   function setUp() public {
-    locks = new Locks();
+    locks = new Locks(msg.sender);
     amm = new AMM(address(locks));
     usdc = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
     deal(address(usdc), address(this), 1000000e6, true);
@@ -22,7 +22,7 @@ contract AMMTest is Test {
 
   function testBuy() public {
     usdc.approve(address(amm), 10000000e6);
-    uint256 result = amm.buy(50);
+    uint256 result = amm.buy(5);
     console.log(result);
   }
 

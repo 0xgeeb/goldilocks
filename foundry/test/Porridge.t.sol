@@ -16,23 +16,10 @@ contract PorridgeTest is Test {
   address jeff = 0xFB38050d2dEF04c1bb5Ff21096d50cD992418be3;
 
   function setUp() public {
-    locks = new Locks();
+    locks = new Locks(msg.sender);
     amm = new AMM(address(locks));
     borrow = new Borrow(address(locks), address(locks), address(locks), address(locks));
     porridge = new Porridge(address(amm), address(locks), address(borrow));
-  }
-
-  function testMint() public {
-    porridge.mint(msg.sender, 100);
-    assertEq(porridge.totalSupply(), 100e18);
-    assertEq(porridge.balanceOf(msg.sender), 100e18);
-  }
-
-  function testBurn() public {
-    porridge.mint(msg.sender, 100);
-    porridge.burn(msg.sender, 100);
-    assertEq(porridge.totalSupply(), 0);
-    assertEq(porridge.balanceOf(msg.sender), 0);
   }
 
   function testCalculateYield() public {

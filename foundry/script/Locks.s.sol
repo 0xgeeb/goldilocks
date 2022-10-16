@@ -8,10 +8,11 @@ import "../src/Locks.sol";
 contract LocksScript is Script {
 
   Locks locks;
+  address admin = 0xFB38050d2dEF04c1bb5Ff21096d50cD992418be3;
 
   function run() public {
     vm.startBroadcast();
-    locks = new Locks();
+    locks = new Locks(admin);
     vm.stopBroadcast();
   }
 

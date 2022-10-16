@@ -7,8 +7,6 @@ import "./Locks.sol";
 import "./AMM.sol";
 import "./Borrow.sol";
 
-// need to add onlyAdmin() modifier
-
 contract Porridge is ERC20("Porridge Token", "PRG") {
 
   IERC20 usdc;
@@ -30,27 +28,12 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
     usdc = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
   }
 
-  function mint(address _to, uint256 _amount) public {
-    _mint(_to, _amount);
-  }
-
-  function burn(address _from, uint256 _amount) public {
-    _burn(_from, _amount);
-  }
-
   function getStaked(address _user) public view returns (uint256) {
     return staked[_user];
   }
 
   function timeStaked(address _user) public view returns (uint256) {
     return block.timestamp - stakeStartTime[_user];
-  }
-
-  function calculateYield(address _user) public view returns (uint256) {
-    uint256 _time = timeStaked(_user);
-    uint256 _yieldPortion = staked[_user] / DAILY_EMISSISIONS;
-    uint256 _yield = _yieldPortion * (_time / DAYS_SECONDS);
-    return _yield;
   }
 
   function stake(uint256 _amount) public {
@@ -88,10 +71,17 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
   }
 
   function _distributeYield(address _user) private {
-    uint256 _yield = calculateYield(_user);
+    uint256 _yield = _calculateYield(_user);
     require(_yield > 0, "nothing to distribute");
     stakeStartTime[_user] = block.timestamp;
     _mint(_user, _yield);
+  }
+
+  function _calculateYield(address _user) private view returns (uint256) {
+    uint256 _time = timeStaked(_user);
+    uint256 _yieldPortion = staked[_user] / DAILY_EMISSISIONS;
+    uint256 _yield = _yieldPortion * (_time / DAYS_SECONDS);
+    return _yield;
   }
 
 }

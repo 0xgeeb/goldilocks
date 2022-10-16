@@ -4,15 +4,13 @@ pragma solidity ^0.8.9;
 import "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import "./Locks.sol";
 
-// need to add onlyAdmin() modifier
-
 contract AMM {
 
   IERC20 usdc;
   Locks locks;
   uint256 public targetRatio = 3e17;
-  uint256 public fsl = 80000e18;
-  uint256 public psl = 20000e18;
+  uint256 public fsl;
+  uint256 public psl;
   uint256 public supply = 100000e18;
   uint256 public lastFloorRaise;
 
@@ -22,6 +20,11 @@ contract AMM {
     lastFloorRaise = block.timestamp;
   }
 
+  modifier onlyLocks() {
+    require(msg.sender == address(locks), "not locks");
+    _;
+  }
+
   function floorPrice() public view returns (uint256) {
     return (fsl*(10**18)) / locks.totalSupply();
   }
@@ -29,6 +32,11 @@ contract AMM {
   // use temporary variables to compartimentalize the formula to make the exponent possible
   function marketPrice() public view returns (uint256) {
     return floorPrice() + (((psl*(10**18) / locks.totalSupply()) * (((psl + fsl)*(10**18)) / fsl))/(10**18));
+  }
+
+  function initialize() public onlyLocks {
+    fsl = 80000e18;
+    psl = 20000e18;
   }
 
   function buy(uint256 _amount) public returns (uint256) {
