@@ -17,7 +17,7 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
   mapping(address => uint256) public staked;
   mapping(address => uint256) public stakeStartTime;
 
-  uint32 public constant DAYS_SECONDS = 86400;
+  uint256 public constant DAYS_SECONDS = 86400e18;
   uint8 public constant DAILY_EMISSISIONS = 200;
   uint256 public stableDecimals = 10e12;
 
@@ -47,17 +47,17 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
     locks.transferFrom(msg.sender, address(this), _amount);
   }
 
-  function unstake(uint256 _amount) public {
+  function unstake(uint256 _amount) public returns (uint256 _yield) {
     require(_amount > 0, "cannot unstake zero");
     require(staked[msg.sender] >= _amount, "insufficient staked balance");
     require(_amount <= staked[msg.sender] - borrow.getLocked(msg.sender), "you are currently borrowing against your locks");
-    _distributeYield(msg.sender);
+    _yield = _distributeYield(msg.sender);
     staked[msg.sender] -= _amount;
     locks.transfer(msg.sender, _amount);
   }
 
-  function claim() public {
-    _distributeYield(msg.sender);
+  function claim() public returns (uint256 _yield){
+    _yield = _distributeYield(msg.sender);
   }
 
   function realize(uint256 _amount) public {
@@ -70,8 +70,8 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
     locks.mint(msg.sender, _amount);
   }
 
-  function _distributeYield(address _user) private {
-    uint256 _yield = _calculateYield(_user);
+  function _distributeYield(address _user) private returns (uint256 _yield) {
+    _yield = _calculateYield(_user);
     require(_yield > 0, "nothing to distribute");
     stakeStartTime[_user] = block.timestamp;
     _mint(_user, _yield);
@@ -80,7 +80,7 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
   function _calculateYield(address _user) private view returns (uint256) {
     uint256 _time = timeStaked(_user);
     uint256 _yieldPortion = staked[_user] / DAILY_EMISSISIONS;
-    uint256 _yield = _yieldPortion * (_time / DAYS_SECONDS);
+    uint256 _yield = (_yieldPortion * ((_time * 1e18 * 1e18) / DAYS_SECONDS)) / 1e18;
     return _yield;
   }
 
