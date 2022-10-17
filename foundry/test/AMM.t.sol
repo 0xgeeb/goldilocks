@@ -13,23 +13,19 @@ contract AMMTest is Test {
   IERC20 usdc;
 
   function setUp() public {
-    locks = new Locks(msg.sender);
+    locks = new Locks(address(this));
     amm = new AMM(address(locks));
     usdc = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
     deal(address(usdc), address(this), 1000000e6, true);
-    deal(address(locks), address(this), 100e18, true);
+    deal(address(locks), address(this), 1000000e18, true);
+    deal(address(usdc), address(locks), 1000000e6, true);
+    locks.transferToAMM(address(amm));
   }
 
   function testBuy() public {
     usdc.approve(address(amm), 10000000e6);
-    uint256 result = amm.buy(5);
+    uint256 result = amm.buy(2e18);
     console.log(result);
-  }
-
-  function testPriceImpact() public {
-    usdc.approve(address(amm), 10000000e6);
-    vm.expectRevert(bytes("price impact too large yo"));
-    amm.buy(500);
   }
 
 }

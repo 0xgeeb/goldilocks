@@ -35,8 +35,8 @@ contract AMM {
   }
 
   function initialize() public onlyLocks {
-    fsl = 80000e18;
-    psl = 20000e18;
+    fsl = 800000e18;
+    psl = 200000e18;
   }
 
   function buy(uint256 _amount) public returns (uint256) {
