@@ -48,7 +48,7 @@ contract AMM {
     uint256 _purchasePrice;
     uint256 _market;
     uint256 _floor;
-    for(uint256 i; i < _amount; i++) {
+    while(_leftover >= 1e18) {
       _market = _marketPrice(_fsl, _psl, _supply);
       _floor = _floorPrice(_fsl, _supply);
       _purchasePrice += _market;
@@ -57,18 +57,20 @@ contract AMM {
       _supply += 1e18;
       _leftover -= 1e18;
     }
-    _market = _marketPrice(_fsl, _psl, _supply);
-    _floor = _floorPrice(_fsl, _supply);
-    _purchasePrice += (_market * _leftover) / 1e18;
-    _psl += ((_market - _floor) * _leftover) / 1e18;
-    _fsl += _floor / 1e18;
-    uint256 _tax = (_amount / 1000) * 3;
+    if(_leftover > 0) {
+      _market = _marketPrice(_fsl, _psl, _supply);
+      _floor = _floorPrice(_fsl, _supply);
+      _purchasePrice += (_market * _leftover) / 1e18;
+      _psl += ((_market - _floor) * _leftover) / 1e18;
+      _fsl += (_floor * _leftover) / 1e18;
+    }
+    uint256 _tax = (_purchasePrice / 1000) * 3;
     fsl = _fsl + _tax;
     psl = _psl;
-    usdc.transferFrom(msg.sender, address(this), (_purchasePrice - _tax) / (10**12));
-    locks.mint(msg.sender, _amount);
+    usdc.transferFrom(msg.sender, address(this), (_purchasePrice + _tax) / (10**12));
+    locks.ammMint(msg.sender, _amount);
     _floorRaise();
-    return _marketPrice(fsl, psl, _supply);
+    return _marketPrice(_fsl + _tax, _psl, _supply);
   }
 
   function sell(uint256 _amount) public returns (uint256) {
@@ -80,7 +82,7 @@ contract AMM {
     uint256 _saleAmount;
     uint256 _market;
     uint256 _floor;
-    for(uint256 i; i < _amount; i++) {
+    while(_leftover >= 1e18) {
       _market = _marketPrice(_fsl, _psl, _supply);
       _floor = _floorPrice(_fsl, _supply);
       _saleAmount += _market;
@@ -89,15 +91,17 @@ contract AMM {
       _supply -= 1e18;
       _leftover -= 1e18;
     }
-    _market = _marketPrice(_fsl, _psl, _supply);
-    _floor = _floorPrice(_fsl, _supply);
-    _saleAmount += (_market * _leftover) / 1e18;
-    _psl -= ((_market - _floor) * _leftover) / 1e18;
-    _fsl -= (_floor * _leftover) / 1e18; 
+    if(_leftover > 0) {
+      _market = _marketPrice(_fsl, _psl, _supply);
+      _floor = _floorPrice(_fsl, _supply);
+      _saleAmount += (_market * _leftover) / 1e18;
+      _psl -= ((_market - _floor) * _leftover) / 1e18;
+      _fsl -= (_floor * _leftover) / 1e18; 
+    }
     uint256 _tax = (_saleAmount / 1000) * 53;
     fsl = _fsl + _tax;
     psl = _psl;
-    usdc.transfer(msg.sender, (_saleAmount - _tax) / (10**12));
+    usdc.transfer(msg.sender, (_saleAmount + _tax) / (10**12));
     locks.burn(msg.sender, _amount);
     return _marketPrice(fsl, psl, _supply);
   }
@@ -119,7 +123,7 @@ contract AMM {
     return _floorPrice(_fsl, _supply) + (((_psl*(10**18) / _supply) * (((_psl + _fsl)*(10**18)) / _fsl))/(10**18));
   }
 
-  function _newMarketPrice(uint256 _fsl, uint256 _psl, uint256 _supply) private pure returns (uint256) {
+  function _newMarketPrice(uint256 _fsl, uint256 _psl, uint256 _supply) public pure returns (uint256) {
     uint256 factor_1 =  (_psl*10**9)/_supply;
     uint256 factor_2 = ((_psl+_fsl)*10**3)/_fsl;
     // uint256 exponential = factor_2**3;

@@ -29,6 +29,11 @@ contract Locks is ERC20("Locks Token", "LOCKS") {
     _;
   }
 
+  modifier onlyAMM() {
+    require(msg.sender == ammAddress, "not amm");
+    _;
+  }
+
   function contribute(uint256 _amount) public {
     require(totalContribution + _amount <= hardCap, "hardcap hit");
     require(usdc.balanceOf(msg.sender) >= _amount / stableDecimals && usdc.allowance(msg.sender, address(this)) >= _amount / stableDecimals, "insufficient funds");
@@ -46,14 +51,26 @@ contract Locks is ERC20("Locks Token", "LOCKS") {
     _burn(_from, _amount);
   }
 
+  function ammMint(address _to, uint256 _amount) public onlyAMM {
+    _mint(_to, _amount);
+  }
+
+  function ammBurn(address _to, uint256 _amount) public onlyAMM {
+    _burn(_to, _amount);
+  }
+
   function setup() public onlyAdmin {
     startTime = block.timestamp;
   }
 
-  function transferToAMM(address _ammAddress) public onlyAdmin {
-    amm = AMM(_ammAddress);
+  function transferToAMM() public onlyAdmin {
+    amm = AMM(ammAddress);
     usdc.transfer(address(address(amm)), usdc.balanceOf(address(this)));
     amm.initialize();
+  }
+
+  function setAmmAddress(address _ammAddress) public onlyAdmin {
+    ammAddress = _ammAddress;
   }
 
 }

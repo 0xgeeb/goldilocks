@@ -19,12 +19,13 @@ contract AMMTest is Test {
     deal(address(usdc), address(this), 1000000e6, true);
     deal(address(locks), address(this), 1000000e18, true);
     deal(address(usdc), address(locks), 1000000e6, true);
-    locks.transferToAMM(address(amm));
+    locks.setAmmAddress(address(amm));
+    locks.transferToAMM();
   }
 
   function testBuy() public {
     usdc.approve(address(amm), 10000000e6);
-    uint256 result = amm.buy(2e18);
+    uint256 result = amm.buy(21e17);
     console.log(result);
   }
 

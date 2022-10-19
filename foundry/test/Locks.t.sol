@@ -45,14 +45,21 @@ contract LocksTest is Test {
     locks.mint(msg.sender, 100e18);
   }
 
+  function testOnlyAMM() public {
+    vm.expectRevert(bytes("not amm"));
+    locks.ammMint(msg.sender, 100e18);
+  }
+
   function testTransferToAMM() public {
     deal(address(usdc), address(locks), 1000000e6, true);
     vm.prank(adminAddress);
-    locks.transferToAMM(address(amm));
+    locks.setAmmAddress(address(amm));
+    vm.prank(adminAddress);
+    locks.transferToAMM();
     assertEq(usdc.balanceOf(address(amm)), 1000000e6);
     assertEq(usdc.balanceOf(address(locks)), 0);
-    assertEq(amm.fsl(), 80000e18);
-    assertEq(amm.psl(), 20000e18);
+    assertEq(amm.fsl(), 800000e18);
+    assertEq(amm.psl(), 200000e18);
   }
 
 }

@@ -45,7 +45,7 @@ contract PorridgeTest is Test {
   function testRealize() public {
     deal(address(usdc), address(locks), 1000000e6, true);
     vm.prank(address(this));
-    locks.transferToAMM(address(amm));
+    locks.transferToAMM();
   }
 
 
