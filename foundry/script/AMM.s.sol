@@ -12,7 +12,7 @@ contract AMMScript is Script {
 
   function run() public {
     vm.startBroadcast();
-    amm = new AMM(0x2F54D1563963fC04770E85AF819c89Dc807f6a06);
+    amm = new AMM(0x2F54D1563963fC04770E85AF819c89Dc807f6a06, 0x2F54D1563963fC04770E85AF819c89Dc807f6a06);
     vm.stopBroadcast();
   }
 

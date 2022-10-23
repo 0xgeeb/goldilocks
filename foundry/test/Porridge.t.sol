@@ -20,9 +20,9 @@ contract PorridgeTest is Test {
   function setUp() public {
     usdc = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
     locks = new Locks(address(this));
-    amm = new AMM(address(locks));
-    borrow = new Borrow(address(locks), address(locks), address(locks), address(locks));
-    porridge = new Porridge(address(amm), address(locks), address(borrow));
+    amm = new AMM(address(locks), address(this));
+    borrow = new Borrow(address(amm), address(locks), address(this));
+    porridge = new Porridge(address(amm), address(locks), address(borrow), address(this));
   }
 
   function testCalculateYield() public {
@@ -38,15 +38,23 @@ contract PorridgeTest is Test {
     deal(address(locks), address(this), 100e18);
     locks.approve(address(porridge), 100e18);
     porridge.stake(100e18);
-    vm.warp(block.timestamp + 129600); 
+    vm.warp(block.timestamp + 129600);
+    porridge.unstake(100e18);
     assertEq(porridge.balanceOf(address(this)), 75e16);
   }
 
   function testRealize() public {
+    borrow.setPorridge(address(porridge));
+    deal(address(usdc), address(this), 1000000e6, true);
     deal(address(usdc), address(locks), 1000000e6, true);
-    vm.prank(address(this));
+    deal(address(locks), address(usdc), 1000000e18, true);
+    deal(address(porridge), address(this), 1000000e18, true);
+    locks.setAmmAddress(address(amm));
     locks.transferToAMM();
+    locks.setPorridgeAddress(address(porridge));
+    usdc.approve(address(porridge), 100000e6);
+    porridge.realize(10e18);
+    assertEq(locks.balanceOf(address(this)), 10e18);
   }
-
 
 }

@@ -6,18 +6,26 @@ import "./Locks.sol";
 
 contract AMM {
 
-  IERC20 usdc;
+  IERC20 stable;
   Locks locks;
   uint256 public targetRatio = 3e17;
   uint256 public fsl;
   uint256 public psl;
-  uint256 public supply = 100000e18;
+  uint256 public supply = 1000000e18;
   uint256 public lastFloorRaise;
+  address public adminAddress;
+  uint256 public stableDecimals = 1e12;
 
-  constructor(address _locksAddress) {
+  constructor(address _locksAddress, address _adminAddress) {
     locks = Locks(_locksAddress);
-    usdc = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+    adminAddress = _adminAddress;
+    stable = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
     lastFloorRaise = block.timestamp;
+  }
+
+  modifier onlyAdmin() {
+    require(msg.sender == adminAddress, "not admin");
+    _;
   }
 
   modifier onlyLocks() {
@@ -67,7 +75,7 @@ contract AMM {
     uint256 _tax = (_purchasePrice / 1000) * 3;
     fsl = _fsl + _tax;
     psl = _psl;
-    usdc.transferFrom(msg.sender, address(this), (_purchasePrice + _tax) / (10**12));
+    stable.transferFrom(msg.sender, address(this), (_purchasePrice + _tax) / (10**12));
     locks.ammMint(msg.sender, _amount);
     _floorRaise();
     return _marketPrice(_fsl + _tax, _psl, _supply);
@@ -101,7 +109,7 @@ contract AMM {
     uint256 _tax = (_saleAmount / 1000) * 53;
     fsl = _fsl + _tax;
     psl = _psl;
-    usdc.transfer(msg.sender, (_saleAmount + _tax) / (10**12));
+    stable.transfer(msg.sender, (_saleAmount + _tax) / (10**12));
     locks.burn(msg.sender, _amount);
     return _marketPrice(fsl, psl, _supply);
   }
@@ -111,7 +119,7 @@ contract AMM {
     require(locks.balanceOf(msg.sender) >= _amount, "insufficient balance");
     uint256 _rawTotal = _amount * floorPrice();
     locks.burn(msg.sender, _amount);
-    usdc.transfer(msg.sender, (_rawTotal) / (10**12));
+    stable.transfer(msg.sender, (_rawTotal) / (10**12));
     _floorRaise();
   }
 
@@ -119,7 +127,7 @@ contract AMM {
     return (_fsl*(10**18)) / _supply;
   }
 
-  function _marketPrice(uint256 _fsl, uint256 _psl, uint256 _supply) private pure returns (uint256) {
+  function _marketPrice(uint256 _fsl, uint256 _psl, uint256 _supply) public pure returns (uint256) {
     return _floorPrice(_fsl, _supply) + (((_psl*(10**18) / _supply) * (((_psl + _fsl)*(10**18)) / _fsl))/(10**18));
   }
 
@@ -138,6 +146,11 @@ contract AMM {
       targetRatio += targetRatio / 50;
       lastFloorRaise = block.timestamp;
     }
+  }
+
+  function updateStable(address _stableAddress, uint256 _stableDecimals) public onlyAdmin {
+    stable = IERC20(_stableAddress);
+    stableDecimals = _stableDecimals;
   }
 
 }
