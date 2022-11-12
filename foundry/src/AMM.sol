@@ -9,10 +9,11 @@ contract AMM {
   IERC20 stable;
   Locks locks;
   uint256 public targetRatio = 3e17;
-  uint256 public fsl;
-  uint256 public psl;
-  uint256 public supply = 1000000e18;
+  uint256 public fsl = 800000e18;
+  uint256 public psl = 200000e18;
+  uint256 public supply = 100000e18;
   uint256 public lastFloorRaise;
+  uint256 public lastFloorDecrease;
   address public adminAddress;
   uint256 public stableDecimals = 1e12;
 
@@ -34,12 +35,7 @@ contract AMM {
   }
 
   function floorPrice() public view returns (uint256) {
-    return (fsl*(10**18)) / locks.totalSupply();
-  }
-
-  // use temporary variables to compartimentalize the formula to make the exponent possible
-  function marketPrice() public view returns (uint256) {
-    return floorPrice() + (((psl*(10**18) / locks.totalSupply()) * (((psl + fsl)*(10**18)) / fsl))/(10**18));
+    return (fsl*(1e18)) / locks.totalSupply();
   }
 
   function initialize() public onlyLocks {
@@ -48,7 +44,7 @@ contract AMM {
   }
 
   function buy(uint256 _amount) public returns (uint256) {
-    uint256 _supply = locks.totalSupply();
+    uint256 _supply = supply;
     require(_amount < _supply / 20, "price impact too large");
     uint256 _leftover = _amount;
     uint256 _fsl = fsl;
@@ -57,36 +53,48 @@ contract AMM {
     uint256 _market;
     uint256 _floor;
     while(_leftover >= 1e18) {
-      _market = _marketPrice(_fsl, _psl, _supply);
+      _market = _marketPriceEquation(_fsl, _psl, _supply);
       _floor = _floorPrice(_fsl, _supply);
       _purchasePrice += _market;
-      _psl += _market - _floor;
-      _fsl += _floor;
+      if ((_psl * 1e18) / _fsl > 5e17) {
+        _fsl += _market;
+      }
+      else {
+        _psl += _market - _floor;
+        _fsl += _floor;
+      }
       _supply += 1e18;
       _leftover -= 1e18;
     }
-    if(_leftover > 0) {
-      _market = _marketPrice(_fsl, _psl, _supply);
+    if (_leftover > 0) {
+      _market = _marketPriceEquation(_fsl, _psl, _supply);
       _floor = _floorPrice(_fsl, _supply);
       _purchasePrice += (_market * _leftover) / 1e18;
-      _psl += ((_market - _floor) * _leftover) / 1e18;
-      _fsl += (_floor * _leftover) / 1e18;
+      if ( _psl * 2 > _fsl) {
+        _fsl += (_market * _leftover) / 1e18;
+      }
+      else {
+        _psl += ((_market - _floor) * _leftover) / 1e18;
+        _fsl += (_floor * _leftover) / 1e18;
+      }
     }
     uint256 _tax = (_purchasePrice / 1000) * 3;
+    stable.transferFrom(msg.sender, address(this), (_purchasePrice + _tax) / (1e12));
+    locks.ammMint(msg.sender, _amount);
     fsl = _fsl + _tax;
     psl = _psl;
-    stable.transferFrom(msg.sender, address(this), (_purchasePrice + _tax) / (10**12));
-    locks.ammMint(msg.sender, _amount);
     _floorRaise();
-    return _marketPrice(_fsl + _tax, _psl, _supply);
+    return _marketPriceEquation(_fsl + _tax, _psl, _supply);
+    return (_psl * 1e18) / _fsl;
   }
 
   function sell(uint256 _amount) public returns (uint256) {
+    uint256 _supply = locks.totalSupply();
+    require(_amount < _supply / 20, "price impact too large");
     require(locks.balanceOf(msg.sender) >= _amount, "insufficient locks balance");
     uint256 _leftover = _amount;
     uint256 _fsl = fsl;
     uint256 _psl = psl;
-    uint256 _supply = locks.totalSupply();
     uint256 _saleAmount;
     uint256 _market;
     uint256 _floor;
@@ -99,7 +107,7 @@ contract AMM {
       _supply -= 1e18;
       _leftover -= 1e18;
     }
-    if(_leftover > 0) {
+    if (_leftover > 0) {
       _market = _marketPrice(_fsl, _psl, _supply);
       _floor = _floorPrice(_fsl, _supply);
       _saleAmount += (_market * _leftover) / 1e18;
@@ -107,10 +115,12 @@ contract AMM {
       _fsl -= (_floor * _leftover) / 1e18; 
     }
     uint256 _tax = (_saleAmount / 1000) * 53;
-    fsl = _fsl + _tax;
-    psl = _psl;
-    stable.transfer(msg.sender, (_saleAmount + _tax) / (10**12));
+    _fsl += _tax;
+    stable.transfer(msg.sender, (_saleAmount + _tax) / (1e12));
     locks.burn(msg.sender, _amount);
+    psl = _psl;
+    fsl = _fsl;
+    _lowerThreshold();
     return _marketPrice(fsl, psl, _supply);
   }
 
@@ -119,25 +129,34 @@ contract AMM {
     require(locks.balanceOf(msg.sender) >= _amount, "insufficient balance");
     uint256 _rawTotal = _amount * floorPrice();
     locks.burn(msg.sender, _amount);
-    stable.transfer(msg.sender, (_rawTotal) / (10**12));
+    stable.transfer(msg.sender, (_rawTotal) / (1e12));
     _floorRaise();
   }
 
   function _floorPrice(uint256 _fsl, uint256 _supply) private pure returns (uint256) {
-    return (_fsl*(10**18)) / _supply;
+    return (_fsl*(1e18)) / _supply;
   }
 
   function _marketPrice(uint256 _fsl, uint256 _psl, uint256 _supply) public pure returns (uint256) {
-    return _floorPrice(_fsl, _supply) + (((_psl*(10**18) / _supply) * (((_psl + _fsl)*(10**18)) / _fsl))/(10**18));
+    return _floorPrice(_fsl, _supply) + (((_psl*(1e18) / _supply) * (((_psl + _fsl)*(1e18)) / _fsl))/(1e18));
   }
 
   function _newMarketPrice(uint256 _fsl, uint256 _psl, uint256 _supply) public pure returns (uint256) {
-    uint256 factor_1 =  (_psl*10**9)/_supply;
-    uint256 factor_2 = ((_psl+_fsl)*10**3)/_fsl;
-    // uint256 exponential = factor_2**3;
-    return _floorPrice(_fsl, _supply) + ((factor_1*factor_2));
+    uint256 factor1 =  (_psl*1e10) / _supply;
+    uint256 factor2 = ((_psl + _fsl)*1e2) / _fsl;
+    uint256 exponential = factor2**5;
+    uint256 _floorPricevar = (_fsl*1e18) / _supply;
+    return (_floorPricevar + ((factor1 * exponential))) / (10**2);
   }
 
+  function _marketPriceEquation(uint256 _fsl, uint256 _psl, uint256 _supply) public pure returns (uint256) {
+   uint256 factor1 = _psl * 1e10 / _supply;
+   uint256 factor2 = ((_psl + _fsl) * 1e2) / _fsl;
+   uint256 exponential = factor2**5;
+   uint256 _floorPriceVariable = _fsl * 1e18 /_supply;
+   return (_floorPriceVariable + ((factor1 * exponential) / (1e2))) / 10;
+  }
+ 
   function _floorRaise() private {
     if((psl *(10**18)) / fsl >= targetRatio) {
       uint256 _raiseAmount = ((((psl*(10**18)) / fsl)*(10**18)) / 34e16) / 100;
@@ -145,6 +164,16 @@ contract AMM {
       fsl += _raiseAmount;
       targetRatio += targetRatio / 50;
       lastFloorRaise = block.timestamp;
+    }
+  }
+
+  function _lowerThreshold() private {
+    uint256 _elapsedRaise = block.timestamp - lastFloorRaise;
+    uint256 _elapsedDrop = block.timestamp - lastFloorDecrease;
+    if (_elapsedRaise >= 86400 && _elapsedDrop >= 86400) {
+      uint256 _decreaseFactor = _elapsedRaise / 86400;
+      targetRatio -= (targetRatio * _decreaseFactor);
+      lastFloorDecrease = block.timestamp;
     }
   }
 
