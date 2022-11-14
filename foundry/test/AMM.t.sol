@@ -26,22 +26,15 @@ contract AMMTest is Test {
   function testBuy() public {
     usdc.approve(address(amm), 10000000e6);
     uint256 result = amm.buy(5e18);
-    console.log(result);
+    assertEq(result, 2833255328347148105777);
   }
 
   function testMarketPrice() public {
-    // uint256 result = amm._newMarketPrice();
-    uint256 result = amm._marketPrice(800000e18, 200000e18, 1000000e18);
-    console.log(result);
+    uint256 fsl = 1600000 * 1e18;
+    uint256 psl = 400000 * 1e18;
+    uint256 supply = 1000 * 1e18;
+    uint256 result = amm._marketPrice(fsl, psl, supply);
+    assertEq(result, 2820703125000000000000);    
   }
-
-  function testEquation() public {
-    uint256 fsl = 80000000 * 1e18;
-    uint256 psl = 20000000 * 1e18;
-    uint256 supply = 10000000 * 1e18;
-    uint256 result = amm._marketPriceEquation(fsl, psl, supply)*10;
-    console.log(result);
-  }
-
 
 }

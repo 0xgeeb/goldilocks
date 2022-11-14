@@ -52,32 +52,62 @@ def buy(amount):
       fsl += floor_price
       psl += (market_price - floor_price)
       ratio = psl/fsl
-      if ratio >= target:
-        multiplier = (0.01*ratio)/0.32                   
-        transfer = psl*multiplier
-        psl -= transfer
-        fsl += transfer
-        floor_price = fsl/supply
-        target = target*1.02
-        print("Floor raise! Ratio:", psl/fsl)
     market_price = floor_price + ((psl/max(supply, 1))*((psl+fsl)/max(fsl, 1))**5)  
     invested += market_price
     print("Price:", market_price, "Floor price:", floor_price)
   return market_price
 
+def floor_raise():
+  global invested
+  global supply
+  global fsl
+  global psl
+  global floor_price
+  global market_price
+  global target
+  ratio = psl/fsl
+  if ratio >= target:
+    multiplier = (0.01*ratio)/0.32                   
+    transfer = psl*multiplier
+    psl -= transfer
+    fsl += transfer
+    floor_price = fsl/supply
+    target = target*1.02
+    print("Floor raise! Ratio:", psl/fsl)
+  return 'raise'
 #just a random buy/sell pattern to compare against what happens when you trade through the contracts
 buy(38)
-sell(200)
+floor_raise()
+sell(45)
+sell(30)
 buy(10)
+floor_raise()
+sell(20)
 sell(10)
 buy(15)
-sell(100)
+floor_raise()
+sell(10)
+sell(12)
+buy(45)
+floor_raise()
 buy(8)
+floor_raise()
 sell(8)
-buy(300)
+buy(45)
+floor_raise()
+buy(45)
+floor_raise()
+buy(45)
+floor_raise()
 sell(25)
-buy(96)
-sell(96)
-print(fsl)
-print(psl)
-print(supply)
+buy(45)
+floor_raise()
+buy(45)
+floor_raise()
+buy(12)
+floor_raise()
+sell(48)
+print("psl:", psl)
+print("fsl:",fsl)
+print("supply:",supply)
+print("market price:", market_price)

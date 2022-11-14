@@ -43,11 +43,11 @@ contract Borrow {
     require(_amount > 0, "cannot borrow zero");
     uint256 _floorPrice = amm.floorPrice();
     uint256 _stakedLocks = porridge.getStaked(msg.sender);
-    require((_floorPrice * _stakedLocks) / (10**18) >= _amount, "insufficient borrow limit");
-    lockedLocks[msg.sender] += (_amount*(10**18)) / _floorPrice;
+    require((_floorPrice * _stakedLocks) / (1e18) >= _amount, "insufficient borrow limit");
+    lockedLocks[msg.sender] += (_amount * (1e18)) / _floorPrice;
     borrowedStables[msg.sender] += _amount / stableDecimals;
     uint256 _fee = (_amount / 100) * 3;
-    locks.transferFrom(address(porridge), address(this), (_amount*(10**18)) / _floorPrice);
+    locks.transferFrom(address(porridge), address(this), (_amount * (1e18)) / _floorPrice);
     stable.transferFrom(address(amm), msg.sender, (_amount - _fee) / stableDecimals);
     stable.transferFrom(address(amm), adminAddress, _fee / stableDecimals);
     return (_amount - _fee) / stableDecimals;

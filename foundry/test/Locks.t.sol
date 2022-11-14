@@ -58,8 +58,8 @@ contract LocksTest is Test {
     locks.transferToAMM();
     assertEq(usdc.balanceOf(address(amm)), 1000000e6);
     assertEq(usdc.balanceOf(address(locks)), 0);
-    assertEq(amm.fsl(), 800000e18);
-    assertEq(amm.psl(), 200000e18);
+    assertEq(amm.fsl(), 1600000e18);
+    assertEq(amm.psl(), 400000e18);
   }
 
 }

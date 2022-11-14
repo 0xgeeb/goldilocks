@@ -31,8 +31,8 @@ contract BorrowTest is Test {
   }
 
   function testBorrow() public {
-    locks.approve(address(porridge), 10e18);
-    porridge.stake(10e18);
+    locks.approve(address(porridge), 1000e18);
+    porridge.stake(1000e18);
     vm.prank(address(porridge));
     locks.approve(address(borrow), 100e18);
     vm.prank(address(amm));
@@ -42,31 +42,31 @@ contract BorrowTest is Test {
   }
 
 function testLimitBorrow() public {
-    locks.approve(address(porridge), 10e18);
-    porridge.stake(10e18);
+    locks.approve(address(porridge), 1000000e18);
+    porridge.stake(1000e18);
     vm.expectRevert(bytes("insufficient borrow limit"));
-    borrow.borrow(9e18);
+    borrow.borrow(9000e18);
   }
 
   function testRepay() public {
-    locks.approve(address(porridge), 10e18);
-    porridge.stake(10e18);
+    locks.approve(address(porridge), 1000e18);
+    porridge.stake(1000e18);
     vm.prank(address(porridge));
-    locks.approve(address(borrow), 100e18);
+    locks.approve(address(borrow), 100000e18);
     vm.prank(address(amm));
     usdc.approve(address(borrow), 100e6);
     borrow.borrow(8e18);
-    usdc.approve(address(borrow), 100e18);
-    locks.approve(address(borrow), 100e18);
+    usdc.approve(address(borrow), 1000e18);
+    locks.approve(address(borrow), 1000e18);
     borrow.repay(8e18);
     
   }
 
   function testOverRepay() public {
-    locks.approve(address(porridge), 10e18);
-    porridge.stake(10e18);
+    locks.approve(address(porridge), 1000e18);
+    porridge.stake(1000e18);
     vm.prank(address(porridge));
-    locks.approve(address(borrow), 100e18);
+    locks.approve(address(borrow), 100000e18);
     vm.prank(address(amm));
     usdc.approve(address(borrow), 100e6);
     borrow.borrow(8e18);

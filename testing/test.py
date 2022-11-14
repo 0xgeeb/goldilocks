@@ -1,6 +1,6 @@
-fsl = 80000000
-psl = 20000000
-supply = 10000000
+fsl = 1600000
+psl = 400000
+supply = 1000
 
 market_price = (fsl / supply) + ((psl / supply) * ((psl + fsl) / fsl)**5)
 print(market_price)

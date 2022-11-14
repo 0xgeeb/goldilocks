@@ -52,19 +52,39 @@ def buy(amount):
       fsl += floor_price
       psl += (market_price - floor_price)
       ratio = psl/fsl
-      if ratio >= target:
-        multiplier = (0.01*ratio)/0.32
-        transfer = psl*multiplier
-        psl -= transfer
-        fsl += transfer
-        floor_price = fsl/supply
-        target = target*1.02
-        print("Floor raise! Ratio:", psl/fsl)
     market_price = floor_price + ((psl/max(supply, 1))*((psl+fsl)/max(fsl, 1))**5)  
     invested += market_price
     print("Price:", market_price, "Floor price:", floor_price)
   return market_price
 
-#tracks what happens when 2 million dollars worth of buys occur continuously with no sells
-while(invested < 2000000):
-  buy(1)
+def floor_raise():
+  global invested
+  global supply
+  global fsl
+  global psl
+  global floor_price
+  global market_price
+  global target
+  ratio = psl/fsl
+  if ratio >= target:
+    multiplier = (0.01*ratio)/0.32                   
+    transfer = psl*multiplier
+    psl -= transfer
+    fsl += transfer
+    floor_price = fsl/supply
+    target = target*1.02
+    print("Floor raise! Ratio:", psl/fsl)
+  return 'raise'
+
+#tracks what happens when 400 tokens are bought continuously in chunks of 5 with no sells
+# bought = 0
+# while(bought < 400):
+#   buy(5)
+#   floor_raise()
+#   bought += 5
+# print("psl:", psl)
+# print("fsl:",fsl)
+# print("supply:",supply)
+# print("market price:", market_price)
+
+print(buy(5))
