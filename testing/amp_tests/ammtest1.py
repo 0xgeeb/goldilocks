@@ -87,4 +87,4 @@ def floor_raise():
 # print("supply:",supply)
 # print("market price:", market_price)
 
-print(buy(5))
+print(buy(27))

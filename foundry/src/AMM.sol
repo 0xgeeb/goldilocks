@@ -42,10 +42,10 @@ contract AMM {
     fsl = 1600000e18;
     psl = 400000e18;
   }
-
+  
   function buy(uint256 _amount) public returns (uint256) {
     uint256 _supply = supply;
-    require(_amount < _supply / 20, "price impact too large");
+    require(_amount <= _supply / 20, "price impact too large");
     uint256 _leftover = _amount;
     uint256 _fsl = fsl;
     uint256 _psl = psl;
@@ -53,10 +53,10 @@ contract AMM {
     uint256 _market;
     uint256 _floor;
     while(_leftover >= 1e18) {
-      _supply += 1e18;
       _market = _marketPrice(_fsl, _psl, _supply);
       _floor = _floorPrice(_fsl, _supply);
       _purchasePrice += _market;
+      _supply += 1e18;
       if (_psl * 2 > _fsl) {
         _fsl += _market;
       }
@@ -70,6 +70,7 @@ contract AMM {
       _market = _marketPrice(_fsl, _psl, _supply);
       _floor = _floorPrice(_fsl, _supply);
       _purchasePrice += (_market * _leftover) / 1e18;
+      _supply += _leftover;
       if ( _psl * 2 > _fsl) {
         _fsl += (_market * _leftover) / 1e18;
       }
@@ -114,12 +115,12 @@ contract AMM {
       _fsl -= (_floor * _leftover) / 1e18; 
     }
     uint256 _tax = (_saleAmount / 1000) * 53;
-    _fsl += _tax;
     stable.transfer(msg.sender, (_saleAmount + _tax) / stableDecimals);
     locks.burn(msg.sender, _amount);
+    supply = _supply;
     psl = _psl;
-    fsl = _fsl;
-    return _marketPrice(fsl, psl, _supply);
+    fsl = _fsl += _tax;
+    return _marketPrice(_fsl + _tax, _psl, _supply);
   }
 
   function redeem(uint256 _amount) public {
@@ -137,15 +138,15 @@ contract AMM {
 
   function _marketPrice(uint256 _fsl, uint256 _psl, uint256 _supply) public pure returns (uint256) {
    uint256 factor1 = _psl * 1e10 / _supply;
-   uint256 factor2 = ((_psl + _fsl) * 1e2) / _fsl;
+   uint256 factor2 = ((_psl + _fsl) * 1e5) / _fsl;
    uint256 exponential = factor2**5;
    uint256 _floorPriceVariable = _fsl * 1e18 /_supply;
-   return (_floorPriceVariable + ((factor1 * exponential) / (1e2)));
+   return _floorPriceVariable + ((factor1 * exponential) / (1e17));
   }
  
   function _floorRaise() private {
-    if((psl *(10**18)) / fsl >= targetRatio) {
-      uint256 _raiseAmount = ((((psl*(10**18)) / fsl)*(10**18)) / 32e16) / 100;
+    if((psl * (1e18)) / fsl >= targetRatio) {
+      uint256 _raiseAmount = (((psl*10**18)/fsl)*32*psl)/(10**21);
       psl -= _raiseAmount;
       fsl += _raiseAmount;
       targetRatio += targetRatio / 50;

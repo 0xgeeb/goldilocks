@@ -25,8 +25,8 @@ contract AMMTest is Test {
 
   function testBuy() public {
     usdc.approve(address(amm), 10000000e6);
-    uint256 result = amm.buy(5e18);
-    assertEq(result, 2833255328347148105777);
+    uint256 result = amm.buy(27e18);
+    console.log(result);
   }
 
   function testMarketPrice() public {
@@ -34,7 +34,7 @@ contract AMMTest is Test {
     uint256 psl = 400000 * 1e18;
     uint256 supply = 1000 * 1e18;
     uint256 result = amm._marketPrice(fsl, psl, supply);
-    assertEq(result, 2820703125000000000000);    
+    assertEq(result, 2820703125000000000000);
   }
 
 }
