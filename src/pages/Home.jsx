@@ -17,9 +17,6 @@ export default function Home() {
   const [repay, setRepay] = useState();
   const [locked, setLocked] = useState();
   const [borrowed, setBorrowed] = useState();
-  const [buy, setBuy] = useState();
-  const [sell, setSell] = useState();
-  const [redeem, setRedeem] = useState();
   const [fsl, setFsl] = useState();
   const [psl, setPsl] = useState();
   const [slpfsl, setslpFsl] = useState();
@@ -243,38 +240,6 @@ export default function Home() {
     await repayTx.wait();
   }
 
-  async function buyFunction() {
-    const provider = new ethers.providers.Web3Provider(ethereum);
-    const signer = provider.getSigner();
-    const ammContract = new ethers.Contract(ammContractAddress, AMMContract.abi, signer);
-    const buyTx = await ammContract.purchase(buy);
-    await buyTx.wait();
-  }
-
-  async function sellFunction() {
-    const provider = new ethers.providers.Web3Provider(ethereum);
-    const signer = provider.getSigner();
-    const ammContract = new ethers.Contract(ammContractAddress, AMMContract.abi, signer);
-    const sellTx = await ammContract.sell(sell);
-    await sellTx.wait();
-  }
-
-  async function redeemFunction() {
-    const provider = new ethers.providers.Web3Provider(ethereum);
-    const signer = provider.getSigner();
-    const ammContract = new ethers.Contract(ammContractAddress, AMMContract.abi, signer);
-    const redeemTx = await ammContract.redeem(redeem);
-    await redeemTx.wait();
-  }
-
-  async function purchaseFunction() {
-    const provider = new ethers.providers.Web3Provider(ethereum);
-    const signer = provider.getSigner();
-    const slpContract = new ethers.Contract(slpContractAddress, SLPContract.abi, signer);
-    const purchaseTx = await slpContract.mpurchase(purchase);
-    await purchaseTx.wait();
-  }
-
   async function checkslpFsl() {
     const provider = new ethers.providers.Web3Provider(ethereum);
     const signer = provider.getSigner();
@@ -305,32 +270,7 @@ export default function Home() {
 
   return (
     <div className="px-6">
-      <div className="w-[100%] mt-12 flex flex-row items-center justify-between">
-        <h1 className="text-[30px]">goldilocks</h1>
-        <div className="flex flex-row">
-          <a href="/amm"><button className="px-8 py-2 bg-slate-200 hover:bg-slate-500 rounded-xl mr-4" >AMM</button></a>
-          <a href="/staking"><button className="px-8 py-2 bg-slate-200 hover:bg-slate-500 rounded-xl mr-4" >Staking</button></a>
-          <a href="/borrowing"><button className="px-8 py-2 bg-slate-200 hover:bg-slate-500 rounded-xl mr-4" >Borrowing</button></a>
-          <button className="px-8 py-2 bg-slate-200 hover:bg-slate-500 rounded-xl mr-4" onClick={checkEffect}>refresh</button>
-          <button className={`px-8 py-2 ${currentAccount ? "bg-green-300" : "bg-slate-200"} hover:bg-slate-500 rounded-xl`} onClick={connectWallet}>{currentAccount ? "connected" : "connect wallet"}</button>
-        </div>
-      </div>
       <div className="w-[100%] flex flex-row mt-24 justify-center">
-        <div className="w-[25%] flex flex-col p-4 rounded-xl bg-yellow-100 mr-4" id="card-div-shadow">
-          <h2 className="mx-auto text-xl">amm</h2>
-          <div className="flex justify-around flex-row items-center mt-8">
-            <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={buyFunction}>buy</button>
-            <input type="number" value={buy} id="input" className="w-24 pl-3 rounded" onChange={(e) => setBuy(e.target.value)}/>
-          </div>
-          <div className="flex justify-around flex-row items-center mt-8">
-            <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={sellFunction}>sell</button>
-            <input type="number" value={sell} id="input" className="w-24 pl-3 rounded" onChange={(e) => setSell(e.target.value)}/>
-          </div>
-          <div className="flex justify-around flex-row items-center mt-8">
-            <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={redeemFunction}>redeem</button>
-            <input type="number" value={redeem} id="input" className="w-24 pl-3 rounded" onChange={(e) => setRedeem(e.target.value)}/>
-          </div>
-        </div>
         <div className="w-[25%] flex flex-col p-4 rounded-xl bg-yellow-100 mr-4" id="card-div-shadow">
           <h1 className="mx-auto text-xl">staking</h1>
           <div className="flex justify-around flex-row items-center mt-8">

@@ -31,7 +31,7 @@ def sell(amount):
       fsl+= tax
       floor_price = fsl/max(supply, 1)
       invested -= (market_price - tax)
-      print("Price:", market_price, "Floor price:", floor_price)
+      #print("Price:", market_price, "Floor price:", floor_price)
   return market_price
 
 def buy(amount):
@@ -56,13 +56,13 @@ def buy(amount):
       ratio = psl/fsl
     market_price = floor_price + ((psl/max(supply, 1))*((psl+fsl)/max(fsl, 1))**5)  
     invested += market_price
-    print("Price:", market_price, "Floor price:", floor_price)
+    #print("Price:", market_price, "Floor price:", floor_price)
   tax = purchase_price*0.003
   fsl += tax
   invested += tax
   floor_price = fsl/supply
   market_price = floor_price + ((psl/max(supply, 1))*((psl+fsl)/max(fsl, 1))**5)
-  print("Price:", market_price, "Floor price:", floor_price)
+  #print("Price:", market_price, "Floor price:", floor_price)
   return market_price
 
 def floor_raise():
@@ -81,14 +81,19 @@ def floor_raise():
     fsl += transfer
     floor_price = fsl/supply
     target = target*1.02
-    print("Floor raise! Ratio:", psl/fsl)
+    floor_price = fsl/supply
+    market_price = floor_price + ((psl/max(supply, 1))*((psl+fsl)/max(fsl, 1))**5)  
+    #print("Floor raise! Ratio:", psl/fsl)
   return 'raise'
 
-#tracks what happens when 1.8 million dollars worth of sells occur continuously with no buys
-#this is what would happen if all presalers except for the team dumped at once
-while(invested > -1800000):
-  sell(1)
-print("psl:", psl)
-print("fsl:",fsl)
-print("supply:",supply)
-print("market price:", market_price)
+#tracks what happens when 400 tokens are bought continuously in chunks of 10 with no sells
+bought = 0
+while(bought < 400):
+  buy(10)
+  floor_raise()
+  bought += 10
+  print("Price:", market_price, "Floor price:", floor_price)
+
+
+
+

@@ -8,7 +8,7 @@ contract AMM {
 
   IERC20 stable;
   Locks locks;
-  uint256 public targetRatio = 3e17;
+  uint256 public targetRatio = 260e15;
   uint256 public fsl = 1600000e18;
   uint256 public psl = 400000e18;
   uint256 public supply = 1000e18;
@@ -49,9 +49,9 @@ contract AMM {
     uint256 _leftover = _amount;
     uint256 _fsl = fsl;
     uint256 _psl = psl;
-    uint256 _purchasePrice;
     uint256 _market;
     uint256 _floor;
+    uint256 _purchasePrice;
     while(_leftover >= 1e18) {
       _market = _marketPrice(_fsl, _psl, _supply);
       _floor = _floorPrice(_fsl, _supply);
@@ -80,17 +80,18 @@ contract AMM {
       }
     }
     uint256 _tax = (_purchasePrice / 1000) * 3;
-    stable.transferFrom(msg.sender, address(this), (_purchasePrice + _tax) / stableDecimals);
+    // stable.transferFrom(msg.sender, address(this), (_purchasePrice + _tax) / stableDecimals);
     fsl = _fsl + _tax;
     psl = _psl;
-    locks.ammMint(msg.sender, _amount);
+    supply = _supply;
+    // locks.ammMint(msg.sender, _amount);
     _floorRaise();
-    return _marketPrice(_fsl + _tax, _psl, _supply);
+    return _marketPrice(fsl, psl, supply);
   }
 
   function sell(uint256 _amount) public returns (uint256) {
-    uint256 _supply = locks.totalSupply();
-    require(_amount < _supply / 20, "price impact too large");
+    uint256 _supply = supply;
+    require(_amount <= _supply / 20, "price impact too large");
     require(locks.balanceOf(msg.sender) >= _amount, "insufficient locks balance");
     uint256 _leftover = _amount;
     uint256 _fsl = fsl;
@@ -115,11 +116,11 @@ contract AMM {
       _fsl -= (_floor * _leftover) / 1e18; 
     }
     uint256 _tax = (_saleAmount / 1000) * 53;
-    stable.transfer(msg.sender, (_saleAmount + _tax) / stableDecimals);
-    locks.burn(msg.sender, _amount);
-    supply = _supply;
+    // stable.transfer(msg.sender, (_saleAmount + _tax) / stableDecimals);
+    // locks.burn(msg.sender, _amount);
+    fsl = _fsl + _tax;
     psl = _psl;
-    fsl = _fsl += _tax;
+    supply = _supply;
     return _marketPrice(_fsl + _tax, _psl, _supply);
   }
 
@@ -129,6 +130,8 @@ contract AMM {
     uint256 _rawTotal = _amount * floorPrice();
     locks.burn(msg.sender, _amount);
     stable.transfer(msg.sender, (_rawTotal) / stableDecimals);
+    supply -= _amount;
+    fsl -= _rawTotal;
     _floorRaise();
   }
 
@@ -146,7 +149,7 @@ contract AMM {
  
   function _floorRaise() private {
     if((psl * (1e18)) / fsl >= targetRatio) {
-      uint256 _raiseAmount = (((psl*10**18)/fsl)*32*psl)/(10**21);
+      uint256 _raiseAmount = (((psl * 1e18) / fsl) * 32 * psl) / (10**21);
       psl -= _raiseAmount;
       fsl += _raiseAmount;
       targetRatio += targetRatio / 50;
