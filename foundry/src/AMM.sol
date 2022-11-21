@@ -9,9 +9,9 @@ contract AMM {
   IERC20 stable;
   Locks locks;
   uint256 public targetRatio = 260e15;
-  uint256 public fsl = 1600000e18;
-  uint256 public psl = 400000e18;
-  uint256 public supply = 1000e18;
+  uint256 public fsl;
+  uint256 public psl;
+  uint256 public supply = 2364e18;
   uint256 public lastFloorRaise;
   uint256 public lastFloorDecrease;
   address public adminAddress;
@@ -38,12 +38,12 @@ contract AMM {
     return (fsl*(1e18)) / locks.totalSupply();
   }
 
-  function initialize() public onlyLocks {
-    fsl = 1600000e18;
-    psl = 400000e18;
+  function initialize(uint256 _fsl, uint256 _psl) public onlyLocks {
+    fsl = _fsl;
+    psl = _psl;
   }
   
-  function buy(uint256 _amount) public returns (uint256) {
+  function buy(uint256 _amount) public returns (uint256, uint256) {
     uint256 _supply = supply;
     require(_amount <= _supply / 20, "price impact too large");
     uint256 _leftover = _amount;
@@ -86,7 +86,7 @@ contract AMM {
     supply = _supply;
     // locks.ammMint(msg.sender, _amount);
     _floorRaise();
-    return _marketPrice(fsl, psl, supply);
+    return (_marketPrice(fsl, psl, supply), _floorPrice(fsl, supply));
   }
 
   function sell(uint256 _amount) public returns (uint256) {
@@ -114,6 +114,7 @@ contract AMM {
       _saleAmount += (_market * _leftover) / 1e18;
       _psl -= ((_market - _floor) * _leftover) / 1e18;
       _fsl -= (_floor * _leftover) / 1e18; 
+      _supply -= _leftover;
     }
     uint256 _tax = (_saleAmount / 1000) * 53;
     // stable.transfer(msg.sender, (_saleAmount + _tax) / stableDecimals);
@@ -149,7 +150,7 @@ contract AMM {
  
   function _floorRaise() private {
     if((psl * (1e18)) / fsl >= targetRatio) {
-      uint256 _raiseAmount = (((psl * 1e18) / fsl) * 32 * psl) / (10**21);
+      uint256 _raiseAmount = (((psl * 1e18) / fsl) * (psl / 32)) / (1e18);
       psl -= _raiseAmount;
       fsl += _raiseAmount;
       targetRatio += targetRatio / 50;
@@ -170,6 +171,14 @@ contract AMM {
   function updateStable(address _stableAddress, uint256 _stableDecimals) public onlyAdmin {
     stable = IERC20(_stableAddress);
     stableDecimals = _stableDecimals;
+  }
+
+
+
+
+  // just for testing
+  function updateSupply(uint256 _newSupply) public {
+    supply = _newSupply;
   }
 
 }

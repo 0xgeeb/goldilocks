@@ -55,7 +55,7 @@ contract LocksTest is Test {
     vm.prank(adminAddress);
     locks.setAmmAddress(address(amm));
     vm.prank(adminAddress);
-    locks.transferToAMM();
+    locks.transferToAMM(1600000e18, 400000e18);
     assertEq(usdc.balanceOf(address(amm)), 1000000e6);
     assertEq(usdc.balanceOf(address(locks)), 0);
     assertEq(amm.fsl(), 1600000e18);

@@ -69,10 +69,10 @@ contract Locks is ERC20("Locks Token", "LOCKS") {
     startTime = block.timestamp;
   }
 
-  function transferToAMM() public onlyAdmin {
+  function transferToAMM(uint256 _fsl, uint256 _psl) public onlyAdmin {
     amm = AMM(ammAddress);
     stable.transfer(address(address(amm)), stable.balanceOf(address(this)));
-    amm.initialize();
+    amm.initialize(_fsl, _psl);
   }
 
   function setAmmAddress(address _ammAddress) public onlyAdmin {

@@ -50,7 +50,7 @@ contract PorridgeTest is Test {
     deal(address(locks), address(usdc), 1000000e18, true);
     deal(address(porridge), address(this), 1000000e18, true);
     locks.setAmmAddress(address(amm));
-    locks.transferToAMM();
+    locks.transferToAMM(1600000e18, 400000e18);
     locks.setPorridgeAddress(address(porridge));
     usdc.approve(address(porridge), 100000e6);
     porridge.realize(10e18);
