@@ -89,7 +89,7 @@ contract AMM {
     return (_marketPrice(fsl, psl, supply), _floorPrice(fsl, supply));
   }
 
-  function sell(uint256 _amount) public returns (uint256) {
+  function sell(uint256 _amount) public returns (uint256, uint256) {
     uint256 _supply = supply;
     require(_amount <= _supply / 20, "price impact too large");
     require(locks.balanceOf(msg.sender) >= _amount, "insufficient locks balance");
@@ -122,21 +122,21 @@ contract AMM {
     fsl = _fsl + _tax;
     psl = _psl;
     supply = _supply;
-    return _marketPrice(_fsl + _tax, _psl, _supply);
+    return (_marketPrice(fsl, psl, supply), _floorPrice(fsl, supply));
   }
 
   function redeem(uint256 _amount) public {
     require(_amount > 0, "cannot redeem zero");
     require(locks.balanceOf(msg.sender) >= _amount, "insufficient balance");
     uint256 _rawTotal = _amount * floorPrice();
-    locks.burn(msg.sender, _amount);
-    stable.transfer(msg.sender, (_rawTotal) / stableDecimals);
+    // locks.burn(msg.sender, _amount);
+    // stable.transfer(msg.sender, (_rawTotal) / stableDecimals);
     supply -= _amount;
     fsl -= _rawTotal;
     _floorRaise();
   }
 
-  function _floorPrice(uint256 _fsl, uint256 _supply) private pure returns (uint256) {
+  function _floorPrice(uint256 _fsl, uint256 _supply) public pure returns (uint256) {
     return (_fsl*(1e18)) / _supply;
   }
 
