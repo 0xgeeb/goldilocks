@@ -1,8 +1,8 @@
 import random
-#varing initial fsl/psl/supply
-fsl = 973000
-supply = 6780
-psl = 360000
+#assuming 2 million dollar presale and 1000 initial supply
+fsl = 1600000
+supply = 1000
+psl = 400000
 floor_price = fsl/supply
 market_price = floor_price + ((psl/supply)*((psl+fsl)/fsl)**5)
 #target ratio
@@ -113,38 +113,37 @@ def floor_raise():
     market_price = floor_price + ((psl/max(supply, 1))*((psl+fsl)/max(fsl, 1))**5)  
     #print("Floor raise! Ratio:", psl/fsl)
   return 'raise'
-    
 
 #tracks random pattern of redemptions, buys and sells (with decimals)
 
-buy(652.3)
+buy(6.5)
 floor_raise()
 print("Price:", market_price, "Floor price:", floor_price)
-redeem(71.9)
+redeem(7.1)
 floor_raise()
 print("Price:", market_price, "Floor price:", floor_price)
-buy(32)
+buy(3.2)
 floor_raise()
 print("Price:", market_price, "Floor price:", floor_price)
-redeem(298)
+redeem(2.9)
 floor_raise()
 print("Price:", market_price, "Floor price:", floor_price)
-buy(53)
+buy(5)
 floor_raise()
 print("Price:", market_price, "Floor price:", floor_price)
-sell(31.7)
+sell(3.1)
 print("Price:", market_price, "Floor price:", floor_price)
-buy(286)
+buy(2.8)
 floor_raise()
 print("Price:", market_price, "Floor price:", floor_price)
-sell(65.1)
+sell(6)
 print("Price:", market_price, "Floor price:", floor_price)
-redeem(32)
+redeem(3.2)
 floor_raise()
 print("Price:", market_price, "Floor price:", floor_price)
-buy(4.7)
+buy(4)
 floor_raise()
 print("Price:", market_price, "Floor price:", floor_price)
-buy(123)
+buy(10)
 floor_raise()
 print("Price:", market_price, "Floor price:", floor_price)

@@ -114,7 +114,6 @@ def floor_raise():
     #print("Floor raise! Ratio:", psl/fsl)
   return 'raise'
     
-
 #tracks what happens when 8000 tokens are bought continuously in chunks of 40 with no sells
 bought = 0
 while(bought < 8000):

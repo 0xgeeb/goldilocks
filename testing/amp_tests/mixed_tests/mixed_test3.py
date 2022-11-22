@@ -1,8 +1,8 @@
 import random
-#assuming 2 million dollar presale and 1000 initial supply
-fsl = 1600000
-supply = 1000
-psl = 400000
+#varing initial fsl/psl/supply
+fsl = 973000
+supply = 6780
+psl = 360000
 floor_price = fsl/supply
 market_price = floor_price + ((psl/supply)*((psl+fsl)/fsl)**5)
 #target ratio
@@ -114,11 +114,36 @@ def floor_raise():
     #print("Floor raise! Ratio:", psl/fsl)
   return 'raise'
     
+#tracks random pattern of redemptions, buys and sells (with decimals)
 
-#tracks what happens when 8000 tokens are bought continuously in chunks of 40 with no sells
-bought = 0
-while(bought < 8000):
-  buy(40)
-  floor_raise()
-  bought += 40
-  print("Price:", market_price, "Floor price:", floor_price)
+buy(652.3)
+floor_raise()
+print("Price:", market_price, "Floor price:", floor_price)
+redeem(71.9)
+floor_raise()
+print("Price:", market_price, "Floor price:", floor_price)
+buy(32)
+floor_raise()
+print("Price:", market_price, "Floor price:", floor_price)
+redeem(298)
+floor_raise()
+print("Price:", market_price, "Floor price:", floor_price)
+buy(53)
+floor_raise()
+print("Price:", market_price, "Floor price:", floor_price)
+sell(31.7)
+print("Price:", market_price, "Floor price:", floor_price)
+buy(286)
+floor_raise()
+print("Price:", market_price, "Floor price:", floor_price)
+sell(65.1)
+print("Price:", market_price, "Floor price:", floor_price)
+redeem(32)
+floor_raise()
+print("Price:", market_price, "Floor price:", floor_price)
+buy(4.7)
+floor_raise()
+print("Price:", market_price, "Floor price:", floor_price)
+buy(123)
+floor_raise()
+print("Price:", market_price, "Floor price:", floor_price)

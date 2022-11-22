@@ -40,6 +40,44 @@ contract AMMTest is Test {
     assertEq(result, 5838135059380809315810);
   }
 
+  function testPurchase1() public {
+    locks.transferToAMM(1600000e18, 400000e18);
+    amm.updateSupply(1000e18);
+    uint256 fsl = 1600000e18;
+    uint256 psl = 400000e18;
+    uint256 supply = 1000e18;
+    uint256 markyPricy = amm._marketPrice(fsl, psl, supply);
+    console.log(markyPricy);
+    uint256 bought = 0;
+    while (bought < 400) {
+      (uint256 market, uint256 floor) = amm.buy(10e18);
+      console.log("market", market, "floor", floor);
+      bought += 10;
+      if (bought == 400) {
+        assertEq(market, 8192298934682339084417);
+      }
+    }
+  }
+
+  function testPurchase2() public {
+    locks.transferToAMM(1600000e18, 400000e18);
+    amm.updateSupply(1000e18);
+    uint256 fsl = 1600000e18;
+    uint256 psl = 400000e18;
+    uint256 supply = 1000e18;
+    uint256 markyPricy = amm._marketPrice(fsl, psl, supply);
+    console.log(markyPricy);
+    uint256 bought = 0;
+    while(bought < 55e18) {
+      (uint256 market, uint256 floor) = amm.buy(25e17);
+      console.log("market", market, "floor", floor);
+      bought += 25e17;
+      if (bought == 55e18) {
+        assertEq(market, 3073608937745290596199);
+      }
+    }
+  }
+
   function testPurchase3() public {
     locks.transferToAMM(1600000e18, 400000e18);
     amm.updateSupply(1000e18);
@@ -76,6 +114,26 @@ contract AMMTest is Test {
         assertEq(market, 222277397198448458290986);
       }
     }
+  }
+
+  function testMixed1() public {
+    locks.transferToAMM(1600000e18, 400000e18);
+    amm.updateSupply(1000e18);
+    uint256 fsl = 1600000e18;
+    uint256 psl = 400000e18;
+    uint256 supply = 1000e18;
+    uint256 markyPricy = amm._marketPrice(fsl, psl, supply);
+    console.log(markyPricy);
+    uint256 bought = 0;
+
+  }
+
+  function testMixed2() public {
+
+  }
+
+  function testMixed3() public {
+
   }
 
 }
