@@ -45,7 +45,7 @@ contract AMM {
   
   function buy(uint256 _amount) public returns (uint256, uint256) {
     uint256 _supply = supply;
-    require(_amount <= _supply / 20, "price impact too large");
+    // require(_amount <= _supply / 20, "price impact too large");
     uint256 _leftover = _amount;
     uint256 _fsl = fsl;
     uint256 _psl = psl;
@@ -91,7 +91,7 @@ contract AMM {
 
   function sell(uint256 _amount) public returns (uint256, uint256) {
     uint256 _supply = supply;
-    require(_amount <= _supply / 20, "price impact too large");
+    // require(_amount <= _supply / 20, "price impact too large");
     require(locks.balanceOf(msg.sender) >= _amount, "insufficient locks balance");
     uint256 _leftover = _amount;
     uint256 _fsl = fsl;
@@ -128,7 +128,7 @@ contract AMM {
   function redeem(uint256 _amount) public {
     require(_amount > 0, "cannot redeem zero");
     require(locks.balanceOf(msg.sender) >= _amount, "insufficient balance");
-    uint256 _rawTotal = _amount * floorPrice();
+    uint256 _rawTotal = (_amount * ((fsl * 1e18) / supply)) / 1e18;
     // locks.burn(msg.sender, _amount);
     // stable.transfer(msg.sender, (_rawTotal) / stableDecimals);
     supply -= _amount;

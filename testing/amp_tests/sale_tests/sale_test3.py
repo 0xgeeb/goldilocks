@@ -1,8 +1,8 @@
 import random
-#assuming 2 million dollar presale and 1000 initial supply
-fsl = 1600000
+#assuming 1 million dollar presale and 1000 initial supply
+fsl = 800000
 supply = 1000
-psl = 400000
+psl = 200000
 floor_price = fsl/supply
 market_price = floor_price + ((psl/supply)*((psl+fsl)/fsl)**5)
 #target ratio
@@ -51,7 +51,7 @@ def sell(amount):
   market_price = floor_price + ((psl/supply)*((psl+fsl)/fsl)**5)
   invested -= (sale_price - tax)    
   return market_price
-
+  
 def buy(amount):
   global invested
   global supply
@@ -60,11 +60,8 @@ def buy(amount):
   global floor_price
   global market_price
   global target
-  floor_price = fsl/supply
-  market_price = floor_price + ((psl/supply)*((psl+fsl)/fsl)**5)
   purchase_price = 0
-  while amount >=1:
-    amount -= 1
+  for i in range(0, amount):
     supply += 1
     purchase_price += market_price
     #if psl/fsl >= 0.5, all deposited capital goes to fsl
@@ -77,20 +74,12 @@ def buy(amount):
       ratio = psl/fsl
     market_price = floor_price + ((psl/max(supply, 1))*((psl+fsl)/max(fsl, 1))**5)  
     invested += market_price
-  supply += amount
-  purchase_price += market_price*amount
-  if psl/fsl >= 0.5:
-    fsl += market_price*amount
-    floor_price = fsl/supply
-  else:
-    fsl += floor_price*amount
-    psl += (market_price - floor_price)*amount
-    ratio = psl/fsl
+    #print("Price:", market_price, "Floor price:", floor_price)
   tax = purchase_price*0.003
   fsl += tax
+  invested += tax
   floor_price = fsl/supply
   market_price = floor_price + ((psl/max(supply, 1))*((psl+fsl)/max(fsl, 1))**5)
-  invested += market_price
   #print("Price:", market_price, "Floor price:", floor_price)
   return market_price
 
@@ -104,20 +93,20 @@ def floor_raise():
   global target
   ratio = psl/fsl
   if ratio >= target:
-    multiplier = ratio/32              
+    multiplier = (0.01*ratio)/0.32                   
     transfer = psl*multiplier
     psl -= transfer
     fsl += transfer
+    floor_price = fsl/supply
     target = target*1.02
     floor_price = fsl/supply
     market_price = floor_price + ((psl/max(supply, 1))*((psl+fsl)/max(fsl, 1))**5)  
     #print("Floor raise! Ratio:", psl/fsl)
   return 'raise'
 
-#tracks what happens when 50 tokens are redeemed continuously in chunks of 2.5 with no trades
-redeemed = 0
-while(redeemed < 50):
-  redeem(2.5)
-  floor_raise()
-  redeemed += 2.5
+
+#tracks what happens when 800k dollars worth of sells occur continuously with no buys
+#this is what would happen if all presalers except for the team dumped at once
+while(invested > -800000):
+  sell(25)
   print("Price:", market_price, "Floor price:", floor_price)
