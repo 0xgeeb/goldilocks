@@ -49,7 +49,7 @@ def sell(amount):
   fsl+= tax
   floor_price = fsl/max(supply, 1)
   market_price = floor_price + ((psl/supply)*((psl+fsl)/fsl)**5)
-  invested -= (sale_price - tax)    
+  invested -= (sale_price - tax)  
   return market_price
   
 def buy(amount):
@@ -106,6 +106,8 @@ def floor_raise():
 
 #tracks what happens when 1.8 million dollars worth of sells occur continuously with no buys
 #this is what would happen if all presalers except for the team dumped at once
-while(invested > -1800000):
+sold = 0
+while(sold < 1800000):
   sell(10)
   print("Price:", market_price, "Floor price:", floor_price)
+  sold += 10

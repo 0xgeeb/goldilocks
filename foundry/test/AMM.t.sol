@@ -305,7 +305,19 @@ contract AMMTest is Test {
   }
 
   function testSale1() public {
-
+    locks.transferToAMM(1600000e18, 400000e18);
+    amm.updateSupply(1000e18);
+    uint256 fsl = 1600000e18;
+    uint256 psl = 400000e18;
+    uint256 supply = 1000e18;
+    uint256 initialMarketPrice = amm._marketPrice(fsl, psl, supply);
+    console.log(initialMarketPrice);
+    uint256 sold = 0;
+    while(sold < 1800000e18) {
+      (uint256 market, uint256 floor) = amm.sell(10e18);
+      console.log("market", market, "floor", floor);
+      sold += 10e18;
+    }
   }
 
   function testSale2() public {
@@ -325,7 +337,19 @@ contract AMMTest is Test {
   }
 
   function testSale3() public {
-
+    locks.transferToAMM(800000e18, 200000e18);
+    amm.updateSupply(1000e18);
+    uint256 fsl = 800000e18;
+    uint256 psl = 200000e18;
+    uint256 supply = 1000e18;
+    uint256 initialMarketPrice = amm._marketPrice(fsl, psl, supply);
+    console.log(initialMarketPrice);
+    uint256 sold = 0;
+    while(sold < 800000e18) {
+      (uint256 market, uint256 floor) = amm.sell(25e18);
+      console.log("market", market, "floor", floor);
+      sold += 25e18;
+    }
   }
 
   function testSale4() public {

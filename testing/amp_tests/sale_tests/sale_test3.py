@@ -107,6 +107,8 @@ def floor_raise():
 
 #tracks what happens when 800k dollars worth of sells occur continuously with no buys
 #this is what would happen if all presalers except for the team dumped at once
-while(invested > -800000):
+sold = 0
+while(sold < 800000):
   sell(25)
   print("Price:", market_price, "Floor price:", floor_price)
+  sold += 25
