@@ -20,7 +20,7 @@ export default function Nav() {
         <a href="/staking"><button className="px-8 py-2 bg-slate-200 hover:bg-slate-500 rounded-xl mr-4" >Staking</button></a>
         <a href="/borrowing"><button className="px-8 py-2 bg-slate-200 hover:bg-slate-500 rounded-xl mr-4" >Borrowing</button></a>
         {/* <button className="px-8 py-2 bg-slate-200 hover:bg-slate-500 rounded-xl mr-4" onClick={checkEffect}>refresh</button> */}
-        <button className={`px-8 py-2 ${currentAccount ? "bg-green-300" : "bg-slate-200"} hover:bg-slate-500 rounded-xl`} onClick={connectWallet}>{currentAccount ? "connected" : "connect wallet"}</button>
+        {/* <button className={`px-8 py-2 ${currentAccount ? "bg-green-300" : "bg-slate-200"} hover:bg-slate-500 rounded-xl`} onClick={connectWallet}>{currentAccount ? "connected" : "connect wallet"}</button> */}
       </div>
     </div>
   )
