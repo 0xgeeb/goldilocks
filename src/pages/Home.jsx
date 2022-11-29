@@ -4,7 +4,6 @@ import LocksTokenContract from "../utils/LocksToken.json";
 import PorridgeTokenContract from "../utils/PorridgeToken.json";
 import AMMContract from "../utils/AMM.json";
 import BorrowContract from "../utils/Borrow.json";
-import SLPContract from "../utils/SLP.json";
 
 export default function Home() {
 
@@ -19,8 +18,6 @@ export default function Home() {
   const [borrowed, setBorrowed] = useState();
   const [fsl, setFsl] = useState();
   const [psl, setPsl] = useState();
-  const [slpfsl, setslpFsl] = useState();
-  const [slppsl, setslpPsl] = useState();
   const [lastFloorRaise, setLastFloorRaise] = useState();
   const [targetRatio, setTargetRatio] = useState();
   const [locksBalance, setLocksBalance] = useState();
@@ -33,7 +30,6 @@ export default function Home() {
   const borrowContractAddress = "0x262e2b50219620226c5fb5956432a88fffd94ba7";
   const locksContractAddress = "0x8e45c0936fa1a65bdad3222befec6a03c83372ce";
   const ammContractAddress = "0xbee6ffc1e8627f51ccdf0b4399a1e1abc5165f15";
-  const slpContractAddress = "0xbee6ffc1e8627f51ccdf0b4399a1e1abc5165f15";
 
   function checkEffect() {
     checkStaked(currentAccount);
@@ -41,8 +37,6 @@ export default function Home() {
     checkLocked(currentAccount);
     checkFsl();
     checkPsl();
-    // checkslpFsl();
-    // checkslpPsl();
     checkLastFloorRaise();
     checkTargetRatio();
     checkTotalLocks();

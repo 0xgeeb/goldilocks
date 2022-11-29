@@ -75,7 +75,6 @@ export default function Amm() {
           isConnected && <div className="mt-10">
             <img src={ensAvatar} alt="ens avatar" />
             <div>{ensName ? `${ensName} (${address})` : address}</div>
-            {/* <div>Connected to {connector.name}</div> */}
             <button onClick={disconnect}>Disconnect</button>
           </div>
         }
