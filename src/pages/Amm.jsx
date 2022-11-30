@@ -1,83 +1,106 @@
 import React, { useEffect, useState } from "react"
 import { ethers } from "ethers"
-import { useConnect, useAccount, useDisconnect, useEnsAvatar, useEnsName } from "wagmi"
+import abi from "../utils/testAMM.json"
 
 export default function Amm() {
 
-  const [buy, setBuy] = useState();
-  const [sell, setSell] = useState();
-  const [redeem, setRedeem] = useState();
+  const [currentAccount, setCurrentAccount] = useState(null)
+  const [avaxChain, setAvaxChain] = useState(null)
+  const [contract, setContract] = useState(null)
+  const [fsl, setFsl] = useState(null)
+  const [psl, setPsl] = useState(null)
+  const [something, setSomething] = useState(null)
+  const [buy, setBuy] = useState()
+  const [sell, setSell] = useState()
+  const [redeem, setRedeem] = useState()
 
-  const { connect, connectors, error, isLoading, pendingConnector } = useConnect()
-  const { address, connector, isConnected } = useAccount()
-  const { data: ensAvatar } = useEnsAvatar({ address })
-  const { data: ensName } = useEnsName({ address })
-  const { disconnect } = useDisconnect()
+  useEffect(() => {
+    getContractData()
+  }, [])
 
+  const numFor = Intl.NumberFormat('en-US')
 
-
-
-
-
-
-  async function buyFunction() {
-    const provider = new ethers.providers.Web3Provider(ethereum);
-    const signer = provider.getSigner();
-    const ammContract = new ethers.Contract(ammContractAddress, AMMContract.abi, signer);
-    const buyTx = await ammContract.purchase(buy);
-    await buyTx.wait();
+  const fuji = {
+    chainId: '0xA869',
+    chainName: 'Fuji (C-Chain)',
+    nativeCurrency: {
+      name: 'Avalanche',
+      symbol: 'AVAX',
+      decimals: 18
+    },
+    rpcUrls: ['https://young-methodical-spree.avalanche-testnet.discover.quiknode.pro/e9ef57f113488a9db47c13766faa54b868f93ea9/ext/bc/C/rpc'],
+    blockExplorerUrls: ['https://testnet.snowtrace.io']
   }
 
-  async function sellFunction() {
-    const provider = new ethers.providers.Web3Provider(ethereum);
-    const signer = provider.getSigner();
-    const ammContract = new ethers.Contract(ammContractAddress, AMMContract.abi, signer);
-    const sellTx = await ammContract.sell(sell);
-    await sellTx.wait();
+  const contractAddy = '0xD323ba82A0ec287C9D19c63C439898720a93604A'
+  
+
+  async function connectWallet() {
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
+    const account = accounts[0]
+    setCurrentAccount(account)
   }
 
-  async function redeemFunction() {
-    const provider = new ethers.providers.Web3Provider(ethereum);
-    const signer = provider.getSigner();
-    const ammContract = new ethers.Contract(ammContractAddress, AMMContract.abi, signer);
-    const redeemTx = await ammContract.redeem(redeem);
-    await redeemTx.wait();
+  async function switchToFuji() {
+    await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [fuji] })
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const { chainId } = await provider.getNetwork();
+    if (chainId === 43114) {
+      setAvaxChain(chainId);
+    };
+  }
+
+  async function getContractData() {
+    const provider = new ethers.providers.JsonRpcProvider(fuji.rpcUrls[0])
+    const contractObject = new ethers.Contract(contractAddy, abi.abi, provider)
+    const fslReq = await contractObject.fsl()
+    const pslReq = await contractObject.psl()
+    const somethingReq = await contractObject.something()
+    setFsl(parseInt(fslReq._hex, 16))
+    setPsl(parseInt(pslReq._hex, 16))
+    setSomething(parseInt(somethingReq._hex, 16))
+  }
+
+  async function changeSomething() {
+    const provider = new ethers.providers.Web3Provider(ethereum)
+    const signer = provider.getSigner()
+    const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
+    const changeTx = await contractObjectSigner.changeSomething(420)
+    changeTx.wait()
   }
 
 
   return (
     <div className="flex flex-row">
-      <div className="w-[45%] flex flex-col p-4 rounded-xl bg-yellow-100 ml-24 mt-24 h-[500px]" id="card-div-shadow">
+      <div className="w-[45%] flex flex-col p-4 rounded-xl bg-yellow-100 ml-24 mt-24 h-[600px]" id="card-div-shadow">
         <h2 className="mx-auto text-xl">amm</h2>
         <div className="flex justify-around flex-row items-center mt-8">
-          <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={buyFunction}>buy</button>
+          <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" >buy</button>
           <input type="number" value={buy} id="input" className="w-24 pl-3 rounded" onChange={(e) => setBuy(e.target.value)}/>
         </div>
         <div className="flex justify-around flex-row items-center mt-8">
-          <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={sellFunction}>sell</button>
+          <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" >sell</button>
           <input type="number" value={sell} id="input" className="w-24 pl-3 rounded" onChange={(e) => setSell(e.target.value)}/>
         </div>
         <div className="flex justify-around flex-row items-center mt-8">
-          <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={redeemFunction}>redeem</button>
+          <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" >redeem</button>
           <input type="number" value={redeem} id="input" className="w-24 pl-3 rounded" onChange={(e) => setRedeem(e.target.value)}/>
+        </div>
+        <div className="flex justify-around flex-row items-center mt-14">
+          <p>fsl</p>
+          <p>{ fsl && numFor.format((fsl / Math.pow(10, 18))) }</p>
+        </div>
+        <div className="flex justify-around flex-row items-center mt-14">
+          <p>psl</p>
+          <p>{ psl && numFor.format((psl / Math.pow(10, 18))) }</p>
+        </div>
+        <div className="flex justify-around flex-row items-center mt-14">
+          <p>something</p>
+          <p>{ something && numFor.format(something) }</p>
         </div>
       </div>
       <div className="w-[30%] flex flex-col p-4 rounded-xl bg-yellow-100 ml-24 mt-24 h-[250px]" id="card-div-shadow">
-        {connectors.map((connector) => (
-          <button className="w-[25%] mx-auto px-8 py-2 bg-slate-200 hover:bg-slate-500 rounded-xl" disabled={!connector.ready} key={connector.id} onClick={() => connect({ connector })}>
-            {connector.name}
-            {!connector.ready && ' (unsupported)'}
-            {isLoading && connector.id === pendingConnector?.id && ' (connecting)'}
-          </button>
-        ))}
-        {error && <div>{error.message}</div>}
-        {
-          isConnected && <div className="mt-10">
-            <img src={ensAvatar} alt="ens avatar" />
-            <div>{ensName ? `${ensName} (${address})` : address}</div>
-            <button onClick={disconnect}>Disconnect</button>
-          </div>
-        }
+        <button className="px-6 py-2 mx-auto mt-6 bg-white rounded-xl" onClick={changeSomething}>hello</button>
       </div>
     </div>
   )
