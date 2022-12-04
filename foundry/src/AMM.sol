@@ -35,7 +35,7 @@ contract AMM {
   }
 
   function floorPrice() public view returns (uint256) {
-    return (fsl*(1e18)) / locks.totalSupply();
+    return (fsl*(1e18)) / supply;
   }
 
   function initialize(uint256 _fsl, uint256 _psl) public onlyLocks {
