@@ -16,6 +16,8 @@ contract AMM {
   uint256 public lastFloorDecrease;
   address public adminAddress;
   uint256 public stableDecimals = 1e12;
+  uint256 public treasuryValue;
+  address public treasuryAddress;
 
   constructor(address _locksAddress, address _adminAddress) {
     locks = Locks(_locksAddress);
@@ -45,53 +47,96 @@ contract AMM {
   
   function buy(uint256 _amount) public returns (uint256, uint256) {
     uint256 _supply = supply;
-    // require(_amount <= _supply / 20, "price impact too large");
+    uint256 _treasuryValue = treasuryValue;
     uint256 _leftover = _amount;
     uint256 _fsl = fsl;
     uint256 _psl = psl;
     uint256 _market;
     uint256 _floor;
     uint256 _purchasePrice;
-    while(_leftover >= 1e18) {
-      _market = _marketPrice(_fsl, _psl, _supply);
-      _floor = _floorPrice(_fsl, _supply);
-      _purchasePrice += _market;
-      _supply += 1e18;
-      if (_psl * 2 > _fsl) {
-        _fsl += _market;
+    if (_treasuryValue >= 500000e18) {
+      // require(_amount <= _supply / 20, "price impact too large");
+      while(_leftover >= 1e18) {
+        _market = _marketPrice(_fsl, _psl, _supply);
+        _floor = _floorPrice(_fsl, _supply);
+        _purchasePrice += _market;
+        _supply += 1e18;
+        if (100*_psl >= 36*_fsl) {
+          _fsl += _market;
+        }
+        else {
+          _psl += _market - _floor;
+          _fsl += _floor;
+        }
+        _leftover -= 1e18;
       }
-      else {
-        _psl += _market - _floor;
-        _fsl += _floor;
+      if (_leftover > 0) {
+        _market = _marketPrice(_fsl, _psl, _supply);
+        _floor = _floorPrice(_fsl, _supply);
+        _purchasePrice += (_market * _leftover) / 1e18;
+        _supply += _leftover;
+        if (100*_psl >= 36*_fsl) {
+          _fsl += (_market * _leftover) / 1e18;
+        }
+        else {
+          _psl += ((_market - _floor) * _leftover) / 1e18;
+          _fsl += (_floor * _leftover) / 1e18;
+        }
       }
-      _leftover -= 1e18;
+      uint256 _tax = (_purchasePrice / 1000) * 3;
+      // stable.transferFrom(msg.sender, address(this), (_purchasePrice + _tax) / stableDecimals);
+      fsl = _fsl + _tax;
+      psl = _psl;
+      supply = _supply;
     }
-    if (_leftover > 0) {
-      _market = _marketPrice(_fsl, _psl, _supply);
-      _floor = _floorPrice(_fsl, _supply);
-      _purchasePrice += (_market * _leftover) / 1e18;
-      _supply += _leftover;
-      if ( _psl * 2 > _fsl) {
-        _fsl += (_market * _leftover) / 1e18;
+    else {
+      if (_supply >= 1000e18) {
+        // require(_amount < _supply /10, "price impact too large");
       }
-      else {
-        _psl += ((_market - _floor) * _leftover) / 1e18;
-        _fsl += (_floor * _leftover) / 1e18;
+      while(_leftover >= 1e18) {
+        _market = _marketPrice(_fsl, _psl, _supply);
+        _floor = _floorPrice(_fsl, _supply);
+        _purchasePrice += _market;
+        _supply += 1e18;
+        if (100*_psl >= 36*_fsl) {
+          _fsl += (75*_market)/100;
+          _treasuryValue += (25*_market)/100;
+        } else {
+          _treasuryValue += 18*(_market - _floor)/100;
+          _psl += 82*(_market - _floor)/100;
+          _fsl += _floor;
+        }
+        _leftover -= 1e18;
       }
+      if(_leftover > 0) {
+        _market = _marketPrice(_fsl, _psl, _supply);
+        _floor = _floorPrice(_fsl, _supply);
+        _purchasePrice += (_market * _leftover) / 1e18;
+        _supply += _leftover;
+        if (100*_psl >= 36*_fsl) {
+          _fsl += (75*_market * _leftover) / 100e18;
+          _treasuryValue += (25*_market * _leftover) / 100e18;
+        } else {
+          _treasuryValue += (18*(_market - _floor) * _leftover) / 100e18;
+          _psl += (82*(_market - _floor) * _leftover) / 100e18;
+          _fsl += (_floor * _leftover) / 1e18;
+        }
+      }
+      uint256 _tax = (_purchasePrice / 1000) * 3;
+      // stable.transferFrom(msg.sender, address(this), (_purchasePrice - _treasuryValue + _tax) / stableDecimals);
+      fsl = _fsl + _tax;
+      psl = _psl;
+      supply = _supply;
+      treasuryValue = _treasuryValue;
     }
-    uint256 _tax = (_purchasePrice / 1000) * 3;
-    // stable.transferFrom(msg.sender, address(this), (_purchasePrice + _tax) / stableDecimals);
-    fsl = _fsl + _tax;
-    psl = _psl;
-    supply = _supply;
-    // locks.ammMint(msg.sender, _amount);
+      // locks.ammMint(msg.sender, _amount);
     _floorRaise();
     return (_marketPrice(fsl, psl, supply), _floorPrice(fsl, supply));
   }
 
   function sell(uint256 _amount) public returns (uint256, uint256) {
     uint256 _supply = supply;
-    // require(_amount <= _supply / 20, "price impact too large");
+    require(_amount <= _supply / 20, "price impact too large");
     require(locks.balanceOf(msg.sender) >= _amount, "insufficient locks balance");
     uint256 _leftover = _amount;
     uint256 _fsl = fsl;
@@ -171,6 +216,10 @@ contract AMM {
   function updateStable(address _stableAddress, uint256 _stableDecimals) public onlyAdmin {
     stable = IERC20(_stableAddress);
     stableDecimals = _stableDecimals;
+  }
+
+  function withdrawTreasury() public onlyAdmin {
+    stable.transfer(treasuryAddress, treasuryValue);
   }
 
 

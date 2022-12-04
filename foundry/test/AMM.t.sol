@@ -59,6 +59,26 @@ contract AMMTest is Test {
     }
   }
 
+  function testNewPurchase1() public {
+    locks.transferToAMM(951e17, 49e17);
+    amm.updateSupply(1e18);
+    uint256 fsl = 951e17;
+    uint256 psl = 49e17;
+    uint256 supply = 1e18;
+    uint256 initialMarketPrice = amm._marketPrice(fsl, psl, supply);
+    console.log(initialMarketPrice);
+    uint256 bought = 0;
+    while(bought < 10000) {
+      (uint256 market, uint256 floor) = amm.buy(10e18);
+      console.log("market", market, "floor", floor);
+      bought += 10;
+    }
+    console.log('fsl: ', amm.fsl());
+    console.log('psl: ', amm.psl());
+    console.log('supply: ', amm.supply());
+    console.log('treasury: ', amm.treasuryValue());
+  }
+
   function testPurchase2() public {
     locks.transferToAMM(1600000e18, 400000e18);
     amm.updateSupply(1000e18);
@@ -76,6 +96,26 @@ contract AMMTest is Test {
         assertEq(market, 3073608937745290596199);
       }
     }
+  }
+
+  function testNewPurchase2() public {
+    locks.transferToAMM(951e17, 49e17);
+    amm.updateSupply(1e18);
+    uint256 fsl = 951e17;
+    uint256 psl = 49e17;
+    uint256 supply = 1e18;
+    uint256 initialMarketPrice = amm._marketPrice(fsl, psl, supply);
+    console.log(initialMarketPrice);
+    uint256 bought = 0;
+    while(bought < 10000e18) {
+      (uint256 market, uint256 floor) = amm.buy(125e17);
+      console.log("market", market, "floor", floor);
+      bought += 125e17;
+    }
+    console.log('fsl: ', amm.fsl());
+    console.log('psl: ', amm.psl());
+    console.log('supply: ', amm.supply());
+    console.log('treasury: ', amm.treasuryValue());    
   }
 
   function testPurchase3() public {
@@ -97,6 +137,27 @@ contract AMMTest is Test {
     }
   }
 
+  // this test requires you to change the line in the AMM buy function from if (_treasuryValue >= 100e18) { to if (_treasuryValue >= 500000e18) {
+  function testNewPurchase3() public {
+    locks.transferToAMM(951e17, 49e17);
+    amm.updateSupply(1e18);
+    uint256 fsl = 951e17;
+    uint256 psl = 49e17;
+    uint256 supply = 1e18;
+    uint256 initialMarketPrice = amm._marketPrice(fsl, psl, supply);
+    console.log(initialMarketPrice);
+    uint256 bought = 0;
+    while(bought < 10000e18) {
+      (uint256 market, uint256 floor) = amm.buy(125e17);
+      console.log("market", market, "floor", floor);
+      bought += 125e17;
+    }
+    console.log('fsl: ', amm.fsl());
+    console.log('psl: ', amm.psl());
+    console.log('supply: ', amm.supply());
+    console.log('treasury: ', amm.treasuryValue());    
+  }
+
   function testPurchase4() public {
     locks.transferToAMM(8700000e18, 1900000e18);
     amm.updateSupply(2364e18);
@@ -114,6 +175,26 @@ contract AMMTest is Test {
         assertEq(market, 222277397198448458290986);
       }
     }
+  }
+  
+  function testNewPurchase4() public {
+    locks.transferToAMM(100000e18, 25250e18);
+    amm.updateSupply(157e18);
+    uint256 fsl = 100000e18;
+    uint256 psl = 25250e18;
+    uint256 supply = 157e18;
+    uint256 initialMarketPrice = amm._marketPrice(fsl, psl, supply);
+    console.log(initialMarketPrice);
+    uint256 bought = 0;
+    while(bought < 10000e18) {
+      (uint256 market, uint256 floor) = amm.buy(125e17);
+      console.log("market", market, "floor", floor);
+      bought += 125e17;
+    }
+    console.log('fsl: ', amm.fsl());
+    console.log('psl: ', amm.psl());
+    console.log('supply: ', amm.supply());
+    console.log('treasury: ', amm.treasuryValue());    
   }
 
   function testMixed1() public {
