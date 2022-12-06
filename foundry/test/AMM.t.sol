@@ -410,11 +410,11 @@ contract AMMTest is Test {
     uint256 initialMarketPrice = amm._marketPrice(fsl, psl, supply);
     console.log(initialMarketPrice);
     uint256 sold = 0;
-    while(sold < 1800000e18) {
+    while(sold < 900e18) {
       (uint256 market, uint256 floor) = amm.sell(10e18);
       console.log("market", market, "floor", floor);
       sold += 10e18;
-    }    
+    }
   }
 
   function testSale2() public {
@@ -433,6 +433,26 @@ contract AMMTest is Test {
     }
   }
 
+  function testNewSale2() public {
+    locks.transferToAMM(951e17, 49e17);
+    amm.updateSupply(1000e18);
+    uint256 fsl = 951e17;
+    uint256 psl = 49e17;
+    uint256 supply = 1000e18;
+    uint256 initialMarketPrice = amm._marketPrice(fsl, psl, supply);
+    console.log(initialMarketPrice);
+    uint256 sold = 0;
+    while(sold < 100e18) {
+      (uint256 market, uint256 floor) = amm.sell(25e17);
+      console.log("market", market, "floor", floor);
+      sold += 25e17;
+    }
+    console.log('fsl: ', amm.fsl());
+    console.log('psl: ', amm.psl());
+    console.log('supply: ', amm.supply());
+    console.log('treasury: ', amm.treasuryValue()); 
+  }
+
   function testSale3() public {
     locks.transferToAMM(800000e18, 200000e18);
     amm.updateSupply(1000e18);
@@ -449,12 +469,44 @@ contract AMMTest is Test {
     }
   }
 
+  function testNewSale3() public {
+    locks.transferToAMM(800000e18, 200000e18);
+    amm.updateSupply(1000e18);
+    uint256 fsl = 800000e18;
+    uint256 psl = 200000e18;
+    uint256 supply = 1000e18;
+    uint256 initialMarketPrice = amm._marketPrice(fsl, psl, supply);
+    console.log(initialMarketPrice);
+    uint256 sold = 0;
+    while(sold < 800000) {
+      (uint256 market, uint256 floor) = amm.sell(25e18);
+      console.log("market", market, "floor", floor);
+      sold += 25;
+    }
+  }
+
   function testSale4() public {
     locks.transferToAMM(6300000e18, 3100000e18);
     amm.updateSupply(3124e18);
     uint256 fsl = 6300000e18;
     uint256 psl = 3100000e18;
     uint256 supply = 3124e18;
+    uint256 initialMarketPrice = amm._marketPrice(fsl, psl, supply);
+    console.log(initialMarketPrice);
+    uint256 sold = 0;
+    while(sold < 2000e18) {
+      (uint256 market, uint256 floor) = amm.sell(285e17);
+      console.log("market", market, "floor", floor);
+      sold += 285e17;
+    }
+  }
+
+  function testNewSale4() public {
+    locks.transferToAMM(198576e18, 28573e18);
+    amm.updateSupply(3700e18);
+    uint256 fsl = 198576e18;
+    uint256 psl = 28573e18;
+    uint256 supply = 3700e18;
     uint256 initialMarketPrice = amm._marketPrice(fsl, psl, supply);
     console.log(initialMarketPrice);
     uint256 sold = 0;
