@@ -8,10 +8,6 @@ import BorrowContract from "../utils/Borrow.json";
 export default function Home() {
 
   const [currentAccount, setCurrentAccount] = useState(null);
-  const [stake, setStake] = useState();
-  const [unstake, setUnstake] = useState();
-  const [realize, setRealize] = useState();
-  const [staked, setStaked] = useState();
   const [borrow, setBorrow] = useState();
   const [repay, setRepay] = useState();
   const [locked, setLocked] = useState();
@@ -24,7 +20,6 @@ export default function Home() {
   const [porridgeBalance, setPorridgeBalance] = useState();
   const [totalLocks, setTotalLocks] = useState();
   const [totalPorridge, setTotalPorridge] = useState();
-  const [purchase, setPurchase] = useState();
 
   const porridgeContractAddress = "0xc32609c91d6b6b51d48f2611308fef121b02041f";
   const borrowContractAddress = "0x262e2b50219620226c5fb5956432a88fffd94ba7";
@@ -32,7 +27,6 @@ export default function Home() {
   const ammContractAddress = "0xbee6ffc1e8627f51ccdf0b4399a1e1abc5165f15";
 
   function checkEffect() {
-    checkStaked(currentAccount);
     checkBorrowed(currentAccount);
     checkLocked(currentAccount);
     checkFsl();
@@ -81,32 +75,6 @@ export default function Home() {
     }
     else {
       setBorrowed(parseInt(checkBorrowedTx._hex, 16));
-    }
-  }
-
-  async function checkFsl() {
-    const provider = new ethers.providers.Web3Provider(ethereum);
-    const signer = provider.getSigner();
-    const ammContract = new ethers.Contract(ammContractAddress, AMMContract.abi, signer);
-    const checkFslTx = await ammContract.fsl();
-    if(checkFslTx._hex == "0x00") {
-      setFsl(0);
-    }
-    else {
-      setFsl(parseInt(checkFslTx._hex, 16));
-    }
-  }
-
-  async function checkPsl() {
-    const provider = new ethers.providers.Web3Provider(ethereum);
-    const signer = provider.getSigner();
-    const ammContract = new ethers.Contract(ammContractAddress, AMMContract.abi, signer);
-    const checkPslTx = await ammContract.psl();
-    if(checkPslTx._hex == "0x00") {
-      setPsl(0);
-    }
-    else {
-      setPsl(parseInt(checkPslTx._hex, 16));
     }
   }
 
@@ -186,38 +154,6 @@ export default function Home() {
     setCurrentAccount(account);
   }
 
-  async function stakeFunction() {
-    const provider = new ethers.providers.Web3Provider(ethereum);
-    const signer = provider.getSigner();
-    const porridgeTokenContract = new ethers.Contract(porridgeContractAddress, PorridgeTokenContract.abi, signer);
-    const stakeTx = await porridgeTokenContract.stake(stake);
-    await stakeTx.wait();
-  }
-
-  async function unstakeFunction() {
-    const provider = new ethers.providers.Web3Provider(ethereum);
-    const signer = provider.getSigner();
-    const porridgeTokenContract = new ethers.Contract(porridgeContractAddress, PorridgeTokenContract.abi, signer);
-    const unstakeTx = await porridgeTokenContract.unstake(unstake);
-    await unstakeTx.wait();
-  }
-  
-  async function realizeFunction() {
-    const provider = new ethers.providers.Web3Provider(ethereum);
-    const signer = provider.getSigner();
-    const porridgeTokenContract = new ethers.Contract(porridgeContractAddress, PorridgeTokenContract.abi, signer);
-    const realizeTx = await porridgeTokenContract.realize(realize);
-    await realizeTx.wait();
-  }
-
-  async function claimFunction() {
-    const provider = new ethers.providers.Web3Provider(ethereum);
-    const signer = provider.getSigner();
-    const porridgeTokenContract = new ethers.Contract(porridgeContractAddress, PorridgeTokenContract.abi, signer);
-    const claimTx = await porridgeTokenContract.claim();
-    await claimTx.wait();
-  }
-
   async function borrowFunction() {
     const provider = new ethers.providers.Web3Provider(ethereum);
     const signer = provider.getSigner();
@@ -266,27 +202,6 @@ export default function Home() {
     <div className="px-6">
       <div className="w-[100%] flex flex-row mt-24 justify-center">
         <div className="w-[25%] flex flex-col p-4 rounded-xl bg-yellow-100 mr-4" id="card-div-shadow">
-          <h1 className="mx-auto text-xl">staking</h1>
-          <div className="flex justify-around flex-row items-center mt-8">
-            <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={stakeFunction}>stake</button>
-            <input type="number" value={stake} id="input" className="w-24 pl-3 rounded" onChange={(e) => setStake(e.target.value)}/>
-          </div>
-          <div className="flex justify-around flex-row items-center mt-8">
-            <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={unstakeFunction}>unstake</button>
-            <input type="number" value={unstake} id="input" className="w-24 pl-3 rounded" onChange={(e) => setUnstake(e.target.value)}/>
-          </div>
-          <div className="flex justify-around flex-row items-center mt-8">
-            <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={realizeFunction}>realize</button>
-            <input type="number" value={realize} id="input" className="w-24 pl-3 rounded" onChange={(e) => setRealize(e.target.value)}/>
-          </div>
-          <button className="mx-auto mt-8 px-12 py-3 w-48 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={claimFunction}>claim yield</button>
-        </div>
-        <div className="w-[25%] flex flex-col p-4 rounded-xl bg-yellow-100 mr-4" id="card-div-shadow">
-          {/* <h2 className="mx-auto text-xl">slp</h2>
-          <div className="flex justify-around flex-row items-center mt-16">
-            <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={purchaseFunction}>purchase</button>
-            <input type="number" value={purchase} id="input" className="w-24 pl-3 rounded" onChange={(e) => setPurchase(e.target.value)}/>
-          </div> */}
           <h2 className="mx-auto text-xl">borrowing</h2>
           <div className="flex justify-around flex-row items-center mt-16">
             <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={borrowFunction}>borrow</button>
@@ -328,12 +243,6 @@ export default function Home() {
           <div className="mt-8 flex flex-row justify-between">
             <p>target ratio: </p>
             <p>{(targetRatio / 10**36).toFixed(2)+"%"}</p>
-          </div>
-        </div>
-        <div className="w-[25%] flex flex-col px-24">
-          <div className="mt-8 flex flex-row justify-between">
-            <p className="">staked $LOCKS: </p>
-            <p>{staked}</p>
           </div>
         </div>
         <div className="w-[25%] flex flex-col px-24">

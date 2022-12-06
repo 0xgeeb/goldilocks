@@ -61,12 +61,28 @@ export default function Amm() {
     setSomething(parseInt(somethingReq._hex, 16))
   }
 
-  async function changeSomething() {
+  async function buyFunctionInteraction() {
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
     const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const changeTx = await contractObjectSigner.changeSomething(420)
-    changeTx.wait()
+    const buyTx = await contractObjectSigner.buy(buy)
+    buyTx.wait()
+  }
+
+  async function sellFunctionInteraction() {
+    const provider = new ethers.providers.Web3Provider(ethereum)
+    const signer = provider.getSigner()
+    const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
+    const sellTx = await contractObjectSigner.sell(sell)
+    sellTx.wait()
+  }
+
+  async function redeemFunctionInteraction() {
+    const provider = new ethers.providers.Web3Provider(ethereum)
+    const signer = provider.getSigner()
+    const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
+    const redeemTx = await contractObjectSigner.redeem(redeem)
+    redeemTx.wait()
   }
 
 
@@ -75,15 +91,15 @@ export default function Amm() {
       <div className="w-[45%] flex flex-col p-4 rounded-xl bg-yellow-100 ml-24 mt-24 h-[600px]" id="card-div-shadow">
         <h2 className="mx-auto text-xl">amm</h2>
         <div className="flex justify-around flex-row items-center mt-8">
-          <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" >buy</button>
+          <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={() => buyFunctionInteraction}>buy</button>
           <input type="number" value={buy} id="input" className="w-24 pl-3 rounded" onChange={(e) => setBuy(e.target.value)}/>
         </div>
         <div className="flex justify-around flex-row items-center mt-8">
-          <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" >sell</button>
+          <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={() => sellFunctionInteraction}>sell</button>
           <input type="number" value={sell} id="input" className="w-24 pl-3 rounded" onChange={(e) => setSell(e.target.value)}/>
         </div>
         <div className="flex justify-around flex-row items-center mt-8">
-          <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" >redeem</button>
+          <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={() => redeemFunctionInteraction}>redeem</button>
           <input type="number" value={redeem} id="input" className="w-24 pl-3 rounded" onChange={(e) => setRedeem(e.target.value)}/>
         </div>
         <div className="flex justify-around flex-row items-center mt-14">
@@ -98,9 +114,6 @@ export default function Amm() {
           <p>something</p>
           <p>{ something && numFor.format(something) }</p>
         </div>
-      </div>
-      <div className="w-[30%] flex flex-col p-4 rounded-xl bg-yellow-100 ml-24 mt-24 h-[250px]" id="card-div-shadow">
-        <button className="px-6 py-2 mx-auto mt-6 bg-white rounded-xl" onClick={changeSomething}>hello</button>
       </div>
     </div>
   )
