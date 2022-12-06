@@ -9,7 +9,8 @@ export default function Amm() {
   const [contract, setContract] = useState(null)
   const [fsl, setFsl] = useState(null)
   const [psl, setPsl] = useState(null)
-  const [something, setSomething] = useState(null)
+  const [lastFloorRaise, setLastFloorRaise] = useState(null)
+  const [targetRatio, setTargetRatio] = useState(null)
   const [buy, setBuy] = useState()
   const [sell, setSell] = useState()
   const [redeem, setRedeem] = useState()
@@ -55,10 +56,12 @@ export default function Amm() {
     const contractObject = new ethers.Contract(contractAddy, abi.abi, provider)
     const fslReq = await contractObject.fsl()
     const pslReq = await contractObject.psl()
-    const somethingReq = await contractObject.something()
+    // const floorReq = await contractObject.lastFloorRaise()
+    const ratioReq = await contractObject.targetRatio()
     setFsl(parseInt(fslReq._hex, 16))
     setPsl(parseInt(pslReq._hex, 16))
-    setSomething(parseInt(somethingReq._hex, 16))
+    // setLastFloorRaise(new Date(parseInt(floorReq._hex, 16)*1000).toLocaleString())
+    setTargetRatio(parseInt(ratioReq._hex, 16))
   }
 
   async function buyFunctionInteraction() {
@@ -106,13 +109,17 @@ export default function Amm() {
           <p>fsl</p>
           <p>{ fsl && numFor.format((fsl / Math.pow(10, 18))) }</p>
         </div>
-        <div className="flex justify-around flex-row items-center mt-14">
+        <div className="flex justify-around flex-row items-center mt-8">
           <p>psl</p>
           <p>{ psl && numFor.format((psl / Math.pow(10, 18))) }</p>
         </div>
-        <div className="flex justify-around flex-row items-center mt-14">
-          <p>something</p>
-          <p>{ something && numFor.format(something) }</p>
+        <div className="flex justify-around flex-row items-center mt-8">
+          <p>last floor raise</p>
+          <p></p>
+        </div>
+        <div className="flex justify-around flex-row items-center mt-8">
+          <p>target ratio</p>
+          <p>{ targetRatio && (targetRatio / 10**16)+"%" }</p>
         </div>
       </div>
     </div>

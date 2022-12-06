@@ -1,9 +1,5 @@
 import React, { useEffect, useState } from "react"
 import { ethers } from "ethers";
-import LocksTokenContract from "../utils/LocksToken.json";
-import PorridgeTokenContract from "../utils/PorridgeToken.json";
-import AMMContract from "../utils/AMM.json";
-import BorrowContract from "../utils/Borrow.json";
 
 export default function Home() {
 
@@ -12,10 +8,6 @@ export default function Home() {
   const [repay, setRepay] = useState();
   const [locked, setLocked] = useState();
   const [borrowed, setBorrowed] = useState();
-  const [fsl, setFsl] = useState();
-  const [psl, setPsl] = useState();
-  const [lastFloorRaise, setLastFloorRaise] = useState();
-  const [targetRatio, setTargetRatio] = useState();
   const [locksBalance, setLocksBalance] = useState();
   const [porridgeBalance, setPorridgeBalance] = useState();
   const [totalLocks, setTotalLocks] = useState();
@@ -29,10 +21,6 @@ export default function Home() {
   function checkEffect() {
     checkBorrowed(currentAccount);
     checkLocked(currentAccount);
-    checkFsl();
-    checkPsl();
-    checkLastFloorRaise();
-    checkTargetRatio();
     checkTotalLocks();
     checkTotalPorridge();
     checkLocksBalance(currentAccount);
@@ -76,24 +64,6 @@ export default function Home() {
     else {
       setBorrowed(parseInt(checkBorrowedTx._hex, 16));
     }
-  }
-
-  async function checkLastFloorRaise() {
-    const provider = new ethers.providers.Web3Provider(ethereum);
-    const signer = provider.getSigner();
-    const ammContract = new ethers.Contract(ammContractAddress, AMMContract.abi, signer);
-    const checkLastFloorRaiseTx = await ammContract.lastFloorRaise();
-    const timestamp = parseInt(checkLastFloorRaiseTx._hex, 16)*1000;
-    const dateObject = new Date(timestamp);
-    setLastFloorRaise(dateObject.toLocaleString());
-  }
-
-  async function checkTargetRatio() {
-    const provider = new ethers.providers.Web3Provider(ethereum);
-    const signer = provider.getSigner();
-    const ammContract = new ethers.Contract(ammContractAddress, AMMContract.abi, signer);
-    const checkTargetRatioTx = await ammContract.targetRatio();
-    setTargetRatio(parseInt(checkTargetRatioTx._hex, 16));
   }
 
   async function checkLocksBalance(account) {
@@ -154,64 +124,9 @@ export default function Home() {
     setCurrentAccount(account);
   }
 
-  async function borrowFunction() {
-    const provider = new ethers.providers.Web3Provider(ethereum);
-    const signer = provider.getSigner();
-    const borrowContract = new ethers.Contract(borrowContractAddress, BorrowContract.abi, signer);
-    const borrowTx = await borrowContract.borrow(borrow);
-    await borrowTx.wait();
-  }
-
-  async function repayFunction() {
-    const provider = new ethers.providers.Web3Provider(ethereum);
-    const signer = provider.getSigner();
-    const borrowContract = new ethers.Contract(borrowContractAddress, BorrowContract.abi, signer);
-    const repayTx = await borrowContract.repay(repay);
-    await repayTx.wait();
-  }
-
-  async function checkslpFsl() {
-    const provider = new ethers.providers.Web3Provider(ethereum);
-    const signer = provider.getSigner();
-    const slpContract = new ethers.Contract(slpContractAddress, SLPContract.abi, signer);
-    const checkFslTx = await slpContract.mfsl();
-    console.log(checkFslTx)
-    if(checkFslTx._hex == "0x00") {
-      setslpFsl(0);
-    }
-    else {
-      setslpFsl(parseInt(checkFslTx._hex, 16) / (10**18));
-    }
-  }
-
-  async function checkslpPsl() {
-    const provider = new ethers.providers.Web3Provider(ethereum);
-    const signer = provider.getSigner();
-    const slpContract = new ethers.Contract(slpContractAddress, SLPContract.abi, signer);
-    const checkPslTx = await slpContract.mpsl();
-    console.log(checkPslTx)
-    if(checkPslTx._hex == "0x00") {
-      setslpPsl(0);
-    }
-    else {
-      setslpPsl(parseInt(checkPslTx._hex, 16) / (10**18));
-    }
-  }
-
   return (
     <div className="px-6">
       <div className="w-[100%] flex flex-row mt-24 justify-center">
-        <div className="w-[25%] flex flex-col p-4 rounded-xl bg-yellow-100 mr-4" id="card-div-shadow">
-          <h2 className="mx-auto text-xl">borrowing</h2>
-          <div className="flex justify-around flex-row items-center mt-16">
-            <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={borrowFunction}>borrow</button>
-            <input type="number" value={borrow} id="input" className="w-24 pl-3 rounded" onChange={(e) => setBorrow(e.target.value)}/>
-          </div>
-          <div className="flex justify-around flex-row items-center mt-8">
-            <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={repayFunction}>repay</button>
-            <input type="number" value={repay} id="input" className="w-24 pl-3 rounded" onChange={(e) => setRepay(e.target.value)}/>
-          </div>
-        </div>
         <div className="w-[25%] flex flex-col p-4 rounded-xl bg-yellow-100 mr-4" id="card-div-shadow">
           <h2 className="mx-auto text-xl">wallet</h2>
           <div className="px-16">
@@ -227,42 +142,6 @@ export default function Home() {
         </div>
       </div>
       <div className="w-[100%] flex flex-row mt-24">
-        <div className="w-[25%] flex flex-col px-24">
-          <div className="mt-8 flex flex-row justify-between">
-            <p className="">fsl balance: </p>
-            <p>{fsl}</p>
-          </div>
-          <div className="mt-8 flex flex-row justify-between">
-            <p className="">psl balance: </p>
-            <p>{psl}</p>
-          </div>
-          <div className="mt-8 flex flex-row justify-between">
-            <p>last floor raise: </p>
-            <p>{lastFloorRaise}</p>
-          </div>
-          <div className="mt-8 flex flex-row justify-between">
-            <p>target ratio: </p>
-            <p>{(targetRatio / 10**36).toFixed(2)+"%"}</p>
-          </div>
-        </div>
-        <div className="w-[25%] flex flex-col px-24">
-          {/* <div className="mt-8 flex flex-row justify-between">
-            <p className="">fsl balance: </p>
-            <p>{slpfsl}</p>
-          </div>
-          <div className="mt-8 flex flex-row justify-between">
-            <p className="">psl balance: </p>
-            <p>{slppsl}</p>
-          </div> */}
-          <div className="mt-8 flex flex-row justify-between">
-            <p className="">borrowed $USDC: </p>
-            <p>{borrowed}</p>
-          </div>
-          <div className="mt-8 flex flex-row justify-between">
-            <p>locked $LOCKS: </p>
-            <p>{locked}</p>
-          </div>
-        </div>
         <div className="w-[25%] flex flex-col px-24">
           <div className="mt-8 flex flex-row justify-between">
             <p className="">total $LOCKS: </p>

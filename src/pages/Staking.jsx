@@ -108,7 +108,7 @@ export default function Staking() {
         </div>
         <div className="flex justify-around flex-row items-center mt-14">
           <p>staked</p>
-          <p>{ staked && numFor.format((fsl / Math.pow(10, 18))) }</p>
+          <p>{ staked && numFor.format((staked / Math.pow(10, 18))) }</p>
         </div>
       </div>
     </div>
