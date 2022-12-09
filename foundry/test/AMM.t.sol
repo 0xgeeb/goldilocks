@@ -369,12 +369,44 @@ contract AMMTest is Test {
     }
   }
 
+  function testNewRedeem1() public {
+    locks.transferToAMM(951e17, 49e17);
+    amm.updateSupply(1000e18);
+    uint256 fsl = 951e17;
+    uint256 psl = 49e17;
+    uint256 supply = 1000e18;
+    uint256 initialMarketPrice = amm._marketPrice(fsl, psl, supply);
+    console.log(initialMarketPrice);
+    uint256 redeemed = 0;
+    while(redeemed < 400) {
+      amm.redeem(10e18);
+      console.log("market", amm._marketPrice(amm.fsl(), amm.psl(), amm.supply()), "floor", amm._floorPrice(amm.fsl(), amm.supply()));
+      redeemed += 10;
+    }
+  }
+
   function testRedeem2() public {
     locks.transferToAMM(1600000e18, 400000e18);
     amm.updateSupply(1000e18);
     uint256 fsl = 1600000e18;
     uint256 psl = 400000e18;
     uint256 supply = 1000e18;
+    uint256 initialMarketPrice = amm._marketPrice(fsl, psl, supply);
+    console.log(initialMarketPrice);
+    uint256 redeemed = 0;
+    while(redeemed < 50e18) {
+      amm.redeem(25e17);
+      console.log("market", amm._marketPrice(amm.fsl(), amm.psl(), amm.supply()), "floor", amm._floorPrice(amm.fsl(), amm.supply()));
+      redeemed += 25e17;
+    }
+  }
+
+  function testNewRedeem2() public {
+    locks.transferToAMM(951e17, 49e17);
+    amm.updateSupply(100e18);
+    uint256 fsl = 951e17;
+    uint256 psl = 49e17;
+    uint256 supply = 100e18;
     uint256 initialMarketPrice = amm._marketPrice(fsl, psl, supply);
     console.log(initialMarketPrice);
     uint256 redeemed = 0;
