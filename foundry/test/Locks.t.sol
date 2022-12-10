@@ -10,13 +10,13 @@ contract LocksTest is Test {
 
   Locks locks;
   AMM amm;
-  IERC20 usdc;
+  IERC20 honey;
   address adminAddress = 0xFB38050d2dEF04c1bb5Ff21096d50cD992418be3;
 
   function setUp() public {
     locks = new Locks(adminAddress);
     amm = new AMM(address(locks), address(this));
-    usdc = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+    honey = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
   }
 
   function testHardCap() public {
@@ -24,26 +24,30 @@ contract LocksTest is Test {
     locks.contribute(1000001e18);
   }
 
-  // function testMint() public {
-  //   vm.prank(adminAddress);
-  //   locks.mint(msg.sender, 100e18);
-  //   assertEq(locks.totalSupply(), 100e18);
-  //   assertEq(locks.balanceOf(msg.sender), 100e18);
-  // }
+  function testMint() public {
+    vm.prank(adminAddress);
+    locks.setAmmAddress(address(amm));
+    vm.prank(address(amm));
+    locks.ammMint(msg.sender, 100e18);
+    assertEq(locks.totalSupply(), 100e18);
+    assertEq(locks.balanceOf(msg.sender), 100e18);
+  }
 
-  // function testBurn() public {
-  //   vm.prank(adminAddress);
-  //   locks.mint(msg.sender, 100e18);
-  //   vm.prank(adminAddress);
-  //   locks.burn(msg.sender, 100e18);
-  //   assertEq(locks.totalSupply(), 0);
-  //   assertEq(locks.balanceOf(msg.sender), 0);
-  // }
+  function testBurn() public {
+    vm.prank(adminAddress);
+    locks.setAmmAddress(address(amm));
+    vm.prank(address(amm));
+    locks.ammMint(msg.sender, 100e18);
+    vm.prank(address(amm));
+    locks.ammBurn(msg.sender, 100e18);
+    assertEq(locks.totalSupply(), 0);
+    assertEq(locks.balanceOf(msg.sender), 0);
+  }
 
-  // function testOnlyAdmin() public {
-  //   vm.expectRevert(bytes("not admin"));
-  //   locks.mint(msg.sender, 100e18);
-  // }
+  function testOnlyAdmin() public {
+    vm.expectRevert(bytes("not admin"));
+    locks.setPorridgeAddress(address(this));
+  }
 
   function testOnlyAMM() public {
     vm.expectRevert(bytes("not amm"));
@@ -51,13 +55,13 @@ contract LocksTest is Test {
   }
 
   function testTransferToAMM() public {
-    deal(address(usdc), address(locks), 1000000e6, true);
+    deal(address(honey), address(locks), 1000000e6, true);
     vm.prank(adminAddress);
     locks.setAmmAddress(address(amm));
     vm.prank(adminAddress);
     locks.transferToAMM(1600000e18, 400000e18);
-    assertEq(usdc.balanceOf(address(amm)), 1000000e6);
-    assertEq(usdc.balanceOf(address(locks)), 0);
+    assertEq(honey.balanceOf(address(amm)), 1000000e6);
+    assertEq(honey.balanceOf(address(locks)), 0);
     assertEq(amm.fsl(), 1600000e18);
     assertEq(amm.psl(), 400000e18);
   }

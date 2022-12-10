@@ -10,15 +10,14 @@ import "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 contract PorridgeTest is Test {
 
-  IERC20 usdc;
+  IERC20 honey;
   Porridge porridge;
   Locks locks;
   AMM amm;
   Borrow borrow;
-  
 
   function setUp() public {
-    usdc = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+    honey = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
     locks = new Locks(address(this));
     amm = new AMM(address(locks), address(this));
     borrow = new Borrow(address(amm), address(locks), address(this));
@@ -26,6 +25,7 @@ contract PorridgeTest is Test {
   }
 
   function testCalculateYield() public {
+    porridge.setLocksAddress(address(locks));
     deal(address(locks), address(this), 100e18);
     locks.approve(address(porridge), 100e18);
     porridge.stake(100e18);
@@ -35,6 +35,7 @@ contract PorridgeTest is Test {
   }
 
   function testUnstake() public {
+    porridge.setLocksAddress(address(locks));
     deal(address(locks), address(this), 100e18);
     locks.approve(address(porridge), 100e18);
     porridge.stake(100e18);
@@ -45,14 +46,14 @@ contract PorridgeTest is Test {
 
   function testRealize() public {
     borrow.setPorridge(address(porridge));
-    deal(address(usdc), address(this), 1000000e6, true);
-    deal(address(usdc), address(locks), 1000000e6, true);
-    deal(address(locks), address(usdc), 1000000e18, true);
+    deal(address(honey), address(this), 1000000e18, true);
+    deal(address(honey), address(locks), 1000000e18, true);
+    deal(address(locks), address(honey), 1000000e18, true);
     deal(address(porridge), address(this), 1000000e18, true);
     locks.setAmmAddress(address(amm));
     locks.transferToAMM(1600000e18, 400000e18);
     locks.setPorridgeAddress(address(porridge));
-    usdc.approve(address(porridge), 100000e6);
+    honey.approve(address(porridge), 100000e18);
     porridge.realize(10e18);
     assertEq(locks.balanceOf(address(this)), 10e18);
   }

@@ -14,20 +14,21 @@ contract BorrowTest is Test {
   Porridge porridge;
   AMM amm;
   Borrow borrow;
-  IERC20 usdc;
+  IERC20 honey;
 
   function setUp() public {
-    usdc = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+    honey = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
     locks = new Locks(address(this));
     amm = new AMM(address(locks), address(this));
     borrow = new Borrow(address(amm), address(locks), address(this));
     porridge = new Porridge(address(amm), address(locks), address(borrow), address(this));
     borrow.setPorridge(address(porridge));
-    deal(address(usdc), address(this), 1000000e6, true);
+    deal(address(honey), address(this), 1000000e18, true);
     deal(address(locks), address(this), 1000000e18, true);
-    deal(address(usdc), address(locks), 1000000e6, true);
+    deal(address(honey), address(locks), 1000000e18, true);
     locks.setAmmAddress(address(amm));
     locks.transferToAMM(1600000e18, 400000e18);
+    amm.updateSupply(1000e18);
   }
 
   function testBorrow() public {
@@ -36,7 +37,7 @@ contract BorrowTest is Test {
     vm.prank(address(porridge));
     locks.approve(address(borrow), 100e18);
     vm.prank(address(amm));
-    usdc.approve(address(borrow), 100e6);
+    honey.approve(address(borrow), 100e18);
     uint256 result = borrow.borrow(5e18);
     assertEq(result, 4850000);
   }
@@ -54,9 +55,9 @@ function testLimitBorrow() public {
     vm.prank(address(porridge));
     locks.approve(address(borrow), 100000e18);
     vm.prank(address(amm));
-    usdc.approve(address(borrow), 100e6);
+    honey.approve(address(borrow), 100e18);
     borrow.borrow(8e18);
-    usdc.approve(address(borrow), 1000e18);
+    honey.approve(address(borrow), 1000e18);
     locks.approve(address(borrow), 1000e18);
     borrow.repay(8e18);
     
@@ -68,9 +69,9 @@ function testLimitBorrow() public {
     vm.prank(address(porridge));
     locks.approve(address(borrow), 100000e18);
     vm.prank(address(amm));
-    usdc.approve(address(borrow), 100e6);
+    honey.approve(address(borrow), 100e18);
     borrow.borrow(8e18);
-    usdc.approve(address(borrow), 100e18);
+    honey.approve(address(borrow), 100e18);
     locks.approve(address(borrow), 100e18);
     vm.expectRevert(bytes("repaying too much"));
     borrow.repay(8000002000000000000);
