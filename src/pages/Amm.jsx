@@ -6,15 +6,22 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
 
   const [fsl, setFsl] = useState(null)
   const [psl, setPsl] = useState(null)
+  const [supply, setSupply] = useState(1000)
   const [lastFloorRaise, setLastFloorRaise] = useState(null)
   const [targetRatio, setTargetRatio] = useState(null)
-  const [buy, setBuy] = useState()
-  const [sell, setSell] = useState()
-  const [redeem, setRedeem] = useState()
+  const [buy, setBuy] = useState('')
+  const [sell, setSell] = useState('')
+  const [redeem, setRedeem] = useState('')
+  const [purchasePrice, setPurchasePrice] = useState(0)
+  const [locksPercentChange, setLocksPercentChange] = useState(0)
 
   useEffect(() => {
     getContractData()
   }, [])
+
+  useEffect(() => {
+    simulateBuy()
+  }, [buy])
 
   const numFor = Intl.NumberFormat('en-US')
 
@@ -43,6 +50,35 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
   }
 
   const contractAddy = '0xD323ba82A0ec287C9D19c63C439898720a93604A'
+
+  function simulateBuy() {
+    let _fsl = fsl
+    let _psl = psl
+    let _supply = supply
+    let _purchasePrice = 0
+    let startingFloor = _fsl / _supply
+    for(let i = 0; i < buy; i++) {
+      _supply++
+      _purchasePrice += marketPrice(_fsl, _psl, _supply)
+      if (_psl / _fsl >= 0.36) {
+        _fsl += marketPrice(_fsl, _psl, _supply)
+      }
+      else {
+        _fsl += floorPrice(_fsl, _supply)
+        _psl += marketPrice(_fsl, _psl, _supply) - floorPrice(_fsl, _supply)
+      }
+    }
+    setPurchasePrice(_purchasePrice / Math.pow(10, 18))
+    setLocksPercentChange(((startingFloor - (_fsl / _supply)) / startingFloor) * 100)
+  }
+
+  function floorPrice(_fsl, _supply) {
+    return _fsl / _supply
+  }
+
+  function marketPrice(_fsl, _psl, _supply) {
+    return floorPrice(_fsl, _supply) + ((_psl / _supply) * ((_psl + _fsl) / _fsl)**5)
+  }
   
 
   async function connectWallet() {
@@ -142,17 +178,25 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
           <p>fsl</p>
           <p>{ fsl && numFor.format((fsl / Math.pow(10, 18))) }</p>
         </div>
-        <div className="flex justify-around flex-row items-center mt-8">
+        <div className="flex justify-around flex-row items-center mt-4">
           <p>psl</p>
           <p>{ psl && numFor.format((psl / Math.pow(10, 18))) }</p>
         </div>
-        <div className="flex justify-around flex-row items-center mt-8">
+        <div className="flex justify-around flex-row items-center mt-4">
           <p>last floor raise</p>
           <p></p>
         </div>
-        <div className="flex justify-around flex-row items-center mt-8">
+        <div className="flex justify-around flex-row items-center mt-4">
           <p>target ratio</p>
           <p>{ targetRatio && (targetRatio / 10**16)+"%" }</p>
+        </div>
+        <div className="flex justify-around flex-row items-center mt-4">
+          <p>purchase price</p>
+          <p>{ purchasePrice > 0 && purchasePrice }</p>
+        </div>
+        <div className="flex justify-around flex-row items-center mt-4">
+          <p>locks % change</p>
+          <p>{ locksPercentChange > 0 && locksPercentChange.toFixed(2) + "%" }</p>
         </div>
       </div>
     </div>
