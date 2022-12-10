@@ -1,16 +1,28 @@
 import React, { useEffect, useState } from "react"
+import { ethers } from "ethers"
 
-export default function Nav() {
+export default function Nav({ currentAccount, setCurrentAccount, avaxChain, setAvaxChain }) {
 
-  const [currentAccount, setCurrentAccount] = useState(null);
+  useEffect(() => {
+    checkConnectionandChain()
+  }, [])
 
-
-  async function connectWallet() {
-    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-    const account = accounts[0];
-    setCurrentAccount(account);
+  async function checkConnectionandChain() {
+    const accounts = await ethereum.request({ method: 'eth_accounts'})
+    if(accounts.length) {
+      setCurrentAccount(accounts[0])
+    }
+    const provider = new ethers.providers.Web3Provider(window.ethereum)
+    const { chainId } = await provider.getNetwork()
+    if (chainId === 43113) {
+      setAvaxChain(chainId)
+    }
   }
 
+  async function connectWallet() {
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
+    setCurrentAccount(accounts[0])
+  }
 
   return (
     <div className="w-[100%] mt-12 flex flex-row items-center justify-between px-5">

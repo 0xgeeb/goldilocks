@@ -10,16 +10,17 @@ import Borrowing from "./pages/Borrowing.jsx"
 export default function App() {
 
   const [currentAccount, setCurrentAccount] = useState(null)
+  const [avaxChain, setAvaxChain] = useState(null)
 
   return (
     <Router>
       <div className="flex flex-col relative min-w-screen min-h-screen m-0 p-0 overflow-x-hidden bg-[#F7F7F7]">
-        <Nav  currentAccount={currentAccount} setCurrentAccount={setCurrentAccount} />
+        <Nav  currentAccount={currentAccount} setCurrentAccount={setCurrentAccount} avaxChain={avaxChain} setAvaxChain={setAvaxChain} />
         <Routes>
-          <Route exact path="/" element={<Home />} />
-          <Route exact path="/amm" element={<Amm />} />
-          <Route exact path="/staking" element={<Staking />} />
-          <Route exact path="/borrowing" element={<Borrowing />} />
+          <Route exact path="/" element={<Home currentAccount={currentAccount} setCurrentAccount={setCurrentAccount} avaxChain={avaxChain} setAvaxChain={setAvaxChain} />} />
+          <Route exact path="/amm" element={<Amm currentAccount={currentAccount} setCurrentAccount={setCurrentAccount} avaxChain={avaxChain} setAvaxChain={setAvaxChain} />} />
+          <Route exact path="/staking" element={<Staking currentAccount={currentAccount} setCurrentAccount={setCurrentAccount} avaxChain={avaxChain} setAvaxChain={setAvaxChain} />} />
+          <Route exact path="/borrowing" element={<Borrowing currentAccount={currentAccount} setCurrentAccount={setCurrentAccount} avaxChain={avaxChain} setAvaxChain={setAvaxChain} />} />
         </Routes>
       </div>
     </Router>

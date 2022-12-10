@@ -1,13 +1,8 @@
 import React, { useEffect, useState } from "react"
-import { ethers } from "ethers";
+import { ethers } from "ethers"
 
-export default function Home() {
+export default function Home({ currentAccount, setCurrentAccount, avaxChain, setAvaxChain }) {
 
-  const [currentAccount, setCurrentAccount] = useState(null);
-  const [borrow, setBorrow] = useState();
-  const [repay, setRepay] = useState();
-  const [locked, setLocked] = useState();
-  const [borrowed, setBorrowed] = useState();
   const [locksBalance, setLocksBalance] = useState();
   const [porridgeBalance, setPorridgeBalance] = useState();
   const [totalLocks, setTotalLocks] = useState();
