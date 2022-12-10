@@ -1,29 +1,30 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import "./AMM.sol";
-import "./Locks.sol";
-import "./Porridge.sol";
+import { IERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import { IAMM } from "./interfaces/IAMM.sol";
+import { IPorridge } from "./interfaces/IPorridge.sol";
 
 contract Borrow {
 
-  AMM amm;
-  Locks locks;
-  Porridge porridge;
-  IERC20 stable;
+  IAMM iamm;
+  IPorridge iporridge;
+  IERC20 honey;
   address public adminAddress;
+  address public ammAddress;
+  address public locksAddress;
+  address public porridgeAddress;
 
   mapping(address => uint256) public lockedLocks;
-  mapping(address => uint256) public borrowedStables;
+  mapping(address => uint256) public borrowedHoney;
 
-  uint256 public stableDecimals = 1e12;
 
   constructor(address _ammAddress, address _locksAddress, address _adminAddress) {
-    amm = AMM(_ammAddress);
-    locks = Locks(_locksAddress);
+    iamm = IAMM(_ammAddress);
+    honey = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
     adminAddress = _adminAddress;
-    stable = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+    locksAddress = _locksAddress;
+    ammAddress = _ammAddress;
   }
 
   modifier onlyAdmin() {
@@ -36,32 +37,36 @@ contract Borrow {
   }
 
   function getBorrowed(address _user) external view returns (uint256) {
-    return borrowedStables[_user];
+    return borrowedHoney[_user];
   }
 
   function borrow(uint256 _amount) external returns (uint256) {
     require(_amount > 0, "cannot borrow zero");
-    uint256 _floorPrice = amm.floorPrice();
-    uint256 _stakedLocks = porridge.getStaked(msg.sender);
+    uint256 _floorPrice = iamm.floorPrice();
+    uint256 _stakedLocks = iporridge.getStaked(msg.sender);
     require((_floorPrice * _stakedLocks) / (1e18) >= _amount, "insufficient borrow limit");
     lockedLocks[msg.sender] += (_amount * (1e18)) / _floorPrice;
-    borrowedStables[msg.sender] += _amount / stableDecimals;
+    borrowedHoney[msg.sender] += _amount;
     uint256 _fee = (_amount / 100) * 3;
-    locks.transferFrom(address(porridge), address(this), (_amount * (1e18)) / _floorPrice);
-    stable.transferFrom(address(amm), msg.sender, (_amount - _fee) / stableDecimals);
-    stable.transferFrom(address(amm), adminAddress, _fee / stableDecimals);
-    return (_amount - _fee) / stableDecimals;
+    IERC20(locksAddress).transferFrom(porridgeAddress, address(this), (_amount * (1e18)) / _floorPrice);
+    honey.transferFrom(ammAddress, msg.sender, _amount - _fee);
+    honey.transferFrom(ammAddress, adminAddress, _fee);
+    return _amount - _fee;
   }
 
   function repay(uint256 _amount) external {
     require(_amount > 0, "cannot repay zero");
-    require(borrowedStables[msg.sender] >= _amount / stableDecimals, "repaying too much");
-    uint256 _repaidLocks = (_amount / (borrowedStables[msg.sender] * stableDecimals)) * lockedLocks[msg.sender];
-    uint256 _repaidStables = _amount / stableDecimals;
+    require(borrowedHoney[msg.sender] >= _amount, "repaying too much");
+    uint256 _repaidLocks = (_amount / borrowedHoney[msg.sender]) * lockedLocks[msg.sender];
     lockedLocks[msg.sender] -= _repaidLocks;
-    borrowedStables[msg.sender] -= _repaidStables;
-    stable.transferFrom(msg.sender, address(amm), _repaidStables);
-    locks.transfer(address(porridge), _repaidLocks);
+    borrowedHoney[msg.sender] -= _amount;
+    honey.transferFrom(msg.sender, ammAddress, _amount);
+    IERC20(locksAddress).transfer(porridgeAddress, _repaidLocks);
+  }
+
+  function setPorridge(address _porridgeAddress) public onlyAdmin {
+    iporridge = IPorridge(_porridgeAddress);
+    porridgeAddress = _porridgeAddress;
   }
 
 }

@@ -1,13 +1,13 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import "./Locks.sol";
+import { IERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import { ILocks } from "./interfaces/ILocks.sol";
 
 contract AMM {
 
-  IERC20 stable;
-  Locks locks;
+  IERC20 honey;
+  ILocks ilocks;
   uint256 public targetRatio = 260e15;
   uint256 public fsl;
   uint256 public psl;
@@ -15,14 +15,15 @@ contract AMM {
   uint256 public lastFloorRaise;
   uint256 public lastFloorDecrease;
   address public adminAddress;
-  uint256 public stableDecimals = 1e12;
+  address public locksAddress;
   uint256 public treasuryValue;
   address public treasuryAddress;
 
   constructor(address _locksAddress, address _adminAddress) {
-    locks = Locks(_locksAddress);
+    ilocks = ILocks(_locksAddress);
     adminAddress = _adminAddress;
-    stable = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+    honey = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+    locksAddress = _locksAddress;
     lastFloorRaise = block.timestamp;
   }
 
@@ -32,15 +33,15 @@ contract AMM {
   }
 
   modifier onlyLocks() {
-    require(msg.sender == address(locks), "not locks");
+    require(msg.sender == locksAddress, "not locks");
     _;
   }
 
-  function floorPrice() public view returns (uint256) {
+  function floorPrice() external view returns (uint256) {
     return (fsl*(1e18)) / supply;
   }
 
-  function initialize(uint256 _fsl, uint256 _psl) public onlyLocks {
+  function initialize(uint256 _fsl, uint256 _psl) external onlyLocks {
     fsl = _fsl;
     psl = _psl;
   }
@@ -84,7 +85,7 @@ contract AMM {
         }
       }
       uint256 _tax = (_purchasePrice / 1000) * 3;
-      // stable.transferFrom(msg.sender, address(this), (_purchasePrice + _tax) / stableDecimals);
+      // honey.transferFrom(msg.sender, address(this), _purchasePrice + _tax);
       fsl = _fsl + _tax;
       psl = _psl;
       supply = _supply;
@@ -123,13 +124,13 @@ contract AMM {
         }
       }
       uint256 _tax = (_purchasePrice / 1000) * 3;
-      // stable.transferFrom(msg.sender, address(this), (_purchasePrice - _treasuryValue + _tax) / stableDecimals);
+      // honey.transferFrom(msg.sender, address(this), _purchasePrice - _treasuryValue + _tax);
       fsl = _fsl + _tax;
       psl = _psl;
       supply = _supply;
       treasuryValue = _treasuryValue;
     }
-      // locks.ammMint(msg.sender, _amount);
+      // ilocks.ammMint(msg.sender, _amount);
     _floorRaise();
     return (_marketPrice(fsl, psl, supply), _floorPrice(fsl, supply));
   }
@@ -161,8 +162,8 @@ contract AMM {
       _supply -= _leftover;
     }
     uint256 _tax = (_saleAmount / 1000) * 53;
-    // stable.transfer(msg.sender, (_saleAmount + _tax) / stableDecimals);
-    // locks.burn(msg.sender, _amount);
+    // honey.transfer(msg.sender, _saleAmount + _tax);
+    // ilocks.ammBurn(msg.sender, _amount);
     fsl = _fsl + _tax;
     psl = _psl;
     supply = _supply;
@@ -171,10 +172,10 @@ contract AMM {
 
   function redeem(uint256 _amount) public {
     require(_amount > 0, "cannot redeem zero");
-    require(locks.balanceOf(msg.sender) >= _amount, "insufficient balance");
+    require(IERC20(locksAddress).balanceOf(msg.sender) >= _amount, "insufficient balance");
     uint256 _rawTotal = (_amount * ((fsl * 1e18) / supply)) / 1e18;
-    // locks.burn(msg.sender, _amount);
-    // stable.transfer(msg.sender, (_rawTotal) / stableDecimals);
+    // ilocks.ammBurn(msg.sender, _amount);
+    // honey.transfer(msg.sender, _rawTotal);
     supply -= _amount;
     fsl -= _rawTotal;
     _floorRaise();
@@ -213,7 +214,7 @@ contract AMM {
   }
 
   function withdrawTreasury() public onlyAdmin {
-    stable.transfer(treasuryAddress, treasuryValue);
+    honey.transfer(treasuryAddress, treasuryValue);
   }
 
 

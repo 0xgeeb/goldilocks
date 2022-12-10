@@ -24,26 +24,26 @@ contract LocksTest is Test {
     locks.contribute(1000001e18);
   }
 
-  function testMint() public {
-    vm.prank(adminAddress);
-    locks.mint(msg.sender, 100e18);
-    assertEq(locks.totalSupply(), 100e18);
-    assertEq(locks.balanceOf(msg.sender), 100e18);
-  }
+  // function testMint() public {
+  //   vm.prank(adminAddress);
+  //   locks.mint(msg.sender, 100e18);
+  //   assertEq(locks.totalSupply(), 100e18);
+  //   assertEq(locks.balanceOf(msg.sender), 100e18);
+  // }
 
-  function testBurn() public {
-    vm.prank(adminAddress);
-    locks.mint(msg.sender, 100e18);
-    vm.prank(adminAddress);
-    locks.burn(msg.sender, 100e18);
-    assertEq(locks.totalSupply(), 0);
-    assertEq(locks.balanceOf(msg.sender), 0);
-  }
+  // function testBurn() public {
+  //   vm.prank(adminAddress);
+  //   locks.mint(msg.sender, 100e18);
+  //   vm.prank(adminAddress);
+  //   locks.burn(msg.sender, 100e18);
+  //   assertEq(locks.totalSupply(), 0);
+  //   assertEq(locks.balanceOf(msg.sender), 0);
+  // }
 
-  function testOnlyAdmin() public {
-    vm.expectRevert(bytes("not admin"));
-    locks.mint(msg.sender, 100e18);
-  }
+  // function testOnlyAdmin() public {
+  //   vm.expectRevert(bytes("not admin"));
+  //   locks.mint(msg.sender, 100e18);
+  // }
 
   function testOnlyAMM() public {
     vm.expectRevert(bytes("not amm"));
