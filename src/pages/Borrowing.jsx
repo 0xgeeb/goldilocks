@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react"
 import { ethers } from "ethers"
+import abi from "../utils/testAMM.json"
 
 export default function Borrowing() {
 
