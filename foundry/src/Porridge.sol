@@ -89,9 +89,4 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
     return _yield;
   }
 
-  function updateStable(address _stableAddress, uint256 _stableDecimals) public onlyAdmin {
-    stable = IERC20(_stableAddress);
-    stableDecimals = _stableDecimals;
-  }
-
 }

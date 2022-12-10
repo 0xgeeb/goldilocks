@@ -31,15 +31,15 @@ contract Borrow {
     _;
   }
 
-  function getLocked(address _user) public view returns (uint256) {
+  function getLocked(address _user) external view returns (uint256) {
     return lockedLocks[_user];
   }
 
-  function getBorrowed(address _user) public view returns (uint256) {
+  function getBorrowed(address _user) external view returns (uint256) {
     return borrowedStables[_user];
   }
 
-  function borrow(uint256 _amount) public returns (uint256) {
+  function borrow(uint256 _amount) external returns (uint256) {
     require(_amount > 0, "cannot borrow zero");
     uint256 _floorPrice = amm.floorPrice();
     uint256 _stakedLocks = porridge.getStaked(msg.sender);
@@ -53,7 +53,7 @@ contract Borrow {
     return (_amount - _fee) / stableDecimals;
   }
 
-  function repay(uint256 _amount) public {
+  function repay(uint256 _amount) external {
     require(_amount > 0, "cannot repay zero");
     require(borrowedStables[msg.sender] >= _amount / stableDecimals, "repaying too much");
     uint256 _repaidLocks = (_amount / (borrowedStables[msg.sender] * stableDecimals)) * lockedLocks[msg.sender];
@@ -62,15 +62,6 @@ contract Borrow {
     borrowedStables[msg.sender] -= _repaidStables;
     stable.transferFrom(msg.sender, address(amm), _repaidStables);
     locks.transfer(address(porridge), _repaidLocks);
-  }
-
-  function setPorridge(address _porridgeAddress) public {
-    porridge = Porridge(_porridgeAddress);
-  }
-
-  function updateStable(address _stableAddress, uint256 _stableDecimals) public onlyAdmin {
-    stable = IERC20(_stableAddress);
-    stableDecimals = _stableDecimals;
   }
 
 }

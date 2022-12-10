@@ -212,11 +212,6 @@ contract AMM {
     }
   }
 
-  function updateStable(address _stableAddress, uint256 _stableDecimals) public onlyAdmin {
-    stable = IERC20(_stableAddress);
-    stableDecimals = _stableDecimals;
-  }
-
   function withdrawTreasury() public onlyAdmin {
     stable.transfer(treasuryAddress, treasuryValue);
   }
