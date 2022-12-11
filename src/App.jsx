@@ -14,7 +14,7 @@ export default function App() {
 
   return (
     <Router>
-      <div className="flex flex-col relative min-w-screen min-h-screen m-0 p-0 overflow-x-hidden bg-[#F7F7F7]">
+      <div className="m-0 p-0 overflow-x-hidden" id="page-div">
         <Nav  currentAccount={currentAccount} setCurrentAccount={setCurrentAccount} avaxChain={avaxChain} setAvaxChain={setAvaxChain} />
         <Routes>
           <Route exact path="/" element={<Home currentAccount={currentAccount} setCurrentAccount={setCurrentAccount} avaxChain={avaxChain} setAvaxChain={setAvaxChain} />} />

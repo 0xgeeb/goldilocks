@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react"
 import { ethers } from "ethers"
+import logo from "../images/yellow_transparent_logo.png"
 
 export default function Nav({ currentAccount, setCurrentAccount, avaxChain, setAvaxChain }) {
 
@@ -25,13 +26,16 @@ export default function Nav({ currentAccount, setCurrentAccount, avaxChain, setA
   }
 
   return (
-    <div className="w-[100%] mt-12 flex flex-row items-center justify-between px-5">
-      <a href="/"><h1 className="text-[30px]">goldilocks</h1></a>
+    <div className="w-[100%] mt-8 flex flex-row items-center justify-between px-24">
+      <a href="/"><div className="flex flex-row items-center">
+        <img className="w-24 h-24 hover:opacity-25" src={logo} />
+        <h1 className="text-[45px] ml-5 font-acme hover:text-slate-500">Goldilocks</h1>
+      </div></a>
       <div className="flex flex-row">
-        <a href="/amm"><button className="px-8 py-2 bg-slate-200 hover:bg-slate-500 rounded-xl mr-4" >AMM</button></a>
-        <a href="/staking"><button className="px-8 py-2 bg-slate-200 hover:bg-slate-500 rounded-xl mr-4" >Staking</button></a>
-        <a href="/borrowing"><button className="px-8 py-2 bg-slate-200 hover:bg-slate-500 rounded-xl mr-4" >Borrowing</button></a>
-        <button className={`px-8 py-2 ${currentAccount ? "bg-green-300" : "bg-slate-200"} hover:bg-slate-500 rounded-xl`} onClick={connectWallet}>{currentAccount ? "connected" : "connect wallet"}</button>
+        <a href="/amm"><button className="w-24 py-2 text-[18px] bg-slate-200 hover:bg-slate-500 rounded-xl mr-4 font-acme" id="home-button">trade</button></a>
+        <a href="/staking"><button className="w-24 py-2 text-[18px] bg-slate-200 hover:bg-slate-500 rounded-xl mr-4 font-acme" id="home-button">stake</button></a>
+        <a href="/borrowing"><button className="w-24 py-2 text-[18px] bg-slate-200 hover:bg-slate-500 rounded-xl mr-4 font-acme" id="home-button">borrow</button></a>
+        <button className={`px-8 py-2 text-[18px] ${currentAccount ? "bg-green-300" : "bg-slate-200"} ${currentAccount ? "hover:bg-green-300" : "hover:bg-slate-500"} rounded-xl font-acme`} id="home-button" onClick={connectWallet}>{currentAccount ? "connected" : "connect wallet"}</button>
       </div>
     </div>
   )

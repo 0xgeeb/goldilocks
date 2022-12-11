@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react"
 import { ethers } from "ethers"
 import abi from "../utils/testAMM.json"
+import coolWithBear from "../images/cool_with_bear.png"
 
 export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setAvaxChain }) {
 
@@ -199,6 +200,7 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
           <p>{ locksPercentChange > 0 && locksPercentChange.toFixed(2) + "%" }</p>
         </div>
       </div>
+      <img src={coolWithBear} />
     </div>
   )
 }
