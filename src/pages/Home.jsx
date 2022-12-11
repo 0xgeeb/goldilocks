@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react"
-import { ethers } from "ethers"
 import girlNoBears from "../images/girl_no_bears.png"
 import twitter from "../images/twitter.png"
 
-export default function Home({ currentAccount, setCurrentAccount, avaxChain, setAvaxChain }) {
+export default function Home() {
 
   return (
     <div className="100vh ">
