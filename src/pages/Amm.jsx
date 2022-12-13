@@ -193,21 +193,44 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
 
   return (
     <div className="flex flex-row py-3">
-      <div className="w-[57%] flex flex-col pt-8 pb-2 px-24 rounded-xl bg-slate-100 ml-24 mt-12 h-[700px] border-2 border-black">
+      <div className="w-[57%] flex flex-col pt-8 pb-2 px-24 rounded-xl bg-slate-300 ml-24 mt-12 h-[700px] border-2 border-black">
         <h1 className="text-[50px] font-acme text-[#ffff00]" id="text-outline">goldilocks AMM</h1>
         <div className="flex flex-row ml-2 items-center justify-between">
-          <h3 className="font-acme text-[20px]">trading between $honey & $locks</h3>
+          <h3 className="font-acme text-[24px] ml-2">trading between $honey & $locks</h3>
           <div className="flex flex-row bg-white rounded-2xl border-2 border-black">
             <div className={`font-acme w-20 py-2 ${buyToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-l-2xl text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(1)}>buy</div>
             <div className={`font-acme w-20 py-2 ${sellToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(2)}>sell</div>
             <div className={`font-acme w-20 py-2 ${redeemToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-r-2xl text-center cursor-pointer`} onClick={() => handlePill(3)}>redeem</div>
           </div>
         </div>
-        <div className="h-[75%] border-t-2 border-black mt-4">
+        <div className="h-[75%] border-t-2 relative border-black mt-4 flex flex-col">
+          <div className="h-[67%] px-6">
+            <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
+              <div className="h-[50%]">
 
+              </div>
+              <div className="h-[50%] pl-10">
+                <input className="border-none focus:outline-none font-acme rounded-xl text-[40px]" placeholder="0" type="number" id="number-input" />
+              </div>
+            </div>
+            <div className="absolute top-[31%] left-[50%] h-10 w-10 bg-[#ffff00] border-2 border-black rounded-3xl flex justify-center items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0D111C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+            </div>
+            <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
+              <div className="h-[50%]">
+
+              </div>
+              <div className="h-[50%] pl-10">
+                <input className="border-none focus:outline-none font-acme rounded-xl text-[40px]" placeholder="0" type="number" id="number-input" />
+              </div>
+            </div>
+          </div>
+          <div className="h-[33%] w-[100%] flex justify-center items-center">
+            <button className="h-[50%] w-[50%] bg-white rounded-xl py-3 px-6 border-2 border-black font-acme text-[25px]" id="amm-button">connect wallet</button>
+          </div>
         </div>
         <div className="flex flex-row border-t-2 border-black justify-between">
-          <div className="flex flex-row w-[55%] px-3 ml-3 justify-between rounded-xl border-2 border-slate-500 mt-2">
+          <div className="flex flex-row w-[55%] px-3 ml-3 justify-between rounded-xl border-2 border-black mt-2  bg-white">
             <div className="flex flex-col items-start justify-between">
               <h1 className="font-acme text-[24px]">$LOCKS floor price:</h1>
               <p className="font-acme text-[24px]">current fsl:</p>
@@ -224,7 +247,7 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
               <p className="font-acme text-[20px]">403,223</p>
             </div>
           </div>
-          <div className="flex flex-row w-[40%] px-3 justify-between mr-3 rounded-xl border-2 border-slate-500 mt-2">
+          <div className="flex flex-row w-[40%] px-3 justify-between mr-3 rounded-xl border-2 border-black mt-2 bg-white">
             <div className="flex flex-col items-start justify-between w-[40%]">
               <h1 className="font-acme text-[20px]">$LOCKS supply:</h1>
               <p className="font-acme text-[20px]">target ratio:</p>
@@ -233,11 +256,11 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
             <div className="flex flex-col items-center justify-between w-[30%]">
               <p className="font-acme text-[24px]">1,000</p>
               <p className="font-acme text-[20px]">{ targetRatio && (targetRatio / 10**16)+"%" }</p>
-              <p className="font-acme text-[24px] text-slate-100">1,044</p>
+              <p className="font-acme text-[24px] text-white">1,044</p>
             </div>
             <div className="flex flex-col items-end justify-between w-[30%]">
               <p className="font-acme text-[24px]">1,044</p>
-              <p className="font-acme text-[24px] text-slate-100">1,044</p>
+              <p className="font-acme text-[24px] text-white">1,044</p>
               <span className="font-acme text-[20px] whitespace-nowrap">11:34pm 12/11/2022</span>
             </div>
           </div>

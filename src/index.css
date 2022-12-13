@@ -28,6 +28,17 @@
   background: linear-gradient(0deg, rgba(255,255,255,1) 26%, rgba(255,255,0,0.27298669467787116) 100%);
 }
 
+#amm-button {
+  background: rgb(255,255,255);
+  background: linear-gradient(90deg, rgba(255,255,255,1) 22%, rgba(255,255,0,0.99298669467787116) 100%);
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
+
+#amm-button:hover {
+  transform: scale(1.08);
+  transition-duration: 0.2s;
+}
+
 #text-outline {
   text-shadow: -1px 1px 2px #000, 1px 1px 2px #000, 1px -1px 0 #000, -1px -1px 0 #000;
 }
@@ -43,14 +54,14 @@
 }
 
 /* Chrome, Safari, Edge, Opera */
-#input::-webkit-outer-spin-button,
-#input::-webkit-inner-spin-button {
+#number-input::-webkit-outer-spin-button,
+#number-input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
 /* Firefox */
-#input {
+#number-input {
   -moz-appearance: textfield;
 }
 
