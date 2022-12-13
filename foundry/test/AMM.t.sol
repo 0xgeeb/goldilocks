@@ -10,22 +10,22 @@ contract AMMTest is Test {
 
   AMM amm;
   Locks locks;
-  IERC20 usdc;
+  IERC20 honey;
 
   function setUp() public {
     locks = new Locks(address(this));
     amm = new AMM(address(locks), address(this));
-    usdc = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
-    deal(address(usdc), address(this), 1000000e6, true);
+    honey = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
+    deal(address(honey), address(this), 1000000e18, true);
     deal(address(locks), address(this), 1000000e18, true);
-    deal(address(usdc), address(locks), 1000000e6, true);
+    deal(address(honey), address(locks), 1000000e18, true);
     locks.setAmmAddress(address(amm));
   }
 
   function testBuy() public {
     locks.transferToAMM(8700000e18, 1900000e18);
     amm.updateSupply(2364e18);
-    usdc.approve(address(amm), 10000000e6);
+    honey.approve(address(amm), 10000000e18);
     (uint256 result, ) = amm.buy(5e18);
     assertEq(result, 5852730895767343661143);
   }

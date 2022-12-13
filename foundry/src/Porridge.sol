@@ -28,7 +28,7 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
     iamm = IAMM(_ammAddress);
     iborrow = IBorrow(_borrowAddress);
     adminAddress = _adminAddress;
-    honey = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+    honey = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
     ammAddress = _ammAddress;
   }
 

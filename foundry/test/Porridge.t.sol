@@ -17,7 +17,7 @@ contract PorridgeTest is Test {
   Borrow borrow;
 
   function setUp() public {
-    honey = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+    honey = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
     locks = new Locks(address(this));
     amm = new AMM(address(locks), address(this));
     borrow = new Borrow(address(amm), address(locks), address(this));

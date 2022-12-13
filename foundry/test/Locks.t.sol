@@ -16,7 +16,7 @@ contract LocksTest is Test {
   function setUp() public {
     locks = new Locks(adminAddress);
     amm = new AMM(address(locks), address(this));
-    honey = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+    honey = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
   }
 
   function testHardCap() public {
@@ -55,12 +55,12 @@ contract LocksTest is Test {
   }
 
   function testTransferToAMM() public {
-    deal(address(honey), address(locks), 1000000e6, true);
+    deal(address(honey), address(locks), 1000000e18, true);
     vm.prank(adminAddress);
     locks.setAmmAddress(address(amm));
     vm.prank(adminAddress);
     locks.transferToAMM(1600000e18, 400000e18);
-    assertEq(honey.balanceOf(address(amm)), 1000000e6);
+    assertEq(honey.balanceOf(address(amm)), 1000000e18);
     assertEq(honey.balanceOf(address(locks)), 0);
     assertEq(amm.fsl(), 1600000e18);
     assertEq(amm.psl(), 400000e18);

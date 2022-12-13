@@ -21,7 +21,7 @@ contract Borrow {
 
   constructor(address _ammAddress, address _locksAddress, address _adminAddress) {
     iamm = IAMM(_ammAddress);
-    honey = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+    honey = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
     adminAddress = _adminAddress;
     locksAddress = _locksAddress;
     ammAddress = _ammAddress;
