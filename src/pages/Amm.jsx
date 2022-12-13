@@ -20,7 +20,7 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
   const [redeemToggle, setRedeemToggle] = useState(false)
 
   useEffect(() => {
-    // getContractData()
+    getContractData()
   }, [])
 
   useEffect(() => {
@@ -193,46 +193,52 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
 
   return (
     <div className="flex flex-row py-3">
-      <div className="w-[57%] flex flex-col py-8 px-24 rounded-xl bg-slate-100 ml-24 mt-12 h-[700px] border-2 border-black">
+      <div className="w-[57%] flex flex-col pt-8 pb-2 px-24 rounded-xl bg-slate-100 ml-24 mt-12 h-[700px] border-2 border-black">
         <h1 className="text-[50px] font-acme text-[#ffff00]" id="text-outline">goldilocks AMM</h1>
         <div className="flex flex-row ml-2 items-center justify-between">
           <h3 className="font-acme text-[20px]">trading between $honey & $locks</h3>
           <div className="flex flex-row bg-white rounded-2xl border-2 border-black">
-            <div className={`font-acme w-20 py-2 ${buyToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-l-2xl text-center border-r-2 border-black`} onClick={() => handlePill(1)}>buy</div>
-            <div className={`font-acme w-20 py-2 ${sellToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] text-center border-r-2 border-black`} onClick={() => handlePill(2)}>sell</div>
-            <div className={`font-acme w-20 py-2 ${redeemToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-r-2xl text-center`} onClick={() => handlePill(3)}>redeem</div>
+            <div className={`font-acme w-20 py-2 ${buyToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-l-2xl text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(1)}>buy</div>
+            <div className={`font-acme w-20 py-2 ${sellToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(2)}>sell</div>
+            <div className={`font-acme w-20 py-2 ${redeemToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-r-2xl text-center cursor-pointer`} onClick={() => handlePill(3)}>redeem</div>
           </div>
         </div>
         <div className="h-[75%] border-t-2 border-black mt-4">
 
         </div>
         <div className="flex flex-row border-t-2 border-black justify-between">
-          <div>
-            <div className="flex justify-around flex-row items-center mt-4">
-              <p>fsl</p>
-              <p>{ fsl && numFor.format((fsl / Math.pow(10, 18))) }</p>
+          <div className="flex flex-row w-[55%] px-3 ml-3 justify-between rounded-xl border-2 border-slate-500 mt-2">
+            <div className="flex flex-col items-start justify-between">
+              <h1 className="font-acme text-[24px]">$LOCKS floor price:</h1>
+              <p className="font-acme text-[24px]">current fsl:</p>
+              <p className="font-acme text-[24px]">current psl:</p>
             </div>
-            <div className="flex justify-around flex-row items-center mt-4">
-              <p>psl</p>
-              <p>{ psl && numFor.format((psl / Math.pow(10, 18))) }</p>
+            <div className="flex flex-col items-end justify-between">
+              <p className="font-acme text-[24px]">$4.56</p>
+              <p className="font-acme text-[20px]">{ fsl && numFor.format((fsl / Math.pow(10, 18))) }</p>
+              <p className="font-acme text-[20px]">{ psl && numFor.format((psl / Math.pow(10, 18))) }</p>
             </div>
-            <div className="flex justify-around flex-row items-center mt-4">
-              <p>last floor raise</p>
-              <p></p>
+            <div className="flex flex-col items-end justify-between">
+              <p className="font-acme text-[24px]">$4.78</p>
+              <p className="font-acme text-[20px]">1,603,223</p>
+              <p className="font-acme text-[20px]">403,223</p>
             </div>
           </div>
-          <div>
-            <div className="flex justify-around flex-row items-center mt-4">
-              <p>target ratio</p>
-              <p>{ targetRatio && (targetRatio / 10**16)+"%" }</p>
+          <div className="flex flex-row w-[40%] px-3 justify-between mr-3 rounded-xl border-2 border-slate-500 mt-2">
+            <div className="flex flex-col items-start justify-between w-[40%]">
+              <h1 className="font-acme text-[20px]">$LOCKS supply:</h1>
+              <p className="font-acme text-[20px]">target ratio:</p>
+              <p className="font-acme text-[20px]">last floor raise:</p>
             </div>
-            <div className="flex justify-around flex-row items-center mt-4">
-              <p>purchase price</p>
-              <p>{ purchasePrice > 0 && purchasePrice }</p>
+            <div className="flex flex-col items-center justify-between w-[30%]">
+              <p className="font-acme text-[24px]">1,000</p>
+              <p className="font-acme text-[20px]">{ targetRatio && (targetRatio / 10**16)+"%" }</p>
+              <p className="font-acme text-[24px] text-slate-100">1,044</p>
             </div>
-            <div className="flex justify-around flex-row items-center mt-4">
-              <p>locks % change</p>
-              <p>{ locksPercentChange > 0 && locksPercentChange.toFixed(2) + "%" }</p>
+            <div className="flex flex-col items-end justify-between w-[30%]">
+              <p className="font-acme text-[24px]">1,044</p>
+              <p className="font-acme text-[24px] text-slate-100">1,044</p>
+              <span className="font-acme text-[20px] whitespace-nowrap">11:34pm 12/11/2022</span>
             </div>
           </div>
         </div>
