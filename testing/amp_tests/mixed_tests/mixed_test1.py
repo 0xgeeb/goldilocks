@@ -1,4 +1,5 @@
 import random
+from eth_abi import encode_single
 #assuming 2 million dollar presale and 1000 initial supply
 fsl = 1600000
 supply = 1000
@@ -11,7 +12,7 @@ target = 0.26
 #it subtracts the amount withdrawn on sales
 invested = 0
 #prints initial market price
-print(market_price)
+# print(market_price)
 
 def redeem(_amount):
   global supply
@@ -65,7 +66,7 @@ def buy(amount):
     supply += 1
     purchase_price += market_price
     #if psl/fsl >= 0.5, all deposited capital goes to fsl
-    if psl/fsl >= 0.5:
+    if psl/fsl >= 0.36:
       fsl += market_price
       floor_price = fsl/supply
     else:
@@ -107,52 +108,36 @@ def floor_raise():
 #just a random buy/sell pattern to compare against what happens when you trade through the contracts
 buy(38)
 floor_raise()
-print("Price:", market_price, "Floor price:", floor_price)
 sell(45)
-print("Price:", market_price, "Floor price:", floor_price)
 sell(30)
-print("Price:", market_price, "Floor price:", floor_price)
 buy(10)
 floor_raise()
-print("Price:", market_price, "Floor price:", floor_price)
 sell(20)
-print("Price:", market_price, "Floor price:", floor_price)
 sell(10)
-print("Price:", market_price, "Floor price:", floor_price)
 buy(15)
 floor_raise()
-print("Price:", market_price, "Floor price:", floor_price)
 sell(10)
-print("Price:", market_price, "Floor price:", floor_price)
 sell(12)
-print("Price:", market_price, "Floor price:", floor_price)
 buy(45)
 floor_raise()
-print("Price:", market_price, "Floor price:", floor_price)
 buy(8)
 floor_raise()
-print("Price:", market_price, "Floor price:", floor_price)
 sell(8)
-print("Price:", market_price, "Floor price:", floor_price)
 buy(45)
 floor_raise()
-print("Price:", market_price, "Floor price:", floor_price)
 buy(45)
 floor_raise()
-print("Price:", market_price, "Floor price:", floor_price)
 buy(45)
 floor_raise()
-print("Price:", market_price, "Floor price:", floor_price)
 sell(25)
-print("Price:", market_price, "Floor price:", floor_price)
 buy(45)
 floor_raise()
-print("Price:", market_price, "Floor price:", floor_price)
 buy(45)
 floor_raise()
-print("Price:", market_price, "Floor price:", floor_price)
 buy(12)
 floor_raise()
-print("Price:", market_price, "Floor price:", floor_price)
 sell(48)
-print("Price:", market_price, "Floor price:", floor_price)
+
+market_price *= (10 ** 18)
+enc = encode_single('uint256', int(market_price))
+print("0x" + enc.hex())

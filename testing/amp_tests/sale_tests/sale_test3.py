@@ -1,4 +1,5 @@
 import random
+from eth_abi import encode_single
 #assuming 1 million dollar presale and 1000 initial supply
 fsl = 800000
 supply = 1000
@@ -11,7 +12,7 @@ target = 0.26
 #it subtracts the amount withdrawn on sales
 invested = 0
 #prints initial market price
-print(market_price)
+# print(market_price)
 
 def redeem(_amount):
   global supply
@@ -65,7 +66,7 @@ def buy(amount):
     supply += 1
     purchase_price += market_price
     #if psl/fsl >= 0.5, all deposited capital goes to fsl
-    if psl/fsl >= 0.5:
+    if psl/fsl >= 0.36:
       fsl += market_price
       floor_price = fsl/supply
     else:
@@ -108,7 +109,11 @@ def floor_raise():
 #tracks what happens when 800k dollars worth of sells occur continuously with no buys
 #this is what would happen if all presalers except for the team dumped at once
 sold = 0
-while(sold < 800000):
+while(sold < 975):
   sell(25)
-  print("Price:", market_price, "Floor price:", floor_price)
+  # print("Price:", market_price, "Floor price:", floor_price)
   sold += 25
+
+market_price *= (10 ** 18)
+enc = encode_single('uint256', int(market_price))
+print("0x" + enc.hex())

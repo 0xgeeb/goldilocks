@@ -1,4 +1,5 @@
 import random
+from eth_abi import encode_single
 #varing initial fsl/psl/supply
 fsl = 973000
 supply = 6780
@@ -11,7 +12,7 @@ target = 0.26
 #it subtracts the amount withdrawn on sales
 invested = 0
 #prints initial market price
-print(market_price)
+# print(market_price)
 
 def redeem(_amount):
   global supply
@@ -68,7 +69,7 @@ def buy(amount):
     supply += 1
     purchase_price += market_price
     #if psl/fsl >= 0.5, all deposited capital goes to fsl
-    if psl/fsl >= 0.5:
+    if psl/fsl >= 0.36:
       fsl += market_price
       floor_price = fsl/supply
     else:
@@ -79,7 +80,7 @@ def buy(amount):
     invested += market_price
   supply += amount
   purchase_price += market_price*amount
-  if psl/fsl >= 0.5:
+  if psl/fsl >= 0.36:
     fsl += market_price*amount
     floor_price = fsl/supply
   else:
@@ -118,32 +119,25 @@ def floor_raise():
 
 buy(652.3)
 floor_raise()
-print("Price:", market_price, "Floor price:", floor_price)
 redeem(71.9)
 floor_raise()
-print("Price:", market_price, "Floor price:", floor_price)
 buy(32)
 floor_raise()
-print("Price:", market_price, "Floor price:", floor_price)
 redeem(298)
 floor_raise()
-print("Price:", market_price, "Floor price:", floor_price)
 buy(53)
 floor_raise()
-print("Price:", market_price, "Floor price:", floor_price)
 sell(31.7)
-print("Price:", market_price, "Floor price:", floor_price)
 buy(286)
 floor_raise()
-print("Price:", market_price, "Floor price:", floor_price)
 sell(65.1)
-print("Price:", market_price, "Floor price:", floor_price)
 redeem(32)
 floor_raise()
-print("Price:", market_price, "Floor price:", floor_price)
 buy(4.7)
 floor_raise()
-print("Price:", market_price, "Floor price:", floor_price)
 buy(123)
 floor_raise()
-print("Price:", market_price, "Floor price:", floor_price)
+
+market_price *= (10 ** 18)
+enc = encode_single('uint256', int(market_price))
+print("0x" + enc.hex())

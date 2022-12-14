@@ -1,4 +1,5 @@
 import random
+from eth_abi import encode_single
 #this test varies the initial psl, fsl and supply
 fsl = 8700000
 supply = 2364
@@ -11,7 +12,7 @@ target = 0.26
 #it subtracts the amount withdrawn on sales
 invested = 0
 #prints initial market price
-print(market_price)
+# print(market_price)
 
 def redeem(_amount):
   global supply
@@ -68,7 +69,7 @@ def buy(amount):
     supply += 1
     purchase_price += market_price
     #if psl/fsl >= 0.5, all deposited capital goes to fsl
-    if psl/fsl >= 0.5:
+    if psl/fsl >= 0.36:
       fsl += market_price
       floor_price = fsl/supply
     else:
@@ -79,7 +80,7 @@ def buy(amount):
     invested += market_price
   supply += amount
   purchase_price += market_price*amount
-  if psl/fsl >= 0.5:
+  if psl/fsl >= 0.36:
     fsl += market_price*amount
     floor_price = fsl/supply
   else:
@@ -120,4 +121,8 @@ while(bought < 8000):
   buy(40)
   floor_raise()
   bought += 40
-  print("Price:", market_price, "Floor price:", floor_price)
+  # print("Price:", market_price, "Floor price:", floor_price)
+
+market_price *= (10 ** 18)
+enc = encode_single('uint256', int(market_price))
+print("0x" + enc.hex())
