@@ -168,9 +168,4 @@ contract AMM {
     }
   }
 
-  // just for testing
-  function updateSupply(uint256 _newSupply) public {
-    supply = _newSupply;
-  }
-
 }

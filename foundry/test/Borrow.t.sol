@@ -28,7 +28,7 @@ contract BorrowTest is Test {
     deal(address(honey), address(locks), 1000000e18, true);
     locks.setAmmAddress(address(amm));
     locks.transferToAMM(1600000e18, 400000e18);
-    amm.updateSupply(1000e18);
+    vm.store(address(amm), bytes32(uint256(5)), bytes32(uint256(1000e18)));
   }
 
   function testBorrow() public {

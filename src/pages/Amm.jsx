@@ -203,7 +203,7 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
             <div className={`font-acme w-20 py-2 ${redeemToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-r-2xl text-center cursor-pointer`} onClick={() => handlePill(3)}>redeem</div>
           </div>
         </div>
-        <div className="h-[75%] border-t-2 relative border-black mt-4 flex flex-col">
+        <div className="h-[75%] relative mt-4 flex flex-col">
           <div className="h-[67%] px-6">
             <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
               <div className="h-[50%]">
@@ -229,7 +229,7 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
             <button className="h-[50%] w-[50%] bg-white rounded-xl py-3 px-6 border-2 border-black font-acme text-[25px]" id="amm-button">connect wallet</button>
           </div>
         </div>
-        <div className="flex flex-row border-t-2 border-black justify-between">
+        <div className="flex flex-row justify-between">
           <div className="flex flex-row w-[55%] px-3 ml-3 justify-between rounded-xl border-2 border-black mt-2  bg-white">
             <div className="flex flex-col items-start justify-between">
               <h1 className="font-acme text-[24px]">$LOCKS floor price:</h1>
@@ -254,13 +254,13 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
               <p className="font-acme text-[20px]">last floor raise:</p>
             </div>
             <div className="flex flex-col items-center justify-between w-[30%]">
-              <p className="font-acme text-[24px]">1,000</p>
+              <p className="font-acme text-[20px]">1,000</p>
               <p className="font-acme text-[20px]">{ targetRatio && (targetRatio / 10**16)+"%" }</p>
-              <p className="font-acme text-[24px] text-white">1,044</p>
+              <p className="font-acme text-[20px] text-white">1,044</p>
             </div>
             <div className="flex flex-col items-end justify-between w-[30%]">
-              <p className="font-acme text-[24px]">1,044</p>
-              <p className="font-acme text-[24px] text-white">1,044</p>
+              <p className="font-acme text-[20px]">1,044</p>
+              <p className="font-acme text-[20px] text-white">1,044</p>
               <span className="font-acme text-[20px] whitespace-nowrap">11:34pm 12/11/2022</span>
             </div>
           </div>
