@@ -6,26 +6,32 @@ import coolWithBear from "../images/cool_with_bear.png"
 export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setAvaxChain }) {
 
   const [fsl, setFsl] = useState(null)
+  const [newFsl, setNewFsl] = useState(null)
   const [psl, setPsl] = useState(null)
+  const [newPsl, setNewPsl] = useState(null)
   const [supply, setSupply] = useState(1000)
   const [lastFloorRaise, setLastFloorRaise] = useState(null)
   const [targetRatio, setTargetRatio] = useState(null)
-  const [buy, setBuy] = useState('')
-  const [sell, setSell] = useState('')
-  const [redeem, setRedeem] = useState('')
+  const [buy, setBuy] = useState(null)
+  const [sell, setSell] = useState(null)
+  const [redeem, setRedeem] = useState(null)
   const [purchasePrice, setPurchasePrice] = useState(0)
   const [locksPercentChange, setLocksPercentChange] = useState(0)
   const [buyToggle, setBuyToggle] = useState(true)
   const [sellToggle, setSellToggle] = useState(false)
   const [redeemToggle, setRedeemToggle] = useState(false)
+  const [floor, setFloor] = useState(4.56)
+  const [newFloor, setNewFloor] = useState(null)
 
   useEffect(() => {
     getContractData()
   }, [])
 
-  useEffect(() => {
-    simulateBuy()
-  }, [buy])
+  // useEffect(() => {
+  //   if(buy < 100000) {
+  //     simulateBuy()
+  //   }
+  // }, [buy])
 
   const numFor = Intl.NumberFormat('en-US')
 
@@ -74,6 +80,43 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     }
   }
 
+  function handleTopChange(topValue) {
+    let num = getNumber(topValue)
+    if(num == 0) {
+      setBuy('')
+    }
+    else {
+      console.log(num)
+      setBuy(num.toLocaleString())
+    }
+  }
+
+  function getNumber(_str) {
+    let arr = _str.split('')
+    let out = new Array()
+    for(let count; count < arr.length; count++) {
+      if(isNaN(arr[count] == false)) {
+        out.push(arr[count])
+      }
+    }
+    return Number(out.join(''))
+  }
+
+  function handleNewFloorColor() {
+    if(newFloor) {
+      console.log('ehll')
+      if(newFloor > floor) {
+        return "text-green-600"
+      }
+      else {
+        return "text-red-600"
+      }
+    }
+    else {
+      return "text-white"
+    }
+  }
+
   function simulateBuy() {
     let _fsl = fsl
     let _psl = psl
@@ -91,8 +134,9 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
         _psl += marketPrice(_fsl, _psl, _supply) - floorPrice(_fsl, _supply)
       }
     }
-    setPurchasePrice(_purchasePrice / Math.pow(10, 18))
-    setLocksPercentChange(((startingFloor - (_fsl / _supply)) / startingFloor) * 100)
+    setNewFloor(floorPrice(_fsl, _supply))
+    // setPurchasePrice(_purchasePrice / Math.pow(10, 18))
+    // setLocksPercentChange(((startingFloor - (_fsl / _supply)) / startingFloor) * 100)
   }
 
   function floorPrice(_fsl, _supply) {
@@ -210,11 +254,11 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
 
               </div>
               <div className="h-[50%] pl-10">
-                <input className="border-none focus:outline-none font-acme rounded-xl text-[40px]" placeholder="0" type="number" id="number-input" />
+                <input className="border-none focus:outline-none font-acme rounded-xl text-[40px]" placeholder="0" value={buy} onChange={(e) => handleTopChange(e.target.value)} type="text" id="number-input" />
               </div>
             </div>
             <div className="absolute top-[31%] left-[50%] h-10 w-10 bg-[#ffff00] border-2 border-black rounded-3xl flex justify-center items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0D111C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0D111C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
             </div>
             <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
               <div className="h-[50%]">
@@ -237,13 +281,13 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
               <p className="font-acme text-[24px]">current psl:</p>
             </div>
             <div className="flex flex-col items-end justify-between">
-              <p className="font-acme text-[24px]">$4.56</p>
+              <p className="font-acme text-[24px]">${floor}</p>
               <p className="font-acme text-[20px]">{ fsl && numFor.format((fsl / Math.pow(10, 18))) }</p>
               <p className="font-acme text-[20px]">{ psl && numFor.format((psl / Math.pow(10, 18))) }</p>
             </div>
             <div className="flex flex-col items-end justify-between">
-              <p className="font-acme text-[24px]">$4.78</p>
-              <p className="font-acme text-[20px]">1,603,223</p>
+              <p className={`font-acme ${handleNewFloorColor} text-[24px]`}>{newFloor && numFor.format((newFloor / Math.pow(10, 18)).toFixed(2))}</p>
+              <p className="font-acme text-[20px]">{ newFsl && numFor.format((newFsl / Math.pow(10, 18))) }</p>
               <p className="font-acme text-[20px]">403,223</p>
             </div>
           </div>

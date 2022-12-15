@@ -8,6 +8,7 @@ contract AMM {
 
   IERC20 honey;
   ILocks ilocks;
+  
   uint256 public targetRatio = 260e15;
   uint256 public fsl;
   uint256 public psl;
