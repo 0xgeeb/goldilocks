@@ -80,16 +80,16 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     }
   }
 
-  function handleTopChange(topValue) {
-    let num = getNumber(topValue)
-    if(num == 0) {
-      setBuy('')
-    }
-    else {
-      console.log(num)
-      setBuy(num.toLocaleString())
-    }
-  }
+  // function handleTopChange(topValue) {
+  //   let num = getNumber(topValue)
+  //   if(num == 0) {
+  //     setBuy('')
+  //   }
+  //   else {
+  //     console.log(num)
+  //     setBuy(num.toLocaleString())
+  //   }
+  // }
 
   function getNumber(_str) {
     let arr = _str.split('')
@@ -254,7 +254,7 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
 
               </div>
               <div className="h-[50%] pl-10">
-                <input className="border-none focus:outline-none font-acme rounded-xl text-[40px]" placeholder="0" value={buy} onChange={(e) => handleTopChange(e.target.value)} type="text" id="number-input" />
+                <input className="border-none focus:outline-none font-acme rounded-xl text-[40px]" placeholder="0" value={buy} onChange={(e) => setBuy(e.target.value)} type="text" id="number-input" />
               </div>
             </div>
             <div className="absolute top-[31%] left-[50%] h-10 w-10 bg-[#ffff00] border-2 border-black rounded-3xl flex justify-center items-center">

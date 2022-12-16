@@ -45,7 +45,7 @@ contract AMM {
     psl = _psl;
   }
   
-  function buy(uint256 _amount) public returns (uint256, uint256) {
+  function buy(uint256 _amount, uint256 _maxAmount) public returns (uint256, uint256) {
     // require(_amount <= _supply / 20, "price impact too large");
     uint256 _supply = supply;
     uint256 _leftover = _amount;
@@ -85,13 +85,14 @@ contract AMM {
     fsl = _fsl + _tax;
     psl = _psl;
     supply = _supply;
+    require(_purchasePrice + _tax <= _maxAmount, "too much slippage");
     // honey.transferFrom(msg.sender, address(this), _purchasePrice + _tax);
     // ilocks.ammMint(msg.sender, _amount);
     _floorRaise();
     return (_marketPrice(fsl, psl, supply), _floorPrice(fsl, supply));
   }
 
-  function sell(uint256 _amount) public returns (uint256, uint256) {
+  function sell(uint256 _amount, uint256 _minAmount) public returns (uint256, uint256) {
     uint256 _supply = supply;
     // require(_amount <= _supply / 20, "price impact too large");    
     uint256 _leftover = _amount;
@@ -118,6 +119,7 @@ contract AMM {
       _supply -= _leftover;
     }
     uint256 _tax = (_saleAmount / 1000) * 53;
+    require(_saleAmount + _tax >= _minAmount, "too much slippage");
     // honey.transfer(msg.sender, _saleAmount + _tax);
     // ilocks.ammBurn(msg.sender, _amount);
     fsl = _fsl + _tax;
