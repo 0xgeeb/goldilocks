@@ -27,7 +27,7 @@ contract AMMTest is Test {
     vm.store(address(amm), bytes32(uint256(5)), bytes32(uint256(1000e18)));
     uint256 bought;
     while (bought < 400) {
-      amm.buy(10e18);
+      amm.buy(10e18, type(uint256).max);
       bought += 10;
     }
     uint256 solidityMarketPrice = amm._marketPrice(amm.fsl(), amm.psl(), amm.supply());
@@ -46,7 +46,7 @@ contract AMMTest is Test {
     vm.store(address(amm), bytes32(uint256(5)), bytes32(uint256(1000e18)));
     uint256 bought;
     while(bought < 55e18) {
-      amm.buy(25e17);
+      amm.buy(25e17, type(uint256).max);
       bought += 25e17;
     }
     uint256 solidityMarketPrice = amm._marketPrice(amm.fsl(), amm.psl(), amm.supply());
@@ -65,7 +65,7 @@ contract AMMTest is Test {
     vm.store(address(amm), bytes32(uint256(5)), bytes32(uint256(1000e18)));
     uint256 bought;
     while(bought < 8000) {
-      amm.buy(40e18);
+      amm.buy(40e18, type(uint256).max);
       bought += 40;
     }
     uint256 solidityMarketPrice = amm._marketPrice(amm.fsl(), amm.psl(), amm.supply());
@@ -84,7 +84,7 @@ contract AMMTest is Test {
     vm.store(address(amm), bytes32(uint256(5)), bytes32(uint256(2364e18)));
     uint256 bought;
     while(bought < 8000) {
-      amm.buy(40e18);
+      amm.buy(40e18, type(uint256).max);
       bought += 40;
     }
     uint256 solidityMarketPrice = amm._marketPrice(amm.fsl(), amm.psl(), amm.supply());
@@ -101,26 +101,26 @@ contract AMMTest is Test {
   function testMixed1() public {
     locks.transferToAMM(1600000e18, 400000e18);
     vm.store(address(amm), bytes32(uint256(5)), bytes32(uint256(1000e18)));
-    amm.buy(38e18);
-    amm.sell(45e18);
-    amm.sell(30e18);
-    amm.buy(10e18);
-    amm.sell(20e18);
-    amm.sell(10e18);
-    amm.buy(15e18);
-    amm.sell(10e18);
-    amm.sell(12e18);
-    amm.buy(45e18);
-    amm.buy(8e18);
-    amm.sell(8e18);
-    amm.buy(45e18);
-    amm.buy(45e18);
-    amm.buy(45e18);
-    amm.sell(25e18);
-    amm.buy(45e18);
-    amm.buy(45e18);
-    amm.buy(12e18);
-    amm.sell(48e18);
+    amm.buy(38e18, type(uint256).max);
+    amm.sell(45e18, 0);
+    amm.sell(30e18, 0);
+    amm.buy(10e18, type(uint256).max);
+    amm.sell(20e18, 0);
+    amm.sell(10e18, 0);
+    amm.buy(15e18, type(uint256).max);
+    amm.sell(10e18, 0);
+    amm.sell(12e18, 0);
+    amm.buy(45e18, type(uint256).max);
+    amm.buy(8e18, type(uint256).max);
+    amm.sell(8e18, 0);
+    amm.buy(45e18, type(uint256).max);
+    amm.buy(45e18, type(uint256).max);
+    amm.buy(45e18, type(uint256).max);
+    amm.sell(25e18, 0);
+    amm.buy(45e18, type(uint256).max);
+    amm.buy(45e18, type(uint256).max);
+    amm.buy(12e18, type(uint256).max);
+    amm.sell(48e18, 0);
     uint256 solidityMarketPrice = amm._marketPrice(amm.fsl(), amm.psl(), amm.supply());
     string[] memory inputs = new string[](2);
     inputs[0] = "python3";
@@ -135,17 +135,17 @@ contract AMMTest is Test {
   function testMixed2() public {
     locks.transferToAMM(1600000e18, 400000e18);
     vm.store(address(amm), bytes32(uint256(5)), bytes32(uint256(1000e18)));
-    amm.buy(65e17);
+    amm.buy(65e17, type(uint256).max);
     amm.redeem(71e17);
-    amm.buy(32e17);
+    amm.buy(32e17, type(uint256).max);
     amm.redeem(29e17);
-    amm.buy(5e18);
-    amm.sell(31e17);
-    amm.buy(28e17);
-    amm.sell(6e18);
+    amm.buy(5e18, type(uint256).max);
+    amm.sell(31e17, 0);
+    amm.buy(28e17, type(uint256).max);
+    amm.sell(6e18, 0);
     amm.redeem(32e17);
-    amm.buy(4e18);
-    amm.buy(10e18);
+    amm.buy(4e18, type(uint256).max);
+    amm.buy(10e18, type(uint256).max);
     uint256 solidityMarketPrice = amm._marketPrice(amm.fsl(), amm.psl(), amm.supply());
     string[] memory inputs = new string[](2);
     inputs[0] = "python3";
@@ -160,17 +160,17 @@ contract AMMTest is Test {
   function testMixed3() public {
     locks.transferToAMM(973000e18, 360000e18);
     vm.store(address(amm), bytes32(uint256(5)), bytes32(uint256(6780e18)));
-    amm.buy(6523e17);
+    amm.buy(6523e17, type(uint256).max);
     amm.redeem(719e17);
-    amm.buy(32e18);
+    amm.buy(32e18, type(uint256).max);
     amm.redeem(298e18);
-    amm.buy(53e18);
-    amm.sell(317e17);
-    amm.buy(286e18);
-    amm.sell(651e17);
+    amm.buy(53e18, type(uint256).max);
+    amm.sell(317e17, 0);
+    amm.buy(286e18, type(uint256).max);
+    amm.sell(651e17, 0);
     amm.redeem(32e18);
-    amm.buy(47e17);
-    amm.buy(123e18);
+    amm.buy(47e17, type(uint256).max);
+    amm.buy(123e18, type(uint256).max);
     uint256 solidityMarketPrice = amm._marketPrice(amm.fsl(), amm.psl(), amm.supply());
     string[] memory inputs = new string[](2);
     inputs[0] = "python3";
@@ -225,7 +225,7 @@ contract AMMTest is Test {
     vm.store(address(amm), bytes32(uint256(5)), bytes32(uint256(1000e18)));
     uint256 sold;
     while(sold < 900e18) {
-      amm.sell(10e18);
+      amm.sell(10e18, 0);
       sold += 10e18;
     }
     uint256 solidityMarketPrice = amm._marketPrice(amm.fsl(), amm.psl(), amm.supply());
@@ -244,7 +244,7 @@ contract AMMTest is Test {
     vm.store(address(amm), bytes32(uint256(5)), bytes32(uint256(1000e18)));
     uint256 sold;
     while(sold < 100e18) {
-      amm.sell(25e17);
+      amm.sell(25e17, 0);
       sold += 25e17;
     }
     uint256 solidityMarketPrice = amm._marketPrice(amm.fsl(), amm.psl(), amm.supply());
@@ -263,7 +263,7 @@ contract AMMTest is Test {
     vm.store(address(amm), bytes32(uint256(5)), bytes32(uint256(1000e18)));
     uint256 sold;
     while(sold < 975e18) {
-      amm.sell(25e18);
+      amm.sell(25e18, 0);
       sold += 25e18;
     }
     uint256 solidityMarketPrice = amm._marketPrice(amm.fsl(), amm.psl(), amm.supply());
@@ -282,7 +282,7 @@ contract AMMTest is Test {
     vm.store(address(amm), bytes32(uint256(5)), bytes32(uint256(3124e18)));
     uint256 sold;
     while(sold < 2000e18) {
-      amm.sell(285e17);
+      amm.sell(285e17, 0);
       sold += 285e17;
     }
     uint256 solidityMarketPrice = amm._marketPrice(amm.fsl(), amm.psl(), amm.supply());
