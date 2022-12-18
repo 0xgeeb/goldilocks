@@ -70,6 +70,9 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
   const contractAddy = '0xD323ba82A0ec287C9D19c63C439898720a93604A'
 
   function handlePill(action) {
+    setBuy('')
+    setSell('')
+    setRedeem('')
     if(action === 1) {
       setBuyToggle(true)
       setSellToggle(false)
@@ -198,6 +201,32 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     }
   }
 
+  function handleTopChange(e) {
+    if(buyToggle) {
+      setBuy(e)
+    }
+    if(sellToggle) {
+      setSell(e)
+    }
+    if(redeemToggle) {
+      setRedeem(e)
+    }
+  }
+
+  function handleTopInput() {
+    if(buyToggle) {
+      return buy > 99999 ? '' : buy
+    }
+    if(sellToggle) {
+      if(!receive) {
+        return sell > 99999 ? '' : sell
+      }
+    }
+    if(redeemToggle) {
+      return redeem > 99999 ? '' : redeem
+    }
+  }
+
   function handleBottomInput() {
     if(buyToggle) {
       if(!cost) {
@@ -287,7 +316,7 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
                 <h1 className="font-acme text-[30px] px-6 my-2">{handleTopLabel()}</h1>
               </div>
               <div className="h-[50%] pl-10">
-                <input className="border-none focus:outline-none font-acme rounded-xl text-[40px]" placeholder="0" value={buy > 99999 ? '' : buy} onChange={(e) => setBuy(e.target.value)} type="number" id="number-input" />
+                <input className="border-none focus:outline-none font-acme rounded-xl text-[40px]" placeholder="0" value={handleTopInput()} onChange={(e) => handleTopChange(e.target.value)} type="number" id="number-input" autoFocus />
               </div>
             </div>
             <div className="absolute top-[31%] left-[50%] h-10 w-10 bg-[#ffff00] border-2 border-black rounded-3xl flex justify-center items-center">
