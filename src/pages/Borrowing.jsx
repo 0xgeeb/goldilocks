@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react"
 import { ethers } from "ethers"
 import abi from "../utils/testAMM.json"
+import coolWithBear from "../images/cool_with_bear.png"
 
 export default function Borrowing({ currentAccount, setCurrentAccount, avaxChain, setAvaxChain }) {
 
@@ -81,44 +82,44 @@ export default function Borrowing({ currentAccount, setCurrentAccount, avaxChain
     repayTx.wait()
   }
 
-  function renderContent() {
-    if(!currentAccount) {
-      return (
-        <div className="mt-8 flex flex-col">
-          <h1 className="mx-auto">please connect wallet</h1>
-          <button className="px-8 py-2 bg-slate-200 hover:bg-slate-500 rounded-xl mx-auto mt-6" onClick={connectWallet}>connect wallet</button>
-        </div>
-      )
-    }
-    else if(!avaxChain) {
-      return (
-        <div className="mt-8 flex flex-col">
-          <h1 className="mx-auto">please switch to fuji</h1>
-          <button className="px-8 py-2 bg-slate-200 hover:bg-slate-500 rounded-xl mx-auto mt-6" onClick={switchToFuji}>switch to fuji</button>
-        </div>
-      )
-    }
-    else {
-      return (
-        <div>
-          <div className="flex justify-around flex-row items-center mt-8">
-            <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={() => borrowFunctionInteraction}>borrow</button>
-            <input type="number" value={borrow} id="input" className="w-24 pl-3 rounded" onChange={(e) => setBorrow(e.target.value)}/>
-          </div>
-          <div className="flex justify-around flex-row items-center mt-8">
-            <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={() => repayFunctionInteraction}>repay</button>
-            <input type="number" value={repay} id="input" className="w-24 pl-3 rounded" onChange={(e) => setRepay(e.target.value)}/>
-          </div>
-        </div>
-      )
-    }
-  }
+  // function renderContent() {
+  //   if(!currentAccount) {
+  //     return (
+  //       <div className="mt-8 flex flex-col">
+  //         <h1 className="mx-auto">please connect wallet</h1>
+  //         <button className="px-8 py-2 bg-slate-200 hover:bg-slate-500 rounded-xl mx-auto mt-6" onClick={connectWallet}>connect wallet</button>
+  //       </div>
+  //     )
+  //   }
+  //   else if(!avaxChain) {
+  //     return (
+  //       <div className="mt-8 flex flex-col">
+  //         <h1 className="mx-auto">please switch to fuji</h1>
+  //         <button className="px-8 py-2 bg-slate-200 hover:bg-slate-500 rounded-xl mx-auto mt-6" onClick={switchToFuji}>switch to fuji</button>
+  //       </div>
+  //     )
+  //   }
+  //   else {
+  //     return (
+  //       <div>
+  //         <div className="flex justify-around flex-row items-center mt-8">
+  //           <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={() => borrowFunctionInteraction}>borrow</button>
+  //           <input type="number" value={borrow} id="input" className="w-24 pl-3 rounded" onChange={(e) => setBorrow(e.target.value)}/>
+  //         </div>
+  //         <div className="flex justify-around flex-row items-center mt-8">
+  //           <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={() => repayFunctionInteraction}>repay</button>
+  //           <input type="number" value={repay} id="input" className="w-24 pl-3 rounded" onChange={(e) => setRepay(e.target.value)}/>
+  //         </div>
+  //       </div>
+  //     )
+  //   }
+  // }
 
   return (
-    <div className="flex flex-row">
-      <div className="w-[45%] flex flex-col p-4 rounded-xl bg-yellow-100 ml-24 mt-24 h-[600px]" id="card-div-shadow">
+    <div className="flex flex-row py-3">
+      <div className="w-[57%] flex flex-col pt-8 pb-2 px-24 rounded-xl bg-slate-300 ml-24 mt-12 h-[700px] border-2 border-black">
         <h2 className="mx-auto text-xl">borrow</h2>
-        { renderContent() }
+        
         <div className="flex justify-around flex-row items-center mt-14">
           <p>borrowed</p>
           <p>{ borrowed && numFor.format((borrowed / Math.pow(10, 18))) }</p>
@@ -128,6 +129,9 @@ export default function Borrowing({ currentAccount, setCurrentAccount, avaxChain
           <p>{ locked && numFor.format((locked / Math.pow(10, 18))) }</p>
         </div>
       </div>
+        <div className="w-[30%]">
+          <img className="h-[70%] w-[36%] absolute bottom-0 right-0" src={coolWithBear} />
+        </div>
     </div>
   )
 }

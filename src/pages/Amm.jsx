@@ -10,28 +10,36 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
   const [psl, setPsl] = useState(null)
   const [newPsl, setNewPsl] = useState(null)
   const [supply, setSupply] = useState(1000)
+  const [newSupply, setNewSupply] = useState(null)
   const [lastFloorRaise, setLastFloorRaise] = useState(null)
   const [targetRatio, setTargetRatio] = useState(null)
   const [buy, setBuy] = useState(null)
   const [sell, setSell] = useState(null)
   const [redeem, setRedeem] = useState(null)
-  const [purchasePrice, setPurchasePrice] = useState(0)
   const [locksPercentChange, setLocksPercentChange] = useState(0)
   const [buyToggle, setBuyToggle] = useState(true)
   const [sellToggle, setSellToggle] = useState(false)
   const [redeemToggle, setRedeemToggle] = useState(false)
-  const [floor, setFloor] = useState(4.56)
   const [newFloor, setNewFloor] = useState(null)
+  const [cost, setCost] = useState(null)
+  const [receive, setReceive] = useState(null)
 
   useEffect(() => {
     getContractData()
   }, [])
 
-  // useEffect(() => {
-  //   if(buy < 100000) {
-  //     simulateBuy()
-  //   }
-  // }, [buy])
+  useEffect(() => {
+    if(buy < 100000) {
+      simulateBuy()
+    }
+    else {
+      setNewFloor(fsl / supply)
+      setNewFsl(fsl)
+      setNewPsl(psl)
+      setNewSupply(supply)
+      setCost(0)
+    }
+  }, [buy])
 
   const numFor = Intl.NumberFormat('en-US')
 
@@ -62,7 +70,6 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
   const contractAddy = '0xD323ba82A0ec287C9D19c63C439898720a93604A'
 
   function handlePill(action) {
-    console.log('hello')
     if(action === 1) {
       setBuyToggle(true)
       setSellToggle(false)
@@ -80,31 +87,8 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     }
   }
 
-  // function handleTopChange(topValue) {
-  //   let num = getNumber(topValue)
-  //   if(num == 0) {
-  //     setBuy('')
-  //   }
-  //   else {
-  //     console.log(num)
-  //     setBuy(num.toLocaleString())
-  //   }
-  // }
-
-  function getNumber(_str) {
-    let arr = _str.split('')
-    let out = new Array()
-    for(let count; count < arr.length; count++) {
-      if(isNaN(arr[count] == false)) {
-        out.push(arr[count])
-      }
-    }
-    return Number(out.join(''))
-  }
-
   function handleNewFloorColor() {
     if(newFloor) {
-      console.log('ehll')
       if(newFloor > floor) {
         return "text-green-600"
       }
@@ -135,7 +119,10 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
       }
     }
     setNewFloor(floorPrice(_fsl, _supply))
-    // setPurchasePrice(_purchasePrice / Math.pow(10, 18))
+    setNewFsl(_fsl)
+    setNewPsl(_psl)
+    setNewSupply(_supply)
+    setCost(_purchasePrice)
     // setLocksPercentChange(((startingFloor - (_fsl / _supply)) / startingFloor) * 100)
   }
 
@@ -145,6 +132,89 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
 
   function marketPrice(_fsl, _psl, _supply) {
     return floorPrice(_fsl, _supply) + ((_psl / _supply) * ((_psl + _fsl) / _fsl)**5)
+  }
+
+  function handleTopLabel() {
+    if(buyToggle) {
+      return 'buy'
+    }
+    if(sellToggle) {
+      return 'sell'
+    }
+    if(redeemToggle) {
+      return 'redeem'
+    }
+  }
+
+  function handleBottomLabel() {
+    if(buyToggle) {
+      return 'cost'
+    }
+    if(sellToggle) {
+      return 'receive'
+    }
+    if(redeemToggle) {
+      return 'receive'
+    }
+  }
+
+  function renderButton() {
+    if(!currentAccount) {
+      return 'connect wallet'
+    }
+    else if(!avaxChain) {
+      return 'switch to fuji plz'
+    }
+    else {
+      if(buyToggle) {
+        return 'buy'
+      }
+      if(sellToggle) {
+        return 'sell'
+      }
+      if(redeemToggle) {
+        return 'redeem'
+      }
+    }
+  }
+
+  function handleButtonClick() {
+    if(!currentAccount) {
+      connectWallet()
+    }
+    else if(!avaxChain) {
+      switchToFuji()
+    }
+    else {
+      if(buyToggle) {
+        buyFunctionInteraction()
+      }
+      if(sellToggle) {
+        sellFunctionInteraction()
+      }
+      if(redeemToggle) {
+        redeemFunctionInteraction()
+      }
+    }
+  }
+
+  function handleBottomInput() {
+    if(buyToggle) {
+      if(!cost) {
+        return 0
+      }
+      else {
+        return numFor.format(cost)
+      }
+    }
+    if(sellToggle) {
+      if(!receive) {
+
+      }
+    }
+    if(redeemToggle) {
+      
+    }
   }
   
   async function connectWallet() {
@@ -168,8 +238,8 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     const pslReq = await contractObject.psl()
     // const floorReq = await contractObject.lastFloorRaise()
     const ratioReq = await contractObject.targetRatio()
-    setFsl(parseInt(fslReq._hex, 16))
-    setPsl(parseInt(pslReq._hex, 16))
+    setFsl(parseInt(fslReq._hex, 16) / Math.pow(10, 18))
+    setPsl(parseInt(pslReq._hex, 16) / Math.pow(10, 18))
     // setLastFloorRaise(new Date(parseInt(floorReq._hex, 16)*1000).toLocaleString())
     setTargetRatio(parseInt(ratioReq._hex, 16))
   }
@@ -196,44 +266,7 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
     const redeemTx = await contractObjectSigner.redeem(redeem)
     redeemTx.wait()
-  }
-
-  // function renderContent() {
-  //   if(!currentAccount) {
-  //     return (
-  //       <div className="mt-8 flex flex-col">
-  //         <h1 className="mx-auto">please connect wallet</h1>
-  //         <button className="px-8 py-2 bg-slate-200 hover:bg-slate-500 rounded-xl mx-auto mt-6" onClick={connectWallet}>connect wallet</button>
-  //       </div>
-  //     )
-  //   }
-  //   else if(!avaxChain) {
-  //     return (
-  //       <div className="mt-8 flex flex-col">
-  //         <h1 className="mx-auto">please switch to fuji</h1>
-  //         <button className="px-8 py-2 bg-slate-200 hover:bg-slate-500 rounded-xl mx-auto mt-6" onClick={switchToFuji}>switch to fuji</button>
-  //       </div>
-  //     )
-  //   }
-  //   else {
-  //     return (
-  //       <div>
-  //         <div className="flex justify-around flex-row items-center mt-8">
-  //           <button className="px-12 py-3 w-36 bg-slate-100 hover:bg-slate-500 rounded-xl" onClick={() => buyFunctionInteraction}>buy</button>
-  //           <input type="number" value={buy} id="input" className="w-24 pl-3 rounded" onChange={(e) => setBuy(e.target.value)}/>
-  //         </div>
-  //         <div className="flex justify-around flex-row items-center mt-8">
-  //           <button className="px-12 py-3 w-36 bg-slate-100 hover:bg-slate-500 rounded-xl" onClick={() => sellFunctionInteraction}>sell</button>
-  //           <input type="number" value={sell} id="input" className="w-24 pl-3 rounded" onChange={(e) => setSell(e.target.value)}/>
-  //         </div>
-  //         <div className="flex justify-around flex-row items-center mt-8">
-  //           <button className="px-12 py-3 w-36 bg-slate-100 hover:bg-slate-500 rounded-xl" onClick={() => redeemFunctionInteraction}>redeem</button>
-  //           <input type="number" value={redeem} id="input" className="w-24 pl-3 rounded" onChange={(e) => setRedeem(e.target.value)}/>
-  //         </div>
-  //       </div>
-  //     )
-  //   }
-  // }
+  } 
 
   return (
     <div className="flex flex-row py-3">
@@ -251,10 +284,10 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
           <div className="h-[67%] px-6">
             <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
               <div className="h-[50%]">
-
+                <h1 className="font-acme text-[30px] px-6 my-2">{handleTopLabel()}</h1>
               </div>
               <div className="h-[50%] pl-10">
-                <input className="border-none focus:outline-none font-acme rounded-xl text-[40px]" placeholder="0" value={buy} onChange={(e) => setBuy(e.target.value)} type="text" id="number-input" />
+                <input className="border-none focus:outline-none font-acme rounded-xl text-[40px]" placeholder="0" value={buy > 99999 ? '' : buy} onChange={(e) => setBuy(e.target.value)} type="number" id="number-input" />
               </div>
             </div>
             <div className="absolute top-[31%] left-[50%] h-10 w-10 bg-[#ffff00] border-2 border-black rounded-3xl flex justify-center items-center">
@@ -262,15 +295,16 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
             </div>
             <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
               <div className="h-[50%]">
-
+                <h1 className="font-acme text-[30px] px-6 my-2">{handleBottomLabel()}</h1>
               </div>
               <div className="h-[50%] pl-10">
-                <input className="border-none focus:outline-none font-acme rounded-xl text-[40px]" placeholder="0" type="number" id="number-input" />
+                {/* <input className="border-none focus:outline-none font-acme rounded-xl text-[40px]" placeholder="0" type="number" id="number-input" /> */}
+                <h1 className="font-acme text-[40px]">{handleBottomInput()}</h1>
               </div>
             </div>
           </div>
           <div className="h-[33%] w-[100%] flex justify-center items-center">
-            <button className="h-[50%] w-[50%] bg-white rounded-xl py-3 px-6 border-2 border-black font-acme text-[25px]" id="amm-button">connect wallet</button>
+            <button className="h-[50%] w-[50%] bg-white rounded-xl py-3 px-6 border-2 border-black font-acme text-[30px]" id="amm-button" onClick={() => handleButtonClick()} >{renderButton()}</button>
           </div>
         </div>
         <div className="flex flex-row justify-between">
@@ -281,14 +315,14 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
               <p className="font-acme text-[24px]">current psl:</p>
             </div>
             <div className="flex flex-col items-end justify-between">
-              <p className="font-acme text-[24px]">${floor}</p>
-              <p className="font-acme text-[20px]">{ fsl && numFor.format((fsl / Math.pow(10, 18))) }</p>
-              <p className="font-acme text-[20px]">{ psl && numFor.format((psl / Math.pow(10, 18))) }</p>
+              <p className="font-acme text-[24px]">${numFor.format(fsl / supply)}</p>
+              <p className="font-acme text-[20px]">{ fsl && numFor.format(fsl) }</p>
+              <p className="font-acme text-[20px]">{ psl && numFor.format(psl) }</p>
             </div>
             <div className="flex flex-col items-end justify-between">
-              <p className={`font-acme ${handleNewFloorColor} text-[24px]`}>{newFloor && numFor.format((newFloor / Math.pow(10, 18)).toFixed(2))}</p>
-              <p className="font-acme text-[20px]">{ newFsl && numFor.format((newFsl / Math.pow(10, 18))) }</p>
-              <p className="font-acme text-[20px]">403,223</p>
+              <p className={`font-acme text-[24px]`}>${newFloor && numFor.format(newFloor)}</p>
+              <p className="font-acme text-[20px]">{ newFsl && numFor.format(newFsl) }</p>
+              <p className="font-acme text-[20px]">{ newPsl && numFor.format(newPsl) }</p>
             </div>
           </div>
           <div className="flex flex-row w-[40%] px-3 justify-between mr-3 rounded-xl border-2 border-black mt-2 bg-white">
@@ -303,7 +337,7 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
               <p className="font-acme text-[20px] text-white">1,044</p>
             </div>
             <div className="flex flex-col items-end justify-between w-[30%]">
-              <p className="font-acme text-[20px]">1,044</p>
+              <p className="font-acme text-[20px]">{newSupply && numFor.format(newSupply)}</p>
               <p className="font-acme text-[20px] text-white">1,044</p>
               <span className="font-acme text-[20px] whitespace-nowrap">11:34pm 12/11/2022</span>
             </div>

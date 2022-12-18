@@ -14,6 +14,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 
+const apiKey = process.env.QUICKNODE_TOKEN;
+
 console.log("NODE_ENV is", process.env.NODE_ENV);
  
 if (process.env.NODE_ENV === "production") {
