@@ -2,30 +2,22 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.4.0/contracts/token/ERC20/ERC20.sol";
+import { ERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721Full.sol";
 import "openzeppelin-contracts/utils/math/Math.sol";
 
-//contract for users to borrow BERA from other users, using their Bera NFT as collateral
 contract lendingPool {
 
-  //struct that represents loans
+  
   struct Loan {
-  // (i) the ERC721 tokens that the user has provided as collateral
-  ERC721[] collateralTokens;
-  // (ii) the amount borrowed against the collateral
-  uint256 borrowedAmount;
-  // (iii) total amount of interest on the loan (this is included in borrowedAmount)
-  uint256 interest;
-  // (iv) the start date of the loan
-  uint256 startDate;
-  // (v) the user's address
-  address userAddress;
-  // (vi) the duration of the loan
-  uint256 duration;
-  // (vii) loan id
-  uint256 loanId;
-}
+    ERC721[] collateralTokens;
+    uint256 borrowedAmount;
+    uint256 interest;
+    uint256 startDate;
+    address userAddress;
+    uint256 duration;
+    uint256 loanId;
+  }
 
   //struct that represents Bera locks
   struct Lock {
