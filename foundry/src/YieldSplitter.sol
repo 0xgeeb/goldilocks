@@ -19,6 +19,8 @@ contract YieldSplitter {
   uint256 ptSupply;
   uint256 ytSupply;
 
+  mapping(address => uint256) public ethSplit;
+
   constructor(uint256 _startDate, uint256 _endDate) {
     adminAddress = msg.sender;
     weth = IERC20(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
@@ -33,18 +35,19 @@ contract YieldSplitter {
     _;
   }
 
-  function deposit(uint256 _amount) public {
+  function deposit(uint256 _amount) external {
     require(endDate - block.timestamp >= 4 weeks, "insufficient time remaining");
-    weth.transferFrom(msg.sender, address(this), _amount);
-    pt.mint(msg.sender, _amount);
+    ethSplit[msg.sender] += _amount;
     ptSupply += _amount;
     uint256 _timeShare = ((endDate - block.timestamp)*1e18) / (endDate - startDate);
     uint256 _yieldShare = (_amount * _timeShare) / 1e18;
-    yt.mint(msg.sender, _yieldShare);
     ytSupply += _yieldShare;
+    weth.transferFrom(msg.sender, address(this), _amount);
+    pt.mint(msg.sender, _amount);
+    yt.mint(msg.sender, _yieldShare);
   }
 
-  function withdraw(uint256 _amount) public {
+  function withdraw(uint256 _amount) external {
     pt.burn(msg.sender, _amount);
     yt.burn(msg.sender, _amount);
     weth.transferFrom(address(this), msg.sender, _amount);
