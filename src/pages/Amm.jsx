@@ -23,6 +23,7 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
   const [newFloor, setNewFloor] = useState(null)
   const [cost, setCost] = useState(null)
   const [receive, setReceive] = useState(null)
+  const [redeemReceive, setRedeemReceive] = useState(null)
 
   useEffect(() => {
     getContractData()
@@ -40,6 +41,31 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
       setCost(0)
     }
   }, [buy])
+
+  useEffect(() => {
+    if(sell < supply) {
+      simulateSell()
+    }
+    else {
+      setNewFloor(fsl / supply)
+      setNewFsl(fsl)
+      setNewPsl(psl)
+      setNewSupply(supply)
+      setReceive(0)
+    }
+  }, [sell])
+
+  useEffect(() => {
+    if(redeem < supply) {
+      simulateRedeem()
+    }
+    else {
+      setNewFloor(fsl / supply)
+      setNewFsl(fsl)
+      setNewSupply(supply)
+      setRedeemReceive(0)
+    }
+  }, [redeem])
 
   const numFor = Intl.NumberFormat('en-US')
 
@@ -127,6 +153,31 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     setNewSupply(_supply)
     setCost(_purchasePrice)
     // setLocksPercentChange(((startingFloor - (_fsl / _supply)) / startingFloor) * 100)
+  }
+
+  function simulateSell() {
+    let _fsl = fsl
+    let _psl = psl
+    let _supply = supply
+    let _salePrice = 0
+    for(let i = 0; i < sell; i++) {
+      _supply--
+      _salePrice += marketPrice(_fsl, _psl, _supply)
+      _fsl -= floorPrice(_fsl, _supply)
+      _psl -= marketPrice(_fsl, _psl, _supply) - floorPrice(_fsl, _supply)
+    }
+    setNewFloor(floorPrice(_fsl, _supply))
+    setNewFsl(_fsl)
+    setNewPsl(_psl)
+    setNewSupply(_supply)
+    setReceive(_salePrice)
+  }
+
+  function simulateRedeem() {
+    setRedeemReceive(floorPrice(fsl, supply) * redeem)
+    setNewFloor(floorPrice(fsl, supply))
+    setNewFsl(fsl - (floorPrice(fsl, supply) * redeem))
+    setNewSupply(supply - redeem)
   }
 
   function floorPrice(_fsl, _supply) {
@@ -218,12 +269,10 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
       return buy > 99999 ? '' : buy
     }
     if(sellToggle) {
-      if(!receive) {
-        return sell > 99999 ? '' : sell
-      }
+      return sell > supply ? '' : sell
     }
     if(redeemToggle) {
-      return redeem > 99999 ? '' : redeem
+      return redeem > supply ? '' : redeem
     }
   }
 
@@ -238,11 +287,19 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     }
     if(sellToggle) {
       if(!receive) {
-
+        return 0
+      }
+      else {
+        return numFor.format(receive)
       }
     }
     if(redeemToggle) {
-      
+      if(!redeemReceive) {
+        return 0
+      }
+      else {
+        return numFor.format(redeemReceive)
+      }
     }
   }
   
