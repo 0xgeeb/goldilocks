@@ -41,7 +41,6 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
     return staked[_user];
   }
 
-
   function stake(uint256 _amount) external {
     require(_amount > 0, "cannot stake zero");
     if(staked[msg.sender] > 0) {

@@ -1,13 +1,19 @@
 import React, { useEffect, useState } from "react"
 import { ethers } from "ethers"
 import abi from "../utils/testAMM.json"
+import coolWithBear from "../images/cool_with_bear.png"
 
 export default function Staking({ currentAccount, setCurrentAccount, avaxChain, setAvaxChain }) {
   
   const [stake, setStake] = useState()
   const [unstake, setUnstake] = useState()
+  const [claim, setClaim] = useState()
   const [realize, setRealize] = useState()
   const [staked, setStaked] = useState()
+  const [stakeToggle, setStakeToggle] = useState(true)
+  const [unstakeToggle, setUnstakeToggle] = useState(false)
+  const [claimToggle, setClaimToggle] = useState(false)
+  const [realizeToggle, setRealizeToggle] = useState(false)
 
   useEffect(() => {
     getContractData()
@@ -40,8 +46,38 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
   }
 
   const contractAddy = '0xD323ba82A0ec287C9D19c63C439898720a93604A'
-  
 
+  function handlePill(action) {
+    setStake('')
+    setUnstake('')
+    setClaim('')
+    setRealize('')
+    if(action === 1) {
+      setStakeToggle(true)
+      setUnstakeToggle(false)
+      setClaimToggle(false)
+      setRealizeToggle(false)
+    }
+    if(action === 2) {
+      setStakeToggle(false)
+      setUnstakeToggle(true)
+      setClaimToggle(false)
+      setRealizeToggle(false)
+    }
+    if(action === 3) {
+      setStakeToggle(false)
+      setUnstakeToggle(false)
+      setClaimToggle(true)
+      setRealizeToggle(false)
+    }
+    if(action === 4) {
+      setStakeToggle(false)
+      setUnstakeToggle(false)
+      setClaimToggle(false)
+      setRealizeToggle(true)
+    }
+  }
+  
   async function connectWallet() {
     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
     setCurrentAccount(accounts[0])
@@ -95,6 +131,14 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
     claimTx.wait()
   }
 
+  function handleButtonClick() {
+
+  }
+
+  function renderButton() {
+
+  }
+
   function renderContent() {
     if(!currentAccount) {
       return (
@@ -136,14 +180,34 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
   }
 
   return (
-    <div className="flex flex-row">
-      <div className="w-[45%] flex flex-col p-4 rounded-xl bg-yellow-100 ml-24 mt-24 h-[600px]" id="card-div-shadow">
-        <h2 className="mx-auto text-xl">staking</h2>
-        { renderContent() }
-        <div className="flex justify-around flex-row items-center mt-14">
-          <p>staked</p>
-          <p>{ staked && numFor.format((staked / Math.pow(10, 18))) }</p>
+    <div className="flex flex-row py-3">
+      <div className="w-[57%] flex flex-col pt-8 pb-2 px-16 rounded-xl bg-slate-300 ml-24 mt-12 h-[700px] border-2 border-black">
+        <h1 className="text-[50px] font-acme text-[#ffff00]" id="text-outline">goldilocks stake</h1>
+        <div className="flex flex-row ml-2 items-center justify-between">
+          <h3 className="font-acme text-[24px] ml-2">staking $locks for $porridge</h3>
+          <div className="flex flex-row bg-white rounded-2xl border-2 border-black">
+            <div className={`font-acme w-20 py-2 ${stakeToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-l-2xl text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(1)}>stake</div>
+            <div className={`font-acme w-20 py-2 ${unstakeToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(2)}>unstake</div>
+            <div className={`font-acme w-20 py-2 ${claimToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(3)}>claim</div>
+            <div className={`font-acme w-20 py-2 ${realizeToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-r-2xl text-center cursor-pointer`} onClick={() => handlePill(4)}>realize</div>
+          </div>
         </div>
+        <div className="h-[100%] mt-4 flex flex-row">
+          <div className="w-[60%] flex justify-center flex-col">
+            <div className="rounded-3xl border-2 border-black w-[100%] h-[75%] bg-white flex flex-col">
+            
+            </div>
+            <div className="h-[15%] w-[80%] mx-auto mt-6">
+              <button className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[30px]" id="amm-button" onClick={() => handleButtonClick()} >{renderButton()}</button>
+            </div>
+          </div>
+          <div className="w-[40%] h-[95%] flex justify-center flex-col bg-white rounded-xl border-2 border-black ml-4 mt-4">
+
+          </div>
+        </div>
+      </div>
+      <div className="w-[30%]">
+        <img className="h-[70%] w-[36%] absolute bottom-0 right-0" src={coolWithBear} />
       </div>
     </div>
   )

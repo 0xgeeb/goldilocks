@@ -135,7 +135,6 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     let _psl = psl
     let _supply = supply
     let _purchasePrice = 0
-    let startingFloor = _fsl / _supply
     for(let i = 0; i < buy; i++) {
       _supply++
       _purchasePrice += marketPrice(_fsl, _psl, _supply)
@@ -152,7 +151,6 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     setNewPsl(_psl)
     setNewSupply(_supply)
     setCost(_purchasePrice)
-    // setLocksPercentChange(((startingFloor - (_fsl / _supply)) / startingFloor) * 100)
   }
 
   function simulateSell() {
@@ -326,6 +324,9 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     const ratioReq = await contractObject.targetRatio()
     setFsl(parseInt(fslReq._hex, 16) / Math.pow(10, 18))
     setPsl(parseInt(pslReq._hex, 16) / Math.pow(10, 18))
+    setNewFsl(parseInt(fslReq._hex, 16) / Math.pow(10, 18))
+    setNewPsl(parseInt(pslReq._hex, 16) / Math.pow(10, 18))
+    setNewFloor(parseInt(fslReq._hex, 16) / Math.pow(10, 18) / supply)
     // setLastFloorRaise(new Date(parseInt(floorReq._hex, 16)*1000).toLocaleString())
     setTargetRatio(parseInt(ratioReq._hex, 16))
   }
@@ -401,14 +402,14 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
               <p className="font-acme text-[24px]">current psl:</p>
             </div>
             <div className="flex flex-col items-end justify-between">
-              <p className="font-acme text-[24px]">${numFor.format(fsl / supply)}</p>
+              <p className="font-acme text-[24px]">${ numFor.format(fsl / supply) }</p>
               <p className="font-acme text-[20px]">{ fsl && numFor.format(fsl) }</p>
               <p className="font-acme text-[20px]">{ psl && numFor.format(psl) }</p>
             </div>
             <div className="flex flex-col items-end justify-between">
-              <p className={`font-acme text-[24px]`}>${newFloor && numFor.format(newFloor)}</p>
-              <p className="font-acme text-[20px]">{ newFsl && numFor.format(newFsl) }</p>
-              <p className="font-acme text-[20px]">{ newPsl && numFor.format(newPsl) }</p>
+              <p className={`font-acme text-[24px]`}>${ numFor.format(newFloor) }</p>
+              <p className="font-acme text-[20px]">{ numFor.format(newFsl) }</p>
+              <p className="font-acme text-[20px]">{ numFor.format(newPsl) }</p>
             </div>
           </div>
           <div className="flex flex-row w-[40%] px-3 justify-between mr-3 rounded-xl border-2 border-black mt-2 bg-white">
