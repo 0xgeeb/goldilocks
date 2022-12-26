@@ -26,6 +26,10 @@ contract AMM {
     lastFloorRaise = block.timestamp;
   }
 
+  event Buy(address indexed user, uint256 amount);
+  event Sale(address indexed user, uint256 amount);
+  event Redeem(address indexed user, uint256 amount);
+
   modifier onlyAdmin() {
     require(msg.sender == adminAddress, "not admin");
     _;
@@ -89,6 +93,7 @@ contract AMM {
     // honey.transferFrom(msg.sender, address(this), _purchasePrice + _tax);
     // ilocks.ammMint(msg.sender, _amount);
     _floorRaise();
+    emit Buy(msg.sender, _amount);
     return (_marketPrice(fsl, psl, supply), _floorPrice(fsl, supply));
   }
 
@@ -125,6 +130,7 @@ contract AMM {
     fsl = _fsl + _tax;
     psl = _psl;
     supply = _supply;
+    emit Sale(msg.sender, _amount);
     return (_marketPrice(fsl, psl, supply), _floorPrice(fsl, supply));
   }
 
@@ -137,6 +143,7 @@ contract AMM {
     supply -= _amount;
     fsl -= _rawTotal;
     _floorRaise();
+    emit Redeem(msg.sender, _amount);
   }
 
   function _floorPrice(uint256 _fsl, uint256 _supply) public pure returns (uint256) {
