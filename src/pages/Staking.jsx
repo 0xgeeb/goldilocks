@@ -201,8 +201,16 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
               <button className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[30px]" id="amm-button" onClick={() => handleButtonClick()} >{renderButton()}</button>
             </div>
           </div>
-          <div className="w-[40%] h-[95%] flex justify-center flex-col bg-white rounded-xl border-2 border-black ml-4 mt-4">
-
+          <div className="w-[40%] h-[50%] flex p-6 flex-col bg-white rounded-xl border-2 border-black ml-4 mt-4">
+            <div className="flex flex-row justify-between items-center">
+              <h1 className="font-acme text-[24px]">$LOCKS balance:</h1>
+              <p className="font-acme text-[20px]">100</p>
+            </div>
+            <div className="flex flex-row justify-between items-center mt-8">
+              <h1 className="font-acme text-[24px]">$PRG balance:</h1>
+              <p className="font-acme text-[20px]">100</p>
+            </div>
+            <h1 className="font-acme text-[20px] mt-16">$PRG available to claim:</h1>
           </div>
         </div>
       </div>
