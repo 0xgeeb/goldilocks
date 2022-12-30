@@ -34,6 +34,16 @@
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
 }
 
+#stake-div-top {
+  background: rgb(255,255,255);
+  background: linear-gradient(360deg, rgba(255,255,255,1) 15%, rgba(255,255,0,0.16298669467787116) 100%);
+}
+
+#stake-div-bottom {
+  background: rgb(255,255,255);
+  background: linear-gradient(180deg, rgba(255,255,255,1) 15%, rgba(255,255,0,0.16298669467787116) 100%);
+}
+
 #amm-button:hover {
   transform: scale(1.08);
   transition-duration: 0.2s;
@@ -67,14 +77,6 @@
 /* Firefox */
 #number-input {
   -moz-appearance: textfield;
-}
-
-#arb-title {
-  text-shadow: 1px 2px 1px rgba(0,0,0,0.3);
-}
-
-#odds-title {
-  text-shadow: 1px 1px 0px rgba(0,0,0,0.3);
 }
 
 .lds-spinner {

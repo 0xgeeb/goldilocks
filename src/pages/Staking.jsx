@@ -5,14 +5,10 @@ import coolWithBear from "../images/cool_with_bear.png"
 
 export default function Staking({ currentAccount, setCurrentAccount, avaxChain, setAvaxChain }) {
   
-  const [stake, setStake] = useState()
-  const [unstake, setUnstake] = useState()
-  const [claim, setClaim] = useState()
-  const [realize, setRealize] = useState()
+  const [input, setInput] = useState()
   const [staked, setStaked] = useState()
   const [stakeToggle, setStakeToggle] = useState(true)
   const [unstakeToggle, setUnstakeToggle] = useState(false)
-  const [claimToggle, setClaimToggle] = useState(false)
   const [realizeToggle, setRealizeToggle] = useState(false)
 
   useEffect(() => {
@@ -48,32 +44,20 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
   const contractAddy = '0xD323ba82A0ec287C9D19c63C439898720a93604A'
 
   function handlePill(action) {
-    setStake('')
-    setUnstake('')
-    setClaim('')
-    setRealize('')
+    setInput('')
     if(action === 1) {
       setStakeToggle(true)
       setUnstakeToggle(false)
-      setClaimToggle(false)
       setRealizeToggle(false)
     }
     if(action === 2) {
       setStakeToggle(false)
       setUnstakeToggle(true)
-      setClaimToggle(false)
       setRealizeToggle(false)
     }
     if(action === 3) {
       setStakeToggle(false)
       setUnstakeToggle(false)
-      setClaimToggle(true)
-      setRealizeToggle(false)
-    }
-    if(action === 4) {
-      setStakeToggle(false)
-      setUnstakeToggle(false)
-      setClaimToggle(false)
       setRealizeToggle(true)
     }
   }
@@ -103,7 +87,7 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
     const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const stakeTx = await contractObjectSigner.stake(stake)
+    const stakeTx = await contractObjectSigner.stake(input)
     stakeTx.wait()
   }
 
@@ -111,7 +95,7 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
     const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const unstakeTx = await contractObjectSigner.unstake(unstake)
+    const unstakeTx = await contractObjectSigner.unstake(input)
     unstakeTx.wait()
   }
 
@@ -119,7 +103,7 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
     const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const realizeTx = await contractObjectSigner.realize(realize)
+    const realizeTx = await contractObjectSigner.realize(input)
     realizeTx.wait()
   }
 
@@ -132,11 +116,55 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
   }
 
   function handleButtonClick() {
-
+    if(!currentAccount) {
+      connectWallet()
+    }
+    else if(!avaxChain) {
+      switchToFuji()
+    }
+    else {
+      if(stakeToggle) {
+        stakeFunctionInteraction()
+      }
+      if(unstakeToggle) {
+        unstakeFunctionInteraction()
+      }
+      if(realizeToggle) {
+        realizeFunctionInteraction()
+      }
+    }
   }
 
   function renderButton() {
+    if(!currentAccount) {
+      return 'connect wallet'
+    }
+    else if(!avaxChain) {
+      return 'switch to fuji plz'
+    }
+    else {
+      if(stakeToggle) {
+        return 'stake'
+      }
+      if(unstakeToggle) {
+        return 'unstake'
+      }
+      if(realizeToggle) {
+        return 'realize'
+      }
+    }
+  }
 
+  function renderLabel() {
+    if(stakeToggle) {
+      return 'stake'
+    }
+    if(unstakeToggle) {
+      return 'unstake'
+    }
+    if(realizeToggle) {
+      return 'realize'
+    }
   }
 
   function renderContent() {
@@ -188,29 +216,48 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
           <div className="flex flex-row bg-white rounded-2xl border-2 border-black">
             <div className={`font-acme w-20 py-2 ${stakeToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-l-2xl text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(1)}>stake</div>
             <div className={`font-acme w-20 py-2 ${unstakeToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(2)}>unstake</div>
-            <div className={`font-acme w-20 py-2 ${claimToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(3)}>claim</div>
-            <div className={`font-acme w-20 py-2 ${realizeToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-r-2xl text-center cursor-pointer`} onClick={() => handlePill(4)}>realize</div>
+            <div className={`font-acme w-20 py-2 ${realizeToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-r-2xl text-center cursor-pointer`} onClick={() => handlePill(3)}>realize</div>
           </div>
         </div>
         <div className="h-[100%] mt-4 flex flex-row">
           <div className="w-[60%] flex justify-center flex-col">
-            <div className="rounded-3xl border-2 border-black w-[100%] h-[75%] bg-white flex flex-col">
-            
+            <div className="rounded-3xl border-2 border-black w-[100%] h-[75%] bg-white flex flex-col relative">
+              <div className="w-[100%] h-[50%] rounded-3xl" id="stake-div-top">
+                <h1 className="font-acme text-[40px] ml-10 mt-16">{renderLabel()}</h1>
+              </div>
+              <div className="absolute top-[45%]">
+                <input className="border-none focus:outline-none font-acme rounded-xl text-[40px] pl-10" placeholder="0" type="number" value={input} onChange={(e) => setInput(e.target.value)} id="number-input" autoFocus />
+              </div>
+              <div className="w-[100%] h-[50%] rounded-3xl" id="stake-div-bottom">
+
+              </div>
             </div>
             <div className="h-[15%] w-[80%] mx-auto mt-6">
               <button className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[30px]" id="amm-button" onClick={() => handleButtonClick()} >{renderButton()}</button>
             </div>
           </div>
-          <div className="w-[40%] h-[50%] flex p-6 flex-col bg-white rounded-xl border-2 border-black ml-4 mt-4">
-            <div className="flex flex-row justify-between items-center">
-              <h1 className="font-acme text-[24px]">$LOCKS balance:</h1>
-              <p className="font-acme text-[20px]">100</p>
+          <div className="flex flex-col w-[40%] h-[100%] mt-4 ml-4">
+            <div className="w-[100%] h-[50%] flex p-6 flex-col bg-white rounded-xl border-2 border-black">
+              <div className="flex flex-row justify-between items-center">
+                <h1 className="font-acme text-[24px]">$LOCKS balance:</h1>
+                <p className="font-acme text-[20px]">100</p>
+              </div>
+              <div className="flex flex-row justify-between items-center mt-3">
+                <h1 className="font-acme text-[24px]">staked $LOCKS:</h1>
+                <p className="font-acme text-[20px]">100</p>
+              </div>
+              <div className="flex flex-row justify-between items-center mt-3">
+                <h1 className="font-acme text-[24px]">$PRG balance:</h1>
+                <p className="font-acme text-[20px]">100</p>
+              </div>
+              <div className="flex flex-row justify-between items-center mt-8">
+                <h1 className="font-acme text-[20px]">$PRG available to claim:</h1>
+                <p className="font-acme text-[20px]">100</p>
+              </div>
             </div>
-            <div className="flex flex-row justify-between items-center mt-8">
-              <h1 className="font-acme text-[24px]">$PRG balance:</h1>
-              <p className="font-acme text-[20px]">100</p>
-            </div>
-            <h1 className="font-acme text-[20px] mt-16">$PRG available to claim:</h1>
+            {currentAccount && avaxChain && <div className="h-[10%] w-[70%] mx-auto mt-4">
+              <button className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[25px]" id="amm-button" onClick={() => claimFunctionInteraction()} >claim yield</button>
+            </div>}
           </div>
         </div>
       </div>
