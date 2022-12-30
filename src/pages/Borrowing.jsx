@@ -5,10 +5,11 @@ import coolWithBear from "../images/cool_with_bear.png"
 
 export default function Borrowing({ currentAccount, setCurrentAccount, avaxChain, setAvaxChain }) {
 
-  const [borrow, setBorrow] = useState()
-  const [repay, setRepay] = useState()
+  const [input, setInput] = useState()
   const [locked, setLocked] = useState()
   const [borrowed, setBorrowed] = useState()
+  const [borrowToggle, setBorrowToggle] = useState(true)
+  const [repayToggle, setRepayToggle] = useState(false)
 
   useEffect(() => {
     getContractData()
@@ -82,6 +83,47 @@ export default function Borrowing({ currentAccount, setCurrentAccount, avaxChain
     repayTx.wait()
   }
 
+  function handlePill(action) {
+    if(action === 1) {
+      setBorrowToggle(true)
+      setRepayToggle(false)
+    }
+    if(action === 2) {
+      setBorrowToggle(false)
+      setRepayToggle(true)
+    }
+  }
+
+  function handleButtonClick() {
+
+  }
+
+  function renderButton() {
+    if(!currentAccount) {
+      return 'connect wallet'
+    }
+    else if(!avaxChain) {
+      return 'switch to fuji plz'
+    }
+    else {
+      if(borrowToggle) {
+        return 'borrow'
+      }
+      if(repayToggle) {
+        return 'repay'
+      }
+    }
+  }
+
+  function renderLabel() {
+    if(borrowToggle) {
+      return 'borrow'
+    }
+    if(repayToggle) {
+      return 'repay'
+    }
+  }
+
   // function renderContent() {
   //   if(!currentAccount) {
   //     return (
@@ -118,15 +160,44 @@ export default function Borrowing({ currentAccount, setCurrentAccount, avaxChain
   return (
     <div className="flex flex-row py-3">
       <div className="w-[57%] flex flex-col pt-8 pb-2 px-24 rounded-xl bg-slate-300 ml-24 mt-12 h-[700px] border-2 border-black">
-        <h2 className="mx-auto text-xl">borrow</h2>
-        
-        <div className="flex justify-around flex-row items-center mt-14">
-          <p>borrowed</p>
-          <p>{ borrowed && numFor.format((borrowed / Math.pow(10, 18))) }</p>
+        <h1 className="text-[50px] font-acme text-[#ffff00]" id="text-outline">borrowing</h1>
+        <div className="flex flex-row ml-2 items-center justify-between">
+          <h3 className="font-acme text-[24px] ml-2">lock staked $locks and borrow $honey</h3>
+          <div className="flex flex-row bg-white rounded-2xl border-2 border-black">
+            <div className={`font-acme w-20 py-2 ${borrowToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-l-2xl text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(1)}>borrow</div>
+            <div className={`font-acme w-20 py-2 ${repayToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] text-center rounded-r-2xl cursor-pointer`} onClick={() => handlePill(2)}>repay</div>
+          </div>
         </div>
-        <div className="flex justify-around flex-row items-center mt-14">
-          <p>locked</p>
-          <p>{ locked && numFor.format((locked / Math.pow(10, 18))) }</p>
+        <div className="flex flex-row mt-4 h-[100%] justify-between">
+          <div className="flex flex-col h-[100%] w-[60%]">
+            <div className="bg-white border-2 border-black rounded-xl h-[70%] relative">
+            <h1 className="font-acme text-[40px] ml-10 mt-16">{renderLabel()}</h1>
+              <div className="absolute top-[45%]">
+                <input className="border-none focus:outline-none font-acme rounded-xl text-[40px] pl-10" placeholder="0" type="number" value={input} onChange={(e) => setInput(e.target.value)} id="number-input" autoFocus />
+              </div>
+            </div>
+            <div className="h-[15%] w-[80%] mx-auto mt-6">
+              <button className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[30px]" id="amm-button" onClick={() => handleButtonClick()} >{renderButton()}</button>
+            </div>
+          </div>
+          <div className="w-[35%] h-[60%] bg-white border-2 border-black rounded-xl flex flex-col px-6 py-10">
+            <div className="flex flex-row justify-between items-center">
+              <h1 className="font-acme text-[24px]">$LOCKS balance:</h1>
+              <p className="font-acme text-[20px]">100</p>
+            </div>
+            <div className="flex flex-row justify-between items-center mt-6">
+              <h1 className="font-acme text-[24px]">staked $LOCKS:</h1>
+              <p className="font-acme text-[20px]">20</p>
+            </div>
+            <div className="flex flex-row justify-between items-center mt-6">
+              <h1 className="font-acme text-[24px]">locked $LOCKS:</h1>
+              <p className="font-acme text-[20px]">34</p>
+            </div>
+            <div className="flex flex-row justify-between items-center mt-6">
+              <h1 className="font-acme text-[24px]">borrowed $HONEY:</h1>
+              <p className="font-acme text-[20px]">69</p>
+            </div>
+          </div>
         </div>
       </div>
         <div className="w-[30%]">

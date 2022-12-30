@@ -34,16 +34,6 @@
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
 }
 
-#stake-div-top {
-  background: rgb(255,255,255);
-  background: linear-gradient(360deg, rgba(255,255,255,1) 15%, rgba(255,255,0,0.16298669467787116) 100%);
-}
-
-#stake-div-bottom {
-  background: rgb(255,255,255);
-  background: linear-gradient(180deg, rgba(255,255,255,1) 15%, rgba(255,255,0,0.16298669467787116) 100%);
-}
-
 #amm-button:hover {
   transform: scale(1.08);
   transition-duration: 0.2s;

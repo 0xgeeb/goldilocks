@@ -167,50 +167,10 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
     }
   }
 
-  function renderContent() {
-    if(!currentAccount) {
-      return (
-        <div className="mt-8 flex flex-col">
-          <h1 className="mx-auto">please connect wallet</h1>
-          <button className="px-8 py-2 bg-slate-200 hover:bg-slate-500 rounded-xl mx-auto mt-6" onClick={connectWallet}>connect wallet</button>
-        </div>
-      )
-    }
-    else if(!avaxChain) {
-      return (
-        <div className="mt-8 flex flex-col">
-          <h1 className="mx-auto">please switch to fuji</h1>
-          <button className="px-8 py-2 bg-slate-200 hover:bg-slate-500 rounded-xl mx-auto mt-6" onClick={switchToFuji}>switch to fuji</button>
-        </div>
-      )
-    }
-    else {
-      return (
-        <div>
-          <div className="flex justify-around flex-row items-center mt-8">
-            <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={() => stakeFunctionInteraction}>stake</button>
-            <input type="number" value={stake} id="input" className="w-24 pl-3 rounded" onChange={(e) => setStake(e.target.value)}/>
-          </div>
-          <div className="flex justify-around flex-row items-center mt-8">
-            <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={() => unstakeFunctionInteraction}>unstake</button>
-            <input type="number" value={unstake} id="input" className="w-24 pl-3 rounded" onChange={(e) => setUnstake(e.target.value)}/>
-          </div>
-          <div className="flex justify-around flex-row items-center mt-8">
-            <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={() => realizeFunctionInteraction}>realize</button>
-            <input type="number" value={realize} id="input" className="w-24 pl-3 rounded" onChange={(e) => setRealize(e.target.value)}/>
-          </div>
-          <div className="flex justify-around flex-row items-center mt-8">
-            <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={() => claimFunctionInteraction}>claim yield</button>
-          </div>
-        </div>
-      )
-    }
-  }
-
   return (
     <div className="flex flex-row py-3">
       <div className="w-[57%] flex flex-col pt-8 pb-2 px-16 rounded-xl bg-slate-300 ml-24 mt-12 h-[700px] border-2 border-black">
-        <h1 className="text-[50px] font-acme text-[#ffff00]" id="text-outline">goldilocks stake</h1>
+        <h1 className="text-[50px] font-acme text-[#ffff00]" id="text-outline">staking</h1>
         <div className="flex flex-row ml-2 items-center justify-between">
           <h3 className="font-acme text-[24px] ml-2">staking $locks for $porridge</h3>
           <div className="flex flex-row bg-white rounded-2xl border-2 border-black">
@@ -220,16 +180,11 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
           </div>
         </div>
         <div className="h-[100%] mt-4 flex flex-row">
-          <div className="w-[60%] flex justify-center flex-col">
-            <div className="rounded-3xl border-2 border-black w-[100%] h-[75%] bg-white flex flex-col relative">
-              <div className="w-[100%] h-[50%] rounded-3xl" id="stake-div-top">
-                <h1 className="font-acme text-[40px] ml-10 mt-16">{renderLabel()}</h1>
-              </div>
+          <div className="w-[60%] flex flex-col">
+            <div className="rounded-3xl border-2 border-black w-[100%] h-[60%] bg-white flex flex-col relative">
+              <h1 className="font-acme text-[40px] ml-10 mt-16">{renderLabel()}</h1>
               <div className="absolute top-[45%]">
                 <input className="border-none focus:outline-none font-acme rounded-xl text-[40px] pl-10" placeholder="0" type="number" value={input} onChange={(e) => setInput(e.target.value)} id="number-input" autoFocus />
-              </div>
-              <div className="w-[100%] h-[50%] rounded-3xl" id="stake-div-bottom">
-
               </div>
             </div>
             <div className="h-[15%] w-[80%] mx-auto mt-6">
