@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react"
 import { ethers } from "ethers"
-import abi from "../utils/testAMM.json"
+import abi from "../utils/AMM.json"
 import coolWithBear from "../images/cool_with_bear.png"
 
 export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setAvaxChain }) {
@@ -9,7 +9,7 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
   const [newFsl, setNewFsl] = useState(null)
   const [psl, setPsl] = useState(null)
   const [newPsl, setNewPsl] = useState(null)
-  const [supply, setSupply] = useState(1000)
+  const [supply, setSupply] = useState(null)
   const [newSupply, setNewSupply] = useState(null)
   const [lastFloorRaise, setLastFloorRaise] = useState(null)
   const [targetRatio, setTargetRatio] = useState(null)
@@ -93,7 +93,7 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     blockExplorerUrls: ['https://testnet.snowtrace.io']
   }
 
-  const contractAddy = '0xD323ba82A0ec287C9D19c63C439898720a93604A'
+  const contractAddy = '0xB8ecAfE93FA53dBfc4a44b38681F6D9a600161a5'
 
   function handlePill(action) {
     setBuy('')
@@ -320,14 +320,16 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     const contractObject = new ethers.Contract(contractAddy, abi.abi, provider)
     const fslReq = await contractObject.fsl()
     const pslReq = await contractObject.psl()
-    // const floorReq = await contractObject.lastFloorRaise()
+    const supplyReq = await contractObject.supply()
+    const floorReq = await contractObject.lastFloorRaise()
     const ratioReq = await contractObject.targetRatio()
     setFsl(parseInt(fslReq._hex, 16) / Math.pow(10, 18))
     setPsl(parseInt(pslReq._hex, 16) / Math.pow(10, 18))
+    setSupply(parseInt(supplyReq._hex, 16))
     setNewFsl(parseInt(fslReq._hex, 16) / Math.pow(10, 18))
     setNewPsl(parseInt(pslReq._hex, 16) / Math.pow(10, 18))
-    setNewFloor(parseInt(fslReq._hex, 16) / Math.pow(10, 18) / supply)
-    // setLastFloorRaise(new Date(parseInt(floorReq._hex, 16)*1000).toLocaleString())
+    setNewFloor(parseInt((fslReq._hex, 16) / Math.pow(10, 18)) / supply)
+    setLastFloorRaise(new Date(parseInt(floorReq._hex, 16)).toLocaleString())
     setTargetRatio(parseInt(ratioReq._hex, 16))
   }
 
@@ -335,7 +337,7 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
     const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const buyTx = await contractObjectSigner.buy(buy)
+    const buyTx = await contractObjectSigner.buy(buy * Math.pow(10, 18), 100 * Math.pow(10, 30))
     buyTx.wait()
   }
 
@@ -343,7 +345,7 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
     const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const sellTx = await contractObjectSigner.sell(sell)
+    const sellTx = await contractObjectSigner.sell(sell * Math.pow(10, 18), 0)
     sellTx.wait()
   }
 
@@ -351,7 +353,7 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
     const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const redeemTx = await contractObjectSigner.redeem(redeem)
+    const redeemTx = await contractObjectSigner.redeem(redeem * Math.pow(10, 18))
     redeemTx.wait()
   } 
 
@@ -419,14 +421,14 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
               <p className="font-acme text-[20px]">last floor raise:</p>
             </div>
             <div className="flex flex-col items-center justify-between w-[30%]">
-              <p className="font-acme text-[20px]">1,000</p>
+              <p className="font-acme text-[20px]">{supply && supply}</p>
               <p className="font-acme text-[20px]">{ targetRatio && (targetRatio / 10**16)+"%" }</p>
               <p className="font-acme text-[20px] text-white">1,044</p>
             </div>
             <div className="flex flex-col items-end justify-between w-[30%]">
               <p className="font-acme text-[20px]">{newSupply && numFor.format(newSupply)}</p>
               <p className="font-acme text-[20px] text-white">1,044</p>
-              <span className="font-acme text-[20px] whitespace-nowrap">11:34pm 12/11/2022</span>
+              <span className="font-acme text-[20px] whitespace-nowrap">{lastFloorRaise}</span>
             </div>
           </div>
         </div>

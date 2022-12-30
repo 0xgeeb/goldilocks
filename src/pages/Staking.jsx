@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from "react"
 import { ethers } from "ethers"
-import abi from "../utils/testAMM.json"
+import abi from "../utils/Porridge.json"
+import LocksABI from "../utils/Locks.json"
 import coolWithBear from "../images/cool_with_bear.png"
 
 export default function Staking({ currentAccount, setCurrentAccount, avaxChain, setAvaxChain }) {
   
   const [input, setInput] = useState()
   const [staked, setStaked] = useState()
+  const [locksBalance, setLocksBalance] = useState()
+  const [porridgeBalance, setPorridgeBalance] = useState()
+  const [claimBalance, setClaimBalance] = useState()
   const [stakeToggle, setStakeToggle] = useState(true)
   const [unstakeToggle, setUnstakeToggle] = useState(false)
   const [realizeToggle, setRealizeToggle] = useState(false)
@@ -41,7 +45,8 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
     blockExplorerUrls: ['https://testnet.snowtrace.io']
   }
 
-  const contractAddy = '0xD323ba82A0ec287C9D19c63C439898720a93604A'
+  const contractAddy = '0xd8A4b467d6B653253D0c89CC49EAB6c6A5aB3067'
+  const LocksContractAddy = '0x189C988A4915f37694C8D14ae025268e3250b6e8'
 
   function handlePill(action) {
     setInput('')
@@ -79,15 +84,24 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
   async function getContractData() {
     const provider = new ethers.providers.JsonRpcProvider(quickNodeFuji.rpcUrls[0])
     const contractObject = new ethers.Contract(contractAddy, abi.abi, provider)
-    // const stakedReq = await contractObject.getStaked(currentAccount)
-    // setStaked(parseInt(stakedReq._hex, 16))
+    if(currentAccount) {
+      const LocksContractObject = new ethers.Contract(LocksContractAddy, LocksABI.abi, provider)
+      const locksBalanceReq = await LocksContractObject.balanceOf(currentAccount)
+      setLocksBalance(parseInt(locksBalanceReq._hex, 16) / Math.pow(10, 18))
+      const stakedReq = await contractObject.getStaked(currentAccount)
+      setStaked(parseInt(stakedReq._hex, 16) / Math.pow(10, 18))
+      const porridgeBalanceReq = await contractObject.balanceOf(currentAccount)
+      setPorridgeBalance(parseInt(porridgeBalanceReq._hex, 16) / Math.pow(10, 18))
+      const claimBalanceReq = await contractObject._calculateYield(currentAccount)
+      setClaimBalance(parseInt(claimBalanceReq._hex, 16) / Math.pow(10, 18))
+    }
   }
 
   async function stakeFunctionInteraction() {
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
     const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const stakeTx = await contractObjectSigner.stake(input)
+    const stakeTx = await contractObjectSigner.stake(input * Math.pow(10, 18))
     stakeTx.wait()
   }
 
@@ -95,7 +109,7 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
     const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const unstakeTx = await contractObjectSigner.unstake(input)
+    const unstakeTx = await contractObjectSigner.unstake(input * Math.pow(10, 18))
     unstakeTx.wait()
   }
 
@@ -103,7 +117,7 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
     const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const realizeTx = await contractObjectSigner.realize(input)
+    const realizeTx = await contractObjectSigner.realize(input * Math.pow(10, 18))
     realizeTx.wait()
   }
 
@@ -195,19 +209,19 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
             <div className="w-[100%] h-[50%] flex p-6 flex-col bg-white rounded-xl border-2 border-black">
               <div className="flex flex-row justify-between items-center">
                 <h1 className="font-acme text-[24px]">$LOCKS balance:</h1>
-                <p className="font-acme text-[20px]">100</p>
+                <p className="font-acme text-[20px]">{locksBalance ? locksBalance : 0}</p>
               </div>
               <div className="flex flex-row justify-between items-center mt-3">
                 <h1 className="font-acme text-[24px]">staked $LOCKS:</h1>
-                <p className="font-acme text-[20px]">100</p>
+                <p className="font-acme text-[20px]">{staked ? staked : 0}</p>
               </div>
               <div className="flex flex-row justify-between items-center mt-3">
                 <h1 className="font-acme text-[24px]">$PRG balance:</h1>
-                <p className="font-acme text-[20px]">100</p>
+                <p className="font-acme text-[20px]">{porridgeBalance ? porridgeBalance : 0}</p>
               </div>
               <div className="flex flex-row justify-between items-center mt-8">
                 <h1 className="font-acme text-[20px]">$PRG available to claim:</h1>
-                <p className="font-acme text-[20px]">100</p>
+                <p className="font-acme text-[20px]">{claimBalance ? claimBalance : 0}</p>
               </div>
             </div>
             {currentAccount && avaxChain && <div className="h-[10%] w-[70%] mx-auto mt-4">

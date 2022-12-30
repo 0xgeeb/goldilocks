@@ -21,7 +21,6 @@ contract AMM {
   constructor(address _locksAddress, address _adminAddress) {
     ilocks = ILocks(_locksAddress);
     adminAddress = _adminAddress;
-    honey = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
     locksAddress = _locksAddress;
     lastFloorRaise = block.timestamp;
   }
@@ -176,6 +175,10 @@ contract AMM {
       targetRatio -= (targetRatio * _decreaseFactor);
       lastFloorDecrease = block.timestamp;
     }
+  }
+
+  function setHoneyAddress(address _honeyAddress) public onlyAdmin {
+    honey = IERC20(_honeyAddress);
   }
 
 }

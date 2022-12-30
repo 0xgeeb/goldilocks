@@ -29,7 +29,7 @@ export default function Nav({ currentAccount, setCurrentAccount, avaxChain, setA
     <div className="w-[100%] mt-8 flex flex-row items-center justify-between px-24">
       <a href="/"><div className="flex flex-row items-center">
         <img className="w-24 h-24 hover:opacity-25" src={logo} />
-        <h1 className="text-[45px] ml-5 font-acme hover:text-slate-500">Goldilocks</h1>
+        <h1 className="text-[45px] ml-5 font-acme hover:text-slate-500">Goldilocks v0.1</h1>
       </div></a>
       <div className="flex flex-row">
         <a href="/amm"><button className="w-24 py-2 text-[18px] bg-slate-200 hover:bg-slate-500 rounded-xl mr-4 font-acme" id="home-button">trade</button></a>

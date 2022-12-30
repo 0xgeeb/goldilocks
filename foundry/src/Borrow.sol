@@ -21,7 +21,6 @@ contract Borrow {
 
   constructor(address _ammAddress, address _locksAddress, address _adminAddress) {
     iamm = IAMM(_ammAddress);
-    honey = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
     adminAddress = _adminAddress;
     locksAddress = _locksAddress;
     ammAddress = _ammAddress;
@@ -67,6 +66,10 @@ contract Borrow {
   function setPorridge(address _porridgeAddress) public onlyAdmin {
     iporridge = IPorridge(_porridgeAddress);
     porridgeAddress = _porridgeAddress;
+  }
+
+  function setHoneyAddress(address _honeyAddress) public onlyAdmin {
+    honey = IERC20(_honeyAddress);
   }
 
 }

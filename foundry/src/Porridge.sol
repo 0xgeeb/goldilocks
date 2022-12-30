@@ -28,7 +28,6 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
     iamm = IAMM(_ammAddress);
     iborrow = IBorrow(_borrowAddress);
     adminAddress = _adminAddress;
-    honey = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
     ammAddress = _ammAddress;
   }
 
@@ -80,7 +79,7 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
     _mint(_user, _yield);
   }
 
-  function _calculateYield(address _user) private view returns (uint256) {
+  function _calculateYield(address _user) public view returns (uint256) {
     uint256 _time = _timeStaked(_user);
     uint256 _yieldPortion = staked[_user] / DAILY_EMISSISIONS;
     uint256 _yield = (_yieldPortion * ((_time * 1e18 * 1e18) / DAYS_SECONDS)) / 1e18;
@@ -93,6 +92,10 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
 
   function setLocksAddress(address _locksAddress) public onlyAdmin {
     locksAddress = _locksAddress;
+  }
+
+  function setHoneyAddress(address _honeyAddress) public onlyAdmin {
+    honey = IERC20(_honeyAddress);
   }
 
 }

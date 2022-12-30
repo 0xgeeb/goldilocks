@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from "react"
 import { ethers } from "ethers"
-import abi from "../utils/testAMM.json"
+import abi from "../utils/Borrow.json"
+import LocksABI from "../utils/Locks.json"
+import PorridgeABI from "../utils/Porridge.json"
 import coolWithBear from "../images/cool_with_bear.png"
 
 export default function Borrowing({ currentAccount, setCurrentAccount, avaxChain, setAvaxChain }) {
 
   const [input, setInput] = useState()
   const [locked, setLocked] = useState()
+  const [staked, setStaked] = useState()
   const [borrowed, setBorrowed] = useState()
+  const [locksBalance, setLocksBalance] = useState()
   const [borrowToggle, setBorrowToggle] = useState(true)
   const [repayToggle, setRepayToggle] = useState(false)
 
@@ -41,7 +45,9 @@ export default function Borrowing({ currentAccount, setCurrentAccount, avaxChain
     blockExplorerUrls: ['https://testnet.snowtrace.io']
   }
 
-  const contractAddy = '0xD323ba82A0ec287C9D19c63C439898720a93604A'
+  const contractAddy = '0x9494a50Ab61492194c7b0897CE36F8147a90b28a'
+  const LocksContractAddy = '0x189C988A4915f37694C8D14ae025268e3250b6e8'
+  const PorridgeContractAddy = '0xd8A4b467d6B653253D0c89CC49EAB6c6A5aB3067'
   
 
   async function connectWallet() {
@@ -61,17 +67,25 @@ export default function Borrowing({ currentAccount, setCurrentAccount, avaxChain
   async function getContractData() {
     const provider = new ethers.providers.JsonRpcProvider(quickNodeFuji.rpcUrls[0])
     const contractObject = new ethers.Contract(contractAddy, abi.abi, provider)
-    // const borrowedReq = await contractObject.getBorrowed(currentAccount)
-    // const lockedReq = await contractObject.getlocked(currentAccount)
-    // setBorrowed(parseInt(borrowedReq._hex, 16))
-    // setLocked(parseInt(lockedReq._hex, 16))
+    if(currentAccount) {
+      const LocksContractObject = new ethers.Contract(LocksContractAddy, LocksABI.abi, provider)
+      const PorridgeContractObject = new ethers.Contract(PorridgeContractAddy, PorridgeABI.abi, provider)
+      const locksBalanceReq = await LocksContractObject.balanceOf(currentAccount)
+      setLocksBalance(parseInt(locksBalanceReq._hex, 16) / Math.pow(10, 18))
+      const stakedReq = await PorridgeContractObject.getStaked(currentAccount)
+      setStaked(parseInt(stakedReq._hex, 16) / Math.pow(10, 18))
+      const borrowedReq = await contractObject.getBorrowed(currentAccount)
+      const lockedReq = await contractObject.getlocked(currentAccount)
+      setBorrowed(parseInt(borrowedReq._hex, 16))
+      setLocked(parseInt(lockedReq._hex, 16))
+    }
   }
 
   async function borrowFunctionInteraction() {
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
     const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const borrowTx = await contractObjectSigner.borrow(borrow)
+    const borrowTx = await contractObjectSigner.borrow(input * Math.pow(10, 18))
     borrowTx.wait()
   }
 
@@ -79,7 +93,7 @@ export default function Borrowing({ currentAccount, setCurrentAccount, avaxChain
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
     const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const repayTx = await contractObjectSigner.repay(repay)
+    const repayTx = await contractObjectSigner.repay(input * Math.pow(10, 18))
     repayTx.wait()
   }
 
@@ -95,7 +109,20 @@ export default function Borrowing({ currentAccount, setCurrentAccount, avaxChain
   }
 
   function handleButtonClick() {
-
+    if(!currentAccount) {
+      connectWallet()
+    }
+    else if(!avaxChain) {
+      switchToFuji()
+    }
+    else {
+      if(borrowToggle) {
+        borrowFunctionInteraction()
+      }
+      if(repayToggle) {
+        repayFunctionInteraction()
+      }
+    }
   }
 
   function renderButton() {
@@ -124,39 +151,6 @@ export default function Borrowing({ currentAccount, setCurrentAccount, avaxChain
     }
   }
 
-  // function renderContent() {
-  //   if(!currentAccount) {
-  //     return (
-  //       <div className="mt-8 flex flex-col">
-  //         <h1 className="mx-auto">please connect wallet</h1>
-  //         <button className="px-8 py-2 bg-slate-200 hover:bg-slate-500 rounded-xl mx-auto mt-6" onClick={connectWallet}>connect wallet</button>
-  //       </div>
-  //     )
-  //   }
-  //   else if(!avaxChain) {
-  //     return (
-  //       <div className="mt-8 flex flex-col">
-  //         <h1 className="mx-auto">please switch to fuji</h1>
-  //         <button className="px-8 py-2 bg-slate-200 hover:bg-slate-500 rounded-xl mx-auto mt-6" onClick={switchToFuji}>switch to fuji</button>
-  //       </div>
-  //     )
-  //   }
-  //   else {
-  //     return (
-  //       <div>
-  //         <div className="flex justify-around flex-row items-center mt-8">
-  //           <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={() => borrowFunctionInteraction}>borrow</button>
-  //           <input type="number" value={borrow} id="input" className="w-24 pl-3 rounded" onChange={(e) => setBorrow(e.target.value)}/>
-  //         </div>
-  //         <div className="flex justify-around flex-row items-center mt-8">
-  //           <button className="px-12 py-3 w-36 bg-slate-200 hover:bg-slate-500 rounded-xl" onClick={() => repayFunctionInteraction}>repay</button>
-  //           <input type="number" value={repay} id="input" className="w-24 pl-3 rounded" onChange={(e) => setRepay(e.target.value)}/>
-  //         </div>
-  //       </div>
-  //     )
-  //   }
-  // }
-
   return (
     <div className="flex flex-row py-3">
       <div className="w-[57%] flex flex-col pt-8 pb-2 px-24 rounded-xl bg-slate-300 ml-24 mt-12 h-[700px] border-2 border-black">
@@ -183,19 +177,19 @@ export default function Borrowing({ currentAccount, setCurrentAccount, avaxChain
           <div className="w-[35%] h-[60%] bg-white border-2 border-black rounded-xl flex flex-col px-6 py-10">
             <div className="flex flex-row justify-between items-center">
               <h1 className="font-acme text-[24px]">$LOCKS balance:</h1>
-              <p className="font-acme text-[20px]">100</p>
+              <p className="font-acme text-[20px]">{locksBalance ? locksBalance : 0}</p>
             </div>
             <div className="flex flex-row justify-between items-center mt-6">
               <h1 className="font-acme text-[24px]">staked $LOCKS:</h1>
-              <p className="font-acme text-[20px]">20</p>
+              <p className="font-acme text-[20px]">{staked ? staked : 0}</p>
             </div>
             <div className="flex flex-row justify-between items-center mt-6">
               <h1 className="font-acme text-[24px]">locked $LOCKS:</h1>
-              <p className="font-acme text-[20px]">34</p>
+              <p className="font-acme text-[20px]">{locked ? locked : 0}</p>
             </div>
             <div className="flex flex-row justify-between items-center mt-6">
               <h1 className="font-acme text-[24px]">borrowed $HONEY:</h1>
-              <p className="font-acme text-[20px]">69</p>
+              <p className="font-acme text-[20px]">{borrowed ? borrowed : 0}</p>
             </div>
           </div>
         </div>

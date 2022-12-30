@@ -17,7 +17,6 @@ contract Locks is ERC20("Locks Token", "LOCKS") {
 
   constructor(address _adminAddress) {
     adminAddress = _adminAddress;
-    honey = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
   }
 
   modifier onlyAdmin() {
@@ -71,6 +70,10 @@ contract Locks is ERC20("Locks Token", "LOCKS") {
 
   function setPorridgeAddress(address _porridgeAddress) public onlyAdmin {
     porridgeAddress = _porridgeAddress;
+  }
+
+  function setHoneyAddress(address _honeyAddress) public onlyAdmin {
+    honey = IERC20(_honeyAddress);
   }
 
 }
