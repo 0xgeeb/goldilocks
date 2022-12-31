@@ -49,8 +49,8 @@ contract AMM {
   }
   
   function buy(uint256 _amount, uint256 _maxAmount) public returns (uint256, uint256) {
-    // require(_amount <= _supply / 20, "price impact too large");
     uint256 _supply = supply;
+    require(_amount <= _supply / 20, "price impact too large");
     uint256 _leftover = _amount;
     uint256 _fsl = fsl;
     uint256 _psl = psl;
@@ -89,8 +89,8 @@ contract AMM {
     psl = _psl;
     supply = _supply;
     require(_purchasePrice + _tax <= _maxAmount, "too much slippage");
-    // honey.transferFrom(msg.sender, address(this), _purchasePrice + _tax);
-    // ilocks.ammMint(msg.sender, _amount);
+    honey.transferFrom(msg.sender, address(this), _purchasePrice + _tax);
+    ilocks.ammMint(msg.sender, _amount);
     _floorRaise();
     emit Buy(msg.sender, _amount);
     return (_marketPrice(fsl, psl, supply), _floorPrice(fsl, supply));
@@ -98,7 +98,7 @@ contract AMM {
 
   function sell(uint256 _amount, uint256 _minAmount) public returns (uint256, uint256) {
     uint256 _supply = supply;
-    // require(_amount <= _supply / 20, "price impact too large");    
+    require(_amount <= _supply / 20, "price impact too large");    
     uint256 _leftover = _amount;
     uint256 _fsl = fsl;
     uint256 _psl = psl;
@@ -124,8 +124,8 @@ contract AMM {
     }
     uint256 _tax = (_saleAmount / 1000) * 53;
     require(_saleAmount + _tax >= _minAmount, "too much slippage");
-    // honey.transfer(msg.sender, _saleAmount + _tax);
-    // ilocks.ammBurn(msg.sender, _amount);
+    honey.transfer(msg.sender, _saleAmount + _tax);
+    ilocks.ammBurn(msg.sender, _amount);
     fsl = _fsl + _tax;
     psl = _psl;
     supply = _supply;
@@ -137,8 +137,8 @@ contract AMM {
     require(_amount > 0, "cannot redeem zero");
     require(IERC20(locksAddress).balanceOf(msg.sender) >= _amount, "insufficient balance");
     uint256 _rawTotal = (_amount * ((fsl * 1e18) / supply)) / 1e18;
-    // ilocks.ammBurn(msg.sender, _amount);
-    // honey.transfer(msg.sender, _rawTotal);
+    ilocks.ammBurn(msg.sender, _amount);
+    honey.transfer(msg.sender, _rawTotal);
     supply -= _amount;
     fsl -= _rawTotal;
     _floorRaise();

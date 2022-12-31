@@ -101,7 +101,7 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
     const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const stakeTx = await contractObjectSigner.stake(input * Math.pow(10, 18))
+    const stakeTx = await contractObjectSigner.stake(ethers.utils.parseUnits(input, 18))
     stakeTx.wait()
   }
 
@@ -109,7 +109,7 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
     const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const unstakeTx = await contractObjectSigner.unstake(input * Math.pow(10, 18))
+    const unstakeTx = await contractObjectSigner.unstake(ethers.utils.parseUnits(input, 18))
     unstakeTx.wait()
   }
 
@@ -117,7 +117,7 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
     const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const realizeTx = await contractObjectSigner.realize(input * Math.pow(10, 18))
+    const realizeTx = await contractObjectSigner.realize(ethers.utils.parseUnits(input, 18))
     realizeTx.wait()
   }
 

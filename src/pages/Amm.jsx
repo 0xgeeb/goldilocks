@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react"
 import { ethers } from "ethers"
 import abi from "../utils/AMM.json"
+import honeyABI from "../utils/TestHoney.json"
 import coolWithBear from "../images/cool_with_bear.png"
 
 export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setAvaxChain }) {
@@ -94,6 +95,7 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
   }
 
   const contractAddy = '0xB8ecAfE93FA53dBfc4a44b38681F6D9a600161a5'
+  const testhoneyAddy = '0x5F4b5D0B353a7531AD1763F0a3691C11Dae8899B'
 
   function handlePill(action) {
     setBuy('')
@@ -219,6 +221,7 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     }
     else {
       if(buyToggle) {
+        // checkAllowance()
         return 'buy'
       }
       if(sellToggle) {
@@ -337,7 +340,7 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
     const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const buyTx = await contractObjectSigner.buy(buy * Math.pow(10, 18), 100 * Math.pow(10, 30))
+    const buyTx = await contractObjectSigner.buy(ethers.utils.parseUnits("1", 18), ethers.utils.parseUnits("100000000", 18))
     buyTx.wait()
   }
 
@@ -345,7 +348,7 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
     const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const sellTx = await contractObjectSigner.sell(sell * Math.pow(10, 18), 0)
+    const sellTx = await contractObjectSigner.sell(ethers.utils.parseUnits(sell.toString(), 18))
     sellTx.wait()
   }
 
@@ -353,9 +356,16 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
     const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const redeemTx = await contractObjectSigner.redeem(redeem * Math.pow(10, 18))
+    const redeemTx = await contractObjectSigner.redeem(ethers.utils.parseUnits(redeem.toString(), 18))
     redeemTx.wait()
-  } 
+  }
+
+  // async function checkAllowance() {
+  //   const provider = new ethers.providers.JsonRpcProvider(quickNodeFuji.rpcUrls[0])
+  //   const testhoneyContractObject = new ethers.Contract(testhoneyAddy, honeyABI.abi, provider)
+  //   const allowanceReq = await testhoneyContractObject.allowance(currentAccount, contractAddy)
+  //   console.log(allowanceReq)
+  // }
 
   return (
     <div className="flex flex-row py-3">

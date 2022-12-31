@@ -85,7 +85,7 @@ export default function Borrowing({ currentAccount, setCurrentAccount, avaxChain
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
     const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const borrowTx = await contractObjectSigner.borrow(input * Math.pow(10, 18))
+    const borrowTx = await contractObjectSigner.borrow(ethers.utils.parseUnits(input, 18))
     borrowTx.wait()
   }
 
@@ -93,7 +93,7 @@ export default function Borrowing({ currentAccount, setCurrentAccount, avaxChain
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
     const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const repayTx = await contractObjectSigner.repay(input * Math.pow(10, 18))
+    const repayTx = await contractObjectSigner.repay(ethers.utils.parseUnits(input, 18))
     repayTx.wait()
   }
 
