@@ -17,7 +17,7 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
   const [buy, setBuy] = useState(null)
   const [sell, setSell] = useState(null)
   const [redeem, setRedeem] = useState(null)
-  const [locksPercentChange, setLocksPercentChange] = useState(0)
+  const [allowance, setAllowance] = useState(null)
   const [buyToggle, setBuyToggle] = useState(true)
   const [sellToggle, setSellToggle] = useState(false)
   const [redeemToggle, setRedeemToggle] = useState(false)
@@ -221,8 +221,12 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     }
     else {
       if(buyToggle) {
-        // checkAllowance()
-        return 'buy'
+        if(allowance >= buy) {
+          return 'buy'
+        }
+        else {
+          return 'approve'
+        }
       }
       if(sellToggle) {
         return 'sell'
@@ -242,7 +246,12 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     }
     else {
       if(buyToggle) {
-        buyFunctionInteraction()
+        if(allowance >= buy) {
+          buyFunctionInteraction()
+        }
+        else {
+          approveHoneyInteraction()
+        }
       }
       if(sellToggle) {
         sellFunctionInteraction()
@@ -321,11 +330,16 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
   async function getContractData() {
     const provider = new ethers.providers.JsonRpcProvider(quickNodeFuji.rpcUrls[0])
     const contractObject = new ethers.Contract(contractAddy, abi.abi, provider)
+    const testhoneyContractObject = new ethers.Contract(testhoneyAddy, honeyABI.abi, provider)
     const fslReq = await contractObject.fsl()
     const pslReq = await contractObject.psl()
     const supplyReq = await contractObject.supply()
     const floorReq = await contractObject.lastFloorRaise()
     const ratioReq = await contractObject.targetRatio()
+    if(currentAccount) {
+      const allowanceReq = await testhoneyContractObject.allowance(currentAccount, contractAddy)
+      setAllowance(parseInt(allowanceReq._hex, 16) / Math.pow(10, 18))
+    }
     setFsl(parseInt(fslReq._hex, 16) / Math.pow(10, 18))
     setPsl(parseInt(pslReq._hex, 16) / Math.pow(10, 18))
     setSupply(parseInt(supplyReq._hex, 16))
@@ -360,12 +374,13 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     redeemTx.wait()
   }
 
-  // async function checkAllowance() {
-  //   const provider = new ethers.providers.JsonRpcProvider(quickNodeFuji.rpcUrls[0])
-  //   const testhoneyContractObject = new ethers.Contract(testhoneyAddy, honeyABI.abi, provider)
-  //   const allowanceReq = await testhoneyContractObject.allowance(currentAccount, contractAddy)
-  //   console.log(allowanceReq)
-  // }
+  async function approveHoneyInteraction() {
+    const provider = new ethers.providers.Web3Provider(ethereum)
+    const signer = provider.getSigner()
+    const testhoneyContractObject = new ethers.Contract(testhoneyAddy, honeyABI.abi, signer)
+    const approveTx = await testhoneyContractObject.approve(contractAddy, ethers.utils.parseUnits(buy.toString(), 18))
+    approveTx.wait()
+  }
 
   return (
     <div className="flex flex-row py-3">
