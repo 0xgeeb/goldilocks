@@ -32,7 +32,7 @@ export default function Nav({ currentAccount, setCurrentAccount, avaxChain, setA
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
     const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const mintTx = await contractObjectSigner.mint(currentAccount, BigNumber.from(100 * Math.pow(10, 18)));
+    const mintTx = await contractObjectSigner.mint(currentAccount, ethers.utils.parseUnits("100", 18));
     mintTx.wait()
   }
 
