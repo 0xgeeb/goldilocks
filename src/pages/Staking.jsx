@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react"
 import { ethers } from "ethers"
+import Bear from "../components/Bear.jsx"
 import abi from "../utils/Porridge.json"
 import LocksABI from "../utils/Locks.json"
-import coolWithBear from "../images/cool_with_bear.png"
 
 export default function Staking({ currentAccount, setCurrentAccount, avaxChain, setAvaxChain }) {
   
@@ -230,9 +230,7 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
           </div>
         </div>
       </div>
-      <div className="w-[30%]">
-        <img className="h-[70%] w-[36%] absolute bottom-0 right-0" src={coolWithBear} />
-      </div>
+      <Bear />
     </div>
   )
 }
