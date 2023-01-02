@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react"
 import { ethers } from "ethers"
 import Bear from "../components/Bear.jsx"
-import abi from "../utils/Porridge.json"
-import LocksABI from "../utils/Locks.json"
+import porridgeABI from "../utils/Porridge.json"
+import locksABI from "../utils/Locks.json"
 
 export default function Staking({ currentAccount, setCurrentAccount, avaxChain, setAvaxChain }) {
   
@@ -45,8 +45,8 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
     blockExplorerUrls: ['https://testnet.snowtrace.io']
   }
 
-  const contractAddy = '0xd8A4b467d6B653253D0c89CC49EAB6c6A5aB3067'
-  const LocksContractAddy = '0x189C988A4915f37694C8D14ae025268e3250b6e8'
+  const porridgeAddy = '0xd8A4b467d6B653253D0c89CC49EAB6c6A5aB3067'
+  const locksAddy = '0x189C988A4915f37694C8D14ae025268e3250b6e8'
 
   function handlePill(action) {
     setInput('')
@@ -83,16 +83,16 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
 
   async function getContractData() {
     const provider = new ethers.providers.JsonRpcProvider(quickNodeFuji.rpcUrls[0])
-    const contractObject = new ethers.Contract(contractAddy, abi.abi, provider)
+    const porridgeContractObject = new ethers.Contract(porridgeAddy, porridgeABI.abi, provider)
     if(currentAccount) {
-      const LocksContractObject = new ethers.Contract(LocksContractAddy, LocksABI.abi, provider)
-      const locksBalanceReq = await LocksContractObject.balanceOf(currentAccount)
+      const locksContractObject = new ethers.Contract(locksAddy, locksABI.abi, provider)
+      const locksBalanceReq = await locksContractObject.balanceOf(currentAccount)
       setLocksBalance(parseInt(locksBalanceReq._hex, 16) / Math.pow(10, 18))
-      const stakedReq = await contractObject.getStaked(currentAccount)
+      const stakedReq = await porridgeContractObject.getStaked(currentAccount)
       setStaked(parseInt(stakedReq._hex, 16) / Math.pow(10, 18))
-      const porridgeBalanceReq = await contractObject.balanceOf(currentAccount)
+      const porridgeBalanceReq = await porridgeContractObject.balanceOf(currentAccount)
       setPorridgeBalance(parseInt(porridgeBalanceReq._hex, 16) / Math.pow(10, 18))
-      const claimBalanceReq = await contractObject._calculateYield(currentAccount)
+      const claimBalanceReq = await porridgeContractObject._calculateYield(currentAccount)
       setClaimBalance(parseInt(claimBalanceReq._hex, 16) / Math.pow(10, 18))
     }
   }
@@ -100,32 +100,32 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
   async function stakeFunctionInteraction() {
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
-    const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const stakeTx = await contractObjectSigner.stake(ethers.utils.parseUnits(input, 18))
+    const porridgeContractObjectSigner = new ethers.Contract(porridgeAddy, porridgeABI.abi, signer)
+    const stakeTx = await porridgeContractObjectSigner.stake(ethers.utils.parseUnits(input, 18))
     stakeTx.wait()
   }
 
   async function unstakeFunctionInteraction() {
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
-    const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const unstakeTx = await contractObjectSigner.unstake(ethers.utils.parseUnits(input, 18))
+    const porridgeContractObjectSigner = new ethers.Contract(porridgeAddy, porridgeABI.abi, signer)
+    const unstakeTx = await porridgeContractObjectSigner.unstake(ethers.utils.parseUnits(input, 18))
     unstakeTx.wait()
   }
 
   async function realizeFunctionInteraction() {
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
-    const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const realizeTx = await contractObjectSigner.realize(ethers.utils.parseUnits(input, 18))
+    const porridgeContractObjectSigner = new ethers.Contract(porridgeAddy, porridgeABI.abi, signer)
+    const realizeTx = await porridgeContractObjectSigner.realize(ethers.utils.parseUnits(input, 18))
     realizeTx.wait()
   }
 
   async function claimFunctionInteraction() {
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
-    const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const claimTx = await contractObjectSigner.claim()
+    const porridgeContractObjectSigner = new ethers.Contract(porridgeAddy, porridgeABI.abi, signer)
+    const claimTx = await porridgeContractObjectSigner.claim()
     claimTx.wait()
   }
 

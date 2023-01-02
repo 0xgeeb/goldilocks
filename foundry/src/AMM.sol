@@ -12,7 +12,7 @@ contract AMM {
   uint256 public targetRatio = 260e15;
   uint256 public fsl;
   uint256 public psl;
-  uint256 public supply = 1;
+  uint256 public supply = 1e18;
   uint256 public lastFloorRaise;
   uint256 public lastFloorDecrease;
   address public adminAddress;
@@ -50,7 +50,7 @@ contract AMM {
   
   function buy(uint256 _amount, uint256 _maxAmount) public returns (uint256, uint256) {
     uint256 _supply = supply;
-    require(_amount <= _supply / 20, "price impact too large");
+    // require(_amount <= _supply / 20, "price impact too large");
     uint256 _leftover = _amount;
     uint256 _fsl = fsl;
     uint256 _psl = psl;
@@ -98,7 +98,7 @@ contract AMM {
 
   function sell(uint256 _amount, uint256 _minAmount) public returns (uint256, uint256) {
     uint256 _supply = supply;
-    require(_amount <= _supply / 20, "price impact too large");    
+    // require(_amount <= _supply / 20, "price impact too large");    
     uint256 _leftover = _amount;
     uint256 _fsl = fsl;
     uint256 _psl = psl;

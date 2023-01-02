@@ -56,7 +56,7 @@ contract Borrow {
   function repay(uint256 _amount) external {
     require(_amount > 0, "cannot repay zero");
     require(borrowedHoney[msg.sender] >= _amount, "repaying too much");
-    uint256 _repaidLocks = (_amount / borrowedHoney[msg.sender]) * lockedLocks[msg.sender];
+    uint256 _repaidLocks = (((_amount * 1e18) / borrowedHoney[msg.sender]) * lockedLocks[msg.sender]) / 1e18;
     lockedLocks[msg.sender] -= _repaidLocks;
     borrowedHoney[msg.sender] -= _amount;
     honey.transferFrom(msg.sender, ammAddress, _amount);

@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react"
 import { ethers } from "ethers"
 import Bear from "../components/Bear.jsx"
-import abi from "../utils/Borrow.json"
-import LocksABI from "../utils/Locks.json"
-import PorridgeABI from "../utils/Porridge.json"
+import borrowABI from "../utils/Borrow.json"
+import locksABI from "../utils/Locks.json"
+import porridgeABI from "../utils/Porridge.json"
 
 export default function Borrowing({ currentAccount, setCurrentAccount, avaxChain, setAvaxChain }) {
 
@@ -45,9 +45,9 @@ export default function Borrowing({ currentAccount, setCurrentAccount, avaxChain
     blockExplorerUrls: ['https://testnet.snowtrace.io']
   }
 
-  const contractAddy = '0x9494a50Ab61492194c7b0897CE36F8147a90b28a'
-  const LocksContractAddy = '0x189C988A4915f37694C8D14ae025268e3250b6e8'
-  const PorridgeContractAddy = '0xd8A4b467d6B653253D0c89CC49EAB6c6A5aB3067'
+  const borrowAddy = '0x9494a50Ab61492194c7b0897CE36F8147a90b28a'
+  const locksAddy = '0x189C988A4915f37694C8D14ae025268e3250b6e8'
+  const porridgeAddy = '0xd8A4b467d6B653253D0c89CC49EAB6c6A5aB3067'
   
 
   async function connectWallet() {
@@ -66,16 +66,16 @@ export default function Borrowing({ currentAccount, setCurrentAccount, avaxChain
 
   async function getContractData() {
     const provider = new ethers.providers.JsonRpcProvider(quickNodeFuji.rpcUrls[0])
-    const contractObject = new ethers.Contract(contractAddy, abi.abi, provider)
+    const borrowContractObject = new ethers.Contract(borrowAddy, borrowABI.abi, provider)
     if(currentAccount) {
-      const LocksContractObject = new ethers.Contract(LocksContractAddy, LocksABI.abi, provider)
-      const PorridgeContractObject = new ethers.Contract(PorridgeContractAddy, PorridgeABI.abi, provider)
-      const locksBalanceReq = await LocksContractObject.balanceOf(currentAccount)
+      const locksContractObject = new ethers.Contract(locksAddy, locksABI.abi, provider)
+      const porridgeContractObject = new ethers.Contract(porridgeAddy, porridgeABI.abi, provider)
+      const locksBalanceReq = await locksContractObject.balanceOf(currentAccount)
       setLocksBalance(parseInt(locksBalanceReq._hex, 16) / Math.pow(10, 18))
-      const stakedReq = await PorridgeContractObject.getStaked(currentAccount)
+      const stakedReq = await porridgeContractObject.getStaked(currentAccount)
       setStaked(parseInt(stakedReq._hex, 16) / Math.pow(10, 18))
-      const borrowedReq = await contractObject.getBorrowed(currentAccount)
-      const lockedReq = await contractObject.getlocked(currentAccount)
+      const borrowedReq = await borrowContractObject.getBorrowed(currentAccount)
+      const lockedReq = await borrowContractObject.getlocked(currentAccount)
       setBorrowed(parseInt(borrowedReq._hex, 16))
       setLocked(parseInt(lockedReq._hex, 16))
     }
@@ -84,16 +84,16 @@ export default function Borrowing({ currentAccount, setCurrentAccount, avaxChain
   async function borrowFunctionInteraction() {
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
-    const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const borrowTx = await contractObjectSigner.borrow(ethers.utils.parseUnits(input, 18))
+    const borrowContractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
+    const borrowTx = await borrowContractObjectSigner.borrow(ethers.utils.parseUnits(input, 18))
     borrowTx.wait()
   }
 
   async function repayFunctionInteraction() {
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
-    const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const repayTx = await contractObjectSigner.repay(ethers.utils.parseUnits(input, 18))
+    const borrowContractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
+    const repayTx = await borrowContractObjectSigner.repay(ethers.utils.parseUnits(input, 18))
     repayTx.wait()
   }
 

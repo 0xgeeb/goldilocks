@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react"
 import { ethers } from "ethers"
 import Bear from "../components/Bear.jsx"
-import abi from "../utils/AMM.json"
+import ammABI from "../utils/AMM.json"
 import honeyABI from "../utils/TestHoney.json"
 
 export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setAvaxChain }) {
@@ -94,7 +94,7 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     blockExplorerUrls: ['https://testnet.snowtrace.io']
   }
 
-  const contractAddy = '0xB8ecAfE93FA53dBfc4a44b38681F6D9a600161a5'
+  const ammAddy = '0xB8ecAfE93FA53dBfc4a44b38681F6D9a600161a5'
   const testhoneyAddy = '0x5F4b5D0B353a7531AD1763F0a3691C11Dae8899B'
 
   function handlePill(action) {
@@ -329,15 +329,15 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
 
   async function getContractData() {
     const provider = new ethers.providers.JsonRpcProvider(quickNodeFuji.rpcUrls[0])
-    const contractObject = new ethers.Contract(contractAddy, abi.abi, provider)
+    const ammContractObject = new ethers.Contract(ammAddy, ammABI.abi, provider)
     const testhoneyContractObject = new ethers.Contract(testhoneyAddy, honeyABI.abi, provider)
-    const fslReq = await contractObject.fsl()
-    const pslReq = await contractObject.psl()
-    const supplyReq = await contractObject.supply()
-    const floorReq = await contractObject.lastFloorRaise()
-    const ratioReq = await contractObject.targetRatio()
+    const fslReq = await ammContractObject.fsl()
+    const pslReq = await ammContractObject.psl()
+    const supplyReq = await ammContractObject.supply()
+    const floorReq = await ammContractObject.lastFloorRaise()
+    const ratioReq = await ammContractObject.targetRatio()
     if(currentAccount) {
-      const allowanceReq = await testhoneyContractObject.allowance(currentAccount, contractAddy)
+      const allowanceReq = await testhoneyContractObject.allowance(currentAccount, ammAddy)
       setAllowance(parseInt(allowanceReq._hex, 16) / Math.pow(10, 18))
     }
     setFsl(parseInt(fslReq._hex, 16) / Math.pow(10, 18))
@@ -353,24 +353,24 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
   async function buyFunctionInteraction() {
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
-    const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const buyTx = await contractObjectSigner.buy(ethers.utils.parseUnits("1", 18), ethers.utils.parseUnits("100000000", 18))
+    const ammContractObjectSigner = new ethers.Contract(ammAddy, ammABI.abi, signer)
+    const buyTx = await ammContractObjectSigner.buy(ethers.utils.parseUnits(buy, 18), ethers.utils.parseUnits("100000000", 18))
     buyTx.wait()
   }
 
   async function sellFunctionInteraction() {
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
-    const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const sellTx = await contractObjectSigner.sell(ethers.utils.parseUnits(sell.toString(), 18))
+    const ammContractObjectSigner = new ethers.Contract(ammAddy, ammABI.abi, signer)
+    const sellTx = await ammContractObjectSigner.sell(ethers.utils.parseUnits(sell, 18))
     sellTx.wait()
   }
 
   async function redeemFunctionInteraction() {
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
-    const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const redeemTx = await contractObjectSigner.redeem(ethers.utils.parseUnits(redeem.toString(), 18))
+    const ammContractObjectSigner = new ethers.Contract(ammAddy, ammABI.abi, signer)
+    const redeemTx = await ammContractObjectSigner.redeem(ethers.utils.parseUnits(redeem, 18))
     redeemTx.wait()
   }
 
@@ -378,7 +378,7 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
     const testhoneyContractObject = new ethers.Contract(testhoneyAddy, honeyABI.abi, signer)
-    const approveTx = await testhoneyContractObject.approve(contractAddy, ethers.utils.parseUnits(buy.toString(), 18))
+    const approveTx = await testhoneyContractObject.approve(ammAddy, ethers.utils.parseUnits(buy, 18))
     approveTx.wait()
   }
 
@@ -412,7 +412,6 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
                 <h1 className="font-acme text-[30px] px-6 my-2">{handleBottomLabel()}</h1>
               </div>
               <div className="h-[50%] pl-10">
-                {/* <input className="border-none focus:outline-none font-acme rounded-xl text-[40px]" placeholder="0" type="number" id="number-input" /> */}
                 <h1 className="font-acme text-[40px]">{handleBottomInput()}</h1>
               </div>
             </div>
