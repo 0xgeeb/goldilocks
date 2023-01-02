@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react"
 import { ethers } from "ethers"
 import logo from "../images/yellow_transparent_logo.png"
-import abi from "../utils/TestHoney.json"
+import testhoneyABI from "../utils/TestHoney.json"
 
 export default function Nav({ currentAccount, setCurrentAccount, avaxChain, setAvaxChain }) {
 
@@ -9,7 +9,7 @@ export default function Nav({ currentAccount, setCurrentAccount, avaxChain, setA
     checkConnectionandChain()
   }, [])
 
-  const contractAddy = '0x5F4b5D0B353a7531AD1763F0a3691C11Dae8899B'
+  const testhoneyAddy = '0x1ddE21372ba86c885c0429371E673E8Aa20DE6e6'
 
   async function checkConnectionandChain() {
     const accounts = await ethereum.request({ method: 'eth_accounts'})
@@ -31,8 +31,8 @@ export default function Nav({ currentAccount, setCurrentAccount, avaxChain, setA
   async function getTestHoney() {
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
-    const contractObjectSigner = new ethers.Contract(contractAddy, abi.abi, signer)
-    const mintTx = await contractObjectSigner.mint(currentAccount, ethers.utils.parseUnits("100", 18));
+    const testhoneyContractObjectSigner = new ethers.Contract(testhoneyAddy, testhoneyABI.abi, signer)
+    const mintTx = await testhoneyContractObjectSigner.mint(currentAccount, ethers.utils.parseUnits("100", 18));
     mintTx.wait()
   }
 

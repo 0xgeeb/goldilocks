@@ -45,8 +45,8 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
     blockExplorerUrls: ['https://testnet.snowtrace.io']
   }
 
-  const porridgeAddy = '0xd8A4b467d6B653253D0c89CC49EAB6c6A5aB3067'
-  const locksAddy = '0x189C988A4915f37694C8D14ae025268e3250b6e8'
+  const porridgeAddy = '0x06fc8931870719618c937BD3E0FF7F39553d0F94'
+  const locksAddy = '0xeB7095ccbb4Ce4Bf72717e0fDc54f1a7f48E3F63'
 
   function handlePill(action) {
     setInput('')

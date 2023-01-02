@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react"
 import { ethers } from "ethers"
 import Bear from "../components/Bear.jsx"
 import ammABI from "../utils/AMM.json"
-import honeyABI from "../utils/TestHoney.json"
+import testhoneyABI from "../utils/TestHoney.json"
 
 export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setAvaxChain }) {
 
@@ -94,8 +94,8 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     blockExplorerUrls: ['https://testnet.snowtrace.io']
   }
 
-  const ammAddy = '0xB8ecAfE93FA53dBfc4a44b38681F6D9a600161a5'
-  const testhoneyAddy = '0x5F4b5D0B353a7531AD1763F0a3691C11Dae8899B'
+  const ammAddy = '0xc8CA5f855203a05773F8529367c35c7cF6676E70'
+  const testhoneyAddy = '0x1ddE21372ba86c885c0429371E673E8Aa20DE6e6'
 
   function handlePill(action) {
     setBuy('')
@@ -221,7 +221,7 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     }
     else {
       if(buyToggle) {
-        if(allowance >= buy) {
+        if(allowance >= cost) {
           return 'buy'
         }
         else {
@@ -237,7 +237,7 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     }
   }
 
-  function handleButtonClick() {
+  async function handleButtonClick() {
     if(!currentAccount) {
       connectWallet()
     }
@@ -246,11 +246,17 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     }
     else {
       if(buyToggle) {
-        if(allowance >= buy) {
+        if(allowance >= cost) {
           buyFunctionInteraction()
         }
         else {
-          approveHoneyInteraction()
+          const allowanceReq = await checkHoneyAllowance()
+          if(allowanceReq >= cost) {
+            return
+          }
+          else {
+            approveHoneyInteraction()
+          }
         }
       }
       if(sellToggle) {
@@ -330,24 +336,30 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
   async function getContractData() {
     const provider = new ethers.providers.JsonRpcProvider(quickNodeFuji.rpcUrls[0])
     const ammContractObject = new ethers.Contract(ammAddy, ammABI.abi, provider)
-    const testhoneyContractObject = new ethers.Contract(testhoneyAddy, honeyABI.abi, provider)
     const fslReq = await ammContractObject.fsl()
     const pslReq = await ammContractObject.psl()
     const supplyReq = await ammContractObject.supply()
     const floorReq = await ammContractObject.lastFloorRaise()
     const ratioReq = await ammContractObject.targetRatio()
     if(currentAccount) {
-      const allowanceReq = await testhoneyContractObject.allowance(currentAccount, ammAddy)
-      setAllowance(parseInt(allowanceReq._hex, 16) / Math.pow(10, 18))
+      checkHoneyAllowance()
     }
     setFsl(parseInt(fslReq._hex, 16) / Math.pow(10, 18))
     setPsl(parseInt(pslReq._hex, 16) / Math.pow(10, 18))
-    setSupply(parseInt(supplyReq._hex, 16))
+    setSupply(parseInt(supplyReq._hex, 16) / Math.pow(10, 18))
     setNewFsl(parseInt(fslReq._hex, 16) / Math.pow(10, 18))
     setNewPsl(parseInt(pslReq._hex, 16) / Math.pow(10, 18))
     setNewFloor(parseInt((fslReq._hex, 16) / Math.pow(10, 18)) / supply)
     setLastFloorRaise(new Date(parseInt(floorReq._hex, 16)).toLocaleString())
     setTargetRatio(parseInt(ratioReq._hex, 16))
+  }
+
+  async function checkHoneyAllowance() {
+    const provider = new ethers.providers.JsonRpcProvider(quickNodeFuji.rpcUrls[0])
+    const testhoneyContractObject = new ethers.Contract(testhoneyAddy, testhoneyABI.abi, provider)
+    const allowanceReq = await testhoneyContractObject.allowance(currentAccount, ammAddy)
+    setAllowance(parseInt(allowanceReq._hex, 16) / Math.pow(10, 18))
+    return parseInt(allowanceReq._hex, 16) / Math.pow(10, 18)
   }
 
   async function buyFunctionInteraction() {
@@ -377,8 +389,8 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
   async function approveHoneyInteraction() {
     const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = provider.getSigner()
-    const testhoneyContractObject = new ethers.Contract(testhoneyAddy, honeyABI.abi, signer)
-    const approveTx = await testhoneyContractObject.approve(ammAddy, ethers.utils.parseUnits(buy, 18))
+    const testhoneyContractObject = new ethers.Contract(testhoneyAddy, testhoneyABI.abi, signer)
+    const approveTx = await testhoneyContractObject.approve(ammAddy, ethers.utils.parseUnits(cost.toString(), 18))
     approveTx.wait()
   }
 
