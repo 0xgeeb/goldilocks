@@ -2,8 +2,8 @@
 pragma solidity ^0.8.9;
 
 import { IERC20 } from "../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import { IPrincipalToken } from "./../interfaces/IPrincipalToken.sol";
-import { IYieldToken } from "./../interfaces/IYieldToken.sol";
+import { IPrincipalToken } from "./IPrincipalToken.sol";
+import { IYieldToken } from "./IYieldToken.sol";
 
 contract YieldSplitter {
 

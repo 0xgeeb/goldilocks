@@ -1,14 +1,14 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import { Test } from "../lib/forge-std/src/Test.sol";
-import { console } from "../lib/forge-std/src/console.sol";
-import { YieldSplitter } from "../src/tbd/YieldSplitter.sol";
-import { IERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import { IPrincipalToken } from "../src/interfaces/IPrincipalToken.sol";
-import { IYieldToken } from "../src/interfaces/IYieldToken.sol";
-import { PrincipalToken } from "../src/tbd/PrincipalToken.sol";
-import { YieldToken } from "../src/tbd/YieldToken.sol";
+import { Test } from "../../lib/forge-std/src/Test.sol";
+import { console } from "../../lib/forge-std/src/console.sol";
+import { YieldSplitter } from "./YieldSplitter.sol";
+import { IERC20 } from "../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import { IPrincipalToken } from "./IPrincipalToken.sol";
+import { IYieldToken } from "./IYieldToken.sol";
+import { PrincipalToken } from "./PrincipalToken.sol";
+import { YieldToken } from "./YieldToken.sol";
 
 contract YieldSplitterTest is Test {
 

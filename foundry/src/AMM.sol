@@ -9,10 +9,10 @@ contract AMM {
   IERC20 honey;
   ILocks ilocks;
   
-  uint256 public targetRatio = 260e15;
+  uint256 public targetRatio = 360e15;
   uint256 public fsl;
   uint256 public psl;
-  uint256 public supply = 1e18;
+  uint256 public supply = 1000e18;
   uint256 public lastFloorRaise;
   uint256 public lastFloorDecrease;
   address public adminAddress;
@@ -62,7 +62,7 @@ contract AMM {
       _floor = _floorPrice(_fsl, _supply);
       _purchasePrice += _market;
       _supply += 1e18;
-      if (_psl * 100 >= _fsl * 36) {
+      if (_psl * 100 >= _fsl * 50) {
         _fsl += _market;
       }
       else {
@@ -76,7 +76,7 @@ contract AMM {
       _floor = _floorPrice(_fsl, _supply);
       _purchasePrice += (_market * _leftover) / 1e18;
       _supply += _leftover;
-      if (_psl * 100 >= _fsl * 36) {
+      if (_psl * 100 >= _fsl * 50) {
         _fsl += (_market * _leftover) / 1e18;
       }
       else {

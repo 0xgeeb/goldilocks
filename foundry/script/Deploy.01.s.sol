@@ -41,8 +41,8 @@ contract Deploy01Script is Script {
     locks.setAmmAddress(address(amm));
     locks.setPorridgeAddress(address(porridge));
 
-    testhoney.mint(address(locks), 100e18);
-    locks.transferToAMM(951e17, 49e17);
+    testhoney.mint(address(locks), 1000e18);
+    locks.transferToAMM(700000e18, 200000e18);
     
     vm.stopBroadcast();
   }

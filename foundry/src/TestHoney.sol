@@ -9,8 +9,4 @@ contract TestHoney is ERC20("Test Honey", "THONEY") {
     _mint(_to, _amount);
   }
 
-  function burn(address _to, uint256 _amount) external {
-    _burn(_to, _amount);
-  }
-
 }
