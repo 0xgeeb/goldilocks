@@ -137,10 +137,11 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     let _psl = psl
     let _supply = supply
     let _purchasePrice = 0
+    let _tax = 0
     for(let i = 0; i < buy; i++) {
-      _supply++
       _purchasePrice += marketPrice(_fsl, _psl, _supply)
-      if (_psl / _fsl >= 0.36) {
+      _supply++
+      if (_psl / _fsl >= 0.50) {
         _fsl += marketPrice(_fsl, _psl, _supply)
       }
       else {
@@ -148,11 +149,12 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
         _psl += marketPrice(_fsl, _psl, _supply) - floorPrice(_fsl, _supply)
       }
     }
-    setNewFloor(floorPrice(_fsl, _supply))
-    setNewFsl(_fsl)
+    _tax = _purchasePrice * 0.003
+    setNewFloor(floorPrice(_fsl + _tax, _supply))
+    setNewFsl(_fsl + _tax)
     setNewPsl(_psl)
     setNewSupply(_supply)
-    setCost(_purchasePrice)
+    setCost(_purchasePrice + _tax)
   }
 
   function simulateSell() {

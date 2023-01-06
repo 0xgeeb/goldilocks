@@ -3,11 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "buildwebpack": "webpack",
     "start": "npm run build && NODE_ENV=production npm run server",
     "build": "react-scripts build",
-    "development": "NODE_ENV=development concurrently --kill-others \"npm run client\" \"npm run server\"",
-    "production": "npm run build && NODE_ENV=production npm run server",
+    "dev": "NODE_ENV=development concurrently --kill-others \"npm run client\" \"npm run server\"",
     "client": "react-scripts start",
     "server": "node server/server.js"
   },
