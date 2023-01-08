@@ -16,10 +16,13 @@ contract AMMTest is Test {
     locks = new Locks(address(this));
     amm = new AMM(address(locks), address(this));
     honey = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
-    deal(address(honey), address(this), 1000000e18, true);
+    deal(address(honey), address(this), 1000000000e18, true);
     deal(address(locks), address(this), 1000000e18, true);
     deal(address(honey), address(locks), 1000000e18, true);
     locks.setAmmAddress(address(amm));
+    locks.setHoneyAddress(address(honey));
+    amm.setHoneyAddress(address(honey));
+    honey.approve(address(amm), type(uint256).max);
   }
 
   function testPurchase1() public {
@@ -37,6 +40,8 @@ contract AMMTest is Test {
     bytes memory result = vm.ffi(inputs);
     uint256 pythonMarketPrice = abi.decode(result, (uint256));
     uint256 variance = pythonMarketPrice / 1000;
+    console.log(solidityMarketPrice);
+    console.log(pythonMarketPrice);
     assert(pythonMarketPrice + variance > solidityMarketPrice);
     assert(pythonMarketPrice - variance < solidityMarketPrice);
   }
