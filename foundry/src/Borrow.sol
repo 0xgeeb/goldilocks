@@ -43,7 +43,7 @@ contract Borrow {
     require(_amount > 0, "cannot borrow zero");
     uint256 _floorPrice = iamm.floorPrice();
     uint256 _stakedLocks = iporridge.getStaked(msg.sender);
-    require((_floorPrice * _stakedLocks) / (1e18) >= _amount, "insufficient borrow limit");
+    require(_floorPrice * (_stakedLocks - lockedLocks[msg.sender]) / (1e18) >= _amount, "insufficient borrow limit");
     lockedLocks[msg.sender] += (_amount * (1e18)) / _floorPrice;
     borrowedHoney[msg.sender] += _amount;
     uint256 _fee = (_amount / 100) * 3;

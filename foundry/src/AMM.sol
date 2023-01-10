@@ -98,7 +98,7 @@ contract AMM {
 
   function sell(uint256 _amount, uint256 _minAmount) public returns (uint256, uint256) {
     uint256 _supply = supply;
-    // require(_amount <= _supply / 20, "price impact too large");    
+    // require(_amount <= _supply / 20, "price impact too large");
     uint256 _leftover = _amount;
     uint256 _fsl = fsl;
     uint256 _psl = psl;
