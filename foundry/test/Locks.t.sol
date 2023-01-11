@@ -1,22 +1,24 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import "../lib/forge-std/src/Test.sol";
-import "../src/Locks.sol";
-import "../src/AMM.sol";
-import "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import { Test } from "../lib/forge-std/src/Test.sol";
+import { Locks } from "../src/Locks.sol";
+import { AMM } from "../src/AMM.sol";
+import { TestHoney } from "../src/TestHoney.sol";
+import { IERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 contract LocksTest is Test {
 
   Locks locks;
   AMM amm;
-  IERC20 honey;
-  address adminAddress = 0xFB38050d2dEF04c1bb5Ff21096d50cD992418be3;
+  TestHoney testhoney;
 
   function setUp() public {
-    locks = new Locks(adminAddress);
+    locks = new Locks(address(this));
     amm = new AMM(address(locks), address(this));
-    honey = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
+    testhoney = new TestHoney();
+    locks.setAmmAddress(address(amm));
+    locks.setHoneyAddress(address(testhoney));
   }
 
   function testHardCap() public {
@@ -25,7 +27,6 @@ contract LocksTest is Test {
   }
 
   function testMint() public {
-    vm.prank(adminAddress);
     locks.setAmmAddress(address(amm));
     vm.prank(address(amm));
     locks.ammMint(msg.sender, 100e18);
@@ -34,7 +35,6 @@ contract LocksTest is Test {
   }
 
   function testBurn() public {
-    vm.prank(adminAddress);
     locks.setAmmAddress(address(amm));
     vm.prank(address(amm));
     locks.ammMint(msg.sender, 100e18);
@@ -46,6 +46,7 @@ contract LocksTest is Test {
 
   function testOnlyAdmin() public {
     vm.expectRevert(bytes("not admin"));
+    vm.prank(address(testhoney));
     locks.setPorridgeAddress(address(this));
   }
 
@@ -55,13 +56,11 @@ contract LocksTest is Test {
   }
 
   function testTransferToAMM() public {
-    deal(address(honey), address(locks), 1000000e18, true);
-    vm.prank(adminAddress);
+    deal(address(testhoney), address(locks), 1000000e18, true);
     locks.setAmmAddress(address(amm));
-    vm.prank(adminAddress);
     locks.transferToAMM(1600000e18, 400000e18);
-    assertEq(honey.balanceOf(address(amm)), 1000000e18);
-    assertEq(honey.balanceOf(address(locks)), 0);
+    assertEq(testhoney.balanceOf(address(amm)), 1000000e18);
+    assertEq(testhoney.balanceOf(address(locks)), 0);
     assertEq(amm.fsl(), 1600000e18);
     assertEq(amm.psl(), 400000e18);
   }
