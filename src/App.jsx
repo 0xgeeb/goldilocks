@@ -6,6 +6,7 @@ import Home from "./pages/Home.jsx"
 import Amm from "./pages/Amm.jsx"
 import Staking from "./pages/Staking.jsx"
 import Borrowing from "./pages/Borrowing.jsx"
+import Lost from "./pages/Lost.jsx"
 
 export default function App() {
 
@@ -21,6 +22,8 @@ export default function App() {
           <Route exact path="/amm" element={<Amm currentAccount={currentAccount} setCurrentAccount={setCurrentAccount} avaxChain={avaxChain} setAvaxChain={setAvaxChain} />} />
           <Route exact path="/staking" element={<Staking currentAccount={currentAccount} setCurrentAccount={setCurrentAccount} avaxChain={avaxChain} setAvaxChain={setAvaxChain} />} />
           <Route exact path="/borrowing" element={<Borrowing currentAccount={currentAccount} setCurrentAccount={setCurrentAccount} avaxChain={avaxChain} setAvaxChain={setAvaxChain} />} />
+          <Route path="/lost" element={<Lost />} />
+          <Route path="*" element={<Navigate to="/lost" />} />
         </Routes>
       </div>
     </Router>
