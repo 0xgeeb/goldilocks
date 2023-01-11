@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.17;
 
 import { IERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import { ILocks } from "./interfaces/ILocks.sol";
@@ -9,9 +9,9 @@ contract AMM {
   IERC20 honey;
   ILocks ilocks;
   
-  uint256 public targetRatio = 360e15;
   uint256 public fsl;
   uint256 public psl;
+  uint256 public targetRatio = 360e15;
   uint256 public supply = 1000e18;
   uint256 public lastFloorRaise;
   uint256 public lastFloorDecrease;
