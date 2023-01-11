@@ -1,27 +1,33 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import "../lib/forge-std/src/Test.sol";
-import "../src/Porridge.sol";
-import "../src/Locks.sol";
-import "../src/AMM.sol";
-import "../src/Borrow.sol";
-import "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import { Test } from "../lib/forge-std/src/Test.sol";
+import { Porridge } from "../src/Porridge.sol";
+import { Locks } from "../src/Locks.sol";
+import { AMM } from "../src/AMM.sol";
+import { Borrow } from "../src/Borrow.sol";
+import { TestHoney } from "../src/TestHoney.sol";
 
 contract PorridgeTest is Test {
 
-  IERC20 honey;
-  Porridge porridge;
   Locks locks;
+  Porridge porridge;
   AMM amm;
   Borrow borrow;
+  TestHoney testhoney;
 
   function setUp() public {
-    honey = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
+    testhoney = new TestHoney();
     locks = new Locks(address(this));
     amm = new AMM(address(locks), address(this));
     borrow = new Borrow(address(amm), address(locks), address(this));
     porridge = new Porridge(address(amm), address(locks), address(borrow), address(this));
+    porridge.setLocksAddress(address(locks));
+    borrow.setPorridge(address(porridge));
+    locks.setAmmAddress(address(amm));
+    locks.setPorridgeAddress(address(porridge));
+    locks.setHoneyAddress(address(testhoney));
+    porridge.setHoneyAddress(address(testhoney));
   }
 
   function testCalculateYield() public {
@@ -45,15 +51,11 @@ contract PorridgeTest is Test {
   }
 
   function testRealize() public {
-    borrow.setPorridge(address(porridge));
-    deal(address(honey), address(this), 1000000e18, true);
-    deal(address(honey), address(locks), 1000000e18, true);
-    deal(address(locks), address(honey), 1000000e18, true);
+    deal(address(testhoney), address(this), 1000000e18, true);
+    deal(address(testhoney), address(locks), 1000000e18, true);
     deal(address(porridge), address(this), 1000000e18, true);
-    locks.setAmmAddress(address(amm));
     locks.transferToAMM(1600000e18, 400000e18);
-    locks.setPorridgeAddress(address(porridge));
-    honey.approve(address(porridge), 100000e18);
+    testhoney.approve(address(porridge), 1600000000e18);
     porridge.realize(10e18);
     assertEq(locks.balanceOf(address(this)), 10e18);
   }

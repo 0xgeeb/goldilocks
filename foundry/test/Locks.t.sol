@@ -5,7 +5,6 @@ import { Test } from "../lib/forge-std/src/Test.sol";
 import { Locks } from "../src/Locks.sol";
 import { AMM } from "../src/AMM.sol";
 import { TestHoney } from "../src/TestHoney.sol";
-import { IERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 contract LocksTest is Test {
 

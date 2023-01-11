@@ -24,8 +24,8 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
   address public locksAddress;
 
   constructor(address _ammAddress, address _locksAddress, address _borrowAddress, address _adminAddress) {
-    ilocks = ILocks(_locksAddress);
     iamm = IAMM(_ammAddress);
+    ilocks = ILocks(_locksAddress);
     iborrow = IBorrow(_borrowAddress);
     adminAddress = _adminAddress;
     ammAddress = _ammAddress;
@@ -65,7 +65,6 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
 
   function realize(uint256 _amount) external {
     require(_amount > 0, "cannot realize 0");
-    require(balanceOf(msg.sender) >= _amount, "insufficient balance");
     uint256 floorPrice = iamm.floorPrice();    
     _burn(msg.sender, _amount);
     honey.transferFrom(msg.sender, ammAddress, (_amount * floorPrice) / 1e18);
