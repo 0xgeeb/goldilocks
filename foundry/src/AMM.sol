@@ -124,7 +124,7 @@ contract AMM {
     }
     uint256 _tax = (_saleAmount / 1000) * 53;
     require(_saleAmount + _tax >= _minAmount, "too much slippage");
-    honey.transfer(msg.sender, _saleAmount + _tax);
+    honey.transfer(msg.sender, _saleAmount - _tax);
     ilocks.ammBurn(msg.sender, _amount);
     fsl = _fsl + _tax;
     psl = _psl;
