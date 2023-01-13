@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react"
 import { ethers } from "ethers"
+import { useSpring, config, animated } from "@react-spring/web"
 import Bear from "../components/Bear.jsx"
 import ammABI from "../utils/AMM.json"
 import testhoneyABI from "../utils/TestHoney.json"
@@ -27,7 +28,7 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
   const [redeemReceive, setRedeemReceive] = useState(null)
 
   useEffect(() => {
-    getContractData()
+    // getContractData()
   }, [])
 
   useEffect(() => {
@@ -67,6 +68,11 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
       setRedeemReceive(0)
     }
   }, [redeem])
+
+  const springs = useSpring({
+    from: { x: -900 },
+    to: { x: 0 },
+  })
 
   const numFor = Intl.NumberFormat('en-US')
 
@@ -397,8 +403,8 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
   }
 
   return (
-    <div className="flex flex-row py-3">
-      <div className="w-[57%] flex flex-col pt-8 pb-2 px-24 rounded-xl bg-slate-300 ml-24 mt-12 h-[700px] border-2 border-black">
+    <div className="flex flex-row py-3 overflow-hidden">
+      <animated.div className="w-[57%] flex flex-col pt-8 pb-2 px-24 rounded-xl bg-slate-300 ml-24 mt-12 h-[700px] border-2 border-black" style={springs}>
         <h1 className="text-[50px] font-acme text-[#ffff00]" id="text-outline">goldilocks AMM</h1>
         <div className="flex flex-row ml-2 items-center justify-between">
           <h3 className="font-acme text-[24px] ml-2">trading between $honey & $locks</h3>
@@ -470,7 +476,7 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
             </div>
           </div>
         </div>
-      </div>
+      </animated.div>
       <Bear />
     </div>
   )

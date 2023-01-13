@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react"
 import { ethers } from "ethers"
+import { useSpring, config, animated } from "@react-spring/web"
 import Bear from "../components/Bear.jsx"
 import porridgeABI from "../utils/Porridge.json"
 import locksABI from "../utils/Locks.json"
@@ -18,6 +19,11 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
   useEffect(() => {
     getContractData()
   }, [])
+
+  const springs = useSpring({
+    from: { x: -900 },
+    to: { x: 0 },
+  })
 
   const numFor = Intl.NumberFormat('en-US')
 
@@ -183,7 +189,7 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
 
   return (
     <div className="flex flex-row py-3">
-      <div className="w-[57%] flex flex-col pt-8 pb-2 px-16 rounded-xl bg-slate-300 ml-24 mt-12 h-[700px] border-2 border-black">
+      <animated.div className="w-[57%] flex flex-col pt-8 pb-2 px-16 rounded-xl bg-slate-300 ml-24 mt-12 h-[700px] border-2 border-black" style={springs}>
         <h1 className="text-[50px] font-acme text-[#ffff00]" id="text-outline">staking</h1>
         <div className="flex flex-row ml-2 items-center justify-between">
           <h3 className="font-acme text-[24px] ml-2">staking $locks for $porridge</h3>
@@ -229,7 +235,7 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
             </div>}
           </div>
         </div>
-      </div>
+      </animated.div>
       <Bear />
     </div>
   )

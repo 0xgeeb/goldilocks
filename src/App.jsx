@@ -15,7 +15,7 @@ export default function App() {
 
   return (
     <Router>
-      <div className="m-0 p-0 overflow-x-hidden" id="page-div">
+      <div className="m-0 p-0 overflow-hidden" id="page-div">
         <Nav  currentAccount={currentAccount} setCurrentAccount={setCurrentAccount} avaxChain={avaxChain} setAvaxChain={setAvaxChain} />
         <Routes>
           <Route exact path="/" element={<Home currentAccount={currentAccount} setCurrentAccount={setCurrentAccount} avaxChain={avaxChain} setAvaxChain={setAvaxChain} />} />
