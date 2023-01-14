@@ -97,4 +97,8 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
     honey = IERC20(_honeyAddress);
   }
 
+  function approveBorrowForLocks(address _borrowAddress) public onlyAdmin {
+    IERC20(locksAddress).approve(_borrowAddress, 10000000e18);
+  }
+
 }

@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.17;
 
 // OpenZeppelin Contracts (last updated v4.6.0) (token/ERC20/IERC20.sol)
 
@@ -94,10 +94,10 @@ contract AMM {
   IERC20 honey;
   ILocks ilocks;
   
-  uint256 public targetRatio = 260e15;
   uint256 public fsl;
   uint256 public psl;
-  uint256 public supply = 1e18;
+  uint256 public targetRatio = 360e15;
+  uint256 public supply = 1000e18;
   uint256 public lastFloorRaise;
   uint256 public lastFloorDecrease;
   address public adminAddress;
@@ -147,7 +147,7 @@ contract AMM {
       _floor = _floorPrice(_fsl, _supply);
       _purchasePrice += _market;
       _supply += 1e18;
-      if (_psl * 100 >= _fsl * 36) {
+      if (_psl * 100 >= _fsl * 50) {
         _fsl += _market;
       }
       else {
@@ -161,7 +161,7 @@ contract AMM {
       _floor = _floorPrice(_fsl, _supply);
       _purchasePrice += (_market * _leftover) / 1e18;
       _supply += _leftover;
-      if (_psl * 100 >= _fsl * 36) {
+      if (_psl * 100 >= _fsl * 50) {
         _fsl += (_market * _leftover) / 1e18;
       }
       else {
@@ -183,7 +183,7 @@ contract AMM {
 
   function sell(uint256 _amount, uint256 _minAmount) public returns (uint256, uint256) {
     uint256 _supply = supply;
-    // require(_amount <= _supply / 20, "price impact too large");    
+    // require(_amount <= _supply / 20, "price impact too large");
     uint256 _leftover = _amount;
     uint256 _fsl = fsl;
     uint256 _psl = psl;
@@ -209,7 +209,7 @@ contract AMM {
     }
     uint256 _tax = (_saleAmount / 1000) * 53;
     require(_saleAmount + _tax >= _minAmount, "too much slippage");
-    honey.transfer(msg.sender, _saleAmount + _tax);
+    honey.transfer(msg.sender, _saleAmount - _tax);
     ilocks.ammBurn(msg.sender, _amount);
     fsl = _fsl + _tax;
     psl = _psl;
@@ -264,6 +264,10 @@ contract AMM {
 
   function setHoneyAddress(address _honeyAddress) public onlyAdmin {
     honey = IERC20(_honeyAddress);
+  }
+
+  function approveBorrowForHoney(address _borrowAddress) public onlyAdmin {
+    honey.approve(_borrowAddress, 10000000e18);
   }
 
 }

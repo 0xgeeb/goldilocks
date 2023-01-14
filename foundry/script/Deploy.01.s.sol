@@ -22,24 +22,26 @@ contract Deploy01Script is Script {
     vm.startBroadcast(deployerPrivateKey);
 
     testhoney = new TestHoney();
-
     locks = new Locks(admin);
-    locks.setHoneyAddress(address(testhoney));
-
     amm = new AMM(address(locks), admin);
-    amm.setHoneyAddress(address(testhoney));
-
     borrow = new Borrow(address(amm), address(locks), admin);
-    borrow.setHoneyAddress(address(testhoney));
-    // DONT FORGET APPROVALS FOR BORROW CONTRACT FROM AMM AND PORRIDGE
     porridge = new Porridge(address(amm), address(locks), address(borrow), admin);
-    porridge.setLocksAddress(address(locks));
-    porridge.setHoneyAddress(address(testhoney));
-
-    borrow.setPorridge(address(porridge));
 
     locks.setAmmAddress(address(amm));
     locks.setPorridgeAddress(address(porridge));
+    locks.setHoneyAddress(address(testhoney));
+
+    porridge.setLocksAddress(address(locks));
+    porridge.setHoneyAddress(address(testhoney));
+
+    amm.setHoneyAddress(address(testhoney));
+
+    borrow.setHoneyAddress(address(testhoney));
+    borrow.setPorridge(address(porridge));
+
+    porridge.approveBorrowForLocks(address(borrow));
+
+    amm.approveBorrowForHoney(address(borrow));
 
     testhoney.mint(address(locks), 1000e18);
     locks.transferToAMM(700000e18, 200000e18);

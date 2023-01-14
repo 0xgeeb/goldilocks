@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.17;
 
 // OpenZeppelin Contracts (last updated v4.7.0) (token/ERC20/ERC20.sol)
 
@@ -551,8 +551,8 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
   address public locksAddress;
 
   constructor(address _ammAddress, address _locksAddress, address _borrowAddress, address _adminAddress) {
-    ilocks = ILocks(_locksAddress);
     iamm = IAMM(_ammAddress);
+    ilocks = ILocks(_locksAddress);
     iborrow = IBorrow(_borrowAddress);
     adminAddress = _adminAddress;
     ammAddress = _ammAddress;
@@ -592,7 +592,6 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
 
   function realize(uint256 _amount) external {
     require(_amount > 0, "cannot realize 0");
-    require(balanceOf(msg.sender) >= _amount, "insufficient balance");
     uint256 floorPrice = iamm.floorPrice();    
     _burn(msg.sender, _amount);
     honey.transferFrom(msg.sender, ammAddress, (_amount * floorPrice) / 1e18);
@@ -623,6 +622,10 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
 
   function setHoneyAddress(address _honeyAddress) public onlyAdmin {
     honey = IERC20(_honeyAddress);
+  }
+
+  function approveBorrowForLocks(address _borrowAddress) public onlyAdmin {
+    IERC20(locksAddress).approve(_borrowAddress, 10000000e18);
   }
 
 }

@@ -181,4 +181,8 @@ contract AMM {
     honey = IERC20(_honeyAddress);
   }
 
+  function approveBorrowForHoney(address _borrowAddress) public onlyAdmin {
+    honey.approve(_borrowAddress, 10000000e18);
+  }
+
 }
