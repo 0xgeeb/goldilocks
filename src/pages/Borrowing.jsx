@@ -53,10 +53,10 @@ export default function Borrowing({ currentAccount, setCurrentAccount, avaxChain
     blockExplorerUrls: ['https://testnet.snowtrace.io']
   }
 
-  const borrowAddy = '0x9C3C3E7f882aFe6d9C63F4b84DDc1E434Dc8e083'
-  const locksAddy = '0xeB7095ccbb4Ce4Bf72717e0fDc54f1a7f48E3F63'
-  const porridgeAddy = '0x06fc8931870719618c937BD3E0FF7F39553d0F94'
-  const testhoneyAddy = '0x1ddE21372ba86c885c0429371E673E8Aa20DE6e6'
+  const borrowAddy = '0x1b408d277D9f168A8893b1728d3B6cb75929a67d'
+  const locksAddy = '0x461B8AdEDe13Aa786b3f14b05496B93c5148Ad51'
+  const porridgeAddy = '0x69B228b9247dF2c1F194f92fC19A340A9F2803f7'
+  const testhoneyAddy = '0x29b9439E09d1D581892686D9e00E3481DCDD5f78'
   
 
   async function connectWallet() {

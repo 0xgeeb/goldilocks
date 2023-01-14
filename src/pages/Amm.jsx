@@ -100,8 +100,8 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
     blockExplorerUrls: ['https://testnet.snowtrace.io']
   }
 
-  const ammAddy = '0xc8CA5f855203a05773F8529367c35c7cF6676E70'
-  const testhoneyAddy = '0x1ddE21372ba86c885c0429371E673E8Aa20DE6e6'
+  const ammAddy = '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F'
+  const testhoneyAddy = '0x29b9439E09d1D581892686D9e00E3481DCDD5f78'
 
   function handlePill(action) {
     setBuy('')
