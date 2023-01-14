@@ -28,7 +28,7 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
   const [redeemReceive, setRedeemReceive] = useState(null)
 
   useEffect(() => {
-    // getContractData()
+    getContractData()
   }, [])
 
   useEffect(() => {

@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.17;
 
-import "../lib/forge-std/src/Script.sol";
-import "../src/Locks.sol";
-import "../src/Porridge.sol";
-import "../src/AMM.sol";
-import "../src/Borrow.sol";
-import "../src/TestHoney.sol";
+import { Script } from "../lib/forge-std/src/Script.sol";
+import { Locks } from "../src/Locks.sol";
+import { Porridge } from "../src/Porridge.sol";
+import { AMM } from  "../src/AMM.sol";
+import { Borrow } from "../src/Borrow.sol";
+import { TestHoney } from "../src/TestHoney.sol";
 
 contract Deploy01Script is Script {
 
@@ -31,7 +31,7 @@ contract Deploy01Script is Script {
 
     borrow = new Borrow(address(amm), address(locks), admin);
     borrow.setHoneyAddress(address(testhoney));
-
+    // DONT FORGET APPROVALS FOR BORROW CONTRACT FROM AMM AND PORRIDGE
     porridge = new Porridge(address(amm), address(locks), address(borrow), admin);
     porridge.setLocksAddress(address(locks));
     porridge.setHoneyAddress(address(testhoney));

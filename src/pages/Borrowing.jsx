@@ -5,6 +5,7 @@ import Bear from "../components/Bear.jsx"
 import borrowABI from "../utils/Borrow.json"
 import locksABI from "../utils/Locks.json"
 import porridgeABI from "../utils/Porridge.json"
+import testhoneyABI from "../utils/TestHoney.json"
 
 export default function Borrowing({ currentAccount, setCurrentAccount, avaxChain, setAvaxChain }) {
 
@@ -12,6 +13,7 @@ export default function Borrowing({ currentAccount, setCurrentAccount, avaxChain
   const [locked, setLocked] = useState()
   const [staked, setStaked] = useState()
   const [borrowed, setBorrowed] = useState()
+  const [honeyAllowance, setHoneyAllowance] = useState()
   const [locksBalance, setLocksBalance] = useState()
   const [borrowToggle, setBorrowToggle] = useState(true)
   const [repayToggle, setRepayToggle] = useState(false)
@@ -54,6 +56,7 @@ export default function Borrowing({ currentAccount, setCurrentAccount, avaxChain
   const borrowAddy = '0x9C3C3E7f882aFe6d9C63F4b84DDc1E434Dc8e083'
   const locksAddy = '0xeB7095ccbb4Ce4Bf72717e0fDc54f1a7f48E3F63'
   const porridgeAddy = '0x06fc8931870719618c937BD3E0FF7F39553d0F94'
+  const testhoneyAddy = '0x1ddE21372ba86c885c0429371E673E8Aa20DE6e6'
   
 
   async function connectWallet() {
@@ -103,6 +106,22 @@ export default function Borrowing({ currentAccount, setCurrentAccount, avaxChain
     repayTx.wait()
   }
 
+  async function checkHoneyAllowance() {
+    const provider = new ethers.providers.JsonRpcProvider(quickNodeFuji.rpcUrls[0])
+    const testhoneyContractObject = new ethers.Contract(testhoneyAddy, testhoneyABI.abi, provider)
+    const allowanceReq = await testhoneyContractObject.allowance(currentAccount, borrowAddy)
+    setHoneyAllowance(parseInt(allowanceReq._hex, 16) / Math.pow(10, 18))
+    return parseInt(allowanceReq._hex, 16) / Math.pow(10, 18)
+  }
+
+  async function approveHoneyInteraction() {
+    const provider = new ethers.providers.Web3Provider(ethereum)
+    const signer = provider.getSigner()
+    const honeyContractObject = new ethers.Contract(testhoneyAddy, testhoneyABI.abi, signer)
+    const approveTx = await honeyContractObject.approve(borrowAddy, ethers.utils.parseUnits(input.toString(), 18))
+    approveTx.wait()
+  }
+
   function handlePill(action) {
     if(action === 1) {
       setBorrowToggle(true)
@@ -114,7 +133,7 @@ export default function Borrowing({ currentAccount, setCurrentAccount, avaxChain
     }
   }
 
-  function handleButtonClick() {
+  async function handleButtonClick() {
     if(!currentAccount) {
       connectWallet()
     }
@@ -126,7 +145,18 @@ export default function Borrowing({ currentAccount, setCurrentAccount, avaxChain
         borrowFunctionInteraction()
       }
       if(repayToggle) {
-        repayFunctionInteraction()
+        if(honeyAllowance >= input) {
+          repayFunctionInteraction()
+        }
+        else {
+          const honeyAllowanceReq = await checkHoneyAllowance()
+          if(honeyAllowanceReq >= input) {
+            return
+          }
+          else {
+            approveHoneyInteraction()
+          }
+        }
       }
     }
   }
