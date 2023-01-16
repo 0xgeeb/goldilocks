@@ -9,7 +9,7 @@ export default function Nav({ currentAccount, setCurrentAccount, avaxChain, setA
     checkConnectionandChain()
   }, [])
 
-  const testhoneyAddy = '0x1ddE21372ba86c885c0429371E673E8Aa20DE6e6'
+  const testhoneyAddy = '0x29b9439E09d1D581892686D9e00E3481DCDD5f78'
 
   async function checkConnectionandChain() {
     const accounts = await ethereum.request({ method: 'eth_accounts'})
