@@ -7,7 +7,7 @@ psl = 400000
 floor_price = fsl/supply
 market_price = floor_price + ((psl/supply)*((psl+fsl)/fsl)**5)
 #target ratio
-target = 0.26
+target = 0.36
 #invested tracks the net amount of capital that has been deposited into the protocol
 #it subtracts the amount withdrawn on sales
 invested = 0
@@ -68,8 +68,8 @@ def buy(amount):
     amount -= 1
     supply += 1
     purchase_price += market_price
-    #if psl/fsl >= 0.5, all deposited capital goes to fsl
-    if psl/fsl >= 0.36:
+    # if psl/fsl >= 0.36: all deposited capital goes to fsl
+    if psl/fsl >= 0.5:
       fsl += market_price
       floor_price = fsl/supply
     else:

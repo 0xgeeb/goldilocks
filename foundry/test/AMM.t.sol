@@ -2,23 +2,24 @@
 pragma solidity ^0.8.17;
 
 import "../lib/forge-std/src/Test.sol";
-import "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import "../src/AMM.sol";
-import "../src/Locks.sol";
+import { IERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import { AMM } from "../src/AMM.sol";
+import { Locks } from "../src/Locks.sol";
+import { TestHoney } from "../src/TestHoney.sol";
 
 contract AMMTest is Test {
 
   AMM amm;
   Locks locks;
-  IERC20 honey;
+  TestHoney honey;
 
   function setUp() public {
     locks = new Locks(address(this));
     amm = new AMM(address(locks), address(this));
-    honey = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
-    deal(address(honey), address(this), 1000000000e18, true);
+    honey = new TestHoney();
+    deal(address(honey), address(this), 10000000000000000e18, true);
     deal(address(locks), address(this), 1000000e18, true);
-    deal(address(honey), address(locks), 1000000e18, true);
+    deal(address(honey), address(locks), 100000000000000000000000000000000e18, true);
     locks.setAmmAddress(address(amm));
     locks.setHoneyAddress(address(honey));
     amm.setHoneyAddress(address(honey));
@@ -40,8 +41,6 @@ contract AMMTest is Test {
     bytes memory result = vm.ffi(inputs);
     uint256 pythonMarketPrice = abi.decode(result, (uint256));
     uint256 variance = pythonMarketPrice / 1000;
-    console.log(solidityMarketPrice);
-    console.log(pythonMarketPrice);
     assert(pythonMarketPrice + variance > solidityMarketPrice);
     assert(pythonMarketPrice - variance < solidityMarketPrice);
   }
