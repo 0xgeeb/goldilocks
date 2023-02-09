@@ -1,5 +1,5 @@
 import React from "react"
-import lostImage from ".././images/lost.png"
+import lostImage from "../images/lost.png"
 
 export default function Lost() {
   return( 
