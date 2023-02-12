@@ -11,6 +11,7 @@
   "author": "0xgeeb",
   "license": "ISC",
   "dependencies": {
+    "@next/font": "^13.1.6",
     "@react-spring/web": "^9.6.1",
     "dotenv": "^16.0.0",
     "ethers": "^5.6.8",

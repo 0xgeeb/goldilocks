@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react"
 import { ethers } from "ethers"
 import { useSpring, config, animated } from "@react-spring/web"
-import Bear from "../components/Bear.jsx"
-import ammABI from "../utils/AMM.json"
-import testhoneyABI from "../utils/TestHoney.json"
+import Bear from "./components/Bear.jsx"
+import ammABI from "./utils/AMM.json"
+import testhoneyABI from "./utils/TestHoney.json"
 
 export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setAvaxChain }) {
 

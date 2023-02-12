@@ -1,13 +1,15 @@
 module.exports = {
-    content: [
-      "./src/*.{js,jsx,ts,tsx}", "./src/components/*.{js,jsx,ts,tsx}", "./src/pages/*.{js,jsx,ts,tsx}"
-    ],
-    theme: {
-      extend: {
-        fontFamily: {
-          'acme': ['"Acme"']
-        }
+  content: [
+    './pages/**/*.{js,ts,jsx,tsx}',
+    './components/**/*.{js,ts,jsx,tsx}',
+    './app/**/*.{js,ts,jsx,tsx}',
+  ],
+  theme: {
+    extend: {
+      fontFamily: {
+        'acme': ['"Acme"']
       }
-    },
-    plugins: []
-  }
+    }
+  },
+  plugins: [],
+}
