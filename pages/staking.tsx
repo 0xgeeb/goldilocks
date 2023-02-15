@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react"
 import { ethers } from "ethers"
 import { useSpring, config, animated } from "@react-spring/web"
-import Bear from "../components/Bear.jsx"
-import porridgeABI from "../utils/Porridge.json"
-import locksABI from "../utils/Locks.json"
-import testhoneyABI from "../utils/TestHoney.json"
-import ammABI from "../utils/AMM.json"
+import Bear from "./components/Bear"
+import porridgeABI from "./abi/Porridge.json"
+import locksABI from "./abi/Locks.json"
+import testhoneyABI from "./abi/TestHoney.json"
+import ammABI from "./abi/AMM.json"
 
 export default function Staking({ currentAccount, setCurrentAccount, avaxChain, setAvaxChain }) {
   

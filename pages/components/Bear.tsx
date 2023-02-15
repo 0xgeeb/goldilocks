@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react"
 import { useSpring, config, animated } from "@react-spring/web"
-import coolWithBear from "../images/cool_with_bear.png"
+import Image from "next/image"
 
 export default function Bear() {
 
@@ -11,7 +11,7 @@ export default function Bear() {
 
   return (
     <div className="w-[30%]">
-      <animated.img style={springs} className="h-[70%] w-[36%] absolute bottom-0 right-0" src={coolWithBear} />
+      <animated.img style={springs} className="h-[70%] w-[36%] absolute bottom-0 right-0" src="/cool_with_bear.png" />
     </div>
   )
 }

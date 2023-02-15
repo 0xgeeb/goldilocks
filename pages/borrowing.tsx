@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react"
 import { ethers } from "ethers"
 import { useSpring, config, animated } from "@react-spring/web"
-import Bear from "../components/Bear.jsx"
-import borrowABI from "../utils/Borrow.json"
-import locksABI from "../utils/Locks.json"
-import porridgeABI from "../utils/Porridge.json"
-import testhoneyABI from "../utils/TestHoney.json"
+import Bear from "./components/Bear"
+import borrowABI from "./abi/Borrow.json"
+import locksABI from "./abi/Locks.json"
+import porridgeABI from "./abi/Porridge.json"
+import testhoneyABI from "./abi/TestHoney.json"
 
 export default function Borrowing({ currentAccount, setCurrentAccount, avaxChain, setAvaxChain }) {
 
