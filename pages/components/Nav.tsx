@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react"
-import { ethers } from "ethers"
 import Image from "next/image"
+import { ethers } from "ethers"
+import { ConnectButton } from "@rainbow-me/rainbowkit"
 import testhoneyABI from "../abi/TestHoney.json"
+import { useAccount } from "wagmi"
+import { spawn } from "child_process"
 
 export default function Nav({ }) {
 
@@ -10,6 +13,9 @@ export default function Nav({ }) {
   }, [])
 
   const testhoneyAddy = '0x29b9439E09d1D581892686D9e00E3481DCDD5f78'
+
+  const address = useAccount()
+  console.log(address)
 
   async function checkConnectionandChain() {
     // const accounts = await ethereum.request({ method: 'eth_accounts'})
@@ -49,7 +55,7 @@ export default function Nav({ }) {
         <a href="/staking"><button className="w-24 py-2 text-[18px] bg-slate-200 hover:bg-slate-500 rounded-xl mr-4 font-acme" id="home-button">stake</button></a>
         <a href="/borrowing"><button className="w-24 py-2 text-[18px] bg-slate-200 hover:bg-slate-500 rounded-xl mr-4 font-acme" id="home-button">borrow</button></a>
         {/* <button className={`px-8 py-2 text-[18px] ${currentAccount ? "bg-green-300" : "bg-slate-200"} ${currentAccount ? "hover:bg-green-500" : "hover:bg-slate-500"} rounded-xl font-acme`} id="home-button" onClick={connectWallet}>{currentAccount ? "connected" : "connect wallet"}</button> */}
-        <button className={`px-8 py-2 text-[18px] bg-slate-200 hover:bg-slate-500 rounded-xl font-acme`} id="home-button" onClick={connectWallet}>connect wallet</button>
+        <ConnectButton />
       </div>
     </div>
   )
