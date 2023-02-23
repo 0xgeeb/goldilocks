@@ -4,6 +4,7 @@ import { useSpring, config, animated } from "@react-spring/web"
 import Bear from "./components/Bear"
 import ammABI from "./abi/AMM.json"
 import testhoneyABI from "./abi/TestHoney.json"
+import { useAccount } from "wagmi"
 
 export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setAvaxChain }) {
 
@@ -30,6 +31,9 @@ export default function Amm({ currentAccount, setCurrentAccount, avaxChain, setA
   useEffect(() => {
     getContractData()
   }, [])
+
+  const account = useAccount()
+  console.log(account.address)
 
   useEffect(() => {
     if(buy < 100000) {

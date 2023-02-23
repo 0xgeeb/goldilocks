@@ -1,12 +1,12 @@
-//SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+// SPDX-License-Identifier: MIT
+// pragma solidity ^0.8.9;
 
-import "../lib/forge-std/src/Test.sol";
-import "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import "../src/AMM.sol";
-import "../src/Locks.sol";
+// import "../lib/forge-std/src/Test.sol";
+// import "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+// import "../src/AMM.sol";
+// import "../src/Locks.sol";
 
-contract AMMOldTest is Test {
+// contract AMMOldTest is Test {
 
   // AMM amm;
   // Locks locks;
@@ -352,4 +352,4 @@ contract AMMOldTest is Test {
   //   }
   // }
   
-}
+// }

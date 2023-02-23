@@ -1,46 +1,44 @@
-import React, { useEffect, useState } from "react"
+import React, {useEffect, useState } from "react"
+import { ethers, BigNumber } from "ethers"
 import Image from "next/image"
-import { ethers } from "ethers"
+import { usePrepareContractWrite, useContractWrite, useWaitForTransaction, useAccount } from "wagmi"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
 import testhoneyABI from "../abi/TestHoney.json"
-import { useAccount } from "wagmi"
-import { spawn } from "child_process"
 
-export default function Nav({ }) {
-
-  useEffect(() => {
-    checkConnectionandChain()
-  }, [])
+export default function Nav() {
 
   const testhoneyAddy = '0x29b9439E09d1D581892686D9e00E3481DCDD5f78'
+  
+  const account = useAccount()
+  
+  const { config } = usePrepareContractWrite({
+    address: testhoneyAddy,
+    abi: testhoneyABI.abi,
+    functionName: "mint",
+    args: [account.address, BigNumber.from(ethers.utils.parseUnits("1000000", 18))],
+    enabled: true
+  })
 
-  const address = useAccount()
-  console.log(address)
+  const { data, write } = useContractWrite(config)
 
-  async function checkConnectionandChain() {
-    // const accounts = await ethereum.request({ method: 'eth_accounts'})
-    // if(accounts.length) {
-    //   setCurrentAccount(accounts[0])
-    // }
-    // const provider = new ethers.providers.Web3Provider(window.ethereum)
-    // const { chainId } = await provider.getNetwork()
-    // if (chainId === 43113) {
-    //   setAvaxChain(chainId)
-    // }
+  const { isLoading, isSuccess } = useWaitForTransaction({
+    hash: data?.hash
+  })
+
+  const renderButton = () => {
+    if(isLoading) {
+      return <div>...loading</div>
+    }
+    if(isSuccess) {
+      return <div>u got $honey</div>
+    }
+    return <div>$honey</div>
   }
 
-  async function connectWallet() {
-    // const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
-    // setCurrentAccount(accounts[0])
-  }
-
-  async function getTestHoney() {
-    // const provider = new ethers.providers.Web3Provider(ethereum)
-    // const signer = provider.getSigner()
-    // const testhoneyContractObjectSigner = new ethers.Contract(testhoneyAddy, testhoneyABI.abi, signer)
-    // const mintTx = await testhoneyContractObjectSigner.mint(currentAccount, ethers.utils.parseUnits("1000000", 18));
-    // mintTx.wait()
-  }
+  useEffect(() => {
+    console.log('nice were done')
+    console.log(data)
+  }, [isSuccess])
 
   return (
     <div className="w-[100%] mt-8 flex flex-row items-center justify-between px-24">
@@ -49,13 +47,12 @@ export default function Nav({ }) {
         <h1 className="text-[45px] ml-5 font-acme hover:text-slate-500">Goldilocks v0.2</h1>
       </div></a>
       <div className="flex flex-row">
-        <button className="w-24 py-2 text-[18px] bg-slate-200 hover:bg-slate-500 rounded-xl mr-4 font-acme" id="home-button" onClick={getTestHoney} >$honey</button>
+        <button className={`${isSuccess ? "w-36" : "w-24"} py-2 text-[18px] bg-slate-200 hover:bg-slate-500 rounded-xl mr-4 font-acme`} id="home-button" onClick={() => write?.()} >{renderButton()}</button>
         <a href="https://faucet.avax.network/" target="_blank"><button className="w-24 py-2 text-[18px] bg-slate-200 hover:bg-slate-500 rounded-xl mr-24 font-acme" id="home-button">faucet</button></a>
         <a href="/amm"><button className="w-24 py-2 text-[18px] bg-slate-200 hover:bg-slate-500 rounded-xl mr-4 font-acme" id="home-button">trade</button></a>
         <a href="/staking"><button className="w-24 py-2 text-[18px] bg-slate-200 hover:bg-slate-500 rounded-xl mr-4 font-acme" id="home-button">stake</button></a>
         <a href="/borrowing"><button className="w-24 py-2 text-[18px] bg-slate-200 hover:bg-slate-500 rounded-xl mr-4 font-acme" id="home-button">borrow</button></a>
-        {/* <button className={`px-8 py-2 text-[18px] ${currentAccount ? "bg-green-300" : "bg-slate-200"} ${currentAccount ? "hover:bg-green-500" : "hover:bg-slate-500"} rounded-xl font-acme`} id="home-button" onClick={connectWallet}>{currentAccount ? "connected" : "connect wallet"}</button> */}
-        <ConnectButton />
+        <ConnectButton label="connect wallet" chainStatus="icon" showBalance={false} />
       </div>
     </div>
   )
