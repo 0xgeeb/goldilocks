@@ -41,7 +41,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <>
       <WagmiConfig client={wagmiClient}>
-        <RainbowKitProvider chains={chains}>
+        <RainbowKitProvider chains={chains} coolMode>
           <Head>
             <title>goldilocks v0.2</title>
           </Head>
