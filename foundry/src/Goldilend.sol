@@ -1,9 +1,9 @@
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.17;
 
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.4.0/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC721/ERC721Full.sol";
-import "openzeppelin-contracts/utils/math/Math.sol";
+import { ERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import { ERC721 } from "../lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
+import { Math } from "../lib/openzeppelin-contracts/contracts/utils/math/Math.sol";
 
 //contract for users to borrow BERA from other users, using their Bera NFT as collateral
 contract lendingPool {
@@ -175,7 +175,7 @@ contract lendingPool {
   //duration variable will just be an integer in [1, 365]
    function borrow(uint256 _borrowAmount, ERC721[] _collateral, uint256 _duration, bytes32[] _collectionIDs) public {
       //checks that there's no bad debt, the user is borrowing a non-zero amount and number of days is appropriate
-      require(badDebt == 0, "borrowing suspended until all bad debt cleared")
+      require(badDebt == 0, "borrowing suspended until all bad debt cleared");
       require(_borrowAmount >= 0, "can't borrow zero");
       require(_duration >= 1 && _duration <= 365, "invalid loan duration");
       //parses the duration
@@ -223,7 +223,7 @@ contract lendingPool {
       startDate: block.timestamp,
       userAddress: msg.sender,
       duration: preciseDuration,
-      loanId: idTracker,
+      loanId: idTracker
     });
       loans.push(_loan);
       //transfers the desired loan amount to the user
@@ -262,7 +262,7 @@ contract lendingPool {
         }
         break;
       }
-      if badDebt == 0 {
+      if (badDebt == 0) {
         distribute(treasuryAddress);
       }
     }
@@ -376,7 +376,7 @@ contract lendingPool {
         Auction _auction = auctions[i];
         require(_bidAmount > _auction.highestBid, "doesn't beat current highest bid");
         require(bera.balanceOf(msg.sender) >= _bidAmount, "insufficient balance");
-        require(block.timestamp < _auction.endDate, "auction already ended")
+        require(block.timestamp < _auction.endDate, "auction already ended");
         //take the bid into custody and return the previous winning bid to corresponding bidder
         bera.transferFrom(msg.sender, address(this), _bidAmount);
         bera.transferFrom(address(this), _auction.highestBidder, _auction.highestBid);

@@ -3,7 +3,7 @@ import { ethers } from "ethers"
 import { useSpring, config, animated } from "@react-spring/web"
 import Bear from "./components/Bear"
 import ammABI from "./abi/AMM.json"
-import testhoneyABI from "./abi/TestHoney.json"
+import locksABI from "./abi/Locks.json"
 import { useAccount, useContractReads } from "wagmi"
 
 export default function Amm() {
@@ -16,9 +16,9 @@ export default function Amm() {
   const [newSupply, setNewSupply] = useState(null)
   const [lastFloorRaise, setLastFloorRaise] = useState(null)
   const [targetRatio, setTargetRatio] = useState(null)
-  const [buy, setBuy] = useState(null)
-  const [sell, setSell] = useState(null)
-  const [redeem, setRedeem] = useState(null)
+  const [buy, setBuy] = useState<string>('')
+  const [sell, setSell] = useState<string>('')
+  const [redeem, setRedeem] = useState<string>('')
   const [allowance, setAllowance] = useState(null)
   const [buyToggle, setBuyToggle] = useState(true)
   const [sellToggle, setSellToggle] = useState(false)
@@ -27,7 +27,6 @@ export default function Amm() {
   const [cost, setCost] = useState(null)
   const [receive, setReceive] = useState(null)
   const [redeemReceive, setRedeemReceive] = useState(null)
-  const [gypsy, setGypsy] = useState<string>("")
 
   useEffect(() => {
     // getContractData()
@@ -40,11 +39,16 @@ export default function Amm() {
       {
         address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
         abi: ammABI.abi,
-        functionName: 'fsl',
+        functionName: 'fsl'
       },
       {
-        address: '0x29b9439E09d1D581892686D9e00E3481DCDD5f78',
-        abi: testhoneyABI.abi,
+        address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
+        abi: ammABI.abi,
+        functionName: 'psl'
+      },
+      {
+        address: '0x461B8AdEDe13Aa786b3f14b05496B93c5148Ad51',
+        abi: locksABI.abi,
         functionName: 'totalSupply'
       }
     ]
@@ -120,26 +124,26 @@ export default function Amm() {
   }
   
 
-  // function handlePill(action) {
-  //   setBuy('')
-  //   setSell('')
-  //   setRedeem('')
-  //   if(action === 1) {
-  //     setBuyToggle(true)
-  //     setSellToggle(false)
-  //     setRedeemToggle(false)
-  //   }
-  //   if(action === 2) {
-  //     setBuyToggle(false)
-  //     setSellToggle(true)
-  //     setRedeemToggle(false)
-  //   }
-  //   if(action === 3) {
-  //     setBuyToggle(false)
-  //     setSellToggle(false)
-  //     setRedeemToggle(true)
-  //   }
-  // }
+  function handlePill(action: number) {
+    setBuy('')
+    setSell('')
+    setRedeem('')
+    if(action === 1) {
+      setBuyToggle(true)
+      setSellToggle(false)
+      setRedeemToggle(false)
+    }
+    if(action === 2) {
+      setBuyToggle(false)
+      setSellToggle(true)
+      setRedeemToggle(false)
+    }
+    if(action === 3) {
+      setBuyToggle(false)
+      setSellToggle(false)
+      setRedeemToggle(true)
+    }
+  }
 
   function handleNewFloorColor() {
     if(newFloor) {
@@ -419,10 +423,16 @@ export default function Amm() {
   //   approveTx.wait()
   // }
 
-  function test() {
-    let numString = data[0].toBigInt().toString()
-    // let numString = '703525465648871180815614'
-    setGypsy(`$${numString.slice(0, numString.length - 18)}.${numString.slice(numString.length - 18, numString.length - 16)}`)
+  function formatLiquidities(num: any) {
+    let numString = num.toBigInt().toString()
+    let beforeDecimal = parseInt(numString.slice(0, numString.length - 18)).toLocaleString('en-US')
+    return `${beforeDecimal}.${numString.slice(numString.length - 18, numString.length - 16)}`
+  }
+
+  function getFloorPrice(fsl: any, supply: any) {
+    let fslNum = parseInt(fsl._hex, 16) / Math.pow(10, 18)
+    let supplyNum = parseInt(supply._hex, 16) / Math.pow(10, 18)
+    return (fslNum / supplyNum).toLocaleString('en-US', { maximumFractionDigits: 2 })
   }
 
   return (
@@ -432,9 +442,9 @@ export default function Amm() {
         <div className="flex flex-row ml-2 items-center justify-between">
           <h3 className="font-acme text-[24px] ml-2">trading between $honey & $locks</h3>
           <div className="flex flex-row bg-white rounded-2xl border-2 border-black">
-            {/* <div className={`font-acme w-20 py-2 ${buyToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-l-2xl text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(1)}>buy</div>
+            <div className={`font-acme w-20 py-2 ${buyToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-l-2xl text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(1)}>buy</div>
             <div className={`font-acme w-20 py-2 ${sellToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(2)}>sell</div>
-            <div className={`font-acme w-20 py-2 ${redeemToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-r-2xl text-center cursor-pointer`} onClick={() => handlePill(3)}>redeem</div> */}
+            <div className={`font-acme w-20 py-2 ${redeemToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-r-2xl text-center cursor-pointer`} onClick={() => handlePill(3)}>redeem</div>
           </div>
         </div>
         <div className="h-[75%] relative mt-4 flex flex-col">
@@ -447,7 +457,7 @@ export default function Amm() {
                 {/* <input className="border-none focus:outline-none font-acme rounded-xl text-[40px]" placeholder="0" value={handleTopInput()} onChange={(e) => handleTopChange(e.target.value)} type="number" id="number-input" autoFocus /> */}
               </div>
             </div>
-            <div className="absolute top-[31%] left-[50%] h-10 w-10 bg-[#ffff00] border-2 border-black rounded-3xl flex justify-center items-center" onClick={test}>
+            <div className="absolute top-[31%] left-[50%] h-10 w-10 bg-[#ffff00] border-2 border-black rounded-3xl flex justify-center items-center">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0D111C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
             </div>
             <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
@@ -471,15 +481,14 @@ export default function Amm() {
               <p className="font-acme text-[24px]">current psl:</p>
             </div>
             <div className="flex flex-col items-end justify-between">
-              {/* <p className="font-acme text-[24px]">${ numFor.format(fsl / supply) }</p>
-              <p className="font-acme text-[20px]">{ fsl && numFor.format(fsl) }</p>
-              <p className="font-acme text-[20px]">{ psl && numFor.format(psl) }</p>
+              <p className="font-acme text-[24px]">${ data && getFloorPrice(data[0], data[2]) }</p>
+              <p className="font-acme text-[20px]">{ data && formatLiquidities(data[0]) }</p>
+              <p className="font-acme text-[20px]">{ data && formatLiquidities(data[1]) }</p>
             </div>
-            <div className="flex flex-col items-end justify-between">
+            {/* <div className="flex flex-col items-end justify-between">
               <p className={`font-acme text-[24px]`}>${ numFor.format(newFloor) }</p>
-              <p className="font-acme text-[20px]">{ numFor.format(newFsl) }</p> */}
-              <p className="font-acme text-[20px]">{ gypsy }</p>
-            </div>
+              <p className="font-acme text-[20px]">{ numFor.format(newFsl) }</p>
+            </div> */}
           </div>
           <div className="flex flex-row w-[40%] px-3 justify-between mr-3 rounded-xl border-2 border-black mt-2 bg-white">
             <div className="flex flex-col items-start justify-between w-[40%]">
