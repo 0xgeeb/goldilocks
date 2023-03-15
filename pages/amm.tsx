@@ -5,28 +5,31 @@ import Bear from "./components/Bear"
 import ammABI from "./abi/AMM.json"
 import locksABI from "./abi/Locks.json"
 import { useAccount, useContractReads } from "wagmi"
+import test from "node:test"
 
 export default function Amm() {
 
-  const [fsl, setFsl] = useState(null)
-  const [newFsl, setNewFsl] = useState(null)
-  const [psl, setPsl] = useState(null)
-  const [newPsl, setNewPsl] = useState(null)
-  const [supply, setSupply] = useState(null)
-  const [newSupply, setNewSupply] = useState(null)
+  const [displayString, setDisplayString] = useState<string>('')
+
+  const [fsl, setFsl] = useState<number>(0)
+  const [newFsl, setNewFsl] = useState<number>(0)
+  const [psl, setPsl] = useState<number>(0)
+  const [newPsl, setNewPsl] = useState<number>(0)
+  const [supply, setSupply] = useState<number>(100)
+  const [newSupply, setNewSupply] = useState<number>(0)
   const [lastFloorRaise, setLastFloorRaise] = useState(null)
   const [targetRatio, setTargetRatio] = useState(null)
-  const [buy, setBuy] = useState<string>('')
-  const [sell, setSell] = useState<string>('')
-  const [redeem, setRedeem] = useState<string>('')
+  const [buy, setBuy] = useState<number>(0)
+  const [sell, setSell] = useState<number>(0)
+  const [redeem, setRedeem] = useState<number>(0)
   const [allowance, setAllowance] = useState(null)
   const [buyToggle, setBuyToggle] = useState(true)
   const [sellToggle, setSellToggle] = useState(false)
   const [redeemToggle, setRedeemToggle] = useState(false)
-  const [newFloor, setNewFloor] = useState(null)
-  const [cost, setCost] = useState(null)
-  const [receive, setReceive] = useState(null)
-  const [redeemReceive, setRedeemReceive] = useState(null)
+  const [newFloor, setNewFloor] = useState<number>(0)
+  const [cost, setCost] = useState<number>(0)
+  const [receive, setReceive] = useState<number>(0)
+  const [redeemReceive, setRedeemReceive] = useState<number>(0)
 
   useEffect(() => {
     // getContractData()
@@ -54,18 +57,18 @@ export default function Amm() {
     ]
   })
 
-  // useEffect(() => {
-  //   if(buy < 100000) {
-  //     simulateBuy()
-  //   }
-  //   else {
-  //     setNewFloor(fsl / supply)
-  //     setNewFsl(fsl)
-  //     setNewPsl(psl)
-  //     setNewSupply(supply)
-  //     setCost(0)
-  //   }
-  // }, [buy])
+  useEffect(() => {
+    if(buy < 100000) {
+      simulateBuy()
+    }
+    else {
+      setNewFloor(fsl / supply)
+      setNewFsl(fsl)
+      setNewPsl(psl)
+      setNewSupply(supply)
+      setCost(0)
+    }
+  }, [buy])
 
   // useEffect(() => {
   //   if(sell < supply) {
@@ -80,54 +83,27 @@ export default function Amm() {
   //   }
   // }, [sell])
 
-  // useEffect(() => {
-  //   if(redeem < supply) {
-  //     simulateRedeem()
-  //   }
-  //   else {
-  //     setNewFloor(fsl / supply)
-  //     setNewFsl(fsl)
-  //     setNewSupply(supply)
-  //     setRedeemReceive(0)
-  //   }
-  // }, [redeem])
+  useEffect(() => {
+    if(redeem < supply) {
+      simulateRedeem()
+    }
+    else {
+      setNewFloor(fsl / supply)
+      setNewFsl(fsl)
+      setNewSupply(supply)
+      setRedeemReceive(0)
+    }
+  }, [redeem])
 
   const springs = useSpring({
     from: { x: -900 },
     to: { x: 0 },
   })
 
-  const numFor = Intl.NumberFormat('en-US')
-
-  const quickNodeFuji = {
-    chainId: '0xA869',
-    chainName: 'Fuji (C-Chain)',
-    nativeCurrency: {
-      name: 'Avalanche',
-      symbol: 'AVAX',
-      decimals: 18
-    },
-    rpcUrls: ['https://young-methodical-spree.avalanche-testnet.discover.quiknode.pro/e9ef57f113488a9db47c13766faa54b868f93ea9/ext/bc/C/rpc'],
-    blockExplorerUrls: ['https://testnet.snowtrace.io']
-  }
-
-  const fuji = {
-    chainId: '0xA869',
-    chainName: 'Fuji (C-Chain)',
-    nativeCurrency: {
-      name: 'Avalanche',
-      symbol: 'AVAX',
-      decimals: 18
-    },
-    rpcUrls: ['https://api.avax-test.network/ext/C/rpc'],
-    blockExplorerUrls: ['https://testnet.snowtrace.io']
-  }
-  
+  const numFor = Intl.NumberFormat('en-US')  
 
   function handlePill(action: number) {
-    setBuy('')
-    setSell('')
-    setRedeem('')
+    setDisplayString('')
     if(action === 1) {
       setBuyToggle(true)
       setSellToggle(false)
@@ -159,63 +135,63 @@ export default function Amm() {
     }
   }
 
-  // function simulateBuy() {
-  //   let _fsl = fsl
-  //   let _psl = psl
-  //   let _supply = supply
-  //   let _purchasePrice = 0
-  //   let _tax = 0
-  //   for(let i = 0; i < buy; i++) {
-  //     _purchasePrice += marketPrice(_fsl, _psl, _supply)
-  //     _supply++
-  //     if (_psl / _fsl >= 0.50) {
-  //       _fsl += marketPrice(_fsl, _psl, _supply)
-  //     }
-  //     else {
-  //       _fsl += floorPrice(_fsl, _supply)
-  //       _psl += marketPrice(_fsl, _psl, _supply) - floorPrice(_fsl, _supply)
-  //     }
-  //   }
-  //   _tax = _purchasePrice * 0.003
-  //   setNewFloor(floorPrice(_fsl + _tax, _supply))
-  //   setNewFsl(_fsl + _tax)
-  //   setNewPsl(_psl)
-  //   setNewSupply(_supply)
-  //   setCost(_purchasePrice + _tax)
-  // }
+  function simulateBuy() {
+    let _fsl = fsl
+    let _psl = psl
+    let _supply = supply
+    let _purchasePrice = 0
+    let _tax = 0
+    for(let i = 0; i < buy; i++) {
+      _purchasePrice += marketPrice(_fsl, _psl, _supply)
+      _supply++
+      if (_psl / _fsl >= 0.50) {
+        _fsl += marketPrice(_fsl, _psl, _supply)
+      }
+      else {
+        _fsl += floorPrice(_fsl, _supply)
+        _psl += marketPrice(_fsl, _psl, _supply) - floorPrice(_fsl, _supply)
+      }
+    }
+    _tax = _purchasePrice * 0.003
+    setNewFloor(floorPrice(_fsl + _tax, _supply))
+    setNewFsl(_fsl + _tax)
+    setNewPsl(_psl)
+    setNewSupply(_supply)
+    setCost(_purchasePrice + _tax)
+  }
 
-  // function simulateSell() {
-  //   let _fsl = fsl
-  //   let _psl = psl
-  //   let _supply = supply
-  //   let _salePrice = 0
-  //   for(let i = 0; i < sell; i++) {
-  //     _supply--
-  //     _salePrice += marketPrice(_fsl, _psl, _supply)
-  //     _fsl -= floorPrice(_fsl, _supply)
-  //     _psl -= marketPrice(_fsl, _psl, _supply) - floorPrice(_fsl, _supply)
-  //   }
-  //   setNewFloor(floorPrice(_fsl, _supply))
-  //   setNewFsl(_fsl)
-  //   setNewPsl(_psl)
-  //   setNewSupply(_supply)
-  //   setReceive(_salePrice)
-  // }
+  function simulateSell() {
+    let _fsl = fsl
+    let _psl = psl
+    let _supply = supply
+    let _salePrice = 0
+    for(let i = 0; i < sell; i++) {
+      _supply--
+      _salePrice += marketPrice(_fsl, _psl, _supply)
+      _fsl -= floorPrice(_fsl, _supply)
+      _psl -= marketPrice(_fsl, _psl, _supply) - floorPrice(_fsl, _supply)
+    }
+    setNewFloor(floorPrice(_fsl, _supply))
+    setNewFsl(_fsl)
+    setNewPsl(_psl)
+    setNewSupply(_supply)
+    setReceive(_salePrice)
+  }
 
-  // function simulateRedeem() {
-  //   setRedeemReceive(floorPrice(fsl, supply) * redeem)
-  //   setNewFloor(floorPrice(fsl, supply))
-  //   setNewFsl(fsl - (floorPrice(fsl, supply) * redeem))
-  //   setNewSupply(supply - redeem)
-  // }
+  function simulateRedeem() {
+    setRedeemReceive(floorPrice(fsl, supply) * redeem)
+    setNewFloor(floorPrice(fsl, supply))
+    setNewFsl(fsl - (floorPrice(fsl, supply) * redeem))
+    setNewSupply(supply - redeem)
+  }
 
-  // function floorPrice(_fsl, _supply) {
-  //   return _fsl / _supply
-  // }
+  function floorPrice(_fsl: any, _supply: any) {
+    return _fsl / _supply
+  }
 
-  // function marketPrice(_fsl, _psl, _supply) {
-  //   return floorPrice(_fsl, _supply) + ((_psl / _supply) * ((_psl + _fsl) / _fsl)**5)
-  // }
+  function marketPrice(_fsl: any, _psl: any, _supply: any) {
+    return floorPrice(_fsl, _supply) + ((_psl / _supply) * ((_psl + _fsl) / _fsl)**5)
+  }
 
   function handleTopLabel() {
     if(buyToggle) {
@@ -297,29 +273,31 @@ export default function Amm() {
   //   }
   // }
 
-  // function handleTopChange(e) {
-  //   if(buyToggle) {
-  //     setBuy(e)
-  //   }
-  //   if(sellToggle) {
-  //     setSell(e)
-  //   }
-  //   if(redeemToggle) {
-  //     setRedeem(e)
-  //   }
-  // }
+  function handleTopChange(input: string) {
+    setDisplayString(input)
+    if(buyToggle) {
+      setBuy(parseFloat(input))
+    }
+    if(sellToggle) {
+      setSell(parseFloat(input))
+    }
+    if(redeemToggle) {
+      setRedeem(parseFloat(input))
+    }
+  }
 
-  // function handleTopInput() {
-  //   if(buyToggle) {
-  //     return buy > 99999 ? '' : buy
-  //   }
-  //   if(sellToggle) {
-  //     return sell > supply ? '' : sell
-  //   }
-  //   if(redeemToggle) {
-  //     return redeem > supply ? '' : redeem
-  //   }
-  // }
+  function handleTopInput() {
+    if(buyToggle) {
+      return parseFloat(displayString) > 99999 ? '' : displayString
+    }
+    if(sellToggle) {
+      // return parseFloat(displayString) > supply ? '' : displayString
+      return displayString
+    }
+    if(redeemToggle) {
+      return parseFloat(displayString) > supply ? '' : displayString
+    }
+  }
 
   function handleBottomInput() {
     if(buyToggle) {
@@ -435,6 +413,17 @@ export default function Amm() {
     return (fslNum / supplyNum).toLocaleString('en-US', { maximumFractionDigits: 2 })
   }
 
+  function getSupply(supply: any) {
+    let supplyNum = parseInt(supply._hex, 16) / Math.pow(10, 18)
+    return supplyNum
+  }
+
+  function test() {
+    console.log('buy: ', buy)
+    console.log('sell: ', sell)
+    console.log('redeem: ', redeem)
+  }
+
   return (
     <div className="flex flex-row py-3 overflow-hidden">
       <animated.div className="w-[57%] flex flex-col pt-8 pb-2 px-24 rounded-xl bg-slate-300 ml-24 mt-12 h-[700px] border-2 border-black" style={springs}>
@@ -454,10 +443,10 @@ export default function Amm() {
                 <h1 className="font-acme text-[30px] px-6 my-2">{handleTopLabel()}</h1>
               </div>
               <div className="h-[50%] pl-10">
-                {/* <input className="border-none focus:outline-none font-acme rounded-xl text-[40px]" placeholder="0" value={handleTopInput()} onChange={(e) => handleTopChange(e.target.value)} type="number" id="number-input" autoFocus /> */}
+                <input className="border-none focus:outline-none font-acme rounded-xl text-[40px]" placeholder="0" value={handleTopInput()} onChange={(e) => handleTopChange(e.target.value)} type="number" id="number-input" autoFocus />
               </div>
             </div>
-            <div className="absolute top-[31%] left-[50%] h-10 w-10 bg-[#ffff00] border-2 border-black rounded-3xl flex justify-center items-center">
+            <div className="absolute top-[31%] left-[50%] h-10 w-10 bg-[#ffff00] border-2 border-black rounded-3xl flex justify-center items-center" onClick={() => test()}>
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0D111C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
             </div>
             <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
@@ -485,10 +474,11 @@ export default function Amm() {
               <p className="font-acme text-[20px]">{ data && formatLiquidities(data[0]) }</p>
               <p className="font-acme text-[20px]">{ data && formatLiquidities(data[1]) }</p>
             </div>
-            {/* <div className="flex flex-col items-end justify-between">
-              <p className={`font-acme text-[24px]`}>${ numFor.format(newFloor) }</p>
-              <p className="font-acme text-[20px]">{ numFor.format(newFsl) }</p>
-            </div> */}
+            <div className="flex flex-col items-end justify-between">
+              <p className="font-acme text-[24px]">${ data && getFloorPrice(data[0], data[2]) }</p>
+              <p className="font-acme text-[20px]">{ data && formatLiquidities(data[0]) }</p>
+              <p className="font-acme text-[20px]">{ "-" }</p>
+            </div>
           </div>
           <div className="flex flex-row w-[40%] px-3 justify-between mr-3 rounded-xl border-2 border-black mt-2 bg-white">
             <div className="flex flex-col items-start justify-between w-[40%]">
@@ -497,7 +487,7 @@ export default function Amm() {
               <p className="font-acme text-[20px]">last floor raise:</p>
             </div>
             <div className="flex flex-col items-center justify-between w-[30%]">
-              <p className="font-acme text-[20px]">{supply && supply}</p>
+              <p className="font-acme text-[20px]">{data && getSupply(data[2])}</p>
               <p className="font-acme text-[20px]">{ targetRatio && (targetRatio / 10**16)+"%" }</p>
               <p className="font-acme text-[20px] text-white">1,044</p>
             </div>
