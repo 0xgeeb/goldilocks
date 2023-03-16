@@ -137,10 +137,10 @@ contract AMM {
     require(_amount > 0, "cannot redeem zero");
     require(IERC20(locksAddress).balanceOf(msg.sender) >= _amount, "insufficient balance");
     uint256 _rawTotal = (_amount * ((fsl * 1e18) / supply)) / 1e18;
-    ilocks.ammBurn(msg.sender, _amount);
-    honey.transfer(msg.sender, _rawTotal);
     supply -= _amount;
     fsl -= _rawTotal;
+    ilocks.ammBurn(msg.sender, _amount);
+    honey.transfer(msg.sender, _rawTotal);
     _floorRaise();
     emit Redeem(msg.sender, _amount);
   }
