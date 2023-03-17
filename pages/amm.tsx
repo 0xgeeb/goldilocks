@@ -4,7 +4,7 @@ import { useSpring, config, animated } from "@react-spring/web"
 import Bear from "./components/Bear"
 import ammABI from "./abi/AMM.json"
 import locksABI from "./abi/Locks.json"
-import { useAccount, useContractReads } from "wagmi"
+import { useAccount, useContractReads, useNetwork } from "wagmi"
 
 export default function Amm() {
 
@@ -19,9 +19,8 @@ export default function Amm() {
   const [supply, setSupply] = useState<number>(0)
   const [newSupply, setNewSupply] = useState<number>(0)
   const [targetRatio, setTargetRatio] = useState<number>(0)
-  const [lastFloorRaise, setLastFloorRaise] = useState<string>("")
-  const [simulatedFloorRaise, setSimulatedFloorRaise] = useState<boolean>(false)
-  
+  const [simulatedRatio, setSimulatedRatio] = useState<number>(0.36)
+  const [lastFloorRaise, setLastFloorRaise] = useState<string>("")  
 
   const [buy, setBuy] = useState<number>(0)
   const [sell, setSell] = useState<number>(0)
@@ -38,8 +37,8 @@ export default function Amm() {
   const [redeemReceive, setRedeemReceive] = useState<number>(0)
 
   const account = useAccount()
+  const chain = useNetwork()
 
-  const numFor = Intl.NumberFormat('en-US')
   const formatAsPercentage = Intl.NumberFormat('default', {
     style: 'percent',
     maximumFractionDigits: 2
@@ -161,7 +160,7 @@ export default function Amm() {
   }
   
   function simulateBuy() {
-    setSimulatedFloorRaise(false)
+    let _leftover = buy
     let _fsl = fsl
     let _psl = psl
     let _supply = supply
@@ -169,17 +168,31 @@ export default function Amm() {
     let _tax = 0
     let _market = 0
     let _floor = 0
-    for(let i = 0; i < buy; i++) {
+    while(_leftover >= 1) {
       _market = marketPrice(_fsl, _psl, _supply)
       _floor = floorPrice(_fsl, _supply)
       _purchasePrice += _market
       _supply++
-      if (_psl / _fsl >= 0.50) {
+      if(_psl / _fsl >= 0.50) {
         _fsl += _market
       }
       else {
         _fsl += _floor
         _psl += (_market - _floor)
+      }
+      _leftover--
+    }
+    if(_leftover > 0) {
+      _market = marketPrice(_fsl, _psl, _supply)
+      _floor = floorPrice(_fsl, _supply)
+      _purchasePrice += _market * _leftover
+      _supply += _leftover
+      if(_psl / _fsl >= 0.50) {
+        _fsl += _market * _leftover
+      }
+      else {
+        _psl += (_market - _floor) * _leftover
+        _fsl += _floor * _leftover
       }
     }
     _tax = _purchasePrice * 0.003
@@ -192,29 +205,40 @@ export default function Amm() {
   }
   
   function simulateSell() {
+    let _leftover = sell
     let _fsl = fsl
     let _psl = psl
     let _supply = supply
     let _salePrice = 0
+    let _tax = 0
     let _market = 0
     let _floor = 0
-    for(let i = 0; i < sell; i++) {
+    while(_leftover >= 1) {
       _market = marketPrice(_fsl, _psl, _supply)
       _floor = floorPrice(_fsl, _supply) 
       _salePrice += _market
       _supply--
+      _leftover--
       _fsl -= _floor
       _psl -= (_market - _floor)
     }
+    if(_leftover > 0) {
+      _market = marketPrice(_fsl, _psl, _supply)
+      _floor = floorPrice(_fsl, _supply)
+      _salePrice += _market * _leftover
+      _psl -= (_market - _floor) * _leftover
+      _fsl -= _floor * _leftover
+      _supply -= _leftover
+    }
+    _tax = _salePrice * 0.053
     setNewFloor(floorPrice(_fsl, _supply))
-    setNewFsl(_fsl)
+    setNewFsl(_fsl + _tax)
     setNewPsl(_psl)
     setNewSupply(_supply)
-    setReceive(_salePrice)
+    setReceive(_salePrice - _tax)
   }
   
   function simulateRedeem() {
-    setSimulatedFloorRaise(false)
     let rawTotal: number = redeem * floorPrice(fsl, supply)
     setRedeemReceive(rawTotal)
     setNewFsl(fsl - rawTotal)
@@ -224,10 +248,14 @@ export default function Amm() {
   }
 
   function simulateFloorRaise() {
-    if(psl / fsl >= 0.36) {
-      setSimulatedFloorRaise(true)
+    if(psl / fsl >= simulatedRatio) {
       let raiseAmount: number = (psl / fsl) * (psl / 32)
-      // setNewPsl()
+      setNewFsl((prev) => {
+        return prev + raiseAmount
+      })
+      setNewPsl((prev) => {
+        return prev - raiseAmount
+      })
     }
   }
   
@@ -264,60 +292,52 @@ export default function Amm() {
   }
   
   function renderButton() {
-    if(!account.isConnected) {
-      return 'connect wallet'
+    if(buyToggle) {
+      return 'buy'
     }
-    // else if(!avaxChain) {
-      //   return 'switch to fuji plz'
-      // }
-      else {
-        if(buyToggle) {
-          // if(allowance >= cost) {
-          return 'buy'
-          // }
-        // else {
-          //   return 'approve'
-        // }
-      }
-      if(sellToggle) {
-        return 'sell'
-      }
-      if(redeemToggle) {
-        return 'redeem'
-      }
+    if(sellToggle) {
+      return 'sell'
+    }
+    if(redeemToggle) {
+      return 'redeem'
     }
   }
 
-  // async function handleButtonClick() {
-    //   if(!currentAccount) {
-  //     connectWallet()
-  //   }
-  //   else if(!avaxChain) {
-  //     switchToFuji()
-  //   }
-  //   else {
-  //     if(buyToggle) {
+  async function handleButtonClick() {
+    const button = document.getElementById('amm-button')
+    if(!account.isConnected) {
+      if(button) {
+        button.innerHTML = "connect wallet"
+      }
+    }
+    if(chain?.chain?.id !== 43113) {
+      if(button) {
+        button.innerHTML = "switch to fuji plz"
+      }
+    }
+    // else {
+    //   if(buyToggle) {
     //       if(allowance >= cost) {
-      //         buyFunctionInteraction()
-      //       }
-      //       else {
-        //         const allowanceReq = await checkHoneyAllowance()
-        //         if(allowanceReq >= cost) {
-          //           return
-          //         }
-  //         else {
-  //           approveHoneyInteraction()
-  //         }
-  //       }
-  //     }
-  //     if(sellToggle) {
+    //           buyFunctionInteraction()
+    //         }
+    //         else {
+    //             const allowanceReq = await checkHoneyAllowance()
+    //             if(allowanceReq >= cost) {
+    //                 return
+    //               }
+    //       else {
+    //         approveHoneyInteraction()
+    //       }
+    //     }
+    //   }
+    //   if(sellToggle) {
     //       sellFunctionInteraction()
     //     }
     //     if(redeemToggle) {
-  //       redeemFunctionInteraction()
-  //     }
-  //   }
-  // }
+    //     redeemFunctionInteraction()
+    //   }
+    // }
+  }
   
   function handleTopChange(input: string) {
     setDisplayString(input)
@@ -350,7 +370,7 @@ export default function Amm() {
         return 0
       }
       else {
-        return numFor.format(cost)
+        return cost.toLocaleString('en-US', { maximumFractionDigits: 2 })
       }
     }
     if(sellToggle) {
@@ -358,7 +378,7 @@ export default function Amm() {
         return 0
       }
       else {
-        return numFor.format(receive)
+        return receive.toLocaleString('en-US', { maximumFractionDigits: 2 })
       }
     }
     if(redeemToggle) {
@@ -366,45 +386,10 @@ export default function Amm() {
         return 0
       }
       else {
-        return numFor.format(redeemReceive)
+        return redeemReceive.toLocaleString('en-US', { maximumFractionDigits: 2 })
       }
     }
   }
-  
-  // async function connectWallet() {
-    //   const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
-    //   setCurrentAccount(accounts[0])
-    // }
-
-    // async function switchToFuji() {
-      //   await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [fuji] })
-      //   const provider = new ethers.providers.Web3Provider(window.ethereum);
-      //   const { chainId } = await provider.getNetwork();
-      //   if (chainId === 43113) {
-        //     setAvaxChain(chainId);
-        //   };
-  // }
-  
-  // async function getContractData() {
-    //   const provider = new ethers.providers.JsonRpcProvider(quickNodeFuji.rpcUrls[0])
-    //   const ammContractObject = new ethers.Contract(ammAddy, ammABI.abi, provider)
-    //   const fslReq = await ammContractObject.fsl()
-    //   const pslReq = await ammContractObject.psl()
-    //   const supplyReq = await ammContractObject.supply()
-    //   const floorReq = await ammContractObject.lastFloorRaise()
-    //   const ratioReq = await ammContractObject.targetRatio()
-    //   if(currentAccount) {
-      //     checkHoneyAllowance()
-      //   }
-  //   setFsl(parseInt(fslReq._hex, 16) / Math.pow(10, 18))
-  //   setPsl(parseInt(pslReq._hex, 16) / Math.pow(10, 18))
-  //   setSupply(parseInt(supplyReq._hex, 16) / Math.pow(10, 18))
-  //   setNewFsl(parseInt(fslReq._hex, 16) / Math.pow(10, 18))
-  //   setNewPsl(parseInt(pslReq._hex, 16) / Math.pow(10, 18))
-  //   setNewFloor(parseInt((fslReq._hex, 16) / Math.pow(10, 18)) / supply)
-  //   setLastFloorRaise(new Date(parseInt(floorReq._hex, 16)).toLocaleString())
-  //   setTargetRatio(parseInt(ratioReq._hex, 16))
-  // }
   
   // async function checkHoneyAllowance() {
     //   const provider = new ethers.providers.JsonRpcProvider(quickNodeFuji.rpcUrls[0])
@@ -448,7 +433,7 @@ export default function Amm() {
 
   
   function test() {
-    
+
   }
   
   return (
@@ -486,7 +471,7 @@ export default function Amm() {
             </div>
           </div>
           <div className="h-[33%] w-[100%] flex justify-center items-center">
-            {/* <button className="h-[50%] w-[50%] bg-white rounded-xl py-3 px-6 border-2 border-black font-acme text-[30px]" id="amm-button" onClick={() => handleButtonClick()} >{renderButton()}</button> */}
+            <button className="h-[50%] w-[50%] bg-white rounded-xl py-3 px-6 border-2 border-black font-acme text-[30px]" id="amm-button" onClick={() => handleButtonClick()} >{renderButton()}</button>
           </div>
         </div>
         <div className="flex flex-row justify-between">
@@ -513,15 +498,15 @@ export default function Amm() {
               <p className="font-acme text-[20px]">target ratio:</p>
               <p className="font-acme text-[20px]">last floor raise:</p>
             </div>
-            <div className="flex flex-col items-center justify-between w-[30%]">
+            <div className="flex flex-col items-end justify-between w-[30%]">
               <p className="font-acme text-[20px]">{ supply > 0 ? supply.toLocaleString('en-US') : "-" }</p>
-              <p className="font-acme text-[20px]">{ targetRatio > 0 ? formatAsPercentage.format(targetRatio) : "-" }</p>
+              <p className="font-acme text-[20px] text-white">1,044</p>
               <p className="font-acme text-[20px] text-white">1,044</p>
             </div>
             <div className="flex flex-col items-end justify-between w-[30%]">
               <p className={`${supply > newSupply ? "text-red-600" : supply == newSupply ? "" : "text-green-600"} font-acme text-[20px]`}>{ supply == newSupply ? "-" : newSupply.toLocaleString('en-US') }</p>
-              <p className="font-acme text-[20px] text-white">1,044</p>
-              <span className={`${simulatedFloorRaise ? "text-green-600" : ""} font-acme text-[20px] whitespace-nowrap`}>{lastFloorRaise}</span>
+              <p className="font-acme text-[20px]">{ targetRatio > 0 ? formatAsPercentage.format(targetRatio) : "-" }</p>
+              <p className="font-acme text-[20px] whitespace-nowrap">{lastFloorRaise}</p>
             </div>
           </div>
         </div>
