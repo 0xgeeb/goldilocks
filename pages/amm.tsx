@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react"
-import { ethers } from "ethers"
+import { ethers, BigNumber } from "ethers"
 import { useSpring, config, animated } from "@react-spring/web"
 import Bear from "./components/Bear"
 import ammABI from "./abi/AMM.json"
 import locksABI from "./abi/Locks.json"
-import { useAccount, useContractReads, useNetwork } from "wagmi"
+import testhoneyABI from "./abi/TestHoney.json"
+import { useAccount, useContractReads, useNetwork, usePrepareContractWrite, useContractWrite, useWaitForTransaction } from "wagmi"
 
 export default function Amm() {
 
@@ -19,14 +20,13 @@ export default function Amm() {
   const [supply, setSupply] = useState<number>(0)
   const [newSupply, setNewSupply] = useState<number>(0)
   const [targetRatio, setTargetRatio] = useState<number>(0)
-  const [simulatedRatio, setSimulatedRatio] = useState<number>(0.36)
   const [lastFloorRaise, setLastFloorRaise] = useState<string>("")  
 
   const [buy, setBuy] = useState<number>(0)
   const [sell, setSell] = useState<number>(0)
   const [redeem, setRedeem] = useState<number>(0)
 
-  const [allowance, setAllowance] = useState(null)
+  const [allowance, setAllowance] = useState<number>(0)
   
   const [buyToggle, setBuyToggle] = useState(true)
   const [sellToggle, setSellToggle] = useState(false)
@@ -43,6 +43,8 @@ export default function Amm() {
     style: 'percent',
     maximumFractionDigits: 2
   })
+
+  const maxApproval: string = '115792089237316195423570985008687907853269984665640564039457584007913129639935'
 
   const { data, isError, isLoading } = useContractReads({
     contracts: [
@@ -70,29 +72,81 @@ export default function Amm() {
         address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
         abi: ammABI.abi,
         functionName: 'lastFloorRaise'
+      },
+      {
+        address: '0x29b9439E09d1D581892686D9e00E3481DCDD5f78',
+        abi: testhoneyABI.abi,
+        functionName: 'allowance',
+        args: [account.address, '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F']
       }
     ],
     onSettled(data: any) {
-      // TODO: error handling here with isError
-      let fslString = data[0].toBigInt().toString()
-      let fslBeforeDecimalFloat = parseInt(fslString.slice(0, fslString.length - 18))
-      setFsl(parseFloat(`${fslBeforeDecimalFloat}.${fslString.slice(fslString.length - 18, fslString.length - 16)}`))
-      setNewFsl(parseFloat(`${fslBeforeDecimalFloat}.${fslString.slice(fslString.length - 18, fslString.length - 16)}`))
-      let pslString = data[1].toBigInt().toString()
-      let pslBeforeDecimalFloat = parseInt(pslString.slice(0, pslString.length - 18))
-      setPsl(parseFloat(`${pslBeforeDecimalFloat}.${pslString.slice(pslString.length - 18, pslString.length - 16)}`))
-      setNewPsl(parseFloat(`${pslBeforeDecimalFloat}.${pslString.slice(pslString.length - 18, pslString.length - 16)}`))
-      let supplyString = data[2].toBigInt().toString()
-      let supplyBeforeDecimalFloat = parseInt(supplyString.slice(0, supplyString.length - 18))
-      setSupply(parseFloat(`${supplyBeforeDecimalFloat}.${supplyString.slice(supplyString.length - 18, supplyString.length - 16)}`))
-      setNewSupply(parseFloat(`${supplyBeforeDecimalFloat}.${supplyString.slice(supplyString.length - 18, supplyString.length - 16)}`))
-      setFloor(parseFloat(`${fslBeforeDecimalFloat}.${fslString.slice(fslString.length - 18, fslString.length - 16)}`) / parseFloat(`${supplyBeforeDecimalFloat}.${supplyString.slice(supplyString.length - 18, supplyString.length - 16)}`))
-      setNewFloor(parseFloat(`${fslBeforeDecimalFloat}.${fslString.slice(fslString.length - 18, fslString.length - 16)}`) / parseFloat(`${supplyBeforeDecimalFloat}.${supplyString.slice(supplyString.length - 18, supplyString.length - 16)}`))
-      setTargetRatio(data[3].toBigInt().toString() / Math.pow(10, 18))
-      const date = new Date(parseInt(data[4].toBigInt().toString()) * 1000)
-      setLastFloorRaise(date.toDateString())
+      if(!data[0]) {
+        const button = document.getElementById('amm-button')
+        if(button) {
+          button.innerHTML = "error loading data"
+        }
+      }
+      else {
+        let fslString = data[0].toBigInt().toString()
+        let fslBeforeDecimalFloat = parseInt(fslString.slice(0, fslString.length - 18))
+        setFsl(parseFloat(`${fslBeforeDecimalFloat}.${fslString.slice(fslString.length - 18, fslString.length - 16)}`))
+        setNewFsl(parseFloat(`${fslBeforeDecimalFloat}.${fslString.slice(fslString.length - 18, fslString.length - 16)}`))
+        let pslString = data[1].toBigInt().toString()
+        let pslBeforeDecimalFloat = parseInt(pslString.slice(0, pslString.length - 18))
+        setPsl(parseFloat(`${pslBeforeDecimalFloat}.${pslString.slice(pslString.length - 18, pslString.length - 16)}`))
+        setNewPsl(parseFloat(`${pslBeforeDecimalFloat}.${pslString.slice(pslString.length - 18, pslString.length - 16)}`))
+        let supplyString = data[2].toBigInt().toString()
+        let supplyBeforeDecimalFloat = parseInt(supplyString.slice(0, supplyString.length - 18))
+        setSupply(parseFloat(`${supplyBeforeDecimalFloat}.${supplyString.slice(supplyString.length - 18, supplyString.length - 16)}`))
+        setNewSupply(parseFloat(`${supplyBeforeDecimalFloat}.${supplyString.slice(supplyString.length - 18, supplyString.length - 16)}`))
+        setFloor(parseFloat(`${fslBeforeDecimalFloat}.${fslString.slice(fslString.length - 18, fslString.length - 16)}`) / parseFloat(`${supplyBeforeDecimalFloat}.${supplyString.slice(supplyString.length - 18, supplyString.length - 16)}`))
+        setNewFloor(parseFloat(`${fslBeforeDecimalFloat}.${fslString.slice(fslString.length - 18, fslString.length - 16)}`) / parseFloat(`${supplyBeforeDecimalFloat}.${supplyString.slice(supplyString.length - 18, supplyString.length - 16)}`))
+        setTargetRatio(data[3].toBigInt().toString() / Math.pow(10, 18))
+        const date = new Date(parseInt(data[4].toBigInt().toString()) * 1000)
+        setLastFloorRaise(date.toDateString())
+        if(data[5]) {
+          setAllowance(data[5].toBigInt().toString() / Math.pow(10, 18))
+        }
+      }
     }
   })
+
+  const { config: buyConfig } = usePrepareContractWrite({
+    address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
+    abi: ammABI.abi,
+    functionName: 'buy',
+    args: [buy, buy],
+    enabled: false,
+    onSettled(data) {
+      console.log('just settled buy prepare')
+      console.log("data: ", data)
+    }
+  })
+  const buyInteraction = useContractWrite(buyConfig)
+
+  const { config: approveConfig } = usePrepareContractWrite({
+    address: '0x29b9439E09d1D581892686D9e00E3481DCDD5f78',
+    abi: testhoneyABI.abi,
+    functionName: 'approve',
+    args: ['0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F', maxApproval],
+    enabled: false
+  })
+  const { data: approveData, write: approveInteraction } = useContractWrite(approveConfig)
+  const { isLoading: approveIsLoading, isSuccess: approveIsSuccess } = useWaitForTransaction({
+    hash: approveData?.hash
+  })
+
+  useEffect(() => {
+    if(approveData) {
+      console.log('approveData exists and just changed')
+      console.log(approveData)
+    }
+  }, [approveData?.hash])
+
+  useEffect(() => {
+
+  }, [])
   
   useEffect(() => {
     if(buy < 999) {
@@ -248,7 +302,7 @@ export default function Amm() {
   }
 
   function simulateFloorRaise() {
-    if(psl / fsl >= simulatedRatio) {
+    if(psl / fsl >= targetRatio) {
       let raiseAmount: number = (psl / fsl) * (psl / 32)
       setNewFsl((prev) => {
         return prev + raiseAmount
@@ -310,33 +364,31 @@ export default function Amm() {
         button.innerHTML = "connect wallet"
       }
     }
-    if(chain?.chain?.id !== 43113) {
+    else if(chain?.chain?.id !== 43113) {
       if(button) {
         button.innerHTML = "switch to fuji plz"
       }
     }
-    // else {
-    //   if(buyToggle) {
-    //       if(allowance >= cost) {
-    //           buyFunctionInteraction()
-    //         }
-    //         else {
-    //             const allowanceReq = await checkHoneyAllowance()
-    //             if(allowanceReq >= cost) {
-    //                 return
-    //               }
-    //       else {
-    //         approveHoneyInteraction()
-    //       }
-    //     }
-    //   }
-    //   if(sellToggle) {
-    //       sellFunctionInteraction()
-    //     }
-    //     if(redeemToggle) {
-    //     redeemFunctionInteraction()
-    //   }
-    // }
+    else {
+      if(buyToggle) {
+        if(button) {
+          button.innerHTML = "buy"
+        }
+        if(cost > allowance) {
+          if(button) {
+            button.innerHTML = "approve"
+          }
+          approveInteraction?.()
+        }
+        // buyinteraction
+      }
+      if(sellToggle) {
+        // sellinteraction
+      }
+      if(redeemToggle) {
+        // redeeminteraction
+      }
+    }
   }
   
   function handleTopChange(input: string) {
@@ -390,14 +442,6 @@ export default function Amm() {
       }
     }
   }
-  
-  // async function checkHoneyAllowance() {
-    //   const provider = new ethers.providers.JsonRpcProvider(quickNodeFuji.rpcUrls[0])
-    //   const testhoneyContractObject = new ethers.Contract(testhoneyAddy, testhoneyABI.abi, provider)
-    //   const allowanceReq = await testhoneyContractObject.allowance(currentAccount, ammAddy)
-    //   setAllowance(parseInt(allowanceReq._hex, 16) / Math.pow(10, 18))
-    //   return parseInt(allowanceReq._hex, 16) / Math.pow(10, 18)
-    // }
     
     // async function buyFunctionInteraction() {
   //   const provider = new ethers.providers.Web3Provider(ethereum)
@@ -423,17 +467,10 @@ export default function Amm() {
   //   redeemTx.wait()
   // }
   
-  // async function approveHoneyInteraction() {
-    //   const provider = new ethers.providers.Web3Provider(ethereum)
-  //   const signer = provider.getSigner()
-  //   const testhoneyContractObject = new ethers.Contract(testhoneyAddy, testhoneyABI.abi, signer)
-  //   const approveTx = await testhoneyContractObject.approve(ammAddy, ethers.utils.parseUnits(cost.toString(), 18))
-  //   approveTx.wait()
-  // }
 
   
   function test() {
-
+    approveInteraction?.()
   }
   
   return (

@@ -1,9 +1,9 @@
 import React from "react"
 import { ethers, BigNumber } from "ethers"
 import Image from "next/image"
+import testhoneyABI from "../abi/TestHoney.json"
 import { usePrepareContractWrite, useContractWrite, useWaitForTransaction, useAccount } from "wagmi"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
-import testhoneyABI from "../abi/TestHoney.json"
 
 export default function Nav() {
 
@@ -15,7 +15,7 @@ export default function Nav() {
     address: testhoneyAddy,
     abi: testhoneyABI.abi,
     functionName: "mint",
-    args: [account.address, BigNumber.from(ethers.utils.parseUnits("1000000", 18))],
+    args: [account. address, BigNumber.from(ethers.utils.parseUnits("1000000", 18))],
     enabled: true
   })
 
