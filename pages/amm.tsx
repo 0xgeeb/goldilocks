@@ -5,7 +5,7 @@ import Bear from "./components/Bear"
 import ammABI from "./abi/AMM.json"
 import locksABI from "./abi/Locks.json"
 import testhoneyABI from "./abi/TestHoney.json"
-import { useAccount, useContractReads, useNetwork, usePrepareContractWrite, useContractWrite, useWaitForTransaction } from "wagmi"
+import { useAccount, useContractRead, useContractReads, useNetwork, usePrepareContractWrite, useContractWrite, useWaitForTransaction } from "wagmi"
 
 export default function Amm() {
 
@@ -23,6 +23,7 @@ export default function Amm() {
   const [lastFloorRaise, setLastFloorRaise] = useState<string>("")  
 
   const [buy, setBuy] = useState<number>(0)
+  const [prepareBuy, setPrepareBuy] = useState<number>(0)
   const [sell, setSell] = useState<number>(0)
   const [redeem, setRedeem] = useState<number>(0)
 
@@ -33,6 +34,7 @@ export default function Amm() {
   const [redeemToggle, setRedeemToggle] = useState(false)
   
   const [cost, setCost] = useState<number>(0)
+  const [prepareCost, setPrepareCost] = useState<number>(0)
   const [receive, setReceive] = useState<number>(0)
   const [redeemReceive, setRedeemReceive] = useState<number>(0)
 
@@ -46,7 +48,7 @@ export default function Amm() {
 
   const maxApproval: string = '115792089237316195423570985008687907853269984665640564039457584007913129639935'
 
-  const { data, isError, isLoading } = useContractReads({
+  const { data: allData, isError, isLoading } = useContractReads({
     contracts: [
       {
         address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
@@ -112,42 +114,41 @@ export default function Amm() {
     }
   })
 
-  const { config: buyConfig } = usePrepareContractWrite({
-    address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
-    abi: ammABI.abi,
-    functionName: 'buy',
-    args: [buy, buy],
-    enabled: false,
-    onSettled(data) {
-      console.log('just settled buy prepare')
-      console.log("data: ", data)
-    }
-  })
-  const buyInteraction = useContractWrite(buyConfig)
-
   const { config: approveConfig } = usePrepareContractWrite({
     address: '0x29b9439E09d1D581892686D9e00E3481DCDD5f78',
     abi: testhoneyABI.abi,
     functionName: 'approve',
     args: ['0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F', maxApproval],
-    enabled: false
+    enabled: false,
+    onSettled() {
+      console.log('just settled approve')
+    }
   })
   const { data: approveData, write: approveInteraction } = useContractWrite(approveConfig)
   const { isLoading: approveIsLoading, isSuccess: approveIsSuccess } = useWaitForTransaction({
     hash: approveData?.hash
   })
-
-  useEffect(() => {
-    if(approveData) {
-      console.log('approveData exists and just changed')
-      console.log(approveData)
-    }
-  }, [approveData?.hash])
-
-  useEffect(() => {
-
-  }, [])
   
+  const { config: buyConfig } = usePrepareContractWrite({
+    address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
+    abi: ammABI.abi,
+    functionName: 'buy',
+    args: [BigNumber.from(ethers.utils.parseUnits(buy.toString(), 18)), BigNumber.from(ethers.utils.parseUnits(cost.toString(), 18))],
+    enabled: false,
+    onSettled() {
+      console.log('just settled buy')
+    }
+  })
+  const { data: buyData, write: buyInteraction } = useContractWrite(buyConfig)
+  const { isLoading: buyIsLoading, isSuccess: buyIsSuccess } = useWaitForTransaction({
+    hash: buyData?.hash
+  })
+
+  function test() {
+    approveInteraction?.()
+    console.log(allowance)
+  }
+
   useEffect(() => {
     if(buy < 999) {
       simulateBuy()
@@ -347,6 +348,9 @@ export default function Amm() {
   
   function renderButton() {
     if(buyToggle) {
+      if(approveIsLoading) {
+        return 'approving...'
+      }
       return 'buy'
     }
     if(sellToggle) {
@@ -378,9 +382,14 @@ export default function Amm() {
           if(button) {
             button.innerHTML = "approve"
           }
+          console.log('approve interaction')
           approveInteraction?.()
         }
-        // buyinteraction
+        else {
+          setPrepareBuy(buy)
+          setPrepareCost(cost)
+          buyInteraction?.()
+        }
       }
       if(sellToggle) {
         // sellinteraction
@@ -394,13 +403,28 @@ export default function Amm() {
   function handleTopChange(input: string) {
     setDisplayString(input)
     if(buyToggle) {
-      setBuy(parseFloat(input))
+      if(!input) {
+        setBuy(0)
+      }
+      else {
+        setBuy(parseFloat(input))
+      }
     }
     if(sellToggle) {
-      setSell(parseFloat(input))
+      if(!input) {
+        setSell(0)
+      }
+      else {
+        setSell(parseFloat(input))
+      }
     }
     if(redeemToggle) {
-      setRedeem(parseFloat(input))
+      if(!input) {
+        setRedeem(0)
+      }
+      else {
+        setRedeem(parseFloat(input))
+      }
     }
   }
   
@@ -441,36 +465,6 @@ export default function Amm() {
         return redeemReceive.toLocaleString('en-US', { maximumFractionDigits: 2 })
       }
     }
-  }
-    
-    // async function buyFunctionInteraction() {
-  //   const provider = new ethers.providers.Web3Provider(ethereum)
-  //   const signer = provider.getSigner()
-  //   const ammContractObjectSigner = new ethers.Contract(ammAddy, ammABI.abi, signer)
-  //   const buyTx = await ammContractObjectSigner.buy(ethers.utils.parseUnits(buy, 18), ethers.utils.parseUnits("100000000", 18))
-  //   buyTx.wait()
-  // }
-
-  // async function sellFunctionInteraction() {
-    //   const provider = new ethers.providers.Web3Provider(ethereum)
-    //   const signer = provider.getSigner()
-  //   const ammContractObjectSigner = new ethers.Contract(ammAddy, ammABI.abi, signer)
-  //   const sellTx = await ammContractObjectSigner.sell(ethers.utils.parseUnits(sell, 18))
-  //   sellTx.wait()
-  // }
-  
-  // async function redeemFunctionInteraction() {
-    //   const provider = new ethers.providers.Web3Provider(ethereum)
-    //   const signer = provider.getSigner()
-    //   const ammContractObjectSigner = new ethers.Contract(ammAddy, ammABI.abi, signer)
-  //   const redeemTx = await ammContractObjectSigner.redeem(ethers.utils.parseUnits(redeem, 18))
-  //   redeemTx.wait()
-  // }
-  
-
-  
-  function test() {
-    approveInteraction?.()
   }
   
   return (
