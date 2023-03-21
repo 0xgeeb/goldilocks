@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react"
 import { ethers, BigNumber } from "ethers"
-import { useSpring, config, animated } from "@react-spring/web"
+import { useSpring, animated } from "@react-spring/web"
 import useDebounce from "./hooks/useDebounce"
 import Bear from "./components/Bear"
 import ammABI from "./abi/AMM.json"

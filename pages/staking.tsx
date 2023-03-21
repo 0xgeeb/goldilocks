@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react"
 import { ethers } from "ethers"
-import { useSpring, config, animated } from "@react-spring/web"
+import { useSpring, animated } from "@react-spring/web"
 import Bear from "./components/Bear"
 import porridgeABI from "./abi/Porridge.json"
 import locksABI from "./abi/Locks.json"
 import testhoneyABI from "./abi/TestHoney.json"
 import ammABI from "./abi/AMM.json"
+import { useAccount, useContractReads, useNetwork, usePrepareContractWrite, useContractWrite, useWaitForTransaction } from "wagmi"
 
-export default function Staking({ currentAccount, setCurrentAccount, avaxChain, setAvaxChain }) {
+export default function Staking() {
   
   const [input, setInput] = useState()
   const [staked, setStaked] = useState()
@@ -17,51 +18,20 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
   const [porridgeBalance, setPorridgeBalance] = useState()
   const [claimBalance, setClaimBalance] = useState()
   const [floorPrice, setFloorPrice] = useState()
+  
   const [stakeToggle, setStakeToggle] = useState(true)
   const [unstakeToggle, setUnstakeToggle] = useState(false)
   const [realizeToggle, setRealizeToggle] = useState(false)
 
-  useEffect(() => {
-    getContractData()
-  }, [])
+  const account = useAccount()
+  const chain = useNetwork()
 
   const springs = useSpring({
     from: { x: -900 },
     to: { x: 0 },
   })
 
-  const numFor = Intl.NumberFormat('en-US')
-
-  const quickNodeFuji = {
-    chainId: '0xA869',
-    chainName: 'Fuji (C-Chain)',
-    nativeCurrency: {
-      name: 'Avalanche',
-      symbol: 'AVAX',
-      decimals: 18
-    },
-    rpcUrls: ['https://young-methodical-spree.avalanche-testnet.discover.quiknode.pro/e9ef57f113488a9db47c13766faa54b868f93ea9/ext/bc/C/rpc'],
-    blockExplorerUrls: ['https://testnet.snowtrace.io']
-  }
-
-  const fuji = {
-    chainId: '0xA869',
-    chainName: 'Fuji (C-Chain)',
-    nativeCurrency: {
-      name: 'Avalanche',
-      symbol: 'AVAX',
-      decimals: 18
-    },
-    rpcUrls: ['https://api.avax-test.network/ext/C/rpc'],
-    blockExplorerUrls: ['https://testnet.snowtrace.io']
-  }
-
-  const porridgeAddy = '0x69B228b9247dF2c1F194f92fC19A340A9F2803f7'
-  const ammAddy = '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F'
-  const locksAddy = '0x461B8AdEDe13Aa786b3f14b05496B93c5148Ad51'
-  const testhoneyAddy = '0x29b9439E09d1D581892686D9e00E3481DCDD5f78'
-
-  function handlePill(action) {
+  function handlePill(action: number) {
     setInput('')
     if(action === 1) {
       setStakeToggle(true)
@@ -78,20 +48,6 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
       setUnstakeToggle(false)
       setRealizeToggle(true)
     }
-  }
-  
-  async function connectWallet() {
-    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
-    setCurrentAccount(accounts[0])
-  }
-
-  async function switchToFuji() {
-    await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [fuji] })
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const { chainId } = await provider.getNetwork();
-    if (chainId === 43113) {
-      setAvaxChain(chainId);
-    };
   }
 
   async function getContractData() {
@@ -114,37 +70,6 @@ export default function Staking({ currentAccount, setCurrentAccount, avaxChain, 
     }
   }
 
-  async function stakeFunctionInteraction() {
-    const provider = new ethers.providers.Web3Provider(ethereum)
-    const signer = provider.getSigner()
-    const porridgeContractObjectSigner = new ethers.Contract(porridgeAddy, porridgeABI.abi, signer)
-    const stakeTx = await porridgeContractObjectSigner.stake(ethers.utils.parseUnits(input, 18))
-    stakeTx.wait()
-  }
-
-  async function unstakeFunctionInteraction() {
-    const provider = new ethers.providers.Web3Provider(ethereum)
-    const signer = provider.getSigner()
-    const porridgeContractObjectSigner = new ethers.Contract(porridgeAddy, porridgeABI.abi, signer)
-    const unstakeTx = await porridgeContractObjectSigner.unstake(ethers.utils.parseUnits(input, 18))
-    unstakeTx.wait()
-  }
-
-  async function realizeFunctionInteraction() {
-    const provider = new ethers.providers.Web3Provider(ethereum)
-    const signer = provider.getSigner()
-    const porridgeContractObjectSigner = new ethers.Contract(porridgeAddy, porridgeABI.abi, signer)
-    const realizeTx = await porridgeContractObjectSigner.realize(ethers.utils.parseUnits(input, 18))
-    realizeTx.wait()
-  }
-
-  async function claimFunctionInteraction() {
-    const provider = new ethers.providers.Web3Provider(ethereum)
-    const signer = provider.getSigner()
-    const porridgeContractObjectSigner = new ethers.Contract(porridgeAddy, porridgeABI.abi, signer)
-    const claimTx = await porridgeContractObjectSigner.claim()
-    claimTx.wait()
-  }
 
   async function checkLocksAllowance() {
     const provider = new ethers.providers.JsonRpcProvider(quickNodeFuji.rpcUrls[0])
