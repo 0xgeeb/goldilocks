@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react"
 import { ethers, BigNumber } from "ethers"
 import { useSpring, config, animated } from "@react-spring/web"
+import useDebounce from "./hooks/useDebounce"
 import Bear from "./components/Bear"
 import ammABI from "./abi/AMM.json"
 import locksABI from "./abi/Locks.json"
 import testhoneyABI from "./abi/TestHoney.json"
-import { useAccount, useContractRead, useContractReads, useNetwork, usePrepareContractWrite, useContractWrite, useWaitForTransaction } from "wagmi"
+import { useAccount, useContractReads, useNetwork, usePrepareContractWrite, useContractWrite, useWaitForTransaction } from "wagmi"
 
 export default function Amm() {
 
@@ -23,9 +24,11 @@ export default function Amm() {
   const [lastFloorRaise, setLastFloorRaise] = useState<string>("")  
 
   const [buy, setBuy] = useState<number>(0)
-  const [prepareBuy, setPrepareBuy] = useState<number>(0)
+  const debouncedBuy = useDebounce(buy, 1000)
   const [sell, setSell] = useState<number>(0)
+  const debouncedSell = useDebounce(sell, 1000)
   const [redeem, setRedeem] = useState<number>(0)
+  const debouncedRedeem = useDebounce(redeem, 1000)
 
   const [allowance, setAllowance] = useState<number>(0)
   
@@ -34,8 +37,9 @@ export default function Amm() {
   const [redeemToggle, setRedeemToggle] = useState(false)
   
   const [cost, setCost] = useState<number>(0)
-  const [prepareCost, setPrepareCost] = useState<number>(0)
+  const debouncedCost = useDebounce(cost, 1000)
   const [receive, setReceive] = useState<number>(0)
+  const debouncedReceive = useDebounce(receive, 1000)
   const [redeemReceive, setRedeemReceive] = useState<number>(0)
 
   const account = useAccount()
@@ -48,7 +52,7 @@ export default function Amm() {
 
   const maxApproval: string = '115792089237316195423570985008687907853269984665640564039457584007913129639935'
 
-  const { data: allData, isError, isLoading } = useContractReads({
+  const { data, isError, isLoading } = useContractReads({
     contracts: [
       {
         address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
@@ -133,10 +137,12 @@ export default function Amm() {
     address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
     abi: ammABI.abi,
     functionName: 'buy',
-    args: [BigNumber.from(ethers.utils.parseUnits(buy.toString(), 18)), BigNumber.from(ethers.utils.parseUnits(cost.toString(), 18))],
-    enabled: false,
+    args: [BigNumber.from(ethers.utils.parseUnits(debouncedBuy.toString(), 18)), BigNumber.from(ethers.utils.parseUnits(debouncedCost.toString(), 18))],
+    enabled: Boolean(debouncedBuy),
     onSettled() {
       console.log('just settled buy')
+      console.log('debouncedBuy: ', debouncedBuy)
+      console.log('debouncedCost: ', debouncedCost)
     }
   })
   const { data: buyData, write: buyInteraction } = useContractWrite(buyConfig)
@@ -144,9 +150,44 @@ export default function Amm() {
     hash: buyData?.hash
   })
 
+  const { config: sellConfig } = usePrepareContractWrite({
+    address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
+    abi: ammABI.abi,
+    functionName: 'sell',
+    // TODO: use actual minimum value
+    // args: [BigNumber.from(ethers.utils.parseUnits(debouncedSell.toString(), 18)), BigNumber.from(ethers.utils.parseUnits(debouncedReceive.toString(), 18))],
+    args: [BigNumber.from(ethers.utils.parseUnits(debouncedSell.toString(), 18)), 0],
+    enabled: Boolean(debouncedSell),
+    onSettled() {
+      console.log('just settled sell')
+      console.log('debouncedSell: ', debouncedSell)
+      console.log('debouncedReceive: ', debouncedReceive)
+    }
+  })
+  const { data: sellData, write: sellInteraction } = useContractWrite(sellConfig)
+  const { isLoading: sellIsLoading, isSuccess: sellIsSuccess } = useWaitForTransaction({
+    hash: sellData?.hash
+  })
+
+  const { config: redeemConfig } = usePrepareContractWrite({
+    address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
+    abi: ammABI.abi,
+    functionName: 'redeem',
+    args: [BigNumber.from(ethers.utils.parseUnits(debouncedRedeem.toString(), 18))],
+    enabled: Boolean(debouncedRedeem),
+    onSettled() {
+      console.log('just settled redeem')
+      console.log('debouncedRedeem: ', debouncedRedeem)
+    }
+  })
+  const { data: redeemData, write: redeemInteraction } = useContractWrite(redeemConfig)
+  const { isLoading: redeemIsLoading, isSuccess: redeemIsSuccess } = useWaitForTransaction({
+    hash: redeemData?.hash
+  })
+
   function test() {
-    approveInteraction?.()
-    console.log(allowance)
+    console.log('sell: ', sell)
+    console.log('receive: ', receive)
   }
 
   useEffect(() => {
@@ -351,12 +392,21 @@ export default function Amm() {
       if(approveIsLoading) {
         return 'approving...'
       }
+      if(buyIsLoading) {
+        return 'buying...'
+      }
       return 'buy'
     }
     if(sellToggle) {
+      if(sellIsLoading) {
+        return 'selling...'
+      }
       return 'sell'
     }
     if(redeemToggle) {
+      if(redeemIsLoading) {
+        return 'redeeming...'
+      }
       return 'redeem'
     }
   }
@@ -382,20 +432,23 @@ export default function Amm() {
           if(button) {
             button.innerHTML = "approve"
           }
-          console.log('approve interaction')
           approveInteraction?.()
         }
         else {
-          setPrepareBuy(buy)
-          setPrepareCost(cost)
           buyInteraction?.()
         }
       }
       if(sellToggle) {
-        // sellinteraction
+        if(button) {
+          button.innerHTML = "sell"
+        }
+        sellInteraction?.()
       }
       if(redeemToggle) {
-        // redeeminteraction
+        if(button) {
+          button.innerHTML = "redeem"
+        }
+        redeemInteraction?.()
       }
     }
   }
