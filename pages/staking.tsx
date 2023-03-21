@@ -9,15 +9,17 @@ import ammABI from "./abi/AMM.json"
 import { useAccount, useContractReads, useNetwork, usePrepareContractWrite, useContractWrite, useWaitForTransaction } from "wagmi"
 
 export default function Staking() {
+
+  const [displayString, setDisplayString] = useState<string>('')
   
-  const [input, setInput] = useState()
+  const [input, setInput] = useState<number>(0)
   const [staked, setStaked] = useState()
-  const [locksAllowance, setLocksAllowance] = useState(null)
-  const [honeyAllowance, setHoneyAllowance] = useState(null)
+  const [locksAllowance, setLocksAllowance] = useState<number>(0)
+  const [honeyAllowance, setHoneyAllowance] = useState<number>(0)
   const [locksBalance, setLocksBalance] = useState()
   const [porridgeBalance, setPorridgeBalance] = useState()
   const [claimBalance, setClaimBalance] = useState()
-  const [floorPrice, setFloorPrice] = useState()
+  const [floorPrice, setFloorPrice] = useState<number>(0)
   
   const [stakeToggle, setStakeToggle] = useState(true)
   const [unstakeToggle, setUnstakeToggle] = useState(false)
@@ -32,7 +34,7 @@ export default function Staking() {
   })
 
   function handlePill(action: number) {
-    setInput('')
+    setDisplayString('')
     if(action === 1) {
       setStakeToggle(true)
       setUnstakeToggle(false)
@@ -50,123 +52,124 @@ export default function Staking() {
     }
   }
 
-  async function getContractData() {
-    const provider = new ethers.providers.JsonRpcProvider(quickNodeFuji.rpcUrls[0])
-    const porridgeContractObject = new ethers.Contract(porridgeAddy, porridgeABI.abi, provider)
-    const locksContractObject = new ethers.Contract(locksAddy, locksABI.abi, provider)
-    const ammContractObject = new ethers.Contract(ammAddy, ammABI.abi, provider)
-    const fslReq = await ammContractObject.fsl()
-    const supplyReq = await ammContractObject.supply()
-    setFloorPrice(parseInt(fslReq._hex, 16) / Math.pow(10, 18) / parseInt(supplyReq._hex, 16) / Math.pow(10, 18))
-    if(currentAccount) {
-      const locksBalanceReq = await locksContractObject.balanceOf(currentAccount)
-      setLocksBalance(parseInt(locksBalanceReq._hex, 16) / Math.pow(10, 18))
-      const stakedReq = await porridgeContractObject.getStaked(currentAccount)
-      setStaked(parseInt(stakedReq._hex, 16) / Math.pow(10, 18))
-      const porridgeBalanceReq = await porridgeContractObject.balanceOf(currentAccount)
-      setPorridgeBalance(parseInt(porridgeBalanceReq._hex, 16) / Math.pow(10, 18))
-      const claimBalanceReq = await porridgeContractObject._calculateYield(currentAccount)
-      setClaimBalance(parseInt(claimBalanceReq._hex, 16) / Math.pow(10, 18))
-    }
+  function claimFunctionInteraction() {
+
   }
 
+  // async function getContractData() {
+  //   const provider = new ethers.providers.JsonRpcProvider(quickNodeFuji.rpcUrls[0])
+  //   const porridgeContractObject = new ethers.Contract(porridgeAddy, porridgeABI.abi, provider)
+  //   const locksContractObject = new ethers.Contract(locksAddy, locksABI.abi, provider)
+  //   const ammContractObject = new ethers.Contract(ammAddy, ammABI.abi, provider)
+  //   const fslReq = await ammContractObject.fsl()
+  //   const supplyReq = await ammContractObject.supply()
+  //   setFloorPrice(parseInt(fslReq._hex, 16) / Math.pow(10, 18) / parseInt(supplyReq._hex, 16) / Math.pow(10, 18))
+  //   if(currentAccount) {
+  //     const locksBalanceReq = await locksContractObject.balanceOf(currentAccount)
+  //     setLocksBalance(parseInt(locksBalanceReq._hex, 16) / Math.pow(10, 18))
+  //     const stakedReq = await porridgeContractObject.getStaked(currentAccount)
+  //     setStaked(parseInt(stakedReq._hex, 16) / Math.pow(10, 18))
+  //     const porridgeBalanceReq = await porridgeContractObject.balanceOf(currentAccount)
+  //     setPorridgeBalance(parseInt(porridgeBalanceReq._hex, 16) / Math.pow(10, 18))
+  //     const claimBalanceReq = await porridgeContractObject._calculateYield(currentAccount)
+  //     setClaimBalance(parseInt(claimBalanceReq._hex, 16) / Math.pow(10, 18))
+  //   }
+  // }
 
-  async function checkLocksAllowance() {
-    const provider = new ethers.providers.JsonRpcProvider(quickNodeFuji.rpcUrls[0])
-    const locksContractObject = new ethers.Contract(locksAddy, locksABI.abi, provider)
-    const allowanceReq = await locksContractObject.allowance(currentAccount, porridgeAddy)
-    setLocksAllowance(parseInt(allowanceReq._hex, 16) / Math.pow(10, 18))
-    return parseInt(allowanceReq._hex, 16) / Math.pow(10, 18)
-  }
 
-  async function approveLocksInteraction() {
-    const provider = new ethers.providers.Web3Provider(ethereum)
-    const signer = provider.getSigner()
-    const locksContractObject = new ethers.Contract(locksAddy, locksABI.abi, signer)
-    const approveTx = await locksContractObject.approve(porridgeAddy, ethers.utils.parseUnits(input.toString(), 18))
-    approveTx.wait()
-  }
+  // async function checkLocksAllowance() {
+  //   const provider = new ethers.providers.JsonRpcProvider(quickNodeFuji.rpcUrls[0])
+  //   const locksContractObject = new ethers.Contract(locksAddy, locksABI.abi, provider)
+  //   const allowanceReq = await locksContractObject.allowance(currentAccount, porridgeAddy)
+  //   setLocksAllowance(parseInt(allowanceReq._hex, 16) / Math.pow(10, 18))
+  //   return parseInt(allowanceReq._hex, 16) / Math.pow(10, 18)
+  // }
 
-  async function checkHoneyAllowance() {
-    const provider = new ethers.providers.JsonRpcProvider(quickNodeFuji.rpcUrls[0])
-    const testhoneyContractObject = new ethers.Contract(testhoneyAddy, testhoneyABI.abi, provider)
-    const allowanceReq = await testhoneyContractObject.allowance(currentAccount, porridgeAddy)
-    setHoneyAllowance(parseInt(allowanceReq._hex, 16) / Math.pow(10, 18))
-    return parseInt(allowanceReq._hex, 16) / Math.pow(10, 18)
-  }
+  // async function approveLocksInteraction() {
+  //   const provider = new ethers.providers.Web3Provider(ethereum)
+  //   const signer = provider.getSigner()
+  //   const locksContractObject = new ethers.Contract(locksAddy, locksABI.abi, signer)
+  //   const approveTx = await locksContractObject.approve(porridgeAddy, ethers.utils.parseUnits(input.toString(), 18))
+  //   approveTx.wait()
+  // }
 
-  async function approveHoneyInteraction() {
-    const provider = new ethers.providers.Web3Provider(ethereum)
-    const signer = provider.getSigner()
-    const honeyContractObject = new ethers.Contract(testhoneyAddy, testhoneyABI.abi, signer)
-    const approveTx = await honeyContractObject.approve(porridgeAddy, ethers.utils.parseUnits((input * floorPrice).toString(), 18))
-    approveTx.wait()
+  // async function checkHoneyAllowance() {
+  //   const provider = new ethers.providers.JsonRpcProvider(quickNodeFuji.rpcUrls[0])
+  //   const testhoneyContractObject = new ethers.Contract(testhoneyAddy, testhoneyABI.abi, provider)
+  //   const allowanceReq = await testhoneyContractObject.allowance(currentAccount, porridgeAddy)
+  //   setHoneyAllowance(parseInt(allowanceReq._hex, 16) / Math.pow(10, 18))
+  //   return parseInt(allowanceReq._hex, 16) / Math.pow(10, 18)
+  // }
+
+  // async function approveHoneyInteraction() {
+  //   const provider = new ethers.providers.Web3Provider(ethereum)
+  //   const signer = provider.getSigner()
+  //   const honeyContractObject = new ethers.Contract(testhoneyAddy, testhoneyABI.abi, signer)
+  //   const approveTx = await honeyContractObject.approve(porridgeAddy, ethers.utils.parseUnits((input * floorPrice).toString(), 18))
+  //   approveTx.wait()
+  // }
+
+  function handleTopChange(input: string) {
+    setDisplayString(input)
+    setInput(parseFloat(input))
   }
 
   async function handleButtonClick() {
-    if(!currentAccount) {
-      connectWallet()
+    const button = document.getElementById('number-input')
+    if(!account.isConnected) {
+      if(button) {
+        button.innerHTML = "connect wallet"
+      }
     }
-    else if(!avaxChain) {
-      switchToFuji()
+    else if(chain?.chain?.id) {
+      if(button) {
+        button.innerHTML = "switch to fuji plz"
+      }
     }
     else {
       if(stakeToggle) {
         if(locksAllowance >= input) {
-          stakeFunctionInteraction()
+          // stakeFunctionInteraction()
         }
         else {
-          const locksAllowanceReq = await checkLocksAllowance()
-          if(locksAllowanceReq >= input) {
-            return
-          }
-          else {
-            approveLocksInteraction()
-          }
+          // const locksAllowanceReq = await checkLocksAllowance()
+          // if(locksAllowanceReq >= input) {
+          //   return
+          // }
+          // else {
+            // approveLocksInteraction()
+          // }
         }
       }
       if(unstakeToggle) {
-        unstakeFunctionInteraction()
+        // unstakeFunctionInteraction()
       }
       if(realizeToggle) {
         if(honeyAllowance >= input * floorPrice) {
-          realizeFunctionInteraction()
+          // realizeFunctionInteraction()
         }
         else {
-          const honeyAllowanceReq = await checkHoneyAllowance()
-          if(honeyAllowanceReq >= input * floorPrice) {
-            return
-          }
-          else {
-            approveHoneyInteraction()
-          }
+          // const honeyAllowanceReq = await checkHoneyAllowance()
+          // if(honeyAllowanceReq >= input * floorPrice) {
+          //   return
+          // }
+          // else {
+            // approveHoneyInteraction()
+          // }
         }
       }
     }
   }
 
   function renderButton() {
-    if(!currentAccount) {
-      return 'connect wallet'
+    if(stakeToggle) {
+      return 'stake'
     }
-    else if(!avaxChain) {
-      return 'switch to fuji plz'
+    if(unstakeToggle) {
+      return 'unstake'
     }
-    else {
-      if(stakeToggle) {
-        if(locksAllowance >= input) {
-          return 'stake'
-        }
-        else {
-          return 'approve'
-        }
-      }
-      if(unstakeToggle) {
-        return 'unstake'
-      }
-      if(realizeToggle) {
-        return 'realize'
-      }
+    if(realizeToggle) {
+      return 'realize'
     }
   }
 
@@ -199,7 +202,7 @@ export default function Staking() {
             <div className="rounded-3xl border-2 border-black w-[100%] h-[60%] bg-white flex flex-col relative">
               <h1 className="font-acme text-[40px] ml-10 mt-16">{renderLabel()}</h1>
               <div className="absolute top-[45%]">
-                <input className="border-none focus:outline-none font-acme rounded-xl text-[40px] pl-10" placeholder="0" type="number" value={input} onChange={(e) => setInput(e.target.value)} id="number-input" autoFocus />
+                <input className="border-none focus:outline-none font-acme rounded-xl text-[40px] pl-10" placeholder="0" type="number" value={input} onChange={(e) => handleTopChange(e.target.value)} id="number-input" autoFocus />
               </div>
             </div>
             <div className="h-[15%] w-[80%] mx-auto mt-6">
@@ -225,7 +228,7 @@ export default function Staking() {
                 <p className="font-acme text-[20px]">{claimBalance ? claimBalance : 0}</p>
               </div>
             </div>
-            {currentAccount && avaxChain && <div className="h-[10%] w-[70%] mx-auto mt-4">
+            {account.isConnected && <div className="h-[10%] w-[70%] mx-auto mt-4">
               <button className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[25px]" id="amm-button" onClick={() => claimFunctionInteraction()} >claim yield</button>
             </div>}
           </div>
