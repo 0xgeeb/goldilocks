@@ -127,7 +127,7 @@ export default function Amm() {
     abi: testhoneyABI.abi,
     functionName: 'approve',
     args: ['0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F', maxApproval],
-    enabled: false,
+    enabled: true,
     onSettled() {
       console.log('just settled approve')
     }
