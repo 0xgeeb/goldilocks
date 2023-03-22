@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react"
 import { ethers, BigNumber } from "ethers"
 import { useSpring, animated } from "@react-spring/web"
-import useDebounce from "./hooks/useDebounce"
+import useDebounce from "../hooks/useDebounce"
 import Bear from "./components/Bear"
 import porridgeABI from "./abi/Porridge.json"
 import locksABI from "./abi/Locks.json"
