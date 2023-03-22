@@ -32,9 +32,9 @@ export default function Amm() {
 
   const [allowance, setAllowance] = useState<number>(0)
   
-  const [buyToggle, setBuyToggle] = useState(true)
-  const [sellToggle, setSellToggle] = useState(false)
-  const [redeemToggle, setRedeemToggle] = useState(false)
+  const [buyToggle, setBuyToggle] = useState<boolean>(true)
+  const [sellToggle, setSellToggle] = useState<boolean>(false)
+  const [redeemToggle, setRedeemToggle] = useState<boolean>(false)
   
   const [cost, setCost] = useState<number>(0)
   const debouncedCost = useDebounce(cost, 1000)
@@ -51,6 +51,11 @@ export default function Amm() {
   })
 
   const maxApproval: string = '115792089237316195423570985008687907853269984665640564039457584007913129639935'
+  
+  const springs = useSpring({
+    from: { x: -900 },
+    to: { x: 0 },
+  })
 
   const { data, isError, isLoading } = useContractReads({
     contracts: [
@@ -65,9 +70,9 @@ export default function Amm() {
         functionName: 'psl'
       },
       {
-        address: '0x461B8AdEDe13Aa786b3f14b05496B93c5148Ad51',
-        abi: locksABI.abi,
-        functionName: 'totalSupply'
+        address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
+        abi: ammABI.abi,
+        functionName: 'supply'
       },
       {
         address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
@@ -154,9 +159,7 @@ export default function Amm() {
     address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
     abi: ammABI.abi,
     functionName: 'sell',
-    // TODO: use actual minimum value
-    // args: [BigNumber.from(ethers.utils.parseUnits(debouncedSell.toString(), 18)), BigNumber.from(ethers.utils.parseUnits(debouncedReceive.toString(), 18))],
-    args: [BigNumber.from(ethers.utils.parseUnits(debouncedSell.toString(), 18)), 0],
+    args: [BigNumber.from(ethers.utils.parseUnits(debouncedSell.toString(), 18)), BigNumber.from(ethers.utils.parseUnits(debouncedReceive.toString(), 18))],
     enabled: Boolean(debouncedSell),
     onSettled() {
       console.log('just settled sell')
@@ -227,11 +230,6 @@ export default function Amm() {
       setRedeemReceive(0)
     }
   }, [redeem])
-
-  const springs = useSpring({
-    from: { x: -900 },
-    to: { x: 0 },
-  })
 
   function handlePill(action: number) {
     setDisplayString('')
