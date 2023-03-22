@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import { ethers } from "ethers"
+import { ethers, BigNumber } from "ethers"
 import { useSpring, animated } from "@react-spring/web"
 import useDebounce from "./hooks/useDebounce"
 import Bear from "./components/Bear"
@@ -25,7 +25,7 @@ export default function Borrowing() {
   const [repay, setRepay] = useState<number>(0)
   const debouncedRepay = useDebounce(repay, 1000)
   
-  const [honeyAllowance, setHoneyAllowance] = useState()
+  const [honeyAllowance, setHoneyAllowance] = useState<number>(0)
 
   const [borrowToggle, setBorrowToggle] = useState<boolean>(true)
   const [repayToggle, setRepayToggle] = useState<boolean>(false)
@@ -75,6 +75,12 @@ export default function Borrowing() {
         address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
         abi: ammABI.abi,
         functionName: 'supply'
+      },
+      {
+        address: '0x29b9439E09d1D581892686D9e00E3481DCDD5f78',
+        abi: testhoneyABI.abi,
+        functionName: 'allowance',
+        args: [account.address, '0x1b408d277D9f168A8893b1728d3B6cb75929a67d']
       }
     ],
     onSettled(data: any) {
@@ -98,25 +104,63 @@ export default function Borrowing() {
         if(data[3]) {
           setLockedBalance(parseInt(data[3]._hex, 16) / Math.pow(10, 18))
         }
+        if(data[6]) {
+          setHoneyAllowance(parseInt(data[6]._hex, 16) / Math.pow(10, 18))
+        }
       }
     }
   })
 
-  // async function checkHoneyAllowance() {
-  //   const provider = new ethers.providers.JsonRpcProvider(quickNodeFuji.rpcUrls[0])
-  //   const testhoneyContractObject = new ethers.Contract(testhoneyAddy, testhoneyABI.abi, provider)
-  //   const allowanceReq = await testhoneyContractObject.allowance(currentAccount, borrowAddy)
-  //   setHoneyAllowance(parseInt(allowanceReq._hex, 16) / Math.pow(10, 18))
-  //   return parseInt(allowanceReq._hex, 16) / Math.pow(10, 18)
-  // }
+  const { config: honeyApproveConfig } = usePrepareContractWrite({
+    address: '0x29b9439E09d1D581892686D9e00E3481DCDD5f78',
+    abi: testhoneyABI.abi,
+    functionName: 'approve',
+    args: ['0x1b408d277D9f168A8893b1728d3B6cb75929a67d', maxApproval],
+    enabled: true,
+    onSettled() {
+      console.log('just settled honeyApprove')
+    }
+  })
+  const { data: honeyApproveData, write: honeyApproveInteraction } = useContractWrite(honeyApproveConfig)
+  const { isLoading: honeyApproveIsLoading, isSuccess: honeyApproveIsSuccess } = useWaitForTransaction({
+    hash: honeyApproveData?.hash
+  })
 
-  // async function approveHoneyInteraction() {
-  //   const provider = new ethers.providers.Web3Provider(ethereum)
-  //   const signer = provider.getSigner()
-  //   const honeyContractObject = new ethers.Contract(testhoneyAddy, testhoneyABI.abi, signer)
-  //   const approveTx = await honeyContractObject.approve(borrowAddy, ethers.utils.parseUnits(input.toString(), 18))
-  //   approveTx.wait()
-  // }
+  const { config: borrowConfig } = usePrepareContractWrite({
+    address: '0x1b408d277D9f168A8893b1728d3B6cb75929a67d',
+    abi: borrowABI.abi,
+    functionName: 'borrow',
+    args: [BigNumber.from(ethers.utils.parseUnits(debouncedBorrow.toString(), 18))],
+    enabled: Boolean(debouncedBorrow),
+    onSettled() {
+      console.log('just settled borrow')
+    }
+  })
+  const { data: borrowData, write: borrowInteraction } = useContractWrite(borrowConfig)
+  const { isLoading: borrowIsLoading, isSuccess: borrowIsSuccess } = useWaitForTransaction({
+    hash: borrowData?.hash
+  })
+
+  const { config: repayConfig } = usePrepareContractWrite({
+    address: '0x1b408d277D9f168A8893b1728d3B6cb75929a67d',
+    abi: borrowABI.abi,
+    functionName: 'repay',
+    args: [BigNumber.from(ethers.utils.parseUnits(debouncedRepay.toString(), 18))],
+    enabled: Boolean(debouncedRepay),
+    onSettled() {
+      console.log('just settled repay')
+    }
+  })
+  const { data: repayData, write: repayInteraction } = useContractWrite(repayConfig)
+  const { isLoading: repayIsLoading, isSuccess: repayIsSuccess } = useWaitForTransaction({
+    hash: repayData?.hash
+  })
+
+  function test() {
+    console.log('floorPrice: ', floorPrice)
+    console.log('staked: ', stakedBalance)
+    console.log('borrowed: ', borrowedBalance)
+  }
 
   function handlePill(action: number) {
     setDisplayString('')
@@ -135,7 +179,7 @@ export default function Borrowing() {
   function handleTopChange(input: string) {
     setDisplayString(input)
     if(borrowToggle) {
-      if(!input) {
+        if(!input) {
         setBorrow(0)
       }
       else {
@@ -154,46 +198,60 @@ export default function Borrowing() {
 
   function handleTopInput() {
     if(borrowToggle) {
-      return parseFloat(displayString)
+      return parseFloat(displayString) > floorPrice * stakedBalance  ? '' : displayString
     }
     if(repayToggle) {
-      return parseFloat(displayString)
+      return parseFloat(displayString) > borrowedBalance ? '' : displayString
     }
   }
 
   async function handleButtonClick() {
-    // if(!currentAccount) {
-    //   connectWallet()
-    // }
-    // else if(!avaxChain) {
-    //   switchToFuji()
-    // }
-    // else {
-    //   if(borrowToggle) {
-    //     borrowFunctionInteraction()
-    //   }
-    //   if(repayToggle) {
-    //     if(honeyAllowance >= input) {
-    //       repayFunctionInteraction()
-    //     }
-    //     else {
-    //       const honeyAllowanceReq = await checkHoneyAllowance()
-    //       if(honeyAllowanceReq >= input) {
-    //         return
-    //       }
-    //       else {
-    //         approveHoneyInteraction()
-    //       }
-    //     }
-    //   }
-    // }
+    const button = document.getElementById('amm-button')
+    if(!account.isConnected) {
+      if(button) {
+        button.innerHTML = "connect wallet"
+      }
+    }
+    else if(chain?.chain?.id !== 43113) {
+      if(button) {
+        button.innerHTML = "switch to fuji plz"
+      }
+    }
+    else {
+      if(borrowToggle) {
+        if(button) {
+          button.innerHTML = "borrow"
+        }
+        borrowInteraction?.()
+      }
+      if(repayToggle) {
+        if(repay > honeyAllowance) {
+          if(button) {
+            button.innerHTML = "approve"
+          }
+          honeyApproveInteraction?.()
+        }
+        else {
+          repayInteraction?.()
+        }
+      }
+    }
   }
 
   function renderButton() {
     if(borrowToggle) {
+      if(borrowIsLoading) {
+        return 'borrowing...'
+      }
       return 'borrow'
     }
     if(repayToggle) {
+      if(honeyApproveIsLoading) {
+        return 'approving...'
+      }
+      if(repayIsLoading) {
+        return 'repaying...'
+      }
       return 'repay'
     }
   }
@@ -210,7 +268,7 @@ export default function Borrowing() {
   return (
     <div className="flex flex-row py-3">
       <animated.div className="w-[57%] flex flex-col pt-8 pb-2 px-24 rounded-xl bg-slate-300 ml-24 mt-12 h-[700px] border-2 border-black" style={springs}>
-        <h1 className="text-[50px] font-acme text-[#ffff00]" id="text-outline">borrowing</h1>
+        <h1 className="text-[50px] font-acme text-[#ffff00]" id="text-outline" onClick={() => test()}>borrowing</h1>
         <div className="flex flex-row ml-2 items-center justify-between">
           <h3 className="font-acme text-[24px] ml-2">lock staked $locks and borrow $honey</h3>
           <div className="flex flex-row bg-white rounded-2xl border-2 border-black">
