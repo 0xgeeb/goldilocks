@@ -8,7 +8,6 @@ import locksABI from "./abi/Locks.json"
 import testhoneyABI from "./abi/TestHoney.json"
 import ammABI from "./abi/AMM.json"
 import { useAccount, useContractReads, useNetwork, usePrepareContractWrite, useContractWrite, useWaitForTransaction } from "wagmi"
-import test from "node:test"
 
 export default function Staking() {
 
@@ -228,6 +227,9 @@ export default function Staking() {
 
   function handlePill(action: number) {
     setDisplayString('')
+    setStake(0)
+    setUnstake(0)
+    setRealize(0)
     if(action === 1) {
       setStakeToggle(true)
       setUnstakeToggle(false)

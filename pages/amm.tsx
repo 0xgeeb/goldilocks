@@ -4,7 +4,6 @@ import { useSpring, animated } from "@react-spring/web"
 import useDebounce from "./hooks/useDebounce"
 import Bear from "./components/Bear"
 import ammABI from "./abi/AMM.json"
-import locksABI from "./abi/Locks.json"
 import testhoneyABI from "./abi/TestHoney.json"
 import { useAccount, useContractReads, useNetwork, usePrepareContractWrite, useContractWrite, useWaitForTransaction } from "wagmi"
 
