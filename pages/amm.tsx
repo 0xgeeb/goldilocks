@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react"
 import { ethers, BigNumber } from "ethers"
 import { useSpring, animated } from "@react-spring/web"
+import Image from "next/image"
 import useDebounce from "../hooks/useDebounce"
 import Bear from "./components/Bear"
 import ammABI from "./abi/AMM.json"
+import locksABI from "./abi/Locks.json"
 import testhoneyABI from "./abi/TestHoney.json"
 import { useAccount, useContractReads, useNetwork, usePrepareContractWrite, useContractWrite, useWaitForTransaction } from "wagmi"
 
@@ -30,6 +32,8 @@ export default function Amm() {
   const debouncedRedeem = useDebounce(redeem, 1000)
 
   const [allowance, setAllowance] = useState<number>(0)
+  const [locksBalance, setLocksBalance] =useState<number>(0)
+  const [honeyBalance, setHoneyBalance] = useState<number>(0)
   
   const [buyToggle, setBuyToggle] = useState<boolean>(true)
   const [sellToggle, setSellToggle] = useState<boolean>(false)
@@ -88,6 +92,18 @@ export default function Amm() {
         abi: testhoneyABI.abi,
         functionName: 'allowance',
         args: [account.address, '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F']
+      },
+      {
+        address: '0x461B8AdEDe13Aa786b3f14b05496B93c5148Ad51',
+        abi: locksABI.abi,
+        functionName: 'balanceOf',
+        args: [account.address]
+      },
+      {
+        address: '0x29b9439E09d1D581892686D9e00E3481DCDD5f78',
+        abi: testhoneyABI.abi,
+        functionName: 'balanceOf',
+        args: [account.address]
       }
     ],
     onSettled(data: any) {
@@ -117,6 +133,12 @@ export default function Amm() {
         setLastFloorRaise(date.toDateString())
         if(data[5]) {
           setAllowance(data[5].toBigInt().toString() / Math.pow(10, 18))
+        }
+        if(data[6]) {
+          setLocksBalance(data[6].toBigInt().toString() / Math.pow(10, 18))
+        }
+        if(data[7]) {
+          setHoneyBalance(data[7].toBigInt().toString() / Math.pow(10, 18))
         }
       }
     }
@@ -188,8 +210,8 @@ export default function Amm() {
   })
 
   function test() {
-    console.log('sell: ', sell)
-    console.log('receive: ', receive)
+    console.log(locksBalance)
+    console.log(honeyBalance)
   }
 
   useEffect(() => {
@@ -229,28 +251,6 @@ export default function Amm() {
       setRedeemReceive(0)
     }
   }, [redeem])
-
-  function handlePill(action: number) {
-    setDisplayString('')
-    setBuy(0)
-    setSell(0)
-    setRedeem(0)
-    if(action === 1) {
-      setBuyToggle(true)
-      setSellToggle(false)
-      setRedeemToggle(false)
-    }
-    if(action === 2) {
-      setBuyToggle(false)
-      setSellToggle(true)
-      setRedeemToggle(false)
-    }
-    if(action === 3) {
-      setBuyToggle(false)
-      setSellToggle(false)
-      setRedeemToggle(true)
-    }
-  }
   
   function simulateBuy() {
     let _leftover = buy
@@ -360,6 +360,28 @@ export default function Amm() {
     return floorPrice(_fsl, _supply) + ((_psl / _supply) * ((_psl + _fsl) / _fsl)**5)
   }
 
+  function handlePill(action: number) {
+    setDisplayString('')
+    setBuy(0)
+    setSell(0)
+    setRedeem(0)
+    if(action === 1) {
+      setBuyToggle(true)
+      setSellToggle(false)
+      setRedeemToggle(false)
+    }
+    if(action === 2) {
+      setBuyToggle(false)
+      setSellToggle(true)
+      setRedeemToggle(false)
+    }
+    if(action === 3) {
+      setBuyToggle(false)
+      setSellToggle(false)
+      setRedeemToggle(true)
+    }
+  }
+  
   function handleTopLabel() {
     if(buyToggle) {
       return 'buy'
@@ -369,6 +391,18 @@ export default function Amm() {
     }
     if(redeemToggle) {
       return 'redeem'
+    }
+  }
+
+  function handleTopLabelToken() {
+    if(buyToggle) {
+      return <><Image className="" width="35" height="35" src="/locks_logo.png" alt="lost"/><span className="font-acme text-[25px] ml-4">$locks</span></>
+    }
+    if(sellToggle) {
+      return <><Image className="" width="35" height="35" src="/locks_logo.png" alt="lost"/><span className="font-acme text-[25px] ml-4">$locks</span></>
+    }
+    if(redeemToggle) {
+      return <><Image className="" width="35" height="35" src="/locks_logo.png" alt="lost"/><span className="font-acme text-[25px] ml-4">$locks</span></>
     }
   }
   
@@ -381,6 +415,18 @@ export default function Amm() {
     }
     if(redeemToggle) {
       return 'receive'
+    }
+  }
+
+  function handleBottomLabelToken() {
+    if(buyToggle) {
+      return <><Image className="" width="35" height="35" src="/honey_logo.png" alt="lost"/><span className="font-acme text-[25px] ml-4">$honey</span></>
+    }
+    if(sellToggle) {
+      return <><Image className="" width="35" height="35" src="/honey_logo.png" alt="lost"/><span className="font-acme text-[25px] ml-4">$honey</span></>
+    }
+    if(redeemToggle) {
+      return <><Image className="" width="35" height="35" src="/honey_logo.png" alt="lost"/><span className="font-acme text-[25px] ml-4">$honey</span></>
     }
   }
   
@@ -449,6 +495,65 @@ export default function Amm() {
       }
     }
   }
+
+  function handlePercentageButtons(action: number) {
+    if(action == 1) {
+      if(buyToggle) {
+        setDisplayString((locksBalance / 4).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setBuy(locksBalance / 4)
+      }
+      if(sellToggle) {
+        setDisplayString((honeyBalance / 4).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setSell(honeyBalance / 4)        
+      }
+      if(redeemToggle) {
+        setDisplayString((locksBalance / 4).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setBuy(locksBalance / 4)
+      }
+    }
+    if(action == 2) {
+      if(buyToggle) {
+        setDisplayString((locksBalance / 2).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setBuy(locksBalance / 2)
+      }
+      if(sellToggle) {
+        setDisplayString((locksBalance / 2).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setSell(locksBalance / 2)
+      }
+      if(redeemToggle) {
+        setDisplayString((locksBalance / 2).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setBuy(locksBalance / 2)
+      }
+    }
+    if(action == 3) {
+      if(buyToggle) {
+        setDisplayString((locksBalance * 0.75).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setBuy(locksBalance * 0.75)
+      }
+      if(sellToggle) {
+        setDisplayString((locksBalance * 0.75).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setSell(locksBalance * 0.75)
+      }
+      if(redeemToggle) {
+        setDisplayString((locksBalance * 0.75).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setBuy(locksBalance * 0.75)
+      }
+    }
+    if(action == 4) {
+      if(buyToggle) {
+        setDisplayString((locksBalance).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setBuy(locksBalance)
+      }
+      if(sellToggle) {
+        setDisplayString((locksBalance).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setSell(locksBalance)
+      }
+      if(redeemToggle) {
+        setDisplayString((locksBalance).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setBuy(locksBalance)
+      }
+    }
+  }
   
   function handleTopChange(input: string) {
     setDisplayString(input)
@@ -493,7 +598,7 @@ export default function Amm() {
   function handleBottomInput() {
     if(buyToggle) {
       if(!cost) {
-        return 0
+        return "0.0"
       }
       else {
         return cost.toLocaleString('en-US', { maximumFractionDigits: 2 })
@@ -501,7 +606,7 @@ export default function Amm() {
     }
     if(sellToggle) {
       if(!receive) {
-        return 0
+        return "0.0"
       }
       else {
         return receive.toLocaleString('en-US', { maximumFractionDigits: 2 })
@@ -509,11 +614,35 @@ export default function Amm() {
     }
     if(redeemToggle) {
       if(!redeemReceive) {
-        return 0
+        return "0.0"
       }
       else {
         return redeemReceive.toLocaleString('en-US', { maximumFractionDigits: 2 })
       }
+    }
+  }
+
+  function handleTopBalance() {
+    if(buyToggle) {
+      return locksBalance > 0 ? locksBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.0"
+    }
+    if(sellToggle) {
+      return locksBalance > 0 ? locksBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.0"
+    }
+    if(redeemToggle) {
+      return locksBalance > 0 ? locksBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.0"
+    }
+  }
+
+  function handleBottomBalance() {
+    if(buyToggle) {
+      return honeyBalance > 0 ? honeyBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.0"
+    }
+    if(sellToggle) {
+      return honeyBalance > 0 ? honeyBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.0"
+    }
+    if(redeemToggle) {
+      return honeyBalance > 0 ? honeyBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.0"
     }
   }
   
@@ -532,31 +661,43 @@ export default function Amm() {
         <div className="h-[75%] relative mt-4 flex flex-col">
           <div className="h-[67%] px-6">
             <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
-              <div className="h-[50%]">
-                <h1 className="font-acme text-[30px] px-6 my-2">{handleTopLabel()}</h1>
+              <div className="h-[50%] flex flex-row items-center justify-between">
+                <div className="flex flex-row mt-3">
+                  <h1 className="font-acme text-[30px] pl-10 pr-5 mt-2">{handleTopLabel()}</h1>
+                  <div className="rounded-[50px] p-2 flex flex-row bg-slate-100 border-2 border-black items-center">{handleTopLabelToken()}</div>
+                </div>
+                <div className="flex flex-row items-center mr-10">
+                  <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(1)}>25%</button>
+                  <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(2)}>50%</button>
+                  <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(3)}>75%</button>
+                  <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(4)}>MAX</button>
+                </div>
               </div>
-              <div className="h-[50%] pl-10">
-                <input className="border-none focus:outline-none font-acme rounded-xl text-[40px]" placeholder="0" value={handleTopInput()} onChange={(e) => handleTopChange(e.target.value)} type="number" id="number-input" autoFocus />
+              <div className="h-[50%] pl-10 flex flex-row items-center justify-between">
+                <input className="border-none focus:outline-none bg-transparent font-acme rounded-xl text-[40px]" placeholder="0.0" value={handleTopInput()} onChange={(e) => handleTopChange(e.target.value)} type="number" id="number-input" autoFocus />
+                <h1 className="mr-10 mt-4 text-[23px] font-acme text-[#878d97]">balance: {handleTopBalance()}</h1>
               </div>
             </div>
             <div className="absolute top-[31%] left-[50%] h-10 w-10 bg-[#ffff00] border-2 border-black rounded-3xl flex justify-center items-center" onClick={() => test()}>
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0D111C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
             </div>
             <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
-              <div className="h-[50%]">
-                <h1 className="font-acme text-[30px] px-6 my-2">{handleBottomLabel()}</h1>
+              <div className="h-[50%] flex flex-row items-center">
+                <h1 className="font-acme text-[30px] ml-10 pr-5 mt-3">{handleBottomLabel()}</h1>
+                <div className="rounded-[50px] mt-3 p-2 flex flex-row bg-slate-100 border-2 border-black items-center">{handleBottomLabelToken()}</div>
               </div>
-              <div className="h-[50%] pl-10">
-                <h1 className="font-acme text-[40px]">{handleBottomInput()}</h1>
+              <div className="h-[50%] pl-10 flex flex-row items-center justify-between">
+                <h1 className={`${buyToggle && !cost || sellToggle && !receive || redeemToggle && !redeemReceive ? "text-[#9ca3af]" : ""} font-acme text-[40px]`}>{handleBottomInput()}</h1>
+                <h1 className="mr-10 mt-4 text-[23px] font-acme text-[#878d97]">balance: {handleBottomBalance()}</h1>
               </div>
             </div>
           </div>
           <div className="h-[33%] w-[100%] flex justify-center items-center">
-            <button className="h-[50%] w-[50%] bg-white rounded-xl py-3 px-6 border-2 border-black font-acme text-[30px]" id="amm-button" onClick={() => handleButtonClick()} >{renderButton()}</button>
+            <button className="h-[50%] w-[50%] bg-white rounded-xl mt-5 py-3 px-6 border-2 border-black font-acme text-[30px]" id="amm-button" onClick={() => handleButtonClick()} >{renderButton()}</button>
           </div>
         </div>
         <div className="flex flex-row justify-between">
-          <div className="flex flex-row w-[55%] px-3 ml-3 justify-between rounded-xl border-2 border-black mt-2  bg-white">
+          <div className="flex flex-row w-[55%] px-3 ml-3 justify-between rounded-xl border-2 border-black mt-2 bg-white">
             <div className="flex flex-col items-start justify-between">
               <h1 className="font-acme text-[24px]">$LOCKS floor price:</h1>
               <p className="font-acme text-[24px]">current fsl:</p>

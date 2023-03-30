@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react"
 import { useSpring, config, animated } from "@react-spring/web"
-import Image from "next/image"
 
 export default function Bear() {
 
