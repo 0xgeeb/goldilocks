@@ -499,8 +499,8 @@ export default function Amm() {
   function handlePercentageButtons(action: number) {
     if(action == 1) {
       if(buyToggle) {
-        setDisplayString((locksBalance / 4).toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setBuy(locksBalance / 4)
+        setDisplayString((honeyBalance / 4).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setBuy(honeyBalance / 4)
       }
       if(sellToggle) {
         setDisplayString((honeyBalance / 4).toLocaleString('en-US', { maximumFractionDigits: 4 }))
@@ -508,13 +508,13 @@ export default function Amm() {
       }
       if(redeemToggle) {
         setDisplayString((locksBalance / 4).toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setBuy(locksBalance / 4)
+        setRedeem(locksBalance / 4)
       }
     }
     if(action == 2) {
       if(buyToggle) {
-        setDisplayString((locksBalance / 2).toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setBuy(locksBalance / 2)
+        setDisplayString((honeyBalance / 2).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setBuy(honeyBalance / 2)
       }
       if(sellToggle) {
         setDisplayString((locksBalance / 2).toLocaleString('en-US', { maximumFractionDigits: 4 }))
@@ -522,13 +522,13 @@ export default function Amm() {
       }
       if(redeemToggle) {
         setDisplayString((locksBalance / 2).toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setBuy(locksBalance / 2)
+        setRedeem(locksBalance / 2)
       }
     }
     if(action == 3) {
       if(buyToggle) {
-        setDisplayString((locksBalance * 0.75).toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setBuy(locksBalance * 0.75)
+        setDisplayString((honeyBalance * 0.75).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setBuy(honeyBalance * 0.75)
       }
       if(sellToggle) {
         setDisplayString((locksBalance * 0.75).toLocaleString('en-US', { maximumFractionDigits: 4 }))
@@ -536,13 +536,13 @@ export default function Amm() {
       }
       if(redeemToggle) {
         setDisplayString((locksBalance * 0.75).toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setBuy(locksBalance * 0.75)
+        setRedeem(locksBalance * 0.75)
       }
     }
     if(action == 4) {
       if(buyToggle) {
-        setDisplayString((locksBalance).toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setBuy(locksBalance)
+        setDisplayString((honeyBalance).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setBuy(honeyBalance > 999 ? 999 : honeyBalance)
       }
       if(sellToggle) {
         setDisplayString((locksBalance).toLocaleString('en-US', { maximumFractionDigits: 4 }))
@@ -550,7 +550,7 @@ export default function Amm() {
       }
       if(redeemToggle) {
         setDisplayString((locksBalance).toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setBuy(locksBalance)
+        setRedeem(locksBalance)
       }
     }
   }
