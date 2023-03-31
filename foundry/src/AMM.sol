@@ -1,10 +1,13 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
+import { FixedPointMathLib } from "../lib/solady/src/utils/FixedPointMathLib.sol";
 import { IERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import { ILocks } from "./interfaces/ILocks.sol";
 
 contract AMM {
+
+  using FixedPointMathLib for uint256;
 
   IERC20 honey;
   ILocks ilocks;
@@ -40,7 +43,30 @@ contract AMM {
   }
 
   function floorPrice() external view returns (uint256) {
+    return _floorPrice(fsl, supply);
+  }
+
+  uint256 internal constant WAD = 1e18;
+
+  function newFloorPrice(uint256 _fsl, uint256 _supply) external view returns (uint256 z) {
+    assembly {
+      // Equivalent to `require(y != 0 && (WAD == 0 || x <= type(uint256).max / WAD))`.
+      if iszero(mul(_supply, iszero(mul(WAD, gt(_fsl, div(not(0), WAD)))))) {
+        // Store the function selector of `DivWadFailed()`.
+        mstore(0x00, 0x7c5f487d)
+        // Revert with (offset, size).
+        revert(0x1c, 0x04)
+      }
+      z := div(mul(_fsl, WAD), _supply)
+    }
+  }
+
+  function oldFloorPrice() external view returns (uint256) {
     return (fsl*(1e18)) / supply;
+  }
+
+  function marketPrice() external view returns (uint256) {
+    return _marketPrice(fsl, psl, supply);
   }
 
   function initialize(uint256 _fsl, uint256 _psl) external onlyLocks {
@@ -145,16 +171,22 @@ contract AMM {
     emit Redeem(msg.sender, _amount);
   }
 
-  function _floorPrice(uint256 _fsl, uint256 _supply) public pure returns (uint256) {
-    return (_fsl*(1e18)) / _supply;
+  function _floorPrice(uint256 _fsl, uint256 _supply) internal pure returns (uint256) {
+    return FixedPointMathLib.divWad(_fsl, _supply);
   }
 
-  function _marketPrice(uint256 _fsl, uint256 _psl, uint256 _supply) public pure returns (uint256) {
+  function _marketPrice(uint256 _fsl, uint256 _psl, uint256 _supply) internal pure returns (uint256) {
    uint256 factor1 = _psl * 1e10 / _supply;
    uint256 factor2 = ((_psl + _fsl) * 1e5) / _fsl;
    uint256 exponential = factor2**5;
    uint256 _floorPriceVariable = _fsl * 1e18 /_supply;
    return _floorPriceVariable + ((factor1 * exponential) / (1e17));
+  }
+
+  function soladyMarketPrice() external pure returns (int256) {
+    int256 num1 = 9e18;
+    int256 num2 = 24e18;
+    return FixedPointMathLib.powWad(num1, num2);
   }
  
   function _floorRaise() private {
