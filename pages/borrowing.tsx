@@ -288,26 +288,30 @@ export default function Borrowing() {
               <button className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[30px]" id="amm-button" onClick={() => handleButtonClick()} >{renderButton()}</button>
             </div>
           </div>
-          <div className="w-[35%] h-[70%] bg-white border-2 border-black rounded-xl flex flex-col px-6 py-10">
+          <div className="w-[35%] h-[70%] bg-white border-2 border-black rounded-xl flex flex-col px-6 py-3">
             <div className="flex flex-row justify-between items-center">
+              <h1 className="font-acme text-[24px]">borrow limit:</h1>
+              <p className="font-acme text-[20px]">${stakedBalance ? (stakedBalance * floorPrice).toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
+            </div>
+            <div className="flex flex-row justify-between items-center mt-6">
               <h1 className="font-acme text-[24px]">$LOCKS floor price:</h1>
-              <p className="font-acme text-[20px]">{floorPrice > 0 ? `$${floorPrice.toFixed(2)}` : 0}</p>
+              <p className="font-acme text-[20px]">{floorPrice > 0 ? `$${floorPrice.toLocaleString('en-US', { maximumFractionDigits: 2 })}` : 0}</p>
             </div>
             <div className="flex flex-row justify-between items-center mt-6">
               <h1 className="font-acme text-[24px]">$LOCKS balance:</h1>
-              <p className="font-acme text-[20px]">{locksBalance > 0 ? locksBalance.toFixed(2) : 0}</p>
+              <p className="font-acme text-[20px]">{locksBalance > 0 ? locksBalance.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
             </div>
             <div className="flex flex-row justify-between items-center mt-6">
               <h1 className="font-acme text-[24px]">staked $LOCKS:</h1>
-              <p className="font-acme text-[20px]">{stakedBalance ? stakedBalance.toFixed(2) : 0}</p>
+              <p className="font-acme text-[20px]">{stakedBalance ? stakedBalance.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
             </div>
             <div className="flex flex-row justify-between items-center mt-6">
               <h1 className="font-acme text-[24px]">locked $LOCKS:</h1>
-              <p className="font-acme text-[20px]">{lockedBalance > 0 ? lockedBalance.toFixed(2) : 0}</p>
+              <p className="font-acme text-[20px]">{lockedBalance > 0 ? lockedBalance.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
             </div>
             <div className="flex flex-row justify-between items-center mt-6">
               <h1 className="font-acme text-[24px]">borrowed $HONEY:</h1>
-              <p className="font-acme text-[20px]">{borrowedBalance > 0 ? borrowedBalance.toFixed(2) : 0}</p>
+              <p className="font-acme text-[20px]">{borrowedBalance > 0 ? borrowedBalance.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
             </div>
           </div>
         </div>
