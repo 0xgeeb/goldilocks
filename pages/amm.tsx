@@ -19,6 +19,8 @@ export default function Amm() {
   const [newPsl, setNewPsl] = useState<number>(0)
   const [floor, setFloor] = useState<number>(0)
   const [newFloor, setNewFloor] = useState<number>(0)
+  const [market, setMarket] = useState<number>(0)
+  const [newMarket, setNewMarket] = useState<number>(0)
   const [supply, setSupply] = useState<number>(0)
   const [newSupply, setNewSupply] = useState<number>(0)
   const [targetRatio, setTargetRatio] = useState<number>(0)
@@ -128,9 +130,10 @@ export default function Amm() {
         setNewSupply(parseFloat(`${supplyBeforeDecimalFloat}.${supplyString.slice(supplyString.length - 18, supplyString.length - 16)}`))
         setFloor(parseFloat(`${fslBeforeDecimalFloat}.${fslString.slice(fslString.length - 18, fslString.length - 16)}`) / parseFloat(`${supplyBeforeDecimalFloat}.${supplyString.slice(supplyString.length - 18, supplyString.length - 16)}`))
         setNewFloor(parseFloat(`${fslBeforeDecimalFloat}.${fslString.slice(fslString.length - 18, fslString.length - 16)}`) / parseFloat(`${supplyBeforeDecimalFloat}.${supplyString.slice(supplyString.length - 18, supplyString.length - 16)}`))
+        setMarket(marketPrice(parseFloat(`${fslBeforeDecimalFloat}.${fslString.slice(fslString.length - 18, fslString.length - 16)}`), parseFloat(`${pslBeforeDecimalFloat}.${pslString.slice(pslString.length - 18, pslString.length - 16)}`), parseFloat(`${supplyBeforeDecimalFloat}.${supplyString.slice(supplyString.length - 18, supplyString.length - 16)}`)))
+        setNewMarket(marketPrice(parseFloat(`${fslBeforeDecimalFloat}.${fslString.slice(fslString.length - 18, fslString.length - 16)}`), parseFloat(`${pslBeforeDecimalFloat}.${pslString.slice(pslString.length - 18, pslString.length - 16)}`), parseFloat(`${supplyBeforeDecimalFloat}.${supplyString.slice(supplyString.length - 18, supplyString.length - 16)}`)))
         setTargetRatio(data[3].toBigInt().toString() / Math.pow(10, 18))
-        const date = new Date(parseInt(data[4].toBigInt().toString()) * 1000)
-        setLastFloorRaise(date.toDateString())
+        setLastFloorRaise(formatDate(parseInt(data[4].toBigInt().toString()) * 1000))
         if(data[5]) {
           setAllowance(data[5].toBigInt().toString() / Math.pow(10, 18))
         }
@@ -164,7 +167,7 @@ export default function Amm() {
     abi: ammABI.abi,
     functionName: 'buy',
     args: [BigNumber.from(ethers.utils.parseUnits(debouncedBuy.toString(), 18)), BigNumber.from(ethers.utils.parseUnits(debouncedCost.toString(), 18))],
-    enabled: Boolean(debouncedBuy),
+    enabled: Boolean(debouncedCost),
     onSettled() {
       console.log('just settled buy')
       console.log('debouncedBuy: ', debouncedBuy)
@@ -290,11 +293,12 @@ export default function Amm() {
     }
     _tax = _purchasePrice * 0.003
     setNewFloor(floorPrice(_fsl + _tax, _supply))
+    setNewMarket(marketPrice(_fsl + _tax, _psl, _supply))
     setNewFsl(_fsl + _tax)
     setNewPsl(_psl)
     setNewSupply(_supply)
     setCost(_purchasePrice + _tax)
-    simulateFloorRaise()
+    simulateFloorRaise(_fsl + _tax, _psl, _supply)
   }
   
   function simulateSell() {
@@ -324,7 +328,8 @@ export default function Amm() {
       _supply -= _leftover
     }
     _tax = _salePrice * 0.053
-    setNewFloor(floorPrice(_fsl, _supply))
+    setNewFloor(floorPrice(_fsl + _tax, _supply))
+    setNewMarket(marketPrice(_fsl + _tax, _psl, _supply))
     setNewFsl(_fsl + _tax)
     setNewPsl(_psl)
     setNewSupply(_supply)
@@ -336,17 +341,20 @@ export default function Amm() {
     setRedeemReceive(rawTotal)
     setNewFsl(fsl - rawTotal)
     setNewSupply(supply - redeem)
-    setNewFloor(floorPrice(newFsl, supply))
-    simulateFloorRaise()
+    setNewFloor(floorPrice(fsl - rawTotal, supply - redeem))
+    setNewMarket(marketPrice(fsl - rawTotal, psl, supply - redeem))
+    simulateFloorRaise(fsl - rawTotal, psl, supply - redeem)
   }
 
-  function simulateFloorRaise() {
-    if(psl / fsl >= targetRatio) {
-      let raiseAmount: number = (psl / fsl) * (psl / 32)
+  function simulateFloorRaise(_fsl: number, _psl: number, _supply: number) {
+    if(_psl / _fsl >= targetRatio) {
+      let raiseAmount: number = (_psl / _fsl) * (_psl / 32)
       setNewFsl((prev) => {
+        setNewFloor(floorPrice(prev + raiseAmount, _supply))
         return prev + raiseAmount
       })
       setNewPsl((prev) => {
+        setNewMarket(marketPrice(prev + raiseAmount, prev - raiseAmount, _supply))
         return prev - raiseAmount
       })
     }
@@ -379,6 +387,32 @@ export default function Amm() {
       setBuyToggle(false)
       setSellToggle(false)
       setRedeemToggle(true)
+    }
+  }
+
+  function formatDate(timestamp: number ) {
+    const ONE_MINUTE = 60
+    const ONE_HOUR = 60 * ONE_MINUTE
+    const ONE_DAY = 24 * ONE_HOUR
+    const ONE_WEEK = 7 * ONE_DAY
+
+    const now = Date.now()
+    const secondsAgo = (now - timestamp) / 1000
+
+    if (secondsAgo < ONE_MINUTE) {
+      return 'just now';
+    } else if (secondsAgo < ONE_HOUR) {
+      const minutesAgo = Math.floor(secondsAgo / ONE_MINUTE);
+      return `${minutesAgo} minute${minutesAgo > 1 ? 's' : ''} ago`;
+    } else if (secondsAgo < ONE_DAY) {
+      const hoursAgo = Math.floor(secondsAgo / ONE_HOUR);
+      return `${hoursAgo} hour${hoursAgo > 1 ? 's' : ''} ago`;
+    } else if (secondsAgo < ONE_WEEK) {
+      const daysAgo = Math.floor(secondsAgo / ONE_DAY);
+      return `${daysAgo} day${daysAgo > 1 ? 's' : ''} ago`;
+    } else {
+      const weeksAgo = Math.floor(secondsAgo / ONE_WEEK);
+      return `${weeksAgo} week${weeksAgo > 1 ? 's' : ''} ago`;
     }
   }
   
@@ -503,8 +537,8 @@ export default function Amm() {
         setBuy(honeyBalance / 4)
       }
       if(sellToggle) {
-        setDisplayString((honeyBalance / 4).toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setSell(honeyBalance / 4)        
+        setDisplayString((locksBalance / 4).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setSell(locksBalance / 4)        
       }
       if(redeemToggle) {
         setDisplayString((locksBalance / 4).toLocaleString('en-US', { maximumFractionDigits: 4 }))
@@ -585,13 +619,13 @@ export default function Amm() {
   
   function handleTopInput() {
     if(buyToggle) {
-      return parseFloat(displayString) > 999 ? '' : displayString
+      return parseFloat(displayString) >= 999 ? '' : displayString
     }
     if(sellToggle) {
-      return parseFloat(displayString) > supply ? '' : displayString
+      return parseFloat(displayString) >= supply ? '' : displayString
     }
     if(redeemToggle) {
-      return parseFloat(displayString) > supply ? '' : displayString
+      return parseFloat(displayString) >= supply ? '' : displayString
     }
   }
 
@@ -648,7 +682,7 @@ export default function Amm() {
   
   return (
     <div className="flex flex-row py-3 overflow-hidden">
-      <animated.div className="w-[57%] flex flex-col pt-8 pb-2 px-24 rounded-xl bg-slate-300 ml-24 mt-12 h-[700px] border-2 border-black" style={springs}>
+      <animated.div className="w-[57%] flex flex-col pt-8 pb-2 px-24 rounded-xl bg-slate-300 ml-24 mt-12 h-[95%] border-2 border-black" style={springs}>
         <h1 className="text-[50px] font-acme text-[#ffff00]" id="text-outline">goldilocks AMM</h1>
         <div className="flex flex-row ml-2 items-center justify-between">
           <h3 className="font-acme text-[24px] ml-2">trading between $honey & $locks</h3>
@@ -700,16 +734,19 @@ export default function Amm() {
           <div className="flex flex-row w-[55%] px-3 ml-3 justify-between rounded-xl border-2 border-black mt-2 bg-white">
             <div className="flex flex-col items-start justify-between">
               <h1 className="font-acme text-[24px]">$LOCKS floor price:</h1>
+              <h1 className="font-acme text-[24px]">$LOCKS market price:</h1>
               <p className="font-acme text-[24px]">current fsl:</p>
               <p className="font-acme text-[24px]">current psl:</p>
             </div>
             <div className="flex flex-col items-end justify-between">
               <p className="font-acme text-[20px]">${ floor > 0 ? floor.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
+              <p className="font-acme text-[20px]">${ market > 0 ? market.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
               <p className="font-acme text-[20px]">{ fsl > 0 ? fsl.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-" }</p>
               <p className="font-acme text-[20px]">{ psl > 0 ? psl.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-" }</p>
             </div>
             <div className="flex flex-col items-end justify-between">
               <p className={`${floor > newFloor ? "text-red-600" : floor == newFloor ? "" : "text-green-600"} font-acme text-[20px]`}>${ buy > 0 || sell > 0 || redeem > 0 ? newFloor.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
+              <p className={`${market > newMarket ? "text-red-600" : market == newMarket ? "" : "text-green-600"} font-acme text-[20px]`}>${ buy > 0 || sell > 0 || redeem > 0 ? newMarket.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
               <p className={`${fsl > newFsl ? "text-red-600" : fsl == newFsl ? "" : "text-green-600"} font-acme text-[20px]`}>{ fsl == newFsl ? "-" : newFsl.toLocaleString('en-US', { maximumFractionDigits: 2 }) }</p>
               <p className={`${psl > newPsl ? "text-red-600" : psl == newPsl ? "" : "text-green-600"} font-acme text-[20px]`}>{ buy > 0 || sell > 0 || redeem > 0 ? newPsl.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
             </div>

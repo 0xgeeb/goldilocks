@@ -18,6 +18,7 @@ export default function Borrowing() {
   const [locksBalance, setLocksBalance] = useState<number>(0)
   const [stakedBalance, setStakedBalance] = useState<number>(0)
   const [lockedBalance, setLockedBalance] = useState<number>(0)
+  const [honeyBalance, setHoneyBalance] = useState<number>(0)
   const [borrowedBalance, setBorrowedBalance] = useState<number>(0)
   
   const [borrow, setBorrow] = useState<number>(0)
@@ -81,6 +82,12 @@ export default function Borrowing() {
         abi: testhoneyABI.abi,
         functionName: 'allowance',
         args: [account.address, '0x1b408d277D9f168A8893b1728d3B6cb75929a67d']
+      },
+      {
+        address: '0x29b9439E09d1D581892686D9e00E3481DCDD5f78',
+        abi: testhoneyABI.abi,
+        functionName: 'balanceOf',
+        args: [account.address]
       }
     ],
     onSettled(data: any) {
@@ -107,6 +114,9 @@ export default function Borrowing() {
         if(data[6]) {
           setHoneyAllowance(parseInt(data[6]._hex, 16) / Math.pow(10, 18))
         }
+        if(data[7]) {
+          setHoneyBalance(parseInt(data[7]._hex, 16) / Math.pow(10, 18))
+        }
       }
     }
   })
@@ -132,6 +142,7 @@ export default function Borrowing() {
     functionName: 'borrow',
     args: [BigNumber.from(ethers.utils.parseUnits(debouncedBorrow.toString(), 18))],
     enabled: Boolean(debouncedBorrow),
+    // enabled: false,
     onSettled() {
       console.log('just settled borrow')
     }
@@ -146,6 +157,7 @@ export default function Borrowing() {
     abi: borrowABI.abi,
     functionName: 'repay',
     args: [BigNumber.from(ethers.utils.parseUnits(debouncedRepay.toString(), 18))],
+    // enabled: false,
     enabled: Boolean(debouncedRepay),
     onSettled() {
       console.log('just settled repay')
@@ -157,9 +169,10 @@ export default function Borrowing() {
   })
 
   function test() {
-    console.log('floorPrice: ', floorPrice)
-    console.log('staked: ', stakedBalance)
-    console.log('borrowed: ', borrowedBalance)
+    console.log('displayString: ', displayString)
+    console.log('borrow: ', borrow)
+    console.log('repay: ', repay)
+    console.log('borrowedBalance: ', borrowedBalance)
   }
 
   function handlePill(action: number) {
@@ -183,7 +196,7 @@ export default function Borrowing() {
         setBorrow(0)
       }
       else {
-        setBorrow(parseFloat(input))
+        setBorrow(parseInt(input))
       }
     }
     if(repayToggle) {
@@ -191,17 +204,17 @@ export default function Borrowing() {
         setRepay(0)
       }
       else {
-        setRepay(parseFloat(input))
+        setRepay(parseInt(input))
       }
     }
   }
 
   function handleTopInput() {
     if(borrowToggle) {
-      return parseFloat(displayString) > floorPrice * stakedBalance  ? '' : displayString
+      return parseInt(displayString) >= floorPrice * stakedBalance  ? '' : displayString.replaceAll(',','')
     }
     if(repayToggle) {
-      return parseFloat(displayString) > borrowedBalance ? '' : displayString
+      return parseInt(displayString) >= borrowedBalance ? '' : displayString.replaceAll(',','')
     }
   }
 
@@ -265,33 +278,96 @@ export default function Borrowing() {
     }
   }
 
+  function handleBalance() {
+    if(borrowToggle) {
+      return ((stakedBalance - lockedBalance) * floorPrice) > 0 ? ((stakedBalance - lockedBalance) * floorPrice).toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.0"
+    }
+    if(repayToggle) {
+      return borrowedBalance > 0 ? borrowedBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.0"
+    }
+  }
+
+  function handlePercentageButtons(action: number) {
+    if(action == 1) {
+      if(borrowToggle) {
+        setDisplayString((((stakedBalance - lockedBalance) * floorPrice) / 4).toLocaleString('en-US', { maximumFractionDigits: 2 }))
+        setBorrow(((stakedBalance - lockedBalance) * floorPrice) / 4)
+      }
+      if(repayToggle) {
+        setDisplayString((borrowedBalance / 4).toLocaleString('en-US', { maximumFractionDigits: 2 }))
+        setRepay(borrowedBalance / 4)
+      }
+    }
+    if(action == 2) {
+      if(borrowToggle) {
+        setDisplayString((((stakedBalance - lockedBalance) * floorPrice) / 2).toLocaleString('en-US', { maximumFractionDigits: 2 }))
+        setBorrow(((stakedBalance - lockedBalance) * floorPrice) / 2)
+      }
+      if(repayToggle) {
+        setDisplayString((borrowedBalance / 2).toLocaleString('en-US', { maximumFractionDigits: 2 }))
+        setRepay(borrowedBalance / 2)
+      }
+    }
+    if(action == 3) {
+      if(borrowToggle) {
+        setDisplayString((((stakedBalance - lockedBalance) * floorPrice) * 0.75).toLocaleString('en-US', { maximumFractionDigits: 2 }))
+        setBorrow(((stakedBalance - lockedBalance) * floorPrice) * 0.75)
+      }
+      if(repayToggle) {
+        setDisplayString((borrowedBalance * 0.75).toLocaleString('en-US', { maximumFractionDigits: 2 }))
+        setRepay(borrowedBalance * 0.75)
+      }
+    }
+    if(action == 4) {
+      if(borrowToggle) {
+        setDisplayString(((stakedBalance - lockedBalance) * floorPrice).toLocaleString('en-US', { maximumFractionDigits: 2 }))
+        setBorrow((stakedBalance - lockedBalance) * floorPrice)
+      }
+      if(repayToggle) {
+        setDisplayString(borrowedBalance.toLocaleString('en-US', { maximumFractionDigits: 2 }))
+        setRepay(borrowedBalance)
+      }
+    }
+  }
+
   return (
     <div className="flex flex-row py-3">
-      <animated.div className="w-[57%] flex flex-col pt-8 pb-2 px-24 rounded-xl bg-slate-300 ml-24 mt-12 h-[700px] border-2 border-black" style={springs}>
+      <animated.div className="w-[57%] flex flex-col pt-8 pb-2 pl-24 rounded-xl bg-slate-300 ml-24 mt-12 h-[700px] border-2 border-black" style={springs}>
         <h1 className="text-[50px] font-acme text-[#ffff00]" id="text-outline" onClick={() => test()}>borrowing</h1>
         <div className="flex flex-row ml-2 items-center justify-between">
           <h3 className="font-acme text-[24px] ml-2">lock staked $locks and borrow $honey</h3>
-          <div className="flex flex-row bg-white rounded-2xl border-2 border-black">
+          <div className="flex flex-row bg-white rounded-2xl border-2 border-black mr-3">
             <div className={`font-acme w-20 py-2 ${borrowToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-l-2xl text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(1)}>borrow</div>
             <div className={`font-acme w-20 py-2 ${repayToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] text-center rounded-r-2xl cursor-pointer`} onClick={() => handlePill(2)}>repay</div>
           </div>
         </div>
         <div className="flex flex-row mt-4 h-[100%] justify-between">
-          <div className="flex flex-col h-[100%] w-[60%]">
+          <div className="flex flex-col h-[100%] w-[55%]">
             <div className="bg-white border-2 border-black rounded-xl h-[60%] relative">
-            <h1 className="font-acme text-[40px] ml-10 mt-16">{renderLabel()}</h1>
-              <div className="absolute top-[45%]">
-                <input className="border-none focus:outline-none font-acme rounded-xl text-[40px] pl-10" placeholder="0" type="number" value={handleTopInput()} onChange={(e) => handleTopChange(e.target.value)} id="number-input" autoFocus />
+              <div className="flex flex-row justify-between items-center ml-10 mt-16">
+                <h1 className="font-acme text-[40px]">{renderLabel()}</h1>
+                <div className="flex flex-row items-center mr-3">
+                  <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(1)}>25%</button>
+                  <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(2)}>50%</button>
+                  <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(3)}>75%</button>
+                  <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(4)}>MAX</button>
+                </div>
+              </div>
+              <div className="w-[100%] flex">
+                <input className="border-none focus:outline-none font-acme rounded-xl text-[40px] pl-12 w-[80%]" placeholder="0" type="number" value={handleTopInput()} onChange={(e) => handleTopChange(e.target.value)} id="number-input" autoFocus />
+              </div>
+              <div className="absolute right-0 bottom-[35%]">
+                <h1 className="text-[23px] mr-3 font-acme text-[#878d97]">balance: {handleBalance()}</h1>
               </div>
             </div>
             <div className="h-[15%] w-[80%] mx-auto mt-6">
               <button className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[30px]" id="amm-button" onClick={() => handleButtonClick()} >{renderButton()}</button>
             </div>
           </div>
-          <div className="w-[35%] h-[70%] bg-white border-2 border-black rounded-xl flex flex-col px-6 py-3">
+          <div className="w-[40%] h-[85%] bg-white border-2 border-black rounded-xl flex flex-col px-6 py-5 mr-3">
             <div className="flex flex-row justify-between items-center">
               <h1 className="font-acme text-[24px]">borrow limit:</h1>
-              <p className="font-acme text-[20px]">${stakedBalance ? (stakedBalance * floorPrice).toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
+              <p className="font-acme text-[20px]">${stakedBalance ? ((stakedBalance - lockedBalance) * floorPrice).toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
             </div>
             <div className="flex flex-row justify-between items-center mt-6">
               <h1 className="font-acme text-[24px]">$LOCKS floor price:</h1>
@@ -308,6 +384,10 @@ export default function Borrowing() {
             <div className="flex flex-row justify-between items-center mt-6">
               <h1 className="font-acme text-[24px]">locked $LOCKS:</h1>
               <p className="font-acme text-[20px]">{lockedBalance > 0 ? lockedBalance.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
+            </div>
+            <div className="flex flex-row justify-between items-center mt-6">
+              <h1 className="font-acme text-[24px]">$HONEY balance:</h1>
+              <p className="font-acme text-[20px]">{honeyBalance > 0 ? honeyBalance.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
             </div>
             <div className="flex flex-row justify-between items-center mt-6">
               <h1 className="font-acme text-[24px]">borrowed $HONEY:</h1>
