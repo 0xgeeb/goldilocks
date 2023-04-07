@@ -27,20 +27,13 @@ contract AMMTest is Test {
     locks.transferToAMM(1600000e18, 400000e18);
   }
 
-  function testMarketPrice() public {
-    vm.store(address(amm), bytes32(uint256(2)), bytes32(uint256(10678e18)));
-    vm.store(address(amm), bytes32(uint256(3)), bytes32(uint256(54657e18)));
-    vm.store(address(amm), bytes32(uint256(5)), bytes32(uint256(3567e18)));
-    int256 soladyResult = amm.soladyMarketPrice();
-    console.logInt(soladyResult);
-    console.log(uint256(soladyResult));
-  }
-
-  function testFloorPriceGas() public {
-    uint256 soladyResult = amm.newFloorPrice(amm.fsl(), amm.supply());
-    console.log(soladyResult);
-    uint256 oldResult = amm.oldFloorPrice();
-    console.log(oldResult);
-  }
+  // function testMarketPrice() public {
+  //   vm.store(address(amm), bytes32(uint256(2)), bytes32(uint256(10678e18)));
+  //   vm.store(address(amm), bytes32(uint256(3)), bytes32(uint256(54657e18)));
+  //   vm.store(address(amm), bytes32(uint256(5)), bytes32(uint256(3567e18)));
+  //   int256 soladyResult = amm.soladyMarketPrice();
+  //   console.logInt(soladyResult);
+  //   console.log(uint256(soladyResult));
+  // }
 
 }

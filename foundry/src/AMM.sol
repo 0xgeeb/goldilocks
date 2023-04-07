@@ -20,6 +20,7 @@ contract AMM {
   uint256 public lastFloorDecrease;
   address public adminAddress;
   address public locksAddress;
+  uint256 internal constant WAD = 1e18;
 
   constructor(address _locksAddress, address _adminAddress) {
     ilocks = ILocks(_locksAddress);
@@ -27,6 +28,9 @@ contract AMM {
     locksAddress = _locksAddress;
     lastFloorRaise = block.timestamp;
   }
+
+  error MulWadFailed();
+  error DivWadFailed();
 
   event Buy(address indexed user, uint256 amount);
   event Sale(address indexed user, uint256 amount);
@@ -44,25 +48,6 @@ contract AMM {
 
   function floorPrice() external view returns (uint256) {
     return _floorPrice(fsl, supply);
-  }
-
-  uint256 internal constant WAD = 1e18;
-
-  function newFloorPrice(uint256 _fsl, uint256 _supply) external view returns (uint256 z) {
-    assembly {
-      // Equivalent to `require(y != 0 && (WAD == 0 || x <= type(uint256).max / WAD))`.
-      if iszero(mul(_supply, iszero(mul(WAD, gt(_fsl, div(not(0), WAD)))))) {
-        // Store the function selector of `DivWadFailed()`.
-        mstore(0x00, 0x7c5f487d)
-        // Revert with (offset, size).
-        revert(0x1c, 0x04)
-      }
-      z := div(mul(_fsl, WAD), _supply)
-    }
-  }
-
-  function oldFloorPrice() external view returns (uint256) {
-    return (fsl*(1e18)) / supply;
   }
 
   function marketPrice() external view returns (uint256) {
@@ -100,14 +85,14 @@ contract AMM {
     if (_leftover > 0) {
       _market = _marketPrice(_fsl, _psl, _supply);
       _floor = _floorPrice(_fsl, _supply);
-      _purchasePrice += (_market * _leftover) / 1e18;
+      _purchasePrice += _mulWad(_market, _leftover);
       _supply += _leftover;
       if (_psl * 100 >= _fsl * 50) {
-        _fsl += (_market * _leftover) / 1e18;
+        _fsl += _mulWad(_market, _leftover);
       }
       else {
-        _psl += ((_market - _floor) * _leftover) / 1e18;
-        _fsl += (_floor * _leftover) / 1e18;
+        _psl += _mulWad((_market - _floor), _leftover);
+        _fsl += _mulWad(_floor, _leftover);
       }
     }
     uint256 _tax = (_purchasePrice / 1000) * 3;
@@ -119,7 +104,7 @@ contract AMM {
     ilocks.ammMint(msg.sender, _amount);
     _floorRaise();
     emit Buy(msg.sender, _amount);
-    return (_marketPrice(fsl, psl, supply), _floorPrice(fsl, supply));
+    return (_marketPrice(_fsl + _tax, _psl, _supply), _floorPrice(_fsl + _tax, _supply));
   }
 
   function sell(uint256 _amount, uint256 _minAmount) public returns (uint256, uint256) {
@@ -143,7 +128,7 @@ contract AMM {
     if (_leftover > 0) {
       _market = _marketPrice(_fsl, _psl, _supply);
       _floor = _floorPrice(_fsl, _supply);
-      _saleAmount += (_market * _leftover) / 1e18;
+      _saleAmount += _mulWad(_market, _leftover);
       _psl -= ((_market - _floor) * _leftover) / 1e18;
       _fsl -= (_floor * _leftover) / 1e18; 
       _supply -= _leftover;
@@ -172,7 +157,7 @@ contract AMM {
   }
 
   function _floorPrice(uint256 _fsl, uint256 _supply) internal pure returns (uint256) {
-    return FixedPointMathLib.divWad(_fsl, _supply);
+    return _divWad(_fsl, _supply);
   }
 
   function _marketPrice(uint256 _fsl, uint256 _psl, uint256 _supply) internal pure returns (uint256) {
@@ -189,7 +174,7 @@ contract AMM {
     return FixedPointMathLib.powWad(num1, num2);
   }
  
-  function _floorRaise() private {
+  function _floorRaise() internal {
     if((psl * (1e18)) / fsl >= targetRatio) {
       uint256 _raiseAmount = (((psl * 1e18) / fsl) * (psl / 32)) / (1e18);
       psl -= _raiseAmount;
@@ -199,7 +184,7 @@ contract AMM {
     }
   }
 
-  function _lowerThreshold() private {
+  function _lowerThreshold() internal {
     uint256 _elapsedRaise = block.timestamp - lastFloorRaise;
     uint256 _elapsedDrop = block.timestamp - lastFloorDecrease;
     if (_elapsedRaise >= 86400 && _elapsedDrop >= 86400) {
@@ -209,12 +194,32 @@ contract AMM {
     }
   }
 
-  function setHoneyAddress(address _honeyAddress) public onlyAdmin {
+  function setHoneyAddress(address _honeyAddress) external onlyAdmin {
     honey = IERC20(_honeyAddress);
   }
 
-  function approveBorrowForHoney(address _borrowAddress) public onlyAdmin {
+  function approveBorrowForHoney(address _borrowAddress) external onlyAdmin {
     honey.approve(_borrowAddress, 10000000e18);
+  }
+
+  function _mulWad(uint256 x, uint256 y) internal pure returns (uint256 z) {
+    assembly {
+      if mul(y, gt(x, div(not(0), y))) {            
+        mstore(0x00, 0xbac65e5b)
+        revert(0x1c, 0x04)
+      }
+      z := div(mul(x, y), WAD)
+      }
+  }
+
+  function _divWad(uint256 x, uint256 y) internal pure returns (uint256 z) {
+    assembly {
+      if iszero(mul(y, iszero(mul(WAD, gt(x, div(not(0), WAD)))))) {
+        mstore(0x00, 0x7c5f487d)
+        revert(0x1c, 0x04)
+      }
+      z := div(mul(x, WAD), y)
+    }
   }
 
 }
