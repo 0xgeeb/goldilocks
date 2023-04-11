@@ -7,7 +7,7 @@ import Bear from "./components/Bear"
 import ammABI from "./abi/AMM.json"
 import locksABI from "./abi/Locks.json"
 import testhoneyABI from "./abi/TestHoney.json"
-import { useAccount, useContractReads, useNetwork, usePrepareContractWrite, useContractWrite, useWaitForTransaction } from "wagmi"
+import { useAccount, useContractRead, useContractReads, useNetwork, usePrepareContractWrite, useContractWrite, useWaitForTransaction } from "wagmi"
 
 export default function Amm() {
 
@@ -40,6 +40,7 @@ export default function Amm() {
   const [buyToggle, setBuyToggle] = useState<boolean>(true)
   const [sellToggle, setSellToggle] = useState<boolean>(false)
   const [redeemToggle, setRedeemToggle] = useState<boolean>(false)
+  const [allowanceToggle, setAllowanceToggle] = useState<boolean>(false)
   
   const [cost, setCost] = useState<number>(0)
   const debouncedCost = useDebounce(cost, 1000)
@@ -49,6 +50,19 @@ export default function Amm() {
 
   const account = useAccount()
   const chain = useNetwork()
+  // const checkAllowance = () => {
+  //   const { data: allowanceData } = useContractRead({ 
+  //     address: '0x29b9439E09d1D581892686D9e00E3481DCDD5f78', 
+  //     abi: testhoneyABI.abi, 
+  //     functionName: 'allowance', 
+  //     args: [account.address, '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F'],
+  //     onSuccess() {    
+  //       const allowanceDataObject: { [key: string]: any; } = allowanceData as {}
+  //       console.log(parseInt(allowanceDataObject._hex) / Math.pow(10, 18))
+  //       setAllowanceCheck(parseInt(allowanceDataObject._hex) / Math.pow(10, 18))
+  //     } 
+  //   })
+  // }
 
   const formatAsPercentage = Intl.NumberFormat('default', {
     style: 'percent',
@@ -159,7 +173,14 @@ export default function Amm() {
   })
   const { data: approveData, write: approveInteraction } = useContractWrite(approveConfig)
   const { isLoading: approveIsLoading, isSuccess: approveIsSuccess } = useWaitForTransaction({
-    hash: approveData?.hash
+    hash: approveData?.hash,
+    onSuccess() {
+      console.log('approve success')
+      console.log(cost)
+      const tempCost: number = cost + 0.01
+      setCost(tempCost)
+      setAllowanceToggle(true)
+    }
   })
   
   const { config: buyConfig } = usePrepareContractWrite({
@@ -213,9 +234,27 @@ export default function Amm() {
   })
 
   function test() {
-    console.log(locksBalance)
-    console.log(honeyBalance)
+    console.log(allowance)
+    console.log(cost)
+    console.log(debouncedCost)
   }
+
+  // async function checkAllowance() {
+  //   if(window.ethereum) {
+  //     const provider = new ethers.providers.Web3Provider(window.ethereum as any)
+  //     const signer = provider.getSigner()
+  //     const testhoneyContractObject = new ethers.Contract(
+  //       '0x29b9439E09d1D581892686D9e00E3481DCDD5f78',
+  //       testhoneyABI.abi,
+  //       signer
+  //     )
+  //     const checkAllowanceTxn = await testhoneyContractObject.allowance(account.address, '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F')
+  //     const allowanceDataObject: { [key: string]: any; } = checkAllowanceTxn as {}
+  //     setAllowanceCheck(parseInt(allowanceDataObject._hex) / Math.pow(10, 18))
+  //     setCost(cost)
+  //     console.log('checkAllowanceTxn: ', parseInt(allowanceDataObject._hex) / Math.pow(10, 18))
+  //   }
+  // }
 
   useEffect(() => {
     if(buy < 999) {
@@ -505,13 +544,19 @@ export default function Amm() {
         if(button) {
           button.innerHTML = "buy"
         }
-        if(cost > allowance) {
+        if(allowanceToggle) {
+          console.log('first buyInteraction')
+          buyInteraction?.()
+        }
+        else if(cost > allowance) {
           if(button) {
             button.innerHTML = "approve"
           }
+          console.log('approveInteraction')
           approveInteraction?.()
         }
         else {
+          console.log('second buyInteraction')
           buyInteraction?.()
         }
       }

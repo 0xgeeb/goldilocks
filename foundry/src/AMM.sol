@@ -209,7 +209,7 @@ contract AMM {
         revert(0x1c, 0x04)
       }
       z := div(mul(x, y), WAD)
-      }
+    }
   }
 
   function _divWad(uint256 x, uint256 y) internal pure returns (uint256 z) {
