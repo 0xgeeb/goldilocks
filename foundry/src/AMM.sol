@@ -129,8 +129,8 @@ contract AMM {
       _market = _marketPrice(_fsl, _psl, _supply);
       _floor = _floorPrice(_fsl, _supply);
       _saleAmount += _mulWad(_market, _leftover);
-      _psl -= ((_market - _floor) * _leftover) / 1e18;
-      _fsl -= (_floor * _leftover) / 1e18; 
+      _psl -= _mulWad((_market - _floor), _leftover);
+      _fsl -= _mulWad(_floor, _leftover); 
       _supply -= _leftover;
     }
     uint256 _tax = (_saleAmount / 1000) * 53;
