@@ -9,7 +9,7 @@ import "@rainbow-me/rainbowkit/styles.css"
 const { chains, provider } = configureChains([avalancheFuji], [
   jsonRpcProvider({
     rpc: () => ({
-      http: `https://young-methodical-spree.avalanche-testnet.discover.quiknode.pro/e9ef57f113488a9db47c13766faa54b868f93ea9/ext/bc/C/rpc`
+      http: process.env.NEXT_PUBLIC_FUJI_RPC_URL as string
     })
   })
 ])

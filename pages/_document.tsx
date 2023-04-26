@@ -4,7 +4,7 @@ function MyDocument() {
   return (
     <Html>
       <Head>
-      <link href="https://fonts.googleapis.com/css2?family=Acme&family=Libre+Bodoni&display=swap" rel="stylesheet"/>
+        <link href="https://fonts.googleapis.com/css2?family=Acme&family=Libre+Bodoni&display=swap" rel="stylesheet"/>
       </Head>
       <body>
         <Main />
