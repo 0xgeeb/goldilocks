@@ -168,10 +168,13 @@ contract AMM {
    return _floorPriceVariable + ((factor1 * exponential) / (1e17));
   }
 
-  function soladyMarketPrice() external pure returns (int256) {
-    int256 num1 = 9e18;
-    int256 num2 = 24e18;
-    return FixedPointMathLib.powWad(num1, num2);
+  function soladyMarketPrice() external view returns (uint256) {
+    uint256 _floorPriceHere = _divWad(fsl, supply);
+    uint256 firstSecondHalf = _divWad(psl, supply);
+    uint256 secondSecondHalf = _divWad(psl + fsl, fsl);
+    uint256 sshPow = secondSecondHalf**5;
+    uint256 allTogether = _floorPriceHere + (firstSecondHalf * sshPow);
+    return allTogether;
   }
  
   function _floorRaise() internal {
