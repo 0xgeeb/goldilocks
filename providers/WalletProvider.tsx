@@ -85,7 +85,8 @@ export const WalletProvider = (props: PropsWithChildren<{}>) => {
         signer
       )
       const allowanceTx = await tokenContract.allowance(walletAddress, spender)
-      return allowanceTx._hex / Math.pow(10, 18)
+      const allowanceNum = allowanceTx._hex / Math.pow(10, 18)
+      return allowanceNum
     }
   }
 

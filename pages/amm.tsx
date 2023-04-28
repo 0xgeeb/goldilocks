@@ -41,7 +41,6 @@ export default function Amm() {
   const [buyToggle, setBuyToggle] = useState<boolean>(true)
   const [sellToggle, setSellToggle] = useState<boolean>(false)
   const [redeemToggle, setRedeemToggle] = useState<boolean>(false)
-  const [allowanceToggle, setAllowanceToggle] = useState<boolean>(false)
   
   const [cost, setCost] = useState<number>(0)
   const debouncedCost = useDebounce(cost, 1000)
@@ -176,14 +175,7 @@ export default function Amm() {
   })
   const { data: approveData, write: approveInteraction } = useContractWrite(approveConfig)
   const { isLoading: approveIsLoading, isSuccess: approveIsSuccess } = useWaitForTransaction({
-    hash: approveData?.hash,
-    onSuccess() {
-      console.log('approve success')
-      console.log(cost)
-      const tempCost: number = cost + 0.01
-      setCost(tempCost)
-      setAllowanceToggle(true)
-    }
+    hash: approveData?.hash
   })
   
   const { config: buyConfig } = usePrepareContractWrite({
@@ -191,7 +183,7 @@ export default function Amm() {
     abi: ammABI.abi,
     functionName: 'buy',
     args: [BigNumber.from(ethers.utils.parseUnits(debouncedBuy.toString(), 18)), BigNumber.from(ethers.utils.parseUnits(debouncedCost.toString(), 18))],
-    enabled: Boolean(debouncedCost),
+    enabled: true,
     onSettled() {
       console.log('just settled buy')
       console.log('debouncedBuy: ', debouncedBuy)
@@ -554,20 +546,20 @@ export default function Amm() {
         if(button) {
           button.innerHTML = "buy"
         }
-        if(allowanceToggle) {
-          console.log('first buyInteraction')
-          buyInteraction?.()
-        }
-        else if(cost > allowance) {
-          if(button) {
-            button.innerHTML = "approve"
+        const currentAllowance = await ensureAllowance('honey', '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F')
+        console.log(currentAllowance)
+        if(typeof currentAllowance === 'number') {
+          if(cost > currentAllowance) {
+            if(button) {
+              button.innerHTML = "approve"
+            }
+            console.log('approveInteraction')
+            approveInteraction?.()
           }
-          console.log('approveInteraction')
-          approveInteraction?.()
-        }
-        else {
-          console.log('second buyInteraction')
-          buyInteraction?.()
+          else {
+            console.log('buyInteraction')
+            buyInteraction?.()
+          }
         }
       }
       if(sellToggle) {
