@@ -1,9 +1,9 @@
-import { Contracts } from "../../interfaces"
-import borrowABI from "./../abi/Borrow.json"
-import locksABI from "./../abi/Locks.json"
-import porridgeABI from "./../abi/Porridge.json"
-import testhoneyABI from "./../abi/TestHoney.json"
-import ammABI from "./../abi/AMM.json"
+import { Contracts } from "../interfaces"
+import borrowABI from "../pages/abi/Borrow.json"
+import locksABI from "../pages/abi/Locks.json"
+import porridgeABI from "../pages/abi/Porridge.json"
+import testhoneyABI from "../pages/abi/TestHoney.json"
+import ammABI from "../pages/abi/AMM.json"
 
 export const contracts: Contracts = {
   amm: {
