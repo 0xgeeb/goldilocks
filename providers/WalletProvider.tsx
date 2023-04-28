@@ -9,13 +9,13 @@ const INITIAL_STATE = {
     prg: 0,
     honey: 0
   },
-  // wallet: undefined,
+  wallet: '',
   isConnected: false,
-  signer: null,
-  network: null,
-  // getBalance: async (string, any) => {},
-  // updateBalance: async () => {},
-  // ensureAllowance: async () => {}
+  signer: null as Signer | null,
+  network: '',
+  getBalance: async () => {},
+  updateBalance: async () => {},
+  ensureAllowance: async (token: string, spender: string): Promise<void | number> => {}
 }
 
 const WalletContext = createContext(INITIAL_STATE)
@@ -35,6 +35,7 @@ export const WalletProvider = (props: PropsWithChildren<{}>) => {
   const isConnected = !!walletAddress && !!signer;
 
   const getBalance = async (address: string, signer: any) => {
+    console.log('running getBalance')
     let response = {
       locks: 0,
       prg: 0,
@@ -47,35 +48,63 @@ export const WalletProvider = (props: PropsWithChildren<{}>) => {
       signer
     )
     const locksTx = await locksContract.balanceOf(address)
-    console.log(locksTx)
+    response = { ...response, locks: locksTx._hex / Math.pow(10, 18)}
 
+    const porridgeContract = new ethers.Contract(
+      contracts.porridge.address,
+      contracts.porridge.abi,
+      signer
+    )
+    const porridgeTx = await porridgeContract.balanceOf(address)
+    response = { ...response, prg: porridgeTx._hex / Math.pow(10, 18)}
+
+    const honeyContract = new ethers.Contract(
+      contracts.honey.address,
+      contracts.honey.abi,
+      signer
+    )
+    const honeyTx = await honeyContract.balanceOf(address)
+    response = { ...response, honey: honeyTx._hex / Math.pow(10, 18)}
+    
+    setBalanceState(response)
   }
 
+  const updateBalance = async () => {
+    if(!walletAddress || !signer) {
+      return;
+    }
 
+    getBalance(walletAddress, signer)
+  }
 
+  const ensureAllowance = async (token: string, spender: string) => {
+    if(signer) {
+      const tokenContract = new ethers.Contract(
+        contracts[token].address,
+        contracts[token].abi,
+        signer
+      )
+      const allowanceTx = await tokenContract.allowance(walletAddress, spender)
+      return allowanceTx._hex / Math.pow(10, 18)
+    }
+  }
 
-
-
-
-
-
-
-
-  console.log('walletprovider')
   return (
     <WalletContext.Provider
       value={{
         balance: balanceState,
-        // wallet: walletAddress || null,
+        wallet: walletAddress ? walletAddress : '',
         isConnected: isConnected,
-        signer: null,
-        network: null,
-        // getBalance: getBalance,
-        // updateBalance,
-        // ensureAllowance
+        signer: signer || null,
+        network: chain?.name ? chain.name : '',
+        getBalance: updateBalance,
+        updateBalance,
+        ensureAllowance
       }}
     >
       { children }
     </WalletContext.Provider>
   )
 }
+
+export const useWallet = () => useContext(WalletContext)

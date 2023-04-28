@@ -3,6 +3,7 @@ import { ethers, BigNumber } from "ethers"
 import { useSpring, animated } from "@react-spring/web"
 import Image from "next/image"
 import useDebounce from "../hooks/useDebounce"
+import { useWallet } from "../providers/WalletProvider"
 import Bear from "./components/Bear"
 import ammABI from "./abi/AMM.json"
 import locksABI from "./abi/Locks.json"
@@ -63,6 +64,8 @@ export default function Amm() {
   //     } 
   //   })
   // }
+
+  const { signer, wallet, getBalance, balance, ensureAllowance } = useWallet()
 
   const formatAsPercentage = Intl.NumberFormat('default', {
     style: 'percent',
@@ -233,11 +236,18 @@ export default function Amm() {
     hash: redeemData?.hash
   })
 
-  function test() {
+  async function test() {
+    // console.log('running test')
+    // await getBalance()
+    // console.log('ran test')
+    console.log('about to get allowance')
+    const allowance = await ensureAllowance('honey', '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F')
     console.log(allowance)
-    console.log(cost)
-    console.log(debouncedCost)
   }
+
+  useEffect(() => {
+    console.log('balance: ', balance)
+  }, [balance])
 
   // async function checkAllowance() {
   //   if(window.ethereum) {

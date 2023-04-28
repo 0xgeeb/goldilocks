@@ -1,10 +1,11 @@
+import { Contracts } from "../../interfaces"
 import borrowABI from "./../abi/Borrow.json"
 import locksABI from "./../abi/Locks.json"
 import porridgeABI from "./../abi/Porridge.json"
 import testhoneyABI from "./../abi/TestHoney.json"
 import ammABI from "./../abi/AMM.json"
 
-export const contracts = {
+export const contracts: Contracts = {
   amm: {
     address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
     abi: ammABI.abi
