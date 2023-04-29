@@ -64,7 +64,7 @@ export default function Amm() {
   //   })
   // }
 
-  const { signer, wallet, getBalance, balance, ensureAllowance } = useWallet()
+  const { signer, wallet, getBalance, balance, ensureAllowance, sendBuyTx } = useWallet()
 
   const formatAsPercentage = Intl.NumberFormat('default', {
     style: 'percent',
@@ -183,7 +183,7 @@ export default function Amm() {
     abi: ammABI.abi,
     functionName: 'buy',
     args: [BigNumber.from(ethers.utils.parseUnits(debouncedBuy.toString(), 18)), BigNumber.from(ethers.utils.parseUnits(debouncedCost.toString(), 18))],
-    enabled: true,
+    enabled: Boolean(debouncedCost),
     onSettled() {
       console.log('just settled buy')
       console.log('debouncedBuy: ', debouncedBuy)
@@ -233,7 +233,7 @@ export default function Amm() {
     // await getBalance()
     // console.log('ran test')
     console.log('about to get allowance')
-    const allowance = await ensureAllowance('honey', '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F')
+    const allowance = await ensureAllowance('honey', '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F', cost)
     console.log(allowance)
   }
 
@@ -546,21 +546,12 @@ export default function Amm() {
         if(button) {
           button.innerHTML = "buy"
         }
-        const currentAllowance = await ensureAllowance('honey', '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F')
-        console.log(currentAllowance)
-        if(typeof currentAllowance === 'number') {
-          if(cost > currentAllowance) {
-            if(button) {
-              button.innerHTML = "approve"
-            }
-            console.log('approveInteraction')
-            approveInteraction?.()
-          }
-          else {
-            console.log('buyInteraction')
-            buyInteraction?.()
-          }
-        }
+        
+        console.log('starting allowance')
+        await ensureAllowance('honey', '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F', cost)
+        
+        console.log('starting buy')
+        await sendBuyTx(buy, cost)
       }
       if(sellToggle) {
         if(button) {
