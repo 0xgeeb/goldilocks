@@ -1,4 +1,4 @@
-import React, { Dispatch, ReactNode, SetStateAction } from "react"
+import React from "react"
 
 export interface LayoutProps {
   children: React.ReactNode;
@@ -11,4 +11,15 @@ export interface Contract {
 
 export interface Contracts {
   [key: string]: Contract;
+}
+
+export interface LeftAmmBoxCurNumsProps {
+  floor: number;
+  market: number;
+  fsl: number;
+  psl: number;
+}
+
+export interface RightAmmBoxCurNumProps {
+  supply: number;
 }

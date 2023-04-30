@@ -3,12 +3,17 @@ import { ethers, BigNumber } from "ethers"
 import { useSpring, animated } from "@react-spring/web"
 import Image from "next/image"
 import useDebounce from "../hooks/useDebounce"
+import useFormatDate from "../hooks/useFormatDate"
 import { useWallet } from "../providers/WalletProvider"
 import Bear from "./components/Bear"
 import ammABI from "./abi/AMM.json"
 import locksABI from "./abi/Locks.json"
 import testhoneyABI from "./abi/TestHoney.json"
-import { useAccount, useContractRead, useContractReads, useNetwork, usePrepareContractWrite, useContractWrite, useWaitForTransaction } from "wagmi"
+import { useAccount, useContractRead, useContractReads, useNetwork, usePrepareContractWrite, useContractWrite, useWaitForTransaction, useContractEvent } from "wagmi"
+import LeftAmmBoxText from "./components/LeftAmmBoxText"
+import RightAmmBoxText from "./components/RightAmmBoxText"
+import LeftAmmBoxCurNums from "./components/LeftAmmBoxCurNums"
+import RightAmmBoxCurNums from "./components/RightAmmBoxCurNums"
 
 export default function Amm() {
 
@@ -50,21 +55,19 @@ export default function Amm() {
 
   const account = useAccount()
   const chain = useNetwork()
-  // const checkAllowance = () => {
-  //   const { data: allowanceData } = useContractRead({ 
-  //     address: '0x29b9439E09d1D581892686D9e00E3481DCDD5f78', 
-  //     abi: testhoneyABI.abi, 
-  //     functionName: 'allowance', 
-  //     args: [account.address, '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F'],
-  //     onSuccess() {    
-  //       const allowanceDataObject: { [key: string]: any; } = allowanceData as {}
-  //       console.log(parseInt(allowanceDataObject._hex) / Math.pow(10, 18))
-  //       setAllowanceCheck(parseInt(allowanceDataObject._hex) / Math.pow(10, 18))
-  //     } 
-  //   })
-  // }
 
   const { signer, wallet, getBalance, balance, ensureAllowance, sendBuyTx } = useWallet()
+
+  useContractEvent({
+    address: '0x29b9439E09d1D581892686D9e00E3481DCDD5f78',
+    abi: testhoneyABI.abi,
+    eventName: 'Approval',
+    listener(owner: any, spender: any, amount: any) {
+      console.log('amount: ', amount)
+      console.log('amount decoded: ', amount._hex / Math.pow(10, 18))
+      console.log('amount decoded: ', amount.toBigInt().toString())
+    }
+  })
 
   const formatAsPercentage = Intl.NumberFormat('default', {
     style: 'percent',
@@ -149,7 +152,7 @@ export default function Amm() {
         setMarket(marketPrice(parseFloat(`${fslBeforeDecimalFloat}.${fslString.slice(fslString.length - 18, fslString.length - 16)}`), parseFloat(`${pslBeforeDecimalFloat}.${pslString.slice(pslString.length - 18, pslString.length - 16)}`), parseFloat(`${supplyBeforeDecimalFloat}.${supplyString.slice(supplyString.length - 18, supplyString.length - 16)}`)))
         setNewMarket(marketPrice(parseFloat(`${fslBeforeDecimalFloat}.${fslString.slice(fslString.length - 18, fslString.length - 16)}`), parseFloat(`${pslBeforeDecimalFloat}.${pslString.slice(pslString.length - 18, pslString.length - 16)}`), parseFloat(`${supplyBeforeDecimalFloat}.${supplyString.slice(supplyString.length - 18, supplyString.length - 16)}`)))
         setTargetRatio(data[3].toBigInt().toString() / Math.pow(10, 18))
-        setLastFloorRaise(formatDate(parseInt(data[4].toBigInt().toString()) * 1000))
+        setLastFloorRaise(useFormatDate(parseInt(data[4].toBigInt().toString()) * 1000))
         if(data[5]) {
           setAllowance(data[5].toBigInt().toString() / Math.pow(10, 18))
         }
@@ -229,17 +232,9 @@ export default function Amm() {
   })
 
   async function test() {
-    // console.log('running test')
-    // await getBalance()
-    // console.log('ran test')
-    console.log('about to get allowance')
-    const allowance = await ensureAllowance('honey', '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F', cost)
     console.log(allowance)
+    console.log(cost)
   }
-
-  useEffect(() => {
-    console.log('balance: ', balance)
-  }, [balance])
 
   // async function checkAllowance() {
   //   if(window.ethereum) {
@@ -430,32 +425,6 @@ export default function Amm() {
       setRedeemToggle(true)
     }
   }
-
-  function formatDate(timestamp: number ) {
-    const ONE_MINUTE = 60
-    const ONE_HOUR = 60 * ONE_MINUTE
-    const ONE_DAY = 24 * ONE_HOUR
-    const ONE_WEEK = 7 * ONE_DAY
-
-    const now = Date.now()
-    const secondsAgo = (now - timestamp) / 1000
-
-    if (secondsAgo < ONE_MINUTE) {
-      return 'just now';
-    } else if (secondsAgo < ONE_HOUR) {
-      const minutesAgo = Math.floor(secondsAgo / ONE_MINUTE);
-      return `${minutesAgo} minute${minutesAgo > 1 ? 's' : ''} ago`;
-    } else if (secondsAgo < ONE_DAY) {
-      const hoursAgo = Math.floor(secondsAgo / ONE_HOUR);
-      return `${hoursAgo} hour${hoursAgo > 1 ? 's' : ''} ago`;
-    } else if (secondsAgo < ONE_WEEK) {
-      const daysAgo = Math.floor(secondsAgo / ONE_DAY);
-      return `${daysAgo} day${daysAgo > 1 ? 's' : ''} ago`;
-    } else {
-      const weeksAgo = Math.floor(secondsAgo / ONE_WEEK);
-      return `${weeksAgo} week${weeksAgo > 1 ? 's' : ''} ago`;
-    }
-  }
   
   function handleTopLabel() {
     if(buyToggle) {
@@ -507,6 +476,9 @@ export default function Amm() {
   
   function renderButton() {
     if(buyToggle) {
+      if(cost > allowance) {
+        return 'approve use of $honey'
+      }
       if(approveIsLoading) {
         return 'approving...'
       }
@@ -531,27 +503,25 @@ export default function Amm() {
 
   async function handleButtonClick() {
     const button = document.getElementById('amm-button')
+
     if(!account.isConnected) {
-      if(button) {
-        button.innerHTML = "connect wallet"
-      }
+      button && (button.innerHTML = "connect wallet")
     }
     else if(chain?.chain?.id !== 43113) {
-      if(button) {
-        button.innerHTML = "switch to fuji plz"
-      }
+      button && (button.innerHTML = "switch to fuji plz")
     }
     else {
       if(buyToggle) {
-        if(button) {
-          button.innerHTML = "buy"
-        }
-        
         console.log('starting allowance')
-        await ensureAllowance('honey', '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F', cost)
-        
-        console.log('starting buy')
-        await sendBuyTx(buy, cost)
+        const result: boolean | void = await ensureAllowance('honey', '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F', cost, signer)
+        if(result) {
+          button && (button.innerHTML = "buying...")
+          console.log('starting buy')
+          await sendBuyTx(buy, cost, signer)
+        }
+        else {
+          button && (button.innerHTML = "approving...")
+        }
       }
       if(sellToggle) {
         if(button) {
@@ -770,18 +740,8 @@ export default function Amm() {
         </div>
         <div className="flex flex-row justify-between">
           <div className="flex flex-row w-[55%] px-3 ml-3 justify-between rounded-xl border-2 border-black mt-2 bg-white">
-            <div className="flex flex-col items-start justify-between">
-              <h1 className="font-acme text-[24px]">$LOCKS floor price:</h1>
-              <h1 className="font-acme text-[24px]">$LOCKS market price:</h1>
-              <p className="font-acme text-[24px]">current fsl:</p>
-              <p className="font-acme text-[24px]">current psl:</p>
-            </div>
-            <div className="flex flex-col items-end justify-between">
-              <p className="font-acme text-[20px]">${ floor > 0 ? floor.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
-              <p className="font-acme text-[20px]">${ market > 0 ? market.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
-              <p className="font-acme text-[20px]">{ fsl > 0 ? fsl.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-" }</p>
-              <p className="font-acme text-[20px]">{ psl > 0 ? psl.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-" }</p>
-            </div>
+            <LeftAmmBoxText />
+            <LeftAmmBoxCurNums floor={floor} market={market} fsl={fsl} psl={psl} />
             <div className="flex flex-col items-end justify-between">
               <p className={`${floor > newFloor ? "text-red-600" : floor == newFloor ? "" : "text-green-600"} font-acme text-[20px]`}>${ buy > 0 || sell > 0 || redeem > 0 ? newFloor.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
               <p className={`${market > newMarket ? "text-red-600" : market == newMarket ? "" : "text-green-600"} font-acme text-[20px]`}>${ buy > 0 || sell > 0 || redeem > 0 ? newMarket.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
@@ -790,16 +750,8 @@ export default function Amm() {
             </div>
           </div>
           <div className="flex flex-row w-[40%] px-3 justify-between mr-3 rounded-xl border-2 border-black mt-2 bg-white">
-            <div className="flex flex-col items-start justify-between w-[40%]">
-              <h1 className="font-acme text-[20px]">$LOCKS supply:</h1>
-              <p className="font-acme text-[20px]">target ratio:</p>
-              <p className="font-acme text-[20px]">last floor raise:</p>
-            </div>
-            <div className="flex flex-col items-end justify-between w-[30%]">
-              <p className="font-acme text-[20px]">{ supply > 0 ? supply.toLocaleString('en-US') : "-" }</p>
-              <p className="font-acme text-[20px] text-white">1,044</p>
-              <p className="font-acme text-[20px] text-white">1,044</p>
-            </div>
+            <RightAmmBoxText />
+            <RightAmmBoxCurNums supply={supply} />
             <div className="flex flex-col items-end justify-between w-[30%]">
               <p className={`${supply > newSupply ? "text-red-600" : supply == newSupply ? "" : "text-green-600"} font-acme text-[20px]`}>{ supply == newSupply ? "-" : newSupply.toLocaleString('en-US') }</p>
               <p className="font-acme text-[20px]">{ targetRatio > 0 ? formatAsPercentage.format(targetRatio) : "-" }</p>

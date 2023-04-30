@@ -15,8 +15,8 @@ const INITIAL_STATE = {
   network: '',
   getBalance: async () => {},
   updateBalance: async () => {},
-  ensureAllowance: async (token: string, spender: string, cost: number) => {},
-  sendBuyTx: async (buy: number, cost: number) => {}
+  ensureAllowance: async (token: string, spender: string, cost: number, signer: any): Promise<void | boolean> => {},
+  sendBuyTx: async (buy: number, cost: number, signer: any): Promise<void | boolean> => {}
 }
 
 const WalletContext = createContext(INITIAL_STATE)
@@ -78,10 +78,7 @@ export const WalletProvider = (props: PropsWithChildren<{}>) => {
     getBalance(walletAddress, signer)
   }
 
-  const ensureAllowance = async (token: string, spender: string, cost: number) => {
-    if(!walletAddress || !signer) {
-      return;
-    }
+  const ensureAllowance = async (token: string, spender: string, cost: number, signer: any): Promise<boolean> => {
 
     const tokenContract = new ethers.Contract(
       contracts[token].address,
@@ -93,19 +90,21 @@ export const WalletProvider = (props: PropsWithChildren<{}>) => {
 
     if(cost > allowanceNum) {
       try {
-        await tokenContract.approve(spender, BigNumber.from(ethers.utils.parseUnits(cost.toString(), 18)))
+        tokenContract.approve(spender, BigNumber.from(ethers.utils.parseUnits(cost.toString(), 18)))
+        return false
       }
       catch (e) {
         console.log('user denied tx')
         console.log('or: ', e)
+        return false
       }
+    }
+    else {
+      return true
     }
   }
 
-  const sendBuyTx = async (buy: number, cost: number) => {
-    if(!walletAddress || !signer) {
-      return;
-    }
+  const sendBuyTx = async (buy: number, cost: number, signer: any): Promise<boolean> => {
 
     const ammContract = new ethers.Contract(
       contracts.amm.address,
@@ -114,10 +113,12 @@ export const WalletProvider = (props: PropsWithChildren<{}>) => {
     )
     try {
       await ammContract.buy(BigNumber.from(ethers.utils.parseUnits(buy.toString(), 18)), BigNumber.from(ethers.utils.parseUnits(cost.toString(), 18)))
+      return true
     }
     catch (e) {
       console.log('user denied tx')
       console.log('or: ', e)
+      return false
     }
   }
 
