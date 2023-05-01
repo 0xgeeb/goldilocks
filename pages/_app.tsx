@@ -1,6 +1,6 @@
 import { AppProps } from "next/app"
 import Head from "next/head"
-import Layout from "./components/Layout"
+import Layout from "../components/Layout"
 import { WagmiProvider } from "../providers/WagmiProvider"
 import { WalletProvider } from "../providers/WalletProvider"
 import "../styles/global.css"

@@ -2,11 +2,11 @@ import React, { useEffect, useState } from "react"
 import { ethers, BigNumber } from "ethers"
 import { useSpring, animated } from "@react-spring/web"
 import useDebounce from "../hooks/useDebounce"
-import Bear from "./components/Bear"
-import porridgeABI from "./abi/Porridge.json"
-import locksABI from "./abi/Locks.json"
-import testhoneyABI from "./abi/TestHoney.json"
-import ammABI from "./abi/AMM.json"
+import Bear from "../components/Bear"
+import porridgeABI from "../utils/abi/Porridge.json"
+import locksABI from "../utils/abi/Locks.json"
+import testhoneyABI from "../utils/abi/TestHoney.json"
+import ammABI from "../utils/abi/AMM.json"
 import { useAccount, useContractReads, useNetwork, usePrepareContractWrite, useContractWrite, useWaitForTransaction } from "wagmi"
 
 export default function Staking() {
@@ -291,13 +291,13 @@ export default function Staking() {
 
   function handleTopInput() {
     if(stakeToggle) {
-      return parseInt(displayString) >= locksBalance ? '' : displayString.replaceAll(',','')
+      return parseFloat(displayString) >= locksBalance ? '' : displayString
     }
     if(unstakeToggle) {
-      return parseInt(displayString) >= stakedBalance ? '' : displayString.replaceAll(',','')
+      return parseFloat(displayString) >= stakedBalance ? '' : displayString
     }
     if(realizeToggle) {
-      return parseInt(displayString) >= porridgeBalance ? '' : displayString.replaceAll(',','')
+      return parseFloat(displayString) >= porridgeBalance ? '' : displayString
     }
   }
 

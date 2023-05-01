@@ -1,5 +1,5 @@
 import React from "react"
-import { RightAmmBoxCurNumProps } from "../../interfaces"
+import { RightAmmBoxCurNumProps } from "../interfaces"
 
 export default function RightAmmBoxCurNums( { supply }: RightAmmBoxCurNumProps) {
   return (

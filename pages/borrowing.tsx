@@ -2,12 +2,12 @@ import React, { useEffect, useState } from "react"
 import { ethers, BigNumber } from "ethers"
 import { useSpring, animated } from "@react-spring/web"
 import useDebounce from "../hooks/useDebounce"
-import Bear from "./components/Bear"
-import borrowABI from "./abi/Borrow.json"
-import locksABI from "./abi/Locks.json"
-import porridgeABI from "./abi/Porridge.json"
-import testhoneyABI from "./abi/TestHoney.json"
-import ammABI from "./abi/AMM.json"
+import Bear from "../components/Bear"
+import borrowABI from "../utils/abi/Borrow.json"
+import locksABI from "../utils/abi/Locks.json"
+import porridgeABI from "../utils/abi/Porridge.json"
+import testhoneyABI from "../utils/abi/TestHoney.json"
+import ammABI from "../utils/abi/AMM.json"
 import { useAccount, useContractReads, useNetwork, usePrepareContractWrite, useContractWrite, useWaitForTransaction } from "wagmi"
 
 export default function Borrowing() {
@@ -211,10 +211,10 @@ export default function Borrowing() {
 
   function handleTopInput() {
     if(borrowToggle) {
-      return parseInt(displayString) >= floorPrice * stakedBalance  ? '' : displayString.replaceAll(',','')
+      return parseFloat(displayString) >= floorPrice * stakedBalance  ? '' : displayString
     }
     if(repayToggle) {
-      return parseInt(displayString) >= borrowedBalance ? '' : displayString.replaceAll(',','')
+      return parseFloat(displayString) >= borrowedBalance ? '' : displayString
     }
   }
 
