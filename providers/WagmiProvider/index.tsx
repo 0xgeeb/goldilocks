@@ -1,18 +1,20 @@
 import { FC, ReactNode } from "react"
 import { configureChains, createClient, WagmiConfig } from "wagmi"
 import { avalancheFuji } from "@wagmi/core/chains"
+import { devnet } from "../../utils/customChains"
 import { jsonRpcProvider } from "@wagmi/core/providers/jsonRpc"
 import { connectorsForWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit"
 import { metaMaskWallet, injectedWallet, rainbowWallet, rabbyWallet, ledgerWallet } from "@rainbow-me/rainbowkit/wallets"
 import "@rainbow-me/rainbowkit/styles.css"
 
-const { chains, provider } = configureChains([avalancheFuji], [
-  jsonRpcProvider({
-    rpc: () => ({
-      http: process.env.NEXT_PUBLIC_FUJI_RPC_URL as string
-    })
-  })
-])
+const { chains, provider } = configureChains(
+  [devnet],
+  [
+    jsonRpcProvider({
+      rpc: chain => ({ http: chain.rpcUrls.default.http[0] }),
+    }),
+  ]
+)
 
 const connectors = connectorsForWallets([
   {

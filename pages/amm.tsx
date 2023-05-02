@@ -233,8 +233,7 @@ export default function Amm() {
   })
 
   async function test() {
-    console.log(allowance)
-    console.log(cost)
+    await ensureAllowance('honey', '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F', cost, signer)
   }
 
   // async function checkAllowance() {

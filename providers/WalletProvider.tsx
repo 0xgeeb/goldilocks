@@ -81,12 +81,15 @@ export const WalletProvider = (props: PropsWithChildren<{}>) => {
   const ensureAllowance = async (token: string, spender: string, cost: number, signer: any): Promise<boolean> => {
 
     const tokenContract = new ethers.Contract(
-      contracts[token].address,
+      '0x34eC325ddC7dAeF8FdF07FdAF807C31f660cDD18',
+      // contracts[token].address,
       contracts[token].abi,
       signer
     )
-    const allowanceTx = await tokenContract.allowance(walletAddress, spender)
+    const allowanceTx = await tokenContract.balanceOf('0xAfD3A6AD0967f0dD590ABC5d4518A2920e642EEe')
+    // const allowanceTx = await tokenContract.allowance(walletAddress, spender)
     const allowanceNum = allowanceTx._hex / Math.pow(10, 18)
+    console.log(allowanceNum)
 
     if(cost > allowanceNum) {
       try {
