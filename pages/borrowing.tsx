@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react"
+import Head from "next/head"
 import { ethers, BigNumber } from "ethers"
 import { useSpring, animated } from "@react-spring/web"
 import useDebounce from "../hooks/useDebounce"
@@ -331,72 +332,77 @@ export default function Borrowing() {
   }
 
   return (
-    <div className="flex flex-row py-3">
-      <animated.div className="w-[57%] flex flex-col pt-8 pb-2 pl-24 rounded-xl bg-slate-300 ml-24 mt-12 h-[700px] border-2 border-black" style={springs}>
-        <h1 className="text-[50px] font-acme text-[#ffff00]" id="text-outline" onClick={() => test()}>borrowing</h1>
-        <div className="flex flex-row ml-2 items-center justify-between">
-          <h3 className="font-acme text-[24px] ml-2">lock staked $locks and borrow $honey</h3>
-          <div className="flex flex-row bg-white rounded-2xl border-2 border-black mr-3">
-            <div className={`font-acme w-20 py-2 ${borrowToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-l-2xl text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(1)}>borrow</div>
-            <div className={`font-acme w-20 py-2 ${repayToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] text-center rounded-r-2xl cursor-pointer`} onClick={() => handlePill(2)}>repay</div>
+    <>
+      <Head>
+        <title>mf borrowing</title>
+      </Head>
+      <div className="flex flex-row py-3">
+        <animated.div className="w-[57%] flex flex-col pt-8 pb-2 pl-24 rounded-xl bg-slate-300 ml-24 mt-12 h-[700px] border-2 border-black" style={springs}>
+          <h1 className="text-[50px] font-acme text-[#ffff00]" id="text-outline" onClick={() => test()}>borrowing</h1>
+          <div className="flex flex-row ml-2 items-center justify-between">
+            <h3 className="font-acme text-[24px] ml-2">lock staked $locks and borrow $honey</h3>
+            <div className="flex flex-row bg-white rounded-2xl border-2 border-black mr-3">
+              <div className={`font-acme w-20 py-2 ${borrowToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-l-2xl text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(1)}>borrow</div>
+              <div className={`font-acme w-20 py-2 ${repayToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] text-center rounded-r-2xl cursor-pointer`} onClick={() => handlePill(2)}>repay</div>
+            </div>
           </div>
-        </div>
-        <div className="flex flex-row mt-4 h-[100%] justify-between">
-          <div className="flex flex-col h-[100%] w-[55%]">
-            <div className="bg-white border-2 border-black rounded-xl h-[60%] relative">
-              <div className="flex flex-row justify-between items-center ml-10 mt-16">
-                <h1 className="font-acme text-[40px]">{renderLabel()}</h1>
-                <div className="flex flex-row items-center mr-3">
-                  <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(1)}>25%</button>
-                  <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(2)}>50%</button>
-                  <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(3)}>75%</button>
-                  <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(4)}>MAX</button>
+          <div className="flex flex-row mt-4 h-[100%] justify-between">
+            <div className="flex flex-col h-[100%] w-[55%]">
+              <div className="bg-white border-2 border-black rounded-xl h-[60%] relative">
+                <div className="flex flex-row justify-between items-center ml-10 mt-16">
+                  <h1 className="font-acme text-[40px]">{renderLabel()}</h1>
+                  <div className="flex flex-row items-center mr-3">
+                    <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(1)}>25%</button>
+                    <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(2)}>50%</button>
+                    <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(3)}>75%</button>
+                    <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(4)}>MAX</button>
+                  </div>
+                </div>
+                <div className="w-[100%] flex">
+                  <input className="border-none focus:outline-none font-acme rounded-xl text-[40px] pl-12 w-[80%]" placeholder="0" type="number" value={handleTopInput()} onChange={(e) => handleTopChange(e.target.value)} id="number-input" autoFocus />
+                </div>
+                <div className="absolute right-0 bottom-[35%]">
+                  <h1 className="text-[23px] mr-3 font-acme text-[#878d97]">balance: {handleBalance()}</h1>
                 </div>
               </div>
-              <div className="w-[100%] flex">
-                <input className="border-none focus:outline-none font-acme rounded-xl text-[40px] pl-12 w-[80%]" placeholder="0" type="number" value={handleTopInput()} onChange={(e) => handleTopChange(e.target.value)} id="number-input" autoFocus />
-              </div>
-              <div className="absolute right-0 bottom-[35%]">
-                <h1 className="text-[23px] mr-3 font-acme text-[#878d97]">balance: {handleBalance()}</h1>
+              <div className="h-[15%] w-[80%] mx-auto mt-6">
+                <button className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[30px]" id="amm-button" onClick={() => handleButtonClick()} >{renderButton()}</button>
               </div>
             </div>
-            <div className="h-[15%] w-[80%] mx-auto mt-6">
-              <button className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[30px]" id="amm-button" onClick={() => handleButtonClick()} >{renderButton()}</button>
+            <div className="w-[40%] h-[85%] bg-white border-2 border-black rounded-xl flex flex-col px-6 py-5 mr-3">
+              <div className="flex flex-row justify-between items-center">
+                <h1 className="font-acme text-[24px]">borrow limit:</h1>
+                <p className="font-acme text-[20px]">${stakedBalance ? ((stakedBalance - lockedBalance) * floorPrice).toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
+              </div>
+              <div className="flex flex-row justify-between items-center mt-6">
+                <h1 className="font-acme text-[24px]">$LOCKS floor price:</h1>
+                <p className="font-acme text-[20px]">{floorPrice > 0 ? `$${floorPrice.toLocaleString('en-US', { maximumFractionDigits: 2 })}` : 0}</p>
+              </div>
+              <div className="flex flex-row justify-between items-center mt-6">
+                <h1 className="font-acme text-[24px]">$LOCKS balance:</h1>
+                <p className="font-acme text-[20px]">{locksBalance > 0 ? locksBalance.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
+              </div>
+              <div className="flex flex-row justify-between items-center mt-6">
+                <h1 className="font-acme text-[24px]">staked $LOCKS:</h1>
+                <p className="font-acme text-[20px]">{stakedBalance ? stakedBalance.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
+              </div>
+              <div className="flex flex-row justify-between items-center mt-6">
+                <h1 className="font-acme text-[24px]">locked $LOCKS:</h1>
+                <p className="font-acme text-[20px]">{lockedBalance > 0 ? lockedBalance.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
+              </div>
+              <div className="flex flex-row justify-between items-center mt-6">
+                <h1 className="font-acme text-[24px]">$HONEY balance:</h1>
+                <p className="font-acme text-[20px]">{honeyBalance > 0 ? honeyBalance.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
+              </div>
+              <div className="flex flex-row justify-between items-center mt-6">
+                <h1 className="font-acme text-[24px]">borrowed $HONEY:</h1>
+                <p className="font-acme text-[20px]">{borrowedBalance > 0 ? borrowedBalance.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
+              </div>
             </div>
           </div>
-          <div className="w-[40%] h-[85%] bg-white border-2 border-black rounded-xl flex flex-col px-6 py-5 mr-3">
-            <div className="flex flex-row justify-between items-center">
-              <h1 className="font-acme text-[24px]">borrow limit:</h1>
-              <p className="font-acme text-[20px]">${stakedBalance ? ((stakedBalance - lockedBalance) * floorPrice).toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
-            </div>
-            <div className="flex flex-row justify-between items-center mt-6">
-              <h1 className="font-acme text-[24px]">$LOCKS floor price:</h1>
-              <p className="font-acme text-[20px]">{floorPrice > 0 ? `$${floorPrice.toLocaleString('en-US', { maximumFractionDigits: 2 })}` : 0}</p>
-            </div>
-            <div className="flex flex-row justify-between items-center mt-6">
-              <h1 className="font-acme text-[24px]">$LOCKS balance:</h1>
-              <p className="font-acme text-[20px]">{locksBalance > 0 ? locksBalance.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
-            </div>
-            <div className="flex flex-row justify-between items-center mt-6">
-              <h1 className="font-acme text-[24px]">staked $LOCKS:</h1>
-              <p className="font-acme text-[20px]">{stakedBalance ? stakedBalance.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
-            </div>
-            <div className="flex flex-row justify-between items-center mt-6">
-              <h1 className="font-acme text-[24px]">locked $LOCKS:</h1>
-              <p className="font-acme text-[20px]">{lockedBalance > 0 ? lockedBalance.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
-            </div>
-            <div className="flex flex-row justify-between items-center mt-6">
-              <h1 className="font-acme text-[24px]">$HONEY balance:</h1>
-              <p className="font-acme text-[20px]">{honeyBalance > 0 ? honeyBalance.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
-            </div>
-            <div className="flex flex-row justify-between items-center mt-6">
-              <h1 className="font-acme text-[24px]">borrowed $HONEY:</h1>
-              <p className="font-acme text-[20px]">{borrowedBalance > 0 ? borrowedBalance.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
-            </div>
-          </div>
-        </div>
-      </animated.div>
-      <Bear />
-    </div>
+        </animated.div>
+        <Bear />
+      </div>
+    </>
   )
 }

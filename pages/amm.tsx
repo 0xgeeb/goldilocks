@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react"
+import Head from "next/head"
 import { ethers, BigNumber } from "ethers"
 import { useSpring, animated } from "@react-spring/web"
 import Image from "next/image"
@@ -689,78 +690,83 @@ export default function Amm() {
   }
   
   return (
-    <div className="flex flex-row py-3 overflow-hidden">
-      <animated.div className="w-[57%] flex flex-col pt-8 pb-2 px-24 rounded-xl bg-slate-300 ml-24 mt-12 h-[95%] border-2 border-black" style={springs}>
-        <h1 className="text-[50px] font-acme text-[#ffff00]" id="text-outline">goldilocks AMM</h1>
-        <div className="flex flex-row ml-2 items-center justify-between">
-          <h3 className="font-acme text-[24px] ml-2">trading between $honey & $locks</h3>
-          <div className="flex flex-row bg-white rounded-2xl border-2 border-black">
-            <div className={`font-acme w-20 py-2 ${buyToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-l-2xl text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(1)}>buy</div>
-            <div className={`font-acme w-20 py-2 ${sellToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(2)}>sell</div>
-            <div className={`font-acme w-20 py-2 ${redeemToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-r-2xl text-center cursor-pointer`} onClick={() => handlePill(3)}>redeem</div>
+    <>
+      <Head>
+        <title>mf amm</title>
+      </Head>
+      <div className="flex flex-row py-3 overflow-hidden">
+        <animated.div className="w-[57%] flex flex-col pt-8 pb-2 px-24 rounded-xl bg-slate-300 ml-24 mt-12 h-[95%] border-2 border-black" style={springs}>
+          <h1 className="text-[50px] font-acme text-[#ffff00]" id="text-outline">goldilocks AMM</h1>
+          <div className="flex flex-row ml-2 items-center justify-between">
+            <h3 className="font-acme text-[24px] ml-2">trading between $honey & $locks</h3>
+            <div className="flex flex-row bg-white rounded-2xl border-2 border-black">
+              <div className={`font-acme w-20 py-2 ${buyToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-l-2xl text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(1)}>buy</div>
+              <div className={`font-acme w-20 py-2 ${sellToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(2)}>sell</div>
+              <div className={`font-acme w-20 py-2 ${redeemToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-r-2xl text-center cursor-pointer`} onClick={() => handlePill(3)}>redeem</div>
+            </div>
           </div>
-        </div>
-        <div className="h-[75%] relative mt-4 flex flex-col">
-          <div className="h-[67%] px-6">
-            <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
-              <div className="h-[50%] flex flex-row items-center justify-between">
-                <div className="flex flex-row mt-3">
-                  <h1 className="font-acme text-[30px] pl-10 pr-5 mt-2">{handleTopLabel()}</h1>
-                  <div className="rounded-[50px] p-2 flex flex-row bg-slate-100 border-2 border-black items-center">{handleTopLabelToken()}</div>
+          <div className="h-[75%] relative mt-4 flex flex-col">
+            <div className="h-[67%] px-6">
+              <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
+                <div className="h-[50%] flex flex-row items-center justify-between">
+                  <div className="flex flex-row mt-3">
+                    <h1 className="font-acme text-[30px] pl-10 pr-5 mt-2">{handleTopLabel()}</h1>
+                    <div className="rounded-[50px] p-2 flex flex-row bg-slate-100 border-2 border-black items-center">{handleTopLabelToken()}</div>
+                  </div>
+                  <div className="flex flex-row items-center mr-10">
+                    <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(1)}>25%</button>
+                    <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(2)}>50%</button>
+                    <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(3)}>75%</button>
+                    <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(4)}>MAX</button>
+                  </div>
                 </div>
-                <div className="flex flex-row items-center mr-10">
-                  <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(1)}>25%</button>
-                  <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(2)}>50%</button>
-                  <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(3)}>75%</button>
-                  <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(4)}>MAX</button>
+                <div className="h-[50%] pl-10 flex flex-row items-center justify-between">
+                  <input className="border-none focus:outline-none bg-transparent font-acme rounded-xl text-[40px]" placeholder="0.0" value={handleTopInput()} onChange={(e) => handleTopChange(e.target.value)} type="number" id="number-input" autoFocus />
+                  <h1 className="mr-10 mt-4 text-[23px] font-acme text-[#878d97]">balance: {handleTopBalance()}</h1>
                 </div>
               </div>
-              <div className="h-[50%] pl-10 flex flex-row items-center justify-between">
-                <input className="border-none focus:outline-none bg-transparent font-acme rounded-xl text-[40px]" placeholder="0.0" value={handleTopInput()} onChange={(e) => handleTopChange(e.target.value)} type="number" id="number-input" autoFocus />
-                <h1 className="mr-10 mt-4 text-[23px] font-acme text-[#878d97]">balance: {handleTopBalance()}</h1>
+              <div className="absolute top-[31%] left-[50%] h-10 w-10 bg-[#ffff00] border-2 border-black rounded-3xl flex justify-center items-center" onClick={() => test()}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0D111C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+              </div>
+              <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
+                <div className="h-[50%] flex flex-row items-center">
+                  <h1 className="font-acme text-[30px] ml-10 pr-5 mt-3">{handleBottomLabel()}</h1>
+                  <div className="rounded-[50px] mt-3 p-2 flex flex-row bg-slate-100 border-2 border-black items-center">{handleBottomLabelToken()}</div>
+                </div>
+                <div className="h-[50%] pl-10 flex flex-row items-center justify-between">
+                  <h1 className={`${buyToggle && !cost || sellToggle && !receive || redeemToggle && !redeemReceive ? "text-[#9ca3af]" : ""} font-acme text-[40px]`}>{handleBottomInput()}</h1>
+                  <h1 className="mr-10 mt-4 text-[23px] font-acme text-[#878d97]">balance: {handleBottomBalance()}</h1>
+                </div>
               </div>
             </div>
-            <div className="absolute top-[31%] left-[50%] h-10 w-10 bg-[#ffff00] border-2 border-black rounded-3xl flex justify-center items-center" onClick={() => test()}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0D111C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+            <div className="h-[33%] w-[100%] flex justify-center items-center">
+              <button className="h-[50%] w-[50%] bg-white rounded-xl mt-5 py-3 px-6 border-2 border-black font-acme text-[30px]" id="amm-button" onClick={() => handleButtonClick()} >{renderButton()}</button>
             </div>
-            <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
-              <div className="h-[50%] flex flex-row items-center">
-                <h1 className="font-acme text-[30px] ml-10 pr-5 mt-3">{handleBottomLabel()}</h1>
-                <div className="rounded-[50px] mt-3 p-2 flex flex-row bg-slate-100 border-2 border-black items-center">{handleBottomLabelToken()}</div>
+          </div>
+          <div className="flex flex-row justify-between">
+            <div className="flex flex-row w-[55%] px-3 ml-3 justify-between rounded-xl border-2 border-black mt-2 bg-white">
+              <LeftAmmBoxText />
+              <LeftAmmBoxCurNums floor={floor} market={market} fsl={fsl} psl={psl} />
+              <div className="flex flex-col items-end justify-between">
+                <p className={`${floor > newFloor ? "text-red-600" : floor == newFloor ? "" : "text-green-600"} font-acme text-[20px]`}>${ buy > 0 || sell > 0 || redeem > 0 ? newFloor.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
+                <p className={`${market > newMarket ? "text-red-600" : market == newMarket ? "" : "text-green-600"} font-acme text-[20px]`}>${ buy > 0 || sell > 0 || redeem > 0 ? newMarket.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
+                <p className={`${fsl > newFsl ? "text-red-600" : fsl == newFsl ? "" : "text-green-600"} font-acme text-[20px]`}>{ fsl == newFsl ? "-" : newFsl.toLocaleString('en-US', { maximumFractionDigits: 2 }) }</p>
+                <p className={`${psl > newPsl ? "text-red-600" : psl == newPsl ? "" : "text-green-600"} font-acme text-[20px]`}>{ buy > 0 || sell > 0 || redeem > 0 ? newPsl.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
               </div>
-              <div className="h-[50%] pl-10 flex flex-row items-center justify-between">
-                <h1 className={`${buyToggle && !cost || sellToggle && !receive || redeemToggle && !redeemReceive ? "text-[#9ca3af]" : ""} font-acme text-[40px]`}>{handleBottomInput()}</h1>
-                <h1 className="mr-10 mt-4 text-[23px] font-acme text-[#878d97]">balance: {handleBottomBalance()}</h1>
+            </div>
+            <div className="flex flex-row w-[40%] px-3 justify-between mr-3 rounded-xl border-2 border-black mt-2 bg-white">
+              <RightAmmBoxText />
+              <RightAmmBoxCurNums supply={supply} />
+              <div className="flex flex-col items-end justify-between w-[30%]">
+                <p className={`${supply > newSupply ? "text-red-600" : supply == newSupply ? "" : "text-green-600"} font-acme text-[20px]`}>{ supply == newSupply ? "-" : newSupply.toLocaleString('en-US') }</p>
+                <p className="font-acme text-[20px]">{ targetRatio > 0 ? formatAsPercentage.format(targetRatio) : "-" }</p>
+                <p className="font-acme text-[20px] whitespace-nowrap">{lastFloorRaise}</p>
               </div>
             </div>
           </div>
-          <div className="h-[33%] w-[100%] flex justify-center items-center">
-            <button className="h-[50%] w-[50%] bg-white rounded-xl mt-5 py-3 px-6 border-2 border-black font-acme text-[30px]" id="amm-button" onClick={() => handleButtonClick()} >{renderButton()}</button>
-          </div>
-        </div>
-        <div className="flex flex-row justify-between">
-          <div className="flex flex-row w-[55%] px-3 ml-3 justify-between rounded-xl border-2 border-black mt-2 bg-white">
-            <LeftAmmBoxText />
-            <LeftAmmBoxCurNums floor={floor} market={market} fsl={fsl} psl={psl} />
-            <div className="flex flex-col items-end justify-between">
-              <p className={`${floor > newFloor ? "text-red-600" : floor == newFloor ? "" : "text-green-600"} font-acme text-[20px]`}>${ buy > 0 || sell > 0 || redeem > 0 ? newFloor.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
-              <p className={`${market > newMarket ? "text-red-600" : market == newMarket ? "" : "text-green-600"} font-acme text-[20px]`}>${ buy > 0 || sell > 0 || redeem > 0 ? newMarket.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
-              <p className={`${fsl > newFsl ? "text-red-600" : fsl == newFsl ? "" : "text-green-600"} font-acme text-[20px]`}>{ fsl == newFsl ? "-" : newFsl.toLocaleString('en-US', { maximumFractionDigits: 2 }) }</p>
-              <p className={`${psl > newPsl ? "text-red-600" : psl == newPsl ? "" : "text-green-600"} font-acme text-[20px]`}>{ buy > 0 || sell > 0 || redeem > 0 ? newPsl.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
-            </div>
-          </div>
-          <div className="flex flex-row w-[40%] px-3 justify-between mr-3 rounded-xl border-2 border-black mt-2 bg-white">
-            <RightAmmBoxText />
-            <RightAmmBoxCurNums supply={supply} />
-            <div className="flex flex-col items-end justify-between w-[30%]">
-              <p className={`${supply > newSupply ? "text-red-600" : supply == newSupply ? "" : "text-green-600"} font-acme text-[20px]`}>{ supply == newSupply ? "-" : newSupply.toLocaleString('en-US') }</p>
-              <p className="font-acme text-[20px]">{ targetRatio > 0 ? formatAsPercentage.format(targetRatio) : "-" }</p>
-              <p className="font-acme text-[20px] whitespace-nowrap">{lastFloorRaise}</p>
-            </div>
-          </div>
-        </div>
-      </animated.div>
-      <Bear />
-    </div>
+        </animated.div>
+        <Bear />
+      </div>
+    </>
   )
 }

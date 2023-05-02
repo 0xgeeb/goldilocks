@@ -3,7 +3,7 @@ import { configureChains, createClient, WagmiConfig } from "wagmi"
 import { avalancheFuji } from "@wagmi/core/chains"
 import { jsonRpcProvider } from "@wagmi/core/providers/jsonRpc"
 import { connectorsForWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit"
-import { metaMaskWallet, injectedWallet, rainbowWallet, walletConnectWallet, ledgerWallet } from "@rainbow-me/rainbowkit/wallets"
+import { metaMaskWallet, injectedWallet, rainbowWallet, rabbyWallet, ledgerWallet } from "@rainbow-me/rainbowkit/wallets"
 import "@rainbow-me/rainbowkit/styles.css"
 
 const { chains, provider } = configureChains([avalancheFuji], [
@@ -16,12 +16,12 @@ const { chains, provider } = configureChains([avalancheFuji], [
 
 const connectors = connectorsForWallets([
   {
-    groupName: "Bing Chilling",
+    groupName: "Goldilocks v0.2",
     wallets: [
       metaMaskWallet({chains, shimDisconnect: true}),
       injectedWallet({ chains, shimDisconnect: true }),
       rainbowWallet({ chains }),
-      walletConnectWallet({ chains }),
+      rabbyWallet({ chains }),
       ledgerWallet({ chains })
     ]
   }

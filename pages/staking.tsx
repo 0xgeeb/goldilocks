@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react"
+import Head from "next/head"
 import { ethers, BigNumber } from "ethers"
 import { useSpring, animated } from "@react-spring/web"
 import useDebounce from "../hooks/useDebounce"
@@ -470,81 +471,86 @@ export default function Staking() {
   }
   else {
     return (
-      <div className="flex flex-row py-3">
-        <animated.div className="w-[57%] flex flex-col pt-8 pb-2 px-16 rounded-xl bg-slate-300 ml-24 mt-12 h-[700px] border-2 border-black" style={springs}>
-          { popupToggle && 
-            <div className="z-10 bg-white rounded-xl border-2 border-black w-36 h-36 left-[60%] top-[30%] absolute px-4">
-              <span className="absolute right-2 rounded-full border-2 border-black px-2 top-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => setPopupToggle(false)}>x</span>
-              <p className="mt-10 mx-auto font-acme">burn n porridge to buy n locks at floor price</p>
+      <>
+        <Head>
+          <title>mf staking</title>
+        </Head>
+        <div className="flex flex-row py-3">
+          <animated.div className="w-[57%] flex flex-col pt-8 pb-2 px-16 rounded-xl bg-slate-300 ml-24 mt-12 h-[700px] border-2 border-black" style={springs}>
+            { popupToggle && 
+              <div className="z-10 bg-white rounded-xl border-2 border-black w-36 h-36 left-[60%] top-[30%] absolute px-4">
+                <span className="absolute right-2 rounded-full border-2 border-black px-2 top-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => setPopupToggle(false)}>x</span>
+                <p className="mt-10 mx-auto font-acme">burn n porridge to buy n locks at floor price</p>
+              </div>
+            }
+            <h1 className="text-[50px] font-acme text-[#ffff00]" id="text-outline" onClick={() => test()}>staking</h1>
+            <div className="flex flex-row ml-2 items-center justify-between">
+              <h3 className="font-acme text-[24px] ml-2">staking $locks for $porridge</h3>
+              <div className="flex flex-row bg-white rounded-2xl border-2 border-black">
+                <div className={`font-acme w-20 py-2 ${stakeToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-l-2xl text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(1)}>stake</div>
+                <div className={`font-acme w-20 py-2 ${unstakeToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(2)}>unstake</div>
+                <div className={`font-acme w-20 py-2 ${realizeToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-r-2xl text-center cursor-pointer`} onClick={() => handlePill(3)}>stir <span className="ml-1 rounded-full px-2 border-2 border-black hover:bg-black hover:text-white" onClick={() => setPopupToggle(true)}>?</span></div>
+              </div>
             </div>
-          }
-          <h1 className="text-[50px] font-acme text-[#ffff00]" id="text-outline" onClick={() => test()}>staking</h1>
-          <div className="flex flex-row ml-2 items-center justify-between">
-            <h3 className="font-acme text-[24px] ml-2">staking $locks for $porridge</h3>
-            <div className="flex flex-row bg-white rounded-2xl border-2 border-black">
-              <div className={`font-acme w-20 py-2 ${stakeToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-l-2xl text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(1)}>stake</div>
-              <div className={`font-acme w-20 py-2 ${unstakeToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(2)}>unstake</div>
-              <div className={`font-acme w-20 py-2 ${realizeToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-r-2xl text-center cursor-pointer`} onClick={() => handlePill(3)}>stir <span className="ml-1 rounded-full px-2 border-2 border-black hover:bg-black hover:text-white" onClick={() => setPopupToggle(true)}>?</span></div>
-            </div>
-          </div>
-          <div className="h-[100%] mt-4 flex flex-row">
-            <div className="w-[60%] flex flex-col">
-              <div className="rounded-3xl border-2 border-black w-[100%] h-[60%] bg-white flex flex-col relative">
-                <div className="flex flex-row items-center justify-between ml-10 mt-16">
-                  <h1 className="font-acme text-[40px]">{renderLabel()}</h1>
-                  <div className="flex flex-row items-center mr-6">
-                    <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(1)}>25%</button>
-                    <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(2)}>50%</button>
-                    <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(3)}>75%</button>
-                    <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(4)}>MAX</button>
+            <div className="h-[100%] mt-4 flex flex-row">
+              <div className="w-[60%] flex flex-col">
+                <div className="rounded-3xl border-2 border-black w-[100%] h-[60%] bg-white flex flex-col relative">
+                  <div className="flex flex-row items-center justify-between ml-10 mt-16">
+                    <h1 className="font-acme text-[40px]">{renderLabel()}</h1>
+                    <div className="flex flex-row items-center mr-6">
+                      <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(1)}>25%</button>
+                      <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(2)}>50%</button>
+                      <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(3)}>75%</button>
+                      <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(4)}>MAX</button>
+                    </div>
+                  </div>
+                  <div className="absolute top-[45%]">
+                    <input className="border-none focus:outline-none font-acme rounded-xl text-[40px] pl-10" placeholder="0" type="number" value={handleTopInput()} onChange={(e) => handleTopChange(e.target.value)} id="number-input" autoFocus />
+                  </div>
+                  <div className="absolute right-0 bottom-[35%]">
+                    <h1 className="text-[23px] mr-6 font-acme text-[#878d97]">balance: {handleBalance()}</h1>
                   </div>
                 </div>
-                <div className="absolute top-[45%]">
-                  <input className="border-none focus:outline-none font-acme rounded-xl text-[40px] pl-10" placeholder="0" type="number" value={handleTopInput()} onChange={(e) => handleTopChange(e.target.value)} id="number-input" autoFocus />
-                </div>
-                <div className="absolute right-0 bottom-[35%]">
-                  <h1 className="text-[23px] mr-6 font-acme text-[#878d97]">balance: {handleBalance()}</h1>
+                <div className="h-[15%] w-[80%] mx-auto mt-6">
+                  <button className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[30px]" id="amm-button" onClick={() => handleButtonClick()} >{renderButton()}</button>
                 </div>
               </div>
-              <div className="h-[15%] w-[80%] mx-auto mt-6">
-                <button className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[30px]" id="amm-button" onClick={() => handleButtonClick()} >{renderButton()}</button>
+              <div className="flex flex-col w-[40%] h-[100%] mt-4 ml-4">
+                <div className="w-[100%] h-[70%] flex p-6 flex-col bg-white rounded-xl border-2 border-black">
+                  <div className="flex flex-row justify-between items-center mt-3">
+                    <h1 className="font-acme text-[24px]">$LOCKS floor price:</h1>
+                    <p className="font-acme text-[20px]">${floorPrice > 0 ? floorPrice.toLocaleString('en-US', { maximumFractionDigits: 4 }) : 0}</p>
+                  </div>
+                  <div className="flex flex-row justify-between items-center mt-3">
+                    <h1 className="font-acme text-[24px]">$LOCKS balance:</h1>
+                    <p className="font-acme text-[20px]">{locksBalance > 0 ? locksBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : 0}</p>
+                  </div>
+                  <div className="flex flex-row justify-between items-center mt-3">
+                    <h1 className="font-acme text-[24px]">$HONEY balance:</h1>
+                    <p className="font-acme text-[20px]">{honeyBalance > 0 ? honeyBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : 0}</p>
+                  </div>
+                  <div className="flex flex-row justify-between items-center mt-3">
+                    <h1 className="font-acme text-[24px]">staked $LOCKS:</h1>
+                    <p className="font-acme text-[20px]">{stakedBalance > 0 ? stakedBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : 0}</p>
+                  </div>
+                  <div className="flex flex-row justify-between items-center mt-3">
+                    <h1 className="font-acme text-[24px]">$PRG balance:</h1>
+                    <p className="font-acme text-[20px]">{porridgeBalance > 0 ? porridgeBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : 0}</p>
+                  </div>
+                  <div className="flex flex-row justify-between items-center mt-3">
+                    <h1 className="font-acme text-[24px]">$PRG available to claim:</h1>
+                    <p className="font-acme text-[20px]">{claimBalance > 0 ? claimBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : 0}</p>
+                  </div>
+                </div>
+                {account.isConnected && <div className="h-[10%] w-[70%] mx-auto mt-4">
+                  <button className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[25px]" id="amm-button" onClick={() => claimInteraction?.()} >claim yield</button>
+                </div>}
               </div>
             </div>
-            <div className="flex flex-col w-[40%] h-[100%] mt-4 ml-4">
-              <div className="w-[100%] h-[70%] flex p-6 flex-col bg-white rounded-xl border-2 border-black">
-                <div className="flex flex-row justify-between items-center mt-3">
-                  <h1 className="font-acme text-[24px]">$LOCKS floor price:</h1>
-                  <p className="font-acme text-[20px]">${floorPrice > 0 ? floorPrice.toLocaleString('en-US', { maximumFractionDigits: 4 }) : 0}</p>
-                </div>
-                <div className="flex flex-row justify-between items-center mt-3">
-                  <h1 className="font-acme text-[24px]">$LOCKS balance:</h1>
-                  <p className="font-acme text-[20px]">{locksBalance > 0 ? locksBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : 0}</p>
-                </div>
-                <div className="flex flex-row justify-between items-center mt-3">
-                  <h1 className="font-acme text-[24px]">$HONEY balance:</h1>
-                  <p className="font-acme text-[20px]">{honeyBalance > 0 ? honeyBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : 0}</p>
-                </div>
-                <div className="flex flex-row justify-between items-center mt-3">
-                  <h1 className="font-acme text-[24px]">staked $LOCKS:</h1>
-                  <p className="font-acme text-[20px]">{stakedBalance > 0 ? stakedBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : 0}</p>
-                </div>
-                <div className="flex flex-row justify-between items-center mt-3">
-                  <h1 className="font-acme text-[24px]">$PRG balance:</h1>
-                  <p className="font-acme text-[20px]">{porridgeBalance > 0 ? porridgeBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : 0}</p>
-                </div>
-                <div className="flex flex-row justify-between items-center mt-3">
-                  <h1 className="font-acme text-[24px]">$PRG available to claim:</h1>
-                  <p className="font-acme text-[20px]">{claimBalance > 0 ? claimBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : 0}</p>
-                </div>
-              </div>
-              {account.isConnected && <div className="h-[10%] w-[70%] mx-auto mt-4">
-                <button className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[25px]" id="amm-button" onClick={() => claimInteraction?.()} >claim yield</button>
-              </div>}
-            </div>
-          </div>
-        </animated.div>
-        <Bear />
-      </div>
+          </animated.div>
+          <Bear />
+        </div>
+      </>
     )
   }
 }
