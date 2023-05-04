@@ -16,7 +16,7 @@ const INITIAL_STATE = {
   getBalance: async () => {},
   updateBalance: async () => {},
   ensureAllowance: async (token: string, spender: string, cost: number, signer: any): Promise<void | boolean> => {},
-  sendBuyTx: async (buy: number, cost: number, signer: any): Promise<void | boolean> => {}
+  sendBuyTx: async (buy: number, cost: number, signer: any): Promise<any> => {}
 }
 
 const WalletContext = createContext(INITIAL_STATE)
@@ -81,15 +81,14 @@ export const WalletProvider = (props: PropsWithChildren<{}>) => {
   const ensureAllowance = async (token: string, spender: string, cost: number, signer: any): Promise<boolean> => {
 
     const tokenContract = new ethers.Contract(
-      '0x34eC325ddC7dAeF8FdF07FdAF807C31f660cDD18',
-      // contracts[token].address,
+      contracts[token].address,
       contracts[token].abi,
       signer
     )
-    const allowanceTx = await tokenContract.balanceOf('0xAfD3A6AD0967f0dD590ABC5d4518A2920e642EEe')
-    // const allowanceTx = await tokenContract.allowance(walletAddress, spender)
+    const allowanceTx = await tokenContract.allowance(walletAddress, spender)
     const allowanceNum = allowanceTx._hex / Math.pow(10, 18)
-    console.log(allowanceNum)
+    console.log('allowanceNum: ', allowanceNum)
+    console.log('cost: ', cost)
 
     if(cost > allowanceNum) {
       try {
@@ -107,7 +106,7 @@ export const WalletProvider = (props: PropsWithChildren<{}>) => {
     }
   }
 
-  const sendBuyTx = async (buy: number, cost: number, signer: any): Promise<boolean> => {
+  const sendBuyTx = async (buy: number, cost: number, signer: any): Promise<any> => {
 
     const ammContract = new ethers.Contract(
       contracts.amm.address,
@@ -115,13 +114,12 @@ export const WalletProvider = (props: PropsWithChildren<{}>) => {
       signer
     )
     try {
-      await ammContract.buy(BigNumber.from(ethers.utils.parseUnits(buy.toString(), 18)), BigNumber.from(ethers.utils.parseUnits(cost.toString(), 18)))
-      return true
+      const buyReceipt = await ammContract.buy(BigNumber.from(ethers.utils.parseUnits(buy.toString(), 18)), BigNumber.from(ethers.utils.parseUnits(cost.toString(), 18)))
+      return buyReceipt
     }
     catch (e) {
       console.log('user denied tx')
       console.log('or: ', e)
-      return false
     }
   }
 

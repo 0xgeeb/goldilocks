@@ -54,6 +54,8 @@ export default function Amm() {
   const debouncedReceive = useDebounce(receive, 1000)
   const [redeemReceive, setRedeemReceive] = useState<number>(0)
 
+  const [txHash, setTxHash] = useState<string>('')
+
   const account = useAccount()
   const chain = useNetwork()
 
@@ -64,9 +66,19 @@ export default function Amm() {
     abi: testhoneyABI.abi,
     eventName: 'Approval',
     listener(owner: any, spender: any, amount: any) {
-      console.log('amount: ', amount)
-      console.log('amount decoded: ', amount._hex / Math.pow(10, 18))
-      console.log('amount decoded: ', amount.toBigInt().toString())
+      console.log('amount approved: ', amount._hex / Math.pow(10, 18))
+      const button = document.getElementById('amm-button')
+      button && (button.innerHTML = "buy")
+    }
+  })
+
+  useContractEvent({
+    address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
+    abi: ammABI.abi,
+    eventName: 'Buy',
+    listener(user: any, amount: any) {
+      console.log('user: ', user)
+      console.log('amount: ', amount._hex / Math.pow(10, 18))
     }
   })
 
@@ -479,12 +491,6 @@ export default function Amm() {
       if(cost > allowance) {
         return 'approve use of $honey'
       }
-      if(approveIsLoading) {
-        return 'approving...'
-      }
-      if(buyIsLoading) {
-        return 'buying...'
-      }
       return 'buy'
     }
     if(sellToggle) {
@@ -517,7 +523,8 @@ export default function Amm() {
         if(result) {
           button && (button.innerHTML = "buying...")
           console.log('starting buy')
-          await sendBuyTx(buy, cost, signer)
+          const buyReceipt = await sendBuyTx(buy, cost, signer)
+          setTxHash(buyReceipt.hash)
         }
         else {
           button && (button.innerHTML = "approving...")
@@ -726,6 +733,9 @@ export default function Amm() {
               </div>
               <div className="absolute top-[31%] left-[50%] h-10 w-10 bg-[#ffff00] border-2 border-black rounded-3xl flex justify-center items-center" onClick={() => test()}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0D111C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+              </div>
+              <div className="h-[100%] w-[100%] bg-black absolute z-999 top-1">
+
               </div>
               <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
                 <div className="h-[50%] flex flex-row items-center">
