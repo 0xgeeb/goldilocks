@@ -6,6 +6,7 @@ import Image from "next/image"
 import useDebounce from "../hooks/useDebounce"
 import useFormatDate from "../hooks/useFormatDate"
 import { useWallet } from "../providers/WalletProvider"
+import { useNotification } from "../providers/NotificationProvider"
 import Bear from "../components/Bear"
 import ammABI from "../utils/abi/AMM.json"
 import locksABI from "../utils/abi/Locks.json"
@@ -59,14 +60,14 @@ export default function Amm() {
   const account = useAccount()
   const chain = useNetwork()
 
-  const { signer, wallet, getBalance, balance, ensureAllowance, sendBuyTx } = useWallet()
+  const { signer, wallet, getBalance, updateBalance, balance, ensureAllowance, sendBuyTx } = useWallet()
+  const { openNotification } = useNotification()
 
   useContractEvent({
     address: '0x29b9439E09d1D581892686D9e00E3481DCDD5f78',
     abi: testhoneyABI.abi,
     eventName: 'Approval',
     listener(owner: any, spender: any, amount: any) {
-      console.log('amount approved: ', amount._hex / Math.pow(10, 18))
       const button = document.getElementById('amm-button')
       button && (button.innerHTML = "buy")
     }
@@ -77,8 +78,20 @@ export default function Amm() {
     abi: ammABI.abi,
     eventName: 'Buy',
     listener(user: any, amount: any) {
-      console.log('user: ', user)
-      console.log('amount: ', amount._hex / Math.pow(10, 18))
+      setBuy(0)
+      setDisplayString('')
+      openNotification({
+        title: 'Successfully Purchased $LOCKS!',
+        hash: txHash,
+        direction: 'bought',
+        amount: amount._hex / Math.pow(10, 18),
+        price: cost
+      })
+      setTimeout(() => {
+        console.log('running updateBalance')
+        getBalance()
+        console.log('its done running')
+      }, 15000)
     }
   })
 
@@ -194,22 +207,22 @@ export default function Amm() {
     hash: approveData?.hash
   })
   
-  const { config: buyConfig } = usePrepareContractWrite({
-    address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
-    abi: ammABI.abi,
-    functionName: 'buy',
-    args: [BigNumber.from(ethers.utils.parseUnits(debouncedBuy.toString(), 18)), BigNumber.from(ethers.utils.parseUnits(debouncedCost.toString(), 18))],
-    enabled: Boolean(debouncedCost),
-    onSettled() {
-      console.log('just settled buy')
-      console.log('debouncedBuy: ', debouncedBuy)
-      console.log('debouncedCost: ', debouncedCost)
-    }
-  })
-  const { data: buyData, write: buyInteraction } = useContractWrite(buyConfig)
-  const { isLoading: buyIsLoading, isSuccess: buyIsSuccess } = useWaitForTransaction({
-    hash: buyData?.hash
-  })
+  // const { config: buyConfig } = usePrepareContractWrite({
+  //   address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
+  //   abi: ammABI.abi,
+  //   functionName: 'buy',
+  //   args: [BigNumber.from(ethers.utils.parseUnits(debouncedBuy.toString(), 18)), BigNumber.from(ethers.utils.parseUnits(debouncedCost.toString(), 18))],
+  //   enabled: Boolean(debouncedCost),
+  //   onSettled() {
+  //     console.log('just settled buy')
+  //     console.log('debouncedBuy: ', debouncedBuy)
+  //     console.log('debouncedCost: ', debouncedCost)
+  //   }
+  // })
+  // const { data: buyData, write: buyInteraction } = useContractWrite(buyConfig)
+  // const { isLoading: buyIsLoading, isSuccess: buyIsSuccess } = useWaitForTransaction({
+  //   hash: buyData?.hash
+  // })
 
   const { config: sellConfig } = usePrepareContractWrite({
     address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
@@ -245,25 +258,20 @@ export default function Amm() {
   })
 
   async function test() {
-    await ensureAllowance('honey', '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F', cost, signer)
+    // await ensureAllowance('honey', '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F', cost, signer)
+
+    getBalance()
+    console.log(balance)
   }
 
-  // async function checkAllowance() {
-  //   if(window.ethereum) {
-  //     const provider = new ethers.providers.Web3Provider(window.ethereum as any)
-  //     const signer = provider.getSigner()
-  //     const testhoneyContractObject = new ethers.Contract(
-  //       '0x29b9439E09d1D581892686D9e00E3481DCDD5f78',
-  //       testhoneyABI.abi,
-  //       signer
-  //     )
-  //     const checkAllowanceTxn = await testhoneyContractObject.allowance(account.address, '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F')
-  //     const allowanceDataObject: { [key: string]: any; } = checkAllowanceTxn as {}
-  //     setAllowanceCheck(parseInt(allowanceDataObject._hex) / Math.pow(10, 18))
-  //     setCost(cost)
-  //     console.log('checkAllowanceTxn: ', parseInt(allowanceDataObject._hex) / Math.pow(10, 18))
-  //   }
-  // }
+  useEffect(() => {
+    console.log('component mount')
+
+    getBalance()
+
+
+  }, [])
+  
 
   useEffect(() => {
     if(buy < 999) {
@@ -673,13 +681,13 @@ export default function Amm() {
 
   function handleTopBalance() {
     if(buyToggle) {
-      return locksBalance > 0 ? locksBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.0"
+      return balance.locks > 0 ? balance.locks.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
     }
     if(sellToggle) {
-      return locksBalance > 0 ? locksBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.0"
+      return balance.locks > 0 ? balance.locks.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
     }
     if(redeemToggle) {
-      return locksBalance > 0 ? locksBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.0"
+      return balance.locks > 0 ? balance.locks.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
     }
   }
 
@@ -733,9 +741,6 @@ export default function Amm() {
               </div>
               <div className="absolute top-[31%] left-[50%] h-10 w-10 bg-[#ffff00] border-2 border-black rounded-3xl flex justify-center items-center" onClick={() => test()}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0D111C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
-              </div>
-              <div className="h-[100%] w-[100%] bg-black absolute z-999 top-1">
-
               </div>
               <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
                 <div className="h-[50%] flex flex-row items-center">

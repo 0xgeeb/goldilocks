@@ -49,6 +49,7 @@ export const WalletProvider = (props: PropsWithChildren<{}>) => {
       signer
     )
     const locksTx = await locksContract.balanceOf(address)
+    console.log('locksBalance: ', locksTx._hex / Math.pow(10, 18))
     response = { ...response, locks: locksTx._hex / Math.pow(10, 18)}
 
     const porridgeContract = new ethers.Contract(

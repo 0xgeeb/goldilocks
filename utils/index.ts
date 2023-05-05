@@ -1,4 +1,4 @@
-import { Contracts } from "../interfaces"
+import { Contracts } from "./interfaces"
 import borrowABI from "../utils/abi/Borrow.json"
 import locksABI from "../utils/abi/Locks.json"
 import porridgeABI from "../utils/abi/Porridge.json"

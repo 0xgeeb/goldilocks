@@ -1,5 +1,5 @@
 import React from "react"
-import { LeftAmmBoxCurNumsProps } from "../interfaces"
+import { LeftAmmBoxCurNumsProps } from "../utils/interfaces"
 
 export default function LeftAmmBoxCurNums({ floor, market, fsl, psl }: LeftAmmBoxCurNumsProps) {
   return (

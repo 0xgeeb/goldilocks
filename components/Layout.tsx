@@ -1,4 +1,4 @@
-import { LayoutProps } from "../interfaces"
+import { LayoutProps } from "../utils/interfaces"
 import Nav from "./Nav"
 
 const Layout = ({ children }: LayoutProps) => (

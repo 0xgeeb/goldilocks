@@ -23,3 +23,19 @@ export interface LeftAmmBoxCurNumsProps {
 export interface RightAmmBoxCurNumProps {
   supply: number;
 }
+
+export type NotificationProps = {
+  hash: string;
+  title: string;
+  direction: string;
+  amount: number;
+  price: number;
+  isOpen?: boolean;
+  isError?: boolean;
+}
+
+export interface NotificationProviderState {
+  notifications: Array<NotificationProps>;
+  openNotification(notification: NotificationProps): void;
+  closeNotification(notificationHash: string): void;
+}
