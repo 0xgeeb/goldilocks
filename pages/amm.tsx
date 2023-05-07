@@ -95,6 +95,10 @@ export default function Amm() {
     }
   })
 
+  useEffect(() => {
+    console.log('balance changed: ', balance)
+  }, balance)
+
   const formatAsPercentage = Intl.NumberFormat('default', {
     style: 'percent',
     maximumFractionDigits: 2
