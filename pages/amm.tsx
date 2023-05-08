@@ -6,6 +6,7 @@ import Image from "next/image"
 import useDebounce from "../hooks/useDebounce"
 import useFormatDate from "../hooks/useFormatDate"
 import { useWallet } from "../providers/WalletProvider"
+import { contracts } from "../utils"
 import { useNotification } from "../providers/NotificationProvider"
 import Bear from "../components/Bear"
 import ammABI from "../utils/abi/AMM.json"
@@ -95,9 +96,6 @@ export default function Amm() {
     }
   })
 
-  useEffect(() => {
-    console.log('balance changed: ', balance)
-  }, balance)
 
   const formatAsPercentage = Intl.NumberFormat('default', {
     style: 'percent',
@@ -262,19 +260,28 @@ export default function Amm() {
   })
 
   async function test() {
-    // await ensureAllowance('honey', '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F', cost, signer)
-
-    getBalance()
-    console.log(balance)
+    if(signer) {
+      const ammContract = new ethers.Contract(
+        contracts.amm.address,
+        contracts.amm.abi,
+        signer
+      )
+      const locksContract = new ethers.Contract(
+        contracts.locks.address,
+        contracts.locks.abi,
+        signer
+      )
+      const balanceTx = await locksContract.balanceOf(account.address)
+      console.log('before buy locks balance: ', balanceTx._hex / Math.pow(10, 18))
+      const ammTx = await ammContract.buy(BigNumber.from(ethers.utils.parseUnits(debouncedBuy.toString(), 18)), BigNumber.from(ethers.utils.parseUnits(debouncedCost.toString(), 18)))
+      await ammTx.wait()
+      const balanceTxx = await locksContract.balanceOf(account.address)
+      console.log('after buy locks balance: ', balanceTxx._hex / Math.pow(10, 18))
+    }
+    
   }
 
-  useEffect(() => {
-    console.log('component mount')
 
-    getBalance()
-
-
-  }, [])
   
 
   useEffect(() => {
