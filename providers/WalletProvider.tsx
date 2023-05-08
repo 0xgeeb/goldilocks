@@ -2,6 +2,7 @@ import { createContext, PropsWithChildren, useContext, useState } from "react";
 import { BigNumber, Signer, ethers } from "ethers"
 import { useAccount, useSigner, useNetwork, useConnect } from "wagmi"
 import { contracts } from "../utils"
+import { error } from "console";
 
 const INITIAL_STATE = {
   balance: {
@@ -16,6 +17,8 @@ const INITIAL_STATE = {
   getBalance: async () => {},
   updateBalance: async () => {},
   ensureAllowance: async (token: string, spender: string, cost: number, signer: any): Promise<void | boolean> => {},
+  checkAllowance: async (token: string, spender: string, cost: number, signer: any): Promise<void | boolean> => {},
+  approve: async (token: string, spender: string, cost: number, signer: any) => {},
   sendBuyTx: async (buy: number, cost: number, signer: any): Promise<any> => {}
 }
 
@@ -79,6 +82,46 @@ export const WalletProvider = (props: PropsWithChildren<{}>) => {
     getBalance(walletAddress, signer)
   }
 
+  const checkAllowance = async (token: string, spender: string, cost: number, signer: any): Promise<boolean> => {
+
+    const tokenContract = new ethers.Contract(
+      contracts[token].address,
+      contracts[token].abi,
+      signer
+    )
+
+    const allowanceTx = await tokenContract.allowance(walletAddress, spender)
+    const allowanceNum = allowanceTx._hex / Math.pow(10, 18)
+    console.log('allowanceNum: ', allowanceNum)
+    console.log('cost: ', cost)
+    
+    if(cost > allowanceNum) {
+      return false
+    }
+    else {
+      return true
+    }
+  }
+
+  const approve = async (token: string, spender: string, cost: number, signer: any) => {
+
+    const tokenContract = new ethers.Contract(
+      contracts[token].address,
+      contracts[token].abi,
+      signer
+    )
+
+    try {
+      const approveTx = await tokenContract.approve(spender, BigNumber.from(ethers.utils.parseUnits((cost + 0.01).toString(), 18))) 
+      await approveTx.wait()
+      console.log('done waiting')
+    }
+    catch (e) {
+      console.log('user denied tx')
+      console.log('or: ', e)
+    }
+  }
+
   const ensureAllowance = async (token: string, spender: string, cost: number, signer: any): Promise<boolean> => {
 
     const tokenContract = new ethers.Contract(
@@ -93,14 +136,23 @@ export const WalletProvider = (props: PropsWithChildren<{}>) => {
 
     if(cost > allowanceNum) {
       try {
-        tokenContract.approve(spender, BigNumber.from(ethers.utils.parseUnits(cost.toString(), 18)))
-        return false
+        console.log('trying')
+        await tokenContract.approve(spender, BigNumber.from(ethers.utils.parseUnits(cost.toString(), 18)))
+        // return false
       }
-      catch (e) {
-        console.log('user denied tx')
-        console.log('or: ', e)
-        return false
+      catch (e: any) {
+        console.log('catching')
+        console.log(e.code)
+        if(e.code === 'ACTION_REJECTED') {
+          console.log('user denied tx')
+          // return false
+        }
+        else {
+          console.log('whoops ', e)
+          // return false
+        }
       }
+      return false
     }
     else {
       return true
@@ -116,6 +168,7 @@ export const WalletProvider = (props: PropsWithChildren<{}>) => {
     )
     try {
       const buyReceipt = await ammContract.buy(BigNumber.from(ethers.utils.parseUnits(buy.toString(), 18)), BigNumber.from(ethers.utils.parseUnits(cost.toString(), 18)))
+      await buyReceipt.wait()
       return buyReceipt
     }
     catch (e) {
@@ -135,6 +188,8 @@ export const WalletProvider = (props: PropsWithChildren<{}>) => {
         getBalance: updateBalance,
         updateBalance,
         ensureAllowance,
+        checkAllowance,
+        approve,
         sendBuyTx
       }}
     >

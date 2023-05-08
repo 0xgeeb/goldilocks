@@ -61,40 +61,40 @@ export default function Amm() {
   const account = useAccount()
   const chain = useNetwork()
 
-  const { signer, wallet, getBalance, updateBalance, balance, ensureAllowance, sendBuyTx } = useWallet()
+  const { signer, wallet, getBalance, approve, checkAllowance, updateBalance, balance, ensureAllowance, sendBuyTx } = useWallet()
   const { openNotification } = useNotification()
 
-  useContractEvent({
-    address: '0x29b9439E09d1D581892686D9e00E3481DCDD5f78',
-    abi: testhoneyABI.abi,
-    eventName: 'Approval',
-    listener(owner: any, spender: any, amount: any) {
-      const button = document.getElementById('amm-button')
-      button && (button.innerHTML = "buy")
-    }
-  })
+  // useContractEvent({
+  //   address: '0x29b9439E09d1D581892686D9e00E3481DCDD5f78',
+  //   abi: testhoneyABI.abi,
+  //   eventName: 'Approval',
+  //   listener(owner: any, spender: any, amount: any) {
+  //     const button = document.getElementById('amm-button')
+  //     button && (button.innerHTML = "buy")
+  //   }
+  // })
 
-  useContractEvent({
-    address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
-    abi: ammABI.abi,
-    eventName: 'Buy',
-    listener(user: any, amount: any) {
-      setBuy(0)
-      setDisplayString('')
-      openNotification({
-        title: 'Successfully Purchased $LOCKS!',
-        hash: txHash,
-        direction: 'bought',
-        amount: amount._hex / Math.pow(10, 18),
-        price: cost
-      })
-      setTimeout(() => {
-        console.log('running updateBalance')
-        getBalance()
-        console.log('its done running')
-      }, 15000)
-    }
-  })
+  // useContractEvent({
+  //   address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
+  //   abi: ammABI.abi,
+  //   eventName: 'Buy',
+  //   listener(user: any, amount: any) {
+  //     setBuy(0)
+  //     setDisplayString('')
+  //     openNotification({
+  //       title: 'Successfully Purchased $LOCKS!',
+  //       hash: txHash,
+  //       direction: 'bought',
+  //       amount: amount._hex / Math.pow(10, 18),
+  //       price: cost
+  //     })
+  //     setTimeout(() => {
+  //       console.log('running updateBalance')
+  //       getBalance()
+  //       console.log('its done running')
+  //     }, 15000)
+  //   }
+  // })
 
 
   const formatAsPercentage = Intl.NumberFormat('default', {
@@ -194,20 +194,20 @@ export default function Amm() {
     }
   })
 
-  const { config: approveConfig } = usePrepareContractWrite({
-    address: '0x29b9439E09d1D581892686D9e00E3481DCDD5f78',
-    abi: testhoneyABI.abi,
-    functionName: 'approve',
-    args: ['0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F', maxApproval],
-    enabled: true,
-    onSettled() {
-      console.log('just settled approve')
-    }
-  })
-  const { data: approveData, write: approveInteraction } = useContractWrite(approveConfig)
-  const { isLoading: approveIsLoading, isSuccess: approveIsSuccess } = useWaitForTransaction({
-    hash: approveData?.hash
-  })
+  // const { config: approveConfig } = usePrepareContractWrite({
+  //   address: '0x29b9439E09d1D581892686D9e00E3481DCDD5f78',
+  //   abi: testhoneyABI.abi,
+  //   functionName: 'approve',
+  //   args: ['0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F', maxApproval],
+  //   enabled: true,
+  //   onSettled() {
+  //     console.log('just settled approve')
+  //   }
+  // })
+  // const { data: approveData, write: approveInteraction } = useContractWrite(approveConfig)
+  // const { isLoading: approveIsLoading, isSuccess: approveIsSuccess } = useWaitForTransaction({
+  //   hash: approveData?.hash
+  // })
   
   // const { config: buyConfig } = usePrepareContractWrite({
   //   address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
@@ -260,25 +260,25 @@ export default function Amm() {
   })
 
   async function test() {
-    if(signer) {
-      const ammContract = new ethers.Contract(
-        contracts.amm.address,
-        contracts.amm.abi,
-        signer
-      )
-      const locksContract = new ethers.Contract(
-        contracts.locks.address,
-        contracts.locks.abi,
-        signer
-      )
-      const balanceTx = await locksContract.balanceOf(account.address)
-      console.log('before buy locks balance: ', balanceTx._hex / Math.pow(10, 18))
-      const ammTx = await ammContract.buy(BigNumber.from(ethers.utils.parseUnits(debouncedBuy.toString(), 18)), BigNumber.from(ethers.utils.parseUnits(debouncedCost.toString(), 18)))
-      await ammTx.wait()
-      const balanceTxx = await locksContract.balanceOf(account.address)
-      console.log('after buy locks balance: ', balanceTxx._hex / Math.pow(10, 18))
-    }
-    
+    // if(signer) {
+    //   const ammContract = new ethers.Contract(
+    //     contracts.amm.address,
+    //     contracts.amm.abi,
+    //     signer
+    //   )
+    //   const locksContract = new ethers.Contract(
+    //     contracts.locks.address,
+    //     contracts.locks.abi,
+    //     signer
+    //   )
+    //   const balanceTx = await locksContract.balanceOf(account.address)
+    //   console.log('before buy locks balance: ', balanceTx._hex / Math.pow(10, 18))
+    //   const ammTx = await ammContract.buy(BigNumber.from(ethers.utils.parseUnits(debouncedBuy.toString(), 18)), BigNumber.from(ethers.utils.parseUnits(debouncedCost.toString(), 18)))
+    //   await ammTx.wait()
+    //   const balanceTxx = await locksContract.balanceOf(account.address)
+    //   console.log('after buy locks balance: ', balanceTxx._hex / Math.pow(10, 18))
+    // }
+    console.log(allowance)
   }
 
 
@@ -537,16 +537,30 @@ export default function Amm() {
     }
     else {
       if(buyToggle) {
-        console.log('starting allowance')
-        const result: boolean | void = await ensureAllowance('honey', '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F', cost, signer)
+        const result: boolean | void = await checkAllowance('honey', '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F', cost, signer)
         if(result) {
           button && (button.innerHTML = "buying...")
-          console.log('starting buy')
-          const buyReceipt = await sendBuyTx(buy, cost, signer)
-          setTxHash(buyReceipt.hash)
+          const buyTx = await sendBuyTx(buy, cost, signer)
+          button && (button.innerHTML = "buy")
+          openNotification({
+            title: 'Successfully Purchased $LOCKS!',
+            hash: buyTx.hash,
+            direction: 'bought',
+            amount: buy,
+            price: cost
+          })
+          setBuy(0)
+          setDisplayString('')
+          console.log('running updateBalance')
+          getBalance()
+          console.log('its done running')
         }
         else {
           button && (button.innerHTML = "approving...")
+          await approve('honey', '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F', cost , signer)
+          setTimeout(() => {
+            button && (button.innerHTML = "buy")
+          }, 5000)
         }
       }
       if(sellToggle) {
@@ -594,6 +608,7 @@ export default function Amm() {
       }
     }
     if(action == 3) {
+
       if(buyToggle) {
         setDisplayString((honeyBalance * 0.75).toLocaleString('en-US', { maximumFractionDigits: 4 }))
         setBuy(honeyBalance * 0.75)
