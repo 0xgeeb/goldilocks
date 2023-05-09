@@ -19,7 +19,7 @@ const { chains, provider } = configureChains(
 
 const connectors = connectorsForWallets([
   {
-    groupName: "Goldilocks v0.2",
+    groupName: "Goldilocks v0.3",
     wallets: [
       metaMaskWallet({chains, shimDisconnect: true}),
       injectedWallet({ chains, shimDisconnect: true }),
