@@ -6,7 +6,7 @@ import { Porridge } from "../src/Porridge.sol";
 import { Locks } from "../src/Locks.sol";
 import { AMM } from "../src/AMM.sol";
 import { Borrow } from "../src/Borrow.sol";
-import { TestHoney } from "../src/TestHoney.sol";
+import { Honey } from "../src/Honey.sol";
 
 contract PorridgeTest is Test {
 
@@ -14,10 +14,10 @@ contract PorridgeTest is Test {
   Porridge porridge;
   AMM amm;
   Borrow borrow;
-  TestHoney testhoney;
+  Honey honey;
 
   function setUp() public {
-    testhoney = new TestHoney();
+    honey = new Honey();
     locks = new Locks(address(this));
     amm = new AMM(address(locks), address(this));
     borrow = new Borrow(address(amm), address(locks), address(this));
@@ -26,8 +26,8 @@ contract PorridgeTest is Test {
     borrow.setPorridge(address(porridge));
     locks.setAmmAddress(address(amm));
     locks.setPorridgeAddress(address(porridge));
-    locks.setHoneyAddress(address(testhoney));
-    porridge.setHoneyAddress(address(testhoney));
+    locks.setHoneyAddress(address(honey));
+    porridge.setHoneyAddress(address(honey));
   }
 
   function testCalculateYield() public {
@@ -51,11 +51,11 @@ contract PorridgeTest is Test {
   }
 
   function testRealize() public {
-    deal(address(testhoney), address(this), 1000000e18, true);
-    deal(address(testhoney), address(locks), 1000000e18, true);
+    deal(address(honey), address(this), 1000000e18, true);
+    deal(address(honey), address(locks), 1000000e18, true);
     deal(address(porridge), address(this), 1000000e18, true);
     locks.transferToAMM(1600000e18, 400000e18);
-    testhoney.approve(address(porridge), 1600000000e18);
+    honey.approve(address(porridge), 1600000000e18);
     porridge.realize(10e18);
     assertEq(locks.balanceOf(address(this)), 10e18);
   }

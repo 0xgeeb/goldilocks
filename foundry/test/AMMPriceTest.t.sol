@@ -5,18 +5,18 @@ import "../lib/forge-std/src/Test.sol";
 import { IERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import { AMM } from "../src/AMM.sol";
 import { Locks } from "../src/Locks.sol";
-import { TestHoney } from "../src/TestHoney.sol";
+import { Honey } from "../src/Honey.sol";
 
 contract AMMPriceTest is Test {
 
   AMM amm;
   Locks locks;
-  TestHoney honey;
+  Honey honey;
 
   function setUp() public {
     locks = new Locks(address(this));
     amm = new AMM(address(locks), address(this));
-    honey = new TestHoney();
+    honey = new Honey();
     deal(address(honey), address(this), 10000000000000000e18, true);
     deal(address(locks), address(this), 1000000e18, true);
     deal(address(honey), address(locks), 100000000000000000000000000000000e18, true);

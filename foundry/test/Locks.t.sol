@@ -4,20 +4,20 @@ pragma solidity ^0.8.17;
 import { Test } from "../lib/forge-std/src/Test.sol";
 import { Locks } from "../src/Locks.sol";
 import { AMM } from "../src/AMM.sol";
-import { TestHoney } from "../src/TestHoney.sol";
+import { Honey } from "../src/Honey.sol";
 
 contract LocksTest is Test {
 
   Locks locks;
   AMM amm;
-  TestHoney testhoney;
+  Honey honey;
 
   function setUp() public {
     locks = new Locks(address(this));
     amm = new AMM(address(locks), address(this));
-    testhoney = new TestHoney();
+    honey = new Honey();
     locks.setAmmAddress(address(amm));
-    locks.setHoneyAddress(address(testhoney));
+    locks.setHoneyAddress(address(honey));
   }
 
   function testHardCap() public {
@@ -45,7 +45,7 @@ contract LocksTest is Test {
 
   function testOnlyAdmin() public {
     vm.expectRevert(bytes("not admin"));
-    vm.prank(address(testhoney));
+    vm.prank(address(honey));
     locks.setPorridgeAddress(address(this));
   }
 
@@ -55,11 +55,11 @@ contract LocksTest is Test {
   }
 
   function testTransferToAMM() public {
-    deal(address(testhoney), address(locks), 1000000e18, true);
+    deal(address(honey), address(locks), 1000000e18, true);
     locks.setAmmAddress(address(amm));
     locks.transferToAMM(1600000e18, 400000e18);
-    assertEq(testhoney.balanceOf(address(amm)), 1000000e18);
-    assertEq(testhoney.balanceOf(address(locks)), 0);
+    assertEq(honey.balanceOf(address(amm)), 1000000e18);
+    assertEq(honey.balanceOf(address(locks)), 0);
     assertEq(amm.fsl(), 1600000e18);
     assertEq(amm.psl(), 400000e18);
   }
