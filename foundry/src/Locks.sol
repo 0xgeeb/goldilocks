@@ -60,8 +60,8 @@ contract Locks is ERC20("Locks Token", "LOCKS") {
 
   function transferToAMM(uint256 _fsl, uint256 _psl) public onlyAdmin {
     IAMM iamm = IAMM(ammAddress);
-    honey.transfer(address(ammAddress), honey.balanceOf(address(this)));
     iamm.initialize(_fsl, _psl);
+    honey.transfer(address(ammAddress), honey.balanceOf(address(this)));
   }
 
   function setAmmAddress(address _ammAddress) public onlyAdmin {

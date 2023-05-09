@@ -1,21 +1,19 @@
 import React from "react"
 import { ethers, BigNumber } from "ethers"
 import Image from "next/image"
-import testhoneyABI from "../utils/abi/TestHoney.json"
+import { contracts } from "../utils"
 import { usePrepareContractWrite, useContractWrite, useWaitForTransaction, useAccount } from "wagmi"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
 
 export default function Nav() {
-
-  const testhoneyAddy = '0x29b9439E09d1D581892686D9e00E3481DCDD5f78'
   
   const account = useAccount()
   
   const { config } = usePrepareContractWrite({
-    address: testhoneyAddy,
-    abi: testhoneyABI.abi,
+    address: contracts.honey.address as `0x${string}`,
+    abi: contracts.honey.abi,
     functionName: "mint",
-    args: [account. address, BigNumber.from(ethers.utils.parseUnits("1000000", 18))],
+    args: [account.address, BigNumber.from(ethers.utils.parseUnits("1000000", 18))],    
     enabled: true
   })
 
@@ -39,12 +37,13 @@ export default function Nav() {
     <div className="w-[100%] mt-8 flex flex-row items-center justify-between px-24">
       <a href="/"><div className="flex flex-row items-center hover:opacity-25">
         <Image className="" src="/yellow_transparent_logo.png" alt="logo" width="96" height="96" />
-        <h1 className="text-[45px] ml-5 font-acme">Goldilocks v0.2</h1>
+        <h1 className="text-[45px] ml-5 font-acme">Goldilocks v0.3</h1>
+        <h3 className="text-[25px] ml-3 font-acme">(live on devnet)</h3>
       </div></a>
       <div className="flex flex-row justify-between w-[50%]">
         <div className="flex flex-row">
           <button className={`${isSuccess ? "w-36" : "w-24"} py-2 text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme`} id="home-button" onClick={() => write?.()} >{renderButton()}</button>
-          <a href="https://faucet.avax.network/" target="_blank"><button className="w-24 py-2 text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl font-acme" id="home-button">faucet</button></a>
+          <a href="http://k8s-devnet-faucet-c59c30eb9c-922569211.us-west-2.elb.amazonaws.com/" target="_blank"><button className="w-24 py-2 text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl font-acme" id="home-button">faucet</button></a>
         </div>
         <div className="flex flex-row">
           <a href="/amm"><button className="w-24 py-2 text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme" id="home-button">trade</button></a>

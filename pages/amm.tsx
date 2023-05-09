@@ -9,9 +9,6 @@ import { useWallet } from "../providers/WalletProvider"
 import { contracts } from "../utils"
 import { useNotification } from "../providers/NotificationProvider"
 import Bear from "../components/Bear"
-import ammABI from "../utils/abi/AMM.json"
-import locksABI from "../utils/abi/Locks.json"
-import testhoneyABI from "../utils/abi/TestHoney.json"
 import { useAccount, useContractRead, useContractReads, useNetwork, usePrepareContractWrite, useContractWrite, useWaitForTransaction, useContractEvent } from "wagmi"
 import LeftAmmBoxText from "../components/LeftAmmBoxText"
 import RightAmmBoxText from "../components/RightAmmBoxText"
@@ -112,50 +109,51 @@ export default function Amm() {
   const { data, isError, isLoading } = useContractReads({
     contracts: [
       {
-        address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
-        abi: ammABI.abi,
+        address: contracts.amm.address as `0x${string}`,
+        abi: contracts.amm.abi,
         functionName: 'fsl'
       },
       {
-        address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
-        abi: ammABI.abi,
+        address: contracts.amm.address as `0x${string}`,
+        abi: contracts.amm.abi,
         functionName: 'psl'
       },
       {
-        address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
-        abi: ammABI.abi,
+        address: contracts.amm.address as `0x${string}`,
+        abi: contracts.amm.abi,
         functionName: 'supply'
       },
       {
-        address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
-        abi: ammABI.abi,
+        address: contracts.amm.address as `0x${string}`,
+        abi: contracts.amm.abi,
         functionName: 'targetRatio'
       },
       {
-        address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
-        abi: ammABI.abi,
+        address: contracts.amm.address as `0x${string}`,
+        abi: contracts.amm.abi,
         functionName: 'lastFloorRaise'
       },
       {
-        address: '0x29b9439E09d1D581892686D9e00E3481DCDD5f78',
-        abi: testhoneyABI.abi,
+        address: contracts.honey.address as `0x${string}`,
+        abi: contracts.honey.abi,
         functionName: 'allowance',
-        args: [account.address, '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F']
+        args: [account.address, contracts.amm.address]
       },
       {
-        address: '0x461B8AdEDe13Aa786b3f14b05496B93c5148Ad51',
-        abi: locksABI.abi,
+        address: contracts.locks.address as `0x${string}`,
+        abi: contracts.locks.abi,
         functionName: 'balanceOf',
         args: [account.address]
       },
       {
-        address: '0x29b9439E09d1D581892686D9e00E3481DCDD5f78',
-        abi: testhoneyABI.abi,
+        address: contracts.honey.address as `0x${string}`,
+        abi: contracts.honey.abi,
         functionName: 'balanceOf',
         args: [account.address]
       }
     ],
     onSettled(data: any) {
+      console.log(data)
       if(!data[0]) {
         const button = document.getElementById('amm-button')
         if(button) {
@@ -227,8 +225,8 @@ export default function Amm() {
   // })
 
   const { config: sellConfig } = usePrepareContractWrite({
-    address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
-    abi: ammABI.abi,
+    address: contracts.amm.address as `0x${string}`,
+    abi: contracts.amm.abi,
     functionName: 'sell',
     args: [BigNumber.from(ethers.utils.parseUnits(debouncedSell.toString(), 18)), BigNumber.from(ethers.utils.parseUnits(debouncedReceive.toString(), 18))],
     enabled: Boolean(debouncedSell),
@@ -244,8 +242,8 @@ export default function Amm() {
   })
 
   const { config: redeemConfig } = usePrepareContractWrite({
-    address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
-    abi: ammABI.abi,
+    address: contracts.amm.address as `0x${string}`,
+    abi: contracts.amm.abi,
     functionName: 'redeem',
     args: [BigNumber.from(ethers.utils.parseUnits(debouncedRedeem.toString(), 18))],
     enabled: Boolean(debouncedRedeem),
@@ -532,12 +530,12 @@ export default function Amm() {
     if(!account.isConnected) {
       button && (button.innerHTML = "connect wallet")
     }
-    else if(chain?.chain?.id !== 43113) {
-      button && (button.innerHTML = "switch to fuji plz")
+    else if(chain?.chain?.id !== 69420) {
+      button && (button.innerHTML = "switch to devnet plz")
     }
     else {
       if(buyToggle) {
-        const result: boolean | void = await checkAllowance('honey', '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F', cost, signer)
+        const result: boolean | void = await checkAllowance('honey', contracts.amm.address, cost, signer)
         if(result) {
           button && (button.innerHTML = "buying...")
           const buyTx = await sendBuyTx(buy, cost, signer)
@@ -557,7 +555,7 @@ export default function Amm() {
         }
         else {
           button && (button.innerHTML = "approving...")
-          await approve('honey', '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F', cost , signer)
+          await approve('honey', contracts.amm.address, cost , signer)
           setTimeout(() => {
             button && (button.innerHTML = "buy")
           }, 5000)

@@ -4,10 +4,7 @@ import { ethers, BigNumber } from "ethers"
 import { useSpring, animated } from "@react-spring/web"
 import useDebounce from "../hooks/useDebounce"
 import Bear from "../components/Bear"
-import porridgeABI from "../utils/abi/Porridge.json"
-import locksABI from "../utils/abi/Locks.json"
-import testhoneyABI from "../utils/abi/TestHoney.json"
-import ammABI from "../utils/abi/AMM.json"
+import { contracts } from "../utils"
 import { useAccount, useContractReads, useNetwork, usePrepareContractWrite, useContractWrite, useWaitForTransaction } from "wagmi"
 
 export default function Staking() {
@@ -56,54 +53,54 @@ export default function Staking() {
   const { data, isError, isLoading } = useContractReads({
     contracts: [
       {
-        address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
-        abi: ammABI.abi,
+        address: contracts.amm.address as `0x${string}`,
+        abi: contracts.amm.abi,
         functionName: 'fsl'
       },
       {
-        address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
-        abi: ammABI.abi,
+        address: contracts.amm.address as `0x${string}`,
+        abi: contracts.amm.abi,
         functionName: 'supply'
       },
       {
-        address: '0x461B8AdEDe13Aa786b3f14b05496B93c5148Ad51',
-        abi: locksABI.abi,
+        address: contracts.locks.address as `0x${string}`,
+        abi: contracts.locks.abi,
         functionName: 'balanceOf',
         args: [account.address]
       },
       {
-        address: '0x69B228b9247dF2c1F194f92fC19A340A9F2803f7',
-        abi: porridgeABI.abi,
+        address: contracts.porridge.address as `0x${string}`,
+        abi: contracts.porridge.abi,
         functionName: 'getStaked',
         args: [account.address]
       },
       {
-        address: '0x69B228b9247dF2c1F194f92fC19A340A9F2803f7',
-        abi: porridgeABI.abi,
+        address: contracts.porridge.address as `0x${string}`,
+        abi: contracts.porridge.abi,
         functionName: 'balanceOf',
         args: [account.address]
       },
       {
-        address: '0x69B228b9247dF2c1F194f92fC19A340A9F2803f7',
-        abi: porridgeABI.abi,
+        address: contracts.porridge.address as `0x${string}`,
+        abi: contracts.porridge.abi,
         functionName: '_calculateYield',
         args: [account.address]
       },
       {
-        address: '0x461B8AdEDe13Aa786b3f14b05496B93c5148Ad51',
-        abi: locksABI.abi,
+        address: contracts.locks.address as `0x${string}`,
+        abi: contracts.locks.abi,
         functionName: 'allowance',
-        args: [account.address, '0x69B228b9247dF2c1F194f92fC19A340A9F2803f7']
+        args: [account.address, contracts.porridge.address]
       },
       {
-        address: '0x29b9439E09d1D581892686D9e00E3481DCDD5f78',
-        abi: testhoneyABI.abi,
+        address: contracts.honey.address as `0x${string}`,
+        abi: contracts.honey.abi,
         functionName: 'allowance',
-        args: [account.address, '0x69B228b9247dF2c1F194f92fC19A340A9F2803f7']
+        args: [account.address, contracts.porridge.address]
       },
       {
-        address: '0x29b9439E09d1D581892686D9e00E3481DCDD5f78',
-        abi: testhoneyABI.abi,
+        address: contracts.honey.address as `0x${string}`,
+        abi: contracts.honey.abi,
         functionName: 'balanceOf',
         args: [account.address]
       }
@@ -143,8 +140,8 @@ export default function Staking() {
   })
 
   const { config: locksApproveConfig } = usePrepareContractWrite({
-    address: '0x461B8AdEDe13Aa786b3f14b05496B93c5148Ad51',
-    abi: locksABI.abi,
+    address: contracts.locks.address as `0x${string}`,
+    abi: contracts.locks.abi,
     functionName: 'approve',
     args: ['0x69B228b9247dF2c1F194f92fC19A340A9F2803f7', maxApproval],
     enabled: true,
@@ -158,8 +155,8 @@ export default function Staking() {
   })
 
   const { config: testhoneyApproveConfig } = usePrepareContractWrite({
-    address: '0x29b9439E09d1D581892686D9e00E3481DCDD5f78',
-    abi: testhoneyABI.abi,
+    address: contracts.honey.address as `0x${string}`,
+    abi: contracts.honey.abi,
     functionName: 'approve',
     args: ['0x69B228b9247dF2c1F194f92fC19A340A9F2803f7', maxApproval],
     enabled: true,
@@ -173,8 +170,8 @@ export default function Staking() {
   })
 
   const { config: stakeConfig } = usePrepareContractWrite({
-    address: '0x69B228b9247dF2c1F194f92fC19A340A9F2803f7',
-    abi: porridgeABI.abi,
+    address: contracts.porridge.address as `0x${string}`,
+    abi: contracts.porridge.abi,
     functionName: 'stake',
     args: [BigNumber.from(ethers.utils.parseUnits(debouncedStake.toString(), 18))],
     enabled: false,
@@ -190,8 +187,8 @@ export default function Staking() {
   })
 
   const {config: unstakeConfig } = usePrepareContractWrite({
-    address: '0x69B228b9247dF2c1F194f92fC19A340A9F2803f7',
-    abi: porridgeABI.abi,
+    address: contracts.porridge.address as `0x${string}`,
+    abi: contracts.porridge.abi,
     functionName: 'unstake',
     args: [BigNumber.from(ethers.utils.parseUnits(debouncedUnstake.toString(), 18))],
     enabled: false,
@@ -207,8 +204,8 @@ export default function Staking() {
   })
 
   const { config: realizeConfig } = usePrepareContractWrite({
-    address: '0x69B228b9247dF2c1F194f92fC19A340A9F2803f7',
-    abi: porridgeABI.abi,
+    address: contracts.porridge.address as `0x${string}`,
+    abi: contracts.porridge.abi,
     functionName: 'realize',
     args: [BigNumber.from(ethers.utils.parseUnits(debouncedRealize.toString(), 18))],
     enabled: Boolean(debouncedRealize),
@@ -223,8 +220,8 @@ export default function Staking() {
   })
 
   const { config: claimConfig } = usePrepareContractWrite({
-    address: '0x69B228b9247dF2c1F194f92fC19A340A9F2803f7',
-    abi: porridgeABI.abi,
+    address: contracts.porridge.address as `0x${string}`,
+    abi: contracts.porridge.abi,
     functionName: 'claim',
     enabled: true,
     onSettled() {
@@ -311,7 +308,7 @@ export default function Staking() {
     }
     else if(chain?.chain?.id !== 43113) {
       if(button) {
-        button.innerHTML = "switch to fuji plz"
+        button.innerHTML = "switch to devnet plz"
       }
     }
     else {

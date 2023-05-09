@@ -2,7 +2,6 @@ import { createContext, PropsWithChildren, useContext, useState } from "react";
 import { BigNumber, Signer, ethers } from "ethers"
 import { useAccount, useSigner, useNetwork, useConnect } from "wagmi"
 import { contracts } from "../utils"
-import { error } from "console";
 
 const INITIAL_STATE = {
   balance: {
