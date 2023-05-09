@@ -14,7 +14,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       <WagmiProvider>
         <WalletProvider>
           <Head>
-            <title>Goldilocks v0.2</title>
+            <title>Goldilocks v0.3</title>
           </Head>
           <Layout>
             <Component {...pageProps} />
