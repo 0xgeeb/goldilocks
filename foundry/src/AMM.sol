@@ -5,6 +5,11 @@ import { FixedPointMathLib } from "../lib/solady/src/utils/FixedPointMathLib.sol
 import { IERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import { ILocks } from "./interfaces/ILocks.sol";
 
+
+/// @title AMM
+/// @author @0xgeeb
+/// @author @kingkongshearer
+/// @dev Goldilocks AMM
 contract AMM {
 
   using FixedPointMathLib for uint256;
@@ -59,6 +64,7 @@ contract AMM {
     psl = _psl;
   }
   
+  /// @dev calculates price of and mints $LOCKS tokens
   function buy(uint256 _amount, uint256 _maxAmount) public returns (uint256, uint256) {
     uint256 _supply = supply;
     // require(_amount <= _supply / 20, "price impact too large");
@@ -107,6 +113,7 @@ contract AMM {
     return (_marketPrice(_fsl + _tax, _psl, _supply), _floorPrice(_fsl + _tax, _supply));
   }
 
+  /// @dev calculates price of and burns $LOCKS tokens
   function sell(uint256 _amount, uint256 _minAmount) public returns (uint256, uint256) {
     uint256 _supply = supply;
     // require(_amount <= _supply / 20, "price impact too large");
@@ -144,6 +151,7 @@ contract AMM {
     return (_marketPrice(fsl, psl, supply), _floorPrice(fsl, supply));
   }
 
+  /// @dev burns $LOCKS tokens to receive floor value
   function redeem(uint256 _amount) public {
     require(_amount > 0, "cannot redeem zero");
     require(IERC20(locksAddress).balanceOf(msg.sender) >= _amount, "insufficient balance");
@@ -156,10 +164,12 @@ contract AMM {
     emit Redeem(msg.sender, _amount);
   }
 
+  /// @dev calculates floor price of $LOCKS
   function _floorPrice(uint256 _fsl, uint256 _supply) internal pure returns (uint256) {
     return _divWad(_fsl, _supply);
   }
-
+  
+  /// @dev calculates market price of $LOCKS
   function _marketPrice(uint256 _fsl, uint256 _psl, uint256 _supply) internal pure returns (uint256) {
    uint256 factor1 = _psl * 1e10 / _supply;
    uint256 factor2 = ((_psl + _fsl) * 1e5) / _fsl;
@@ -176,7 +186,8 @@ contract AMM {
     uint256 allTogether = _floorPriceHere + (firstSecondHalf * sshPow);
     return allTogether;
   }
- 
+
+  /// @dev if necessary, raises the target ratio 
   function _floorRaise() internal {
     if((psl * (1e18)) / fsl >= targetRatio) {
       uint256 _raiseAmount = (((psl * 1e18) / fsl) * (psl / 32)) / (1e18);

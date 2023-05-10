@@ -5,6 +5,10 @@ import { IERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC
 import { IAMM } from "./interfaces/IAMM.sol";
 import { IPorridge } from "./interfaces/IPorridge.sol";
 
+/// @title Borrow
+/// @author @0xgeeb
+/// @author @kingkongshearer
+/// @dev Goldilocks Borrowing
 contract Borrow {
 
   IAMM iamm;
@@ -39,6 +43,7 @@ contract Borrow {
     return borrowedHoney[_user];
   }
 
+  /// @dev using staked $LOCKS as collateral, lends $HONEY
   function borrow(uint256 _amount) external returns (uint256) {
     require(_amount > 0, "cannot borrow zero");
     uint256 _floorPrice = iamm.floorPrice();
@@ -53,6 +58,7 @@ contract Borrow {
     return _amount - _fee;
   }
 
+  /// @dev repays loan in $HONEY
   function repay(uint256 _amount) external {
     require(_amount > 0, "cannot repay zero");
     require(borrowedHoney[msg.sender] >= _amount, "repaying too much");

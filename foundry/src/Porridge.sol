@@ -40,6 +40,7 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
     return staked[_user];
   }
 
+  /// @dev stakes $LOCKS to begin earning $PRG
   function stake(uint256 _amount) external {
     require(_amount > 0, "cannot stake zero");
     if(staked[msg.sender] > 0) {
@@ -50,6 +51,7 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
     IERC20(locksAddress).transferFrom(msg.sender, address(this), _amount);
   }
 
+  /// @dev unstakes $LOCKS and claims $PRG rewards
   function unstake(uint256 _amount) external returns (uint256 _yield) {
     require(_amount > 0, "cannot unstake zero");
     require(staked[msg.sender] >= _amount, "insufficient staked balance");
@@ -59,10 +61,12 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
     IERC20(locksAddress).transfer(msg.sender, _amount);
   }
 
+  /// @dev claim $PRG rewards
   function claim() external returns (uint256 _yield){
     _yield = _distributeYield(msg.sender);
   }
 
+  /// @dev burns $PRG to buy $LOCKS at floor price
   function realize(uint256 _amount) external {
     require(_amount > 0, "cannot realize 0");
     uint256 floorPrice = iamm.floorPrice();    
