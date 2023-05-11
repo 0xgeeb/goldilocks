@@ -7,23 +7,23 @@ import ammABI from "../utils/abi/AMM.json"
 
 export const contracts: Contracts = {
   amm: {
-    address: '0x3593F7A6219F4E73EB58D46Ec3480B531c8460d4',
+    address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
     abi: ammABI.abi
   },
   locks: {
-    address: '0x597fa8C9812fAae97bb45863B554d1473711BE2c',
+    address: '0x461B8AdEDe13Aa786b3f14b05496B93c5148Ad51',
     abi: locksABI.abi
   } ,
   porridge: {
-    address: '0x3fEC74290225A9453B71A1a7a9ABf287C99526fb',
+    address: '0x69B228b9247dF2c1F194f92fC19A340A9F2803f7',
     abi: porridgeABI.abi
   } ,
   honey: {
-    address: '0x915b170161000699f7bdD25A6DbB453cE72993e5',
+    address: '0x29b9439E09d1D581892686D9e00E3481DCDD5f78',
     abi: honeyABI.abi
   } ,
   borrow: {
-    address: '0xCC08930D0eCc7558231ae0bc955E767a840FD4BB',
+    address: '0x1b408d277D9f168A8893b1728d3B6cb75929a67d',
     abi: borrowABI.abi
   } 
 }

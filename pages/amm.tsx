@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from "react"
 import Head from "next/head"
-import { ethers, BigNumber } from "ethers"
 import { useSpring, animated } from "@react-spring/web"
-import Image from "next/image"
-import useDebounce from "../hooks/useDebounce"
-import useFormatDate from "../hooks/useFormatDate"
-import { useWallet } from "../providers/WalletProvider"
+import { 
+  useFormatDate,
+  useLabel
+} from "../hooks/amm"
+import { 
+  useNotification,
+  useWallet,
+  useInfo,
+  useTx
+} from "../providers"
 import { contracts } from "../utils"
-import { useNotification } from "../providers/NotificationProvider"
 import Bear from "../components/Bear"
-import { useAccount, useContractRead, useContractReads, useNetwork, usePrepareContractWrite, useContractWrite, useWaitForTransaction, useContractEvent } from "wagmi"
 import LeftAmmBoxText from "../components/LeftAmmBoxText"
 import RightAmmBoxText from "../components/RightAmmBoxText"
 import LeftAmmBoxCurNums from "../components/LeftAmmBoxCurNums"
@@ -19,312 +22,113 @@ export default function Amm() {
 
   const [displayString, setDisplayString] = useState<string>('')
   
-  const [fsl, setFsl] = useState<number>(0)
   const [newFsl, setNewFsl] = useState<number>(0)
-  const [psl, setPsl] = useState<number>(0)
   const [newPsl, setNewPsl] = useState<number>(0)
-  const [floor, setFloor] = useState<number>(0)
   const [newFloor, setNewFloor] = useState<number>(0)
-  const [market, setMarket] = useState<number>(0)
   const [newMarket, setNewMarket] = useState<number>(0)
-  const [supply, setSupply] = useState<number>(0)
   const [newSupply, setNewSupply] = useState<number>(0)
-  const [targetRatio, setTargetRatio] = useState<number>(0)
-  const [lastFloorRaise, setLastFloorRaise] = useState<string>("")  
 
   const [buy, setBuy] = useState<number>(0)
-  const debouncedBuy = useDebounce(buy, 1000)
   const [sell, setSell] = useState<number>(0)
-  const debouncedSell = useDebounce(sell, 1000)
   const [redeem, setRedeem] = useState<number>(0)
-  const debouncedRedeem = useDebounce(redeem, 1000)
-
-  const [allowance, setAllowance] = useState<number>(0)
-  const [locksBalance, setLocksBalance] =useState<number>(0)
-  const [honeyBalance, setHoneyBalance] = useState<number>(0)
   
   const [buyToggle, setBuyToggle] = useState<boolean>(true)
   const [sellToggle, setSellToggle] = useState<boolean>(false)
   const [redeemToggle, setRedeemToggle] = useState<boolean>(false)
   
   const [cost, setCost] = useState<number>(0)
-  const debouncedCost = useDebounce(cost, 1000)
   const [receive, setReceive] = useState<number>(0)
-  const debouncedReceive = useDebounce(receive, 1000)
   const [redeemReceive, setRedeemReceive] = useState<number>(0)
 
-  const [txHash, setTxHash] = useState<string>('')
-
-  const account = useAccount()
-  const chain = useNetwork()
-
-  const { signer, wallet, getBalance, approve, checkAllowance, updateBalance, balance, ensureAllowance, sendBuyTx } = useWallet()
   const { openNotification } = useNotification()
-
-  // useContractEvent({
-  //   address: '0x29b9439E09d1D581892686D9e00E3481DCDD5f78',
-  //   abi: testhoneyABI.abi,
-  //   eventName: 'Approval',
-  //   listener(owner: any, spender: any, amount: any) {
-  //     const button = document.getElementById('amm-button')
-  //     button && (button.innerHTML = "buy")
-  //   }
-  // })
-
-  // useContractEvent({
-  //   address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
-  //   abi: ammABI.abi,
-  //   eventName: 'Buy',
-  //   listener(user: any, amount: any) {
-  //     setBuy(0)
-  //     setDisplayString('')
-  //     openNotification({
-  //       title: 'Successfully Purchased $LOCKS!',
-  //       hash: txHash,
-  //       direction: 'bought',
-  //       amount: amount._hex / Math.pow(10, 18),
-  //       price: cost
-  //     })
-  //     setTimeout(() => {
-  //       console.log('running updateBalance')
-  //       getBalance()
-  //       console.log('its done running')
-  //     }, 15000)
-  //   }
-  // })
-
+  const { balance, wallet, isConnected, signer, network, getBalances, refreshBalances } = useWallet()
+  const { ammInfo, getAmmInfo, refreshAmmInfo } = useInfo()
+  const { checkAllowance, sendApproveTx, sendBuyTx, sendSellTx, sendRedeemTx } = useTx()
 
   const formatAsPercentage = Intl.NumberFormat('default', {
     style: 'percent',
     maximumFractionDigits: 2
   })
-
-  const maxApproval: string = '115792089237316195423570985008687907853269984665640564039457584007913129639935'
   
   const springs = useSpring({
     from: { x: -900 },
     to: { x: 0 },
   })
 
-  const { data, isError, isLoading } = useContractReads({
-    contracts: [
-      {
-        address: contracts.amm.address as `0x${string}`,
-        abi: contracts.amm.abi,
-        functionName: 'fsl'
-      },
-      {
-        address: contracts.amm.address as `0x${string}`,
-        abi: contracts.amm.abi,
-        functionName: 'psl'
-      },
-      {
-        address: contracts.amm.address as `0x${string}`,
-        abi: contracts.amm.abi,
-        functionName: 'supply'
-      },
-      {
-        address: contracts.amm.address as `0x${string}`,
-        abi: contracts.amm.abi,
-        functionName: 'targetRatio'
-      },
-      {
-        address: contracts.amm.address as `0x${string}`,
-        abi: contracts.amm.abi,
-        functionName: 'lastFloorRaise'
-      },
-      {
-        address: contracts.honey.address as `0x${string}`,
-        abi: contracts.honey.abi,
-        functionName: 'allowance',
-        args: [account.address, contracts.amm.address]
-      },
-      {
-        address: contracts.locks.address as `0x${string}`,
-        abi: contracts.locks.abi,
-        functionName: 'balanceOf',
-        args: [account.address]
-      },
-      {
-        address: contracts.honey.address as `0x${string}`,
-        abi: contracts.honey.abi,
-        functionName: 'balanceOf',
-        args: [account.address]
-      }
-    ],
-    onSettled(data: any) {
-      console.log(data)
-      if(!data[0]) {
-        const button = document.getElementById('amm-button')
-        if(button) {
-          button.innerHTML = "error loading data"
-        }
-      }
-      else {
-        let fslString = data[0].toBigInt().toString()
-        let fslBeforeDecimalFloat = parseInt(fslString.slice(0, fslString.length - 18))
-        setFsl(parseFloat(`${fslBeforeDecimalFloat}.${fslString.slice(fslString.length - 18, fslString.length - 16)}`))
-        setNewFsl(parseFloat(`${fslBeforeDecimalFloat}.${fslString.slice(fslString.length - 18, fslString.length - 16)}`))
-        let pslString = data[1].toBigInt().toString()
-        let pslBeforeDecimalFloat = parseInt(pslString.slice(0, pslString.length - 18))
-        setPsl(parseFloat(`${pslBeforeDecimalFloat}.${pslString.slice(pslString.length - 18, pslString.length - 16)}`))
-        setNewPsl(parseFloat(`${pslBeforeDecimalFloat}.${pslString.slice(pslString.length - 18, pslString.length - 16)}`))
-        let supplyString = data[2].toBigInt().toString()
-        let supplyBeforeDecimalFloat = parseInt(supplyString.slice(0, supplyString.length - 18))
-        setSupply(parseFloat(`${supplyBeforeDecimalFloat}.${supplyString.slice(supplyString.length - 18, supplyString.length - 16)}`))
-        setNewSupply(parseFloat(`${supplyBeforeDecimalFloat}.${supplyString.slice(supplyString.length - 18, supplyString.length - 16)}`))
-        setFloor(parseFloat(`${fslBeforeDecimalFloat}.${fslString.slice(fslString.length - 18, fslString.length - 16)}`) / parseFloat(`${supplyBeforeDecimalFloat}.${supplyString.slice(supplyString.length - 18, supplyString.length - 16)}`))
-        setNewFloor(parseFloat(`${fslBeforeDecimalFloat}.${fslString.slice(fslString.length - 18, fslString.length - 16)}`) / parseFloat(`${supplyBeforeDecimalFloat}.${supplyString.slice(supplyString.length - 18, supplyString.length - 16)}`))
-        setMarket(marketPrice(parseFloat(`${fslBeforeDecimalFloat}.${fslString.slice(fslString.length - 18, fslString.length - 16)}`), parseFloat(`${pslBeforeDecimalFloat}.${pslString.slice(pslString.length - 18, pslString.length - 16)}`), parseFloat(`${supplyBeforeDecimalFloat}.${supplyString.slice(supplyString.length - 18, supplyString.length - 16)}`)))
-        setNewMarket(marketPrice(parseFloat(`${fslBeforeDecimalFloat}.${fslString.slice(fslString.length - 18, fslString.length - 16)}`), parseFloat(`${pslBeforeDecimalFloat}.${pslString.slice(pslString.length - 18, pslString.length - 16)}`), parseFloat(`${supplyBeforeDecimalFloat}.${supplyString.slice(supplyString.length - 18, supplyString.length - 16)}`)))
-        setTargetRatio(data[3].toBigInt().toString() / Math.pow(10, 18))
-        setLastFloorRaise(useFormatDate(parseInt(data[4].toBigInt().toString()) * 1000))
-        if(data[5]) {
-          setAllowance(data[5].toBigInt().toString() / Math.pow(10, 18))
-        }
-        if(data[6]) {
-          setLocksBalance(data[6].toBigInt().toString() / Math.pow(10, 18))
-        }
-        if(data[7]) {
-          setHoneyBalance(data[7].toBigInt().toString() / Math.pow(10, 18))
-        }
-      }
-    }
-  })
-
-  // const { config: approveConfig } = usePrepareContractWrite({
-  //   address: '0x29b9439E09d1D581892686D9e00E3481DCDD5f78',
-  //   abi: testhoneyABI.abi,
-  //   functionName: 'approve',
-  //   args: ['0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F', maxApproval],
-  //   enabled: true,
-  //   onSettled() {
-  //     console.log('just settled approve')
-  //   }
-  // })
-  // const { data: approveData, write: approveInteraction } = useContractWrite(approveConfig)
-  // const { isLoading: approveIsLoading, isSuccess: approveIsSuccess } = useWaitForTransaction({
-  //   hash: approveData?.hash
-  // })
-  
-  // const { config: buyConfig } = usePrepareContractWrite({
-  //   address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
-  //   abi: ammABI.abi,
-  //   functionName: 'buy',
-  //   args: [BigNumber.from(ethers.utils.parseUnits(debouncedBuy.toString(), 18)), BigNumber.from(ethers.utils.parseUnits(debouncedCost.toString(), 18))],
-  //   enabled: Boolean(debouncedCost),
-  //   onSettled() {
-  //     console.log('just settled buy')
-  //     console.log('debouncedBuy: ', debouncedBuy)
-  //     console.log('debouncedCost: ', debouncedCost)
-  //   }
-  // })
-  // const { data: buyData, write: buyInteraction } = useContractWrite(buyConfig)
-  // const { isLoading: buyIsLoading, isSuccess: buyIsSuccess } = useWaitForTransaction({
-  //   hash: buyData?.hash
-  // })
-
-  const { config: sellConfig } = usePrepareContractWrite({
-    address: contracts.amm.address as `0x${string}`,
-    abi: contracts.amm.abi,
-    functionName: 'sell',
-    args: [BigNumber.from(ethers.utils.parseUnits(debouncedSell.toString(), 18)), BigNumber.from(ethers.utils.parseUnits(debouncedReceive.toString(), 18))],
-    enabled: Boolean(debouncedSell),
-    onSettled() {
-      console.log('just settled sell')
-      console.log('debouncedSell: ', debouncedSell)
-      console.log('debouncedReceive: ', debouncedReceive)
-    }
-  })
-  const { data: sellData, write: sellInteraction } = useContractWrite(sellConfig)
-  const { isLoading: sellIsLoading, isSuccess: sellIsSuccess } = useWaitForTransaction({
-    hash: sellData?.hash
-  })
-
-  const { config: redeemConfig } = usePrepareContractWrite({
-    address: contracts.amm.address as `0x${string}`,
-    abi: contracts.amm.abi,
-    functionName: 'redeem',
-    args: [BigNumber.from(ethers.utils.parseUnits(debouncedRedeem.toString(), 18))],
-    enabled: Boolean(debouncedRedeem),
-    onSettled() {
-      console.log('just settled redeem')
-      console.log('debouncedRedeem: ', debouncedRedeem)
-    }
-  })
-  const { data: redeemData, write: redeemInteraction } = useContractWrite(redeemConfig)
-  const { isLoading: redeemIsLoading, isSuccess: redeemIsSuccess } = useWaitForTransaction({
-    hash: redeemData?.hash
-  })
-
   async function test() {
-    // if(signer) {
-    //   const ammContract = new ethers.Contract(
-    //     contracts.amm.address,
-    //     contracts.amm.abi,
-    //     signer
-    //   )
-    //   const locksContract = new ethers.Contract(
-    //     contracts.locks.address,
-    //     contracts.locks.abi,
-    //     signer
-    //   )
-    //   const balanceTx = await locksContract.balanceOf(account.address)
-    //   console.log('before buy locks balance: ', balanceTx._hex / Math.pow(10, 18))
-    //   const ammTx = await ammContract.buy(BigNumber.from(ethers.utils.parseUnits(debouncedBuy.toString(), 18)), BigNumber.from(ethers.utils.parseUnits(debouncedCost.toString(), 18)))
-    //   await ammTx.wait()
-    //   const balanceTxx = await locksContract.balanceOf(account.address)
-    //   console.log('after buy locks balance: ', balanceTxx._hex / Math.pow(10, 18))
-    // }
-    console.log(allowance)
+    refreshInfo(signer)
   }
 
+  const fetchBalances = async () => {
+    await getBalances()
+  }
 
-  
+  const fetchInfo = async () => {
+    await getAmmInfo()
+    setNewFsl(ammInfo.fsl)
+    setNewPsl(ammInfo.psl)
+    setNewFloor(floorPrice(ammInfo.fsl, ammInfo.supply))
+    setNewMarket(marketPrice(ammInfo.fsl, ammInfo.psl, ammInfo.supply))
+    setNewSupply(ammInfo.supply)
+  }
+
+  const refreshInfo = async (signer: any) => {
+    const data = await refreshAmmInfo(signer)
+    setNewFsl(data.fsl)
+    setNewPsl(data.psl)
+    setNewFloor(floorPrice(data.fsl, data.supply))
+    setNewMarket(marketPrice(data.fsl, data.psl, data.supply))
+    setNewSupply(data.supply)
+  }
+
+  useEffect(() => {
+    fetchBalances()
+    fetchInfo()
+  }, [isConnected])
 
   useEffect(() => {
     if(buy < 999) {
       simulateBuy()
     }
     else {
-      setNewFloor(fsl / supply)
-      setNewFsl(fsl)
-      setNewPsl(psl)
-      setNewSupply(supply)
+      setNewFloor(ammInfo.fsl / ammInfo.supply)
+      setNewFsl(ammInfo.fsl)
+      setNewPsl(ammInfo.psl)
+      setNewSupply(ammInfo.supply)
       setCost(0)
     }
   }, [buy])
 
   useEffect(() => {
-    if(sell <= supply) {
+    if(sell <= ammInfo.supply) {
       simulateSell()
     }
     else {
-      setNewFloor(fsl / supply)
-      setNewFsl(fsl)
-      setNewPsl(psl)
-      setNewSupply(supply)
+      setNewFloor(ammInfo.fsl / ammInfo.supply)
+      setNewFsl(ammInfo.fsl)
+      setNewPsl(ammInfo.psl)
+      setNewSupply(ammInfo.supply)
       setReceive(0)
     }
   }, [sell])
 
   useEffect(() => {
-    if(redeem <= supply) {
+    if(redeem <= ammInfo.supply) {
       simulateRedeem()
     }
     else {
-      setNewFloor(fsl / supply)
-      setNewFsl(fsl)
-      setNewSupply(supply)
+      setNewFloor(ammInfo.fsl / ammInfo.supply)
+      setNewFsl(ammInfo.fsl)
+      setNewSupply(ammInfo.supply)
       setRedeemReceive(0)
     }
   }, [redeem])
   
   function simulateBuy() {
     let _leftover = buy
-    let _fsl = fsl
-    let _psl = psl
-    let _supply = supply
+    let _fsl = ammInfo.fsl
+    let _psl = ammInfo.psl
+    let _supply = ammInfo.supply
     let _purchasePrice = 0
     let _tax = 0
     let _market = 0
@@ -368,9 +172,9 @@ export default function Amm() {
   
   function simulateSell() {
     let _leftover = sell
-    let _fsl = fsl
-    let _psl = psl
-    let _supply = supply
+    let _fsl = ammInfo.fsl
+    let _psl = ammInfo.psl
+    let _supply = ammInfo.supply
     let _salePrice = 0
     let _tax = 0
     let _market = 0
@@ -402,17 +206,17 @@ export default function Amm() {
   }
   
   function simulateRedeem() {
-    let rawTotal: number = redeem * floorPrice(fsl, supply)
+    let rawTotal: number = redeem * floorPrice(ammInfo.fsl, ammInfo.supply)
     setRedeemReceive(rawTotal)
-    setNewFsl(fsl - rawTotal)
-    setNewSupply(supply - redeem)
-    setNewFloor(floorPrice(fsl - rawTotal, supply - redeem))
-    setNewMarket(marketPrice(fsl - rawTotal, psl, supply - redeem))
-    simulateFloorRaise(fsl - rawTotal, psl, supply - redeem)
+    setNewFsl(ammInfo.fsl - rawTotal)
+    setNewSupply(ammInfo.supply - redeem)
+    setNewFloor(floorPrice(ammInfo.fsl - rawTotal, ammInfo.supply - redeem))
+    setNewMarket(marketPrice(ammInfo.fsl - rawTotal, ammInfo.psl, ammInfo.supply - redeem))
+    simulateFloorRaise(ammInfo.fsl - rawTotal, ammInfo.psl, ammInfo.supply - redeem)
   }
 
   function simulateFloorRaise(_fsl: number, _psl: number, _supply: number) {
-    if(_psl / _fsl >= targetRatio) {
+    if(_psl / _fsl >= ammInfo.targetRatio) {
       let raiseAmount: number = (_psl / _fsl) * (_psl / 32)
       setNewFsl((prev) => {
         setNewFloor(floorPrice(prev + raiseAmount, _supply))
@@ -455,71 +259,17 @@ export default function Amm() {
     }
   }
   
-  function handleTopLabel() {
-    if(buyToggle) {
-      return 'buy'
-    }
-    if(sellToggle) {
-      return 'sell'
-    }
-    if(redeemToggle) {
-      return 'redeem'
-    }
-  }
-
-  function handleTopLabelToken() {
-    if(buyToggle) {
-      return <><Image className="" width="35" height="35" src="/locks_logo.png" alt="lost"/><span className="font-acme text-[25px] ml-4">$locks</span></>
-    }
-    if(sellToggle) {
-      return <><Image className="" width="35" height="35" src="/locks_logo.png" alt="lost"/><span className="font-acme text-[25px] ml-4">$locks</span></>
-    }
-    if(redeemToggle) {
-      return <><Image className="" width="35" height="35" src="/locks_logo.png" alt="lost"/><span className="font-acme text-[25px] ml-4">$locks</span></>
-    }
-  }
-  
-  function handleBottomLabel() {
-    if(buyToggle) {
-      return 'cost'
-    }
-    if(sellToggle) {
-      return 'receive'
-    }
-    if(redeemToggle) {
-      return 'receive'
-    }
-  }
-
-  function handleBottomLabelToken() {
-    if(buyToggle) {
-      return <><Image className="" width="35" height="35" src="/honey_logo.png" alt="lost"/><span className="font-acme text-[25px] ml-4">$honey</span></>
-    }
-    if(sellToggle) {
-      return <><Image className="" width="35" height="35" src="/honey_logo.png" alt="lost"/><span className="font-acme text-[25px] ml-4">$honey</span></>
-    }
-    if(redeemToggle) {
-      return <><Image className="" width="35" height="35" src="/honey_logo.png" alt="lost"/><span className="font-acme text-[25px] ml-4">$honey</span></>
-    }
-  }
-  
   function renderButton() {
     if(buyToggle) {
-      if(cost > allowance) {
+      if(cost > ammInfo.honeyAllowance) {
         return 'approve use of $honey'
       }
       return 'buy'
     }
     if(sellToggle) {
-      if(sellIsLoading) {
-        return 'selling...'
-      }
       return 'sell'
     }
     if(redeemToggle) {
-      if(redeemIsLoading) {
-        return 'redeeming...'
-      }
       return 'redeem'
     }
   }
@@ -527,51 +277,70 @@ export default function Amm() {
   async function handleButtonClick() {
     const button = document.getElementById('amm-button')
 
-    if(!account.isConnected) {
+    if(!isConnected) {
       button && (button.innerHTML = "connect wallet")
     }
-    else if(chain?.chain?.id !== 69420) {
+    else if(network !== "Avalanche Fuji C-Chain") {
       button && (button.innerHTML = "switch to devnet plz")
     }
     else {
       if(buyToggle) {
-        const result: boolean | void = await checkAllowance('honey', contracts.amm.address, cost, signer)
-        if(result) {
+        const sufficientAllowance: boolean | void = await checkAllowance('honey', contracts.amm.address, cost, signer)
+        if(sufficientAllowance) {
           button && (button.innerHTML = "buying...")
           const buyTx = await sendBuyTx(buy, cost, signer)
-          button && (button.innerHTML = "buy")
-          openNotification({
+          buyTx && openNotification({
             title: 'Successfully Purchased $LOCKS!',
             hash: buyTx.hash,
             direction: 'bought',
             amount: buy,
             price: cost
           })
+          button && (button.innerHTML = "buy")
           setBuy(0)
           setDisplayString('')
-          console.log('running updateBalance')
-          getBalance()
-          console.log('its done running')
+          refreshBalances(wallet, signer)
+          refreshInfo(signer)
         }
         else {
           button && (button.innerHTML = "approving...")
-          await approve('honey', contracts.amm.address, cost , signer)
+          await sendApproveTx('honey', contracts.amm.address, cost , signer)
           setTimeout(() => {
             button && (button.innerHTML = "buy")
-          }, 5000)
+          }, 10000)
         }
       }
       if(sellToggle) {
-        if(button) {
-          button.innerHTML = "sell"
-        }
-        sellInteraction?.()
+        button && (button.innerHTML = "selling...")
+        const sellTx = await sendSellTx(sell, receive, signer)
+        sellTx && openNotification({
+          title: 'Successfully Sold $LOCKS!',
+          hash: sellTx.hash,
+          direction: 'sold',
+          amount: sell,
+          price: receive
+        })
+        button && (button.innerHTML = "sell")
+        setSell(0)
+        setDisplayString('')
+        refreshBalances(wallet, signer)
+        refreshInfo(signer)
       }
       if(redeemToggle) {
-        if(button) {
-          button.innerHTML = "redeem"
-        }
-        redeemInteraction?.()
+        button && (button.innerHTML = "redeeming...")
+        const redeemTx = await sendRedeemTx(redeem, signer)
+        redeemTx && openNotification({
+          title: 'Successfully Redeemed $LOCKS!',
+          hash: redeemTx.hash,
+          direction: 'redeemed',
+          amount: redeem,
+          price: redeem * (ammInfo.fsl / ammInfo.supply)
+        })
+        button && (button.innerHTML = "redeem")
+        setRedeem(0)
+        setDisplayString('')
+        refreshBalances(wallet, signer)
+        refreshInfo(signer)
       }
     }
   }
@@ -579,59 +348,59 @@ export default function Amm() {
   function handlePercentageButtons(action: number) {
     if(action == 1) {
       if(buyToggle) {
-        setDisplayString((honeyBalance / 4).toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setBuy(honeyBalance / 4)
+        setDisplayString((balance.honey / 4).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setBuy(balance.honey / 4)
       }
       if(sellToggle) {
-        setDisplayString((locksBalance / 4).toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setSell(locksBalance / 4)        
+        setDisplayString((balance.locks / 4).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setSell(balance.locks / 4)        
       }
       if(redeemToggle) {
-        setDisplayString((locksBalance / 4).toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setRedeem(locksBalance / 4)
+        setDisplayString((balance.locks / 4).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setRedeem(balance.locks / 4)
       }
     }
     if(action == 2) {
       if(buyToggle) {
-        setDisplayString((honeyBalance / 2).toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setBuy(honeyBalance / 2)
+        setDisplayString((balance.honey / 2).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setBuy(balance.honey / 2)
       }
       if(sellToggle) {
-        setDisplayString((locksBalance / 2).toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setSell(locksBalance / 2)
+        setDisplayString((balance.locks / 2).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setSell(balance.locks / 2)
       }
       if(redeemToggle) {
-        setDisplayString((locksBalance / 2).toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setRedeem(locksBalance / 2)
+        setDisplayString((balance.locks / 2).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setRedeem(balance.locks / 2)
       }
     }
     if(action == 3) {
 
       if(buyToggle) {
-        setDisplayString((honeyBalance * 0.75).toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setBuy(honeyBalance * 0.75)
+        setDisplayString((balance.honey * 0.75).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setBuy(balance.honey * 0.75)
       }
       if(sellToggle) {
-        setDisplayString((locksBalance * 0.75).toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setSell(locksBalance * 0.75)
+        setDisplayString((balance.locks * 0.75).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setSell(balance.locks * 0.75)
       }
       if(redeemToggle) {
-        setDisplayString((locksBalance * 0.75).toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setRedeem(locksBalance * 0.75)
+        setDisplayString((balance.locks * 0.75).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setRedeem(balance.locks * 0.75)
       }
     }
     if(action == 4) {
       if(buyToggle) {
-        setDisplayString((honeyBalance).toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setBuy(honeyBalance > 999 ? 999 : honeyBalance)
+        setDisplayString((balance.honey).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setBuy(balance.honey > 999 ? 999 : balance.honey)
       }
       if(sellToggle) {
-        setDisplayString((locksBalance).toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setSell(locksBalance)
+        setDisplayString((balance.locks).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setSell(balance.locks)
       }
       if(redeemToggle) {
-        setDisplayString((locksBalance).toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setRedeem(locksBalance)
+        setDisplayString((balance.locks).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setRedeem(balance.locks)
       }
     }
   }
@@ -669,17 +438,17 @@ export default function Amm() {
       return parseFloat(displayString) >= 999 ? '' : displayString
     }
     if(sellToggle) {
-      return parseFloat(displayString) >= supply ? '' : displayString
+      return parseFloat(displayString) >= ammInfo.supply ? '' : displayString
     }
     if(redeemToggle) {
-      return parseFloat(displayString) >= supply ? '' : displayString
+      return parseFloat(displayString) >= ammInfo.supply ? '' : displayString
     }
   }
 
   function handleBottomInput() {
     if(buyToggle) {
       if(!cost) {
-        return "0.0"
+        return "0.00"
       }
       else {
         return cost.toLocaleString('en-US', { maximumFractionDigits: 2 })
@@ -687,7 +456,7 @@ export default function Amm() {
     }
     if(sellToggle) {
       if(!receive) {
-        return "0.0"
+        return "0.00"
       }
       else {
         return receive.toLocaleString('en-US', { maximumFractionDigits: 2 })
@@ -695,7 +464,7 @@ export default function Amm() {
     }
     if(redeemToggle) {
       if(!redeemReceive) {
-        return "0.0"
+        return "0.00"
       }
       else {
         return redeemReceive.toLocaleString('en-US', { maximumFractionDigits: 2 })
@@ -717,13 +486,13 @@ export default function Amm() {
 
   function handleBottomBalance() {
     if(buyToggle) {
-      return honeyBalance > 0 ? honeyBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.0"
+      return balance.honey > 0 ? balance.honey.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
     }
     if(sellToggle) {
-      return honeyBalance > 0 ? honeyBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.0"
+      return balance.honey > 0 ? balance.honey.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
     }
     if(redeemToggle) {
-      return honeyBalance > 0 ? honeyBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.0"
+      return balance.honey > 0 ? balance.honey.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
     }
   }
   
@@ -748,8 +517,8 @@ export default function Amm() {
               <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
                 <div className="h-[50%] flex flex-row items-center justify-between">
                   <div className="flex flex-row mt-3">
-                    <h1 className="font-acme text-[30px] pl-10 pr-5 mt-2">{handleTopLabel()}</h1>
-                    <div className="rounded-[50px] p-2 flex flex-row bg-slate-100 border-2 border-black items-center">{handleTopLabelToken()}</div>
+                    <h1 className="font-acme text-[30px] pl-10 pr-5 mt-2">{useLabel(buyToggle, sellToggle, redeemToggle, "topLabel")}</h1>
+                    <div className="rounded-[50px] p-2 flex flex-row bg-slate-100 border-2 border-black items-center">{useLabel(buyToggle, sellToggle, redeemToggle, "topToken")}</div>
                   </div>
                   <div className="flex flex-row items-center mr-10">
                     <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(1)}>25%</button>
@@ -759,7 +528,7 @@ export default function Amm() {
                   </div>
                 </div>
                 <div className="h-[50%] pl-10 flex flex-row items-center justify-between">
-                  <input className="border-none focus:outline-none bg-transparent font-acme rounded-xl text-[40px]" placeholder="0.0" value={handleTopInput()} onChange={(e) => handleTopChange(e.target.value)} type="number" id="number-input" autoFocus />
+                  <input className="border-none focus:outline-none bg-transparent font-acme rounded-xl text-[40px]" placeholder="0.00" value={handleTopInput()} onChange={(e) => handleTopChange(e.target.value)} type="number" id="number-input" autoFocus />
                   <h1 className="mr-10 mt-4 text-[23px] font-acme text-[#878d97]">balance: {handleTopBalance()}</h1>
                 </div>
               </div>
@@ -768,8 +537,8 @@ export default function Amm() {
               </div>
               <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
                 <div className="h-[50%] flex flex-row items-center">
-                  <h1 className="font-acme text-[30px] ml-10 pr-5 mt-3">{handleBottomLabel()}</h1>
-                  <div className="rounded-[50px] mt-3 p-2 flex flex-row bg-slate-100 border-2 border-black items-center">{handleBottomLabelToken()}</div>
+                  <h1 className="font-acme text-[30px] ml-10 pr-5 mt-3">{useLabel(buyToggle, sellToggle, redeemToggle, "bottomLabel")}</h1>
+                  <div className="rounded-[50px] mt-3 p-2 flex flex-row bg-slate-100 border-2 border-black items-center">{useLabel(buyToggle, sellToggle, redeemToggle, "bottomToken")}</div>
                 </div>
                 <div className="h-[50%] pl-10 flex flex-row items-center justify-between">
                   <h1 className={`${buyToggle && !cost || sellToggle && !receive || redeemToggle && !redeemReceive ? "text-[#9ca3af]" : ""} font-acme text-[40px]`}>{handleBottomInput()}</h1>
@@ -784,21 +553,21 @@ export default function Amm() {
           <div className="flex flex-row justify-between">
             <div className="flex flex-row w-[55%] px-3 ml-3 justify-between rounded-xl border-2 border-black mt-2 bg-white">
               <LeftAmmBoxText />
-              <LeftAmmBoxCurNums floor={floor} market={market} fsl={fsl} psl={psl} />
+              <LeftAmmBoxCurNums floor={floorPrice(ammInfo.fsl, ammInfo.supply)} market={marketPrice(ammInfo.fsl, ammInfo.psl, ammInfo.supply)} fsl={ammInfo.fsl} psl={ammInfo.psl} />
               <div className="flex flex-col items-end justify-between">
-                <p className={`${floor > newFloor ? "text-red-600" : floor == newFloor ? "" : "text-green-600"} font-acme text-[20px]`}>${ buy > 0 || sell > 0 || redeem > 0 ? newFloor.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
-                <p className={`${market > newMarket ? "text-red-600" : market == newMarket ? "" : "text-green-600"} font-acme text-[20px]`}>${ buy > 0 || sell > 0 || redeem > 0 ? newMarket.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
-                <p className={`${fsl > newFsl ? "text-red-600" : fsl == newFsl ? "" : "text-green-600"} font-acme text-[20px]`}>{ fsl == newFsl ? "-" : newFsl.toLocaleString('en-US', { maximumFractionDigits: 2 }) }</p>
-                <p className={`${psl > newPsl ? "text-red-600" : psl == newPsl ? "" : "text-green-600"} font-acme text-[20px]`}>{ buy > 0 || sell > 0 || redeem > 0 ? newPsl.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
+                <p className={`${floorPrice(ammInfo.fsl, ammInfo.supply) > newFloor ? "text-red-600" : floorPrice(ammInfo.fsl, ammInfo.supply) == newFloor ? "" : "text-green-600"} font-acme text-[20px]`}>${ buy > 0 || sell > 0 || redeem > 0 ? newFloor.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
+                <p className={`${marketPrice(ammInfo.fsl, ammInfo.psl, ammInfo.supply) > newMarket ? "text-red-600" : marketPrice(ammInfo.fsl, ammInfo.psl, ammInfo.supply) == newMarket ? "" : "text-green-600"} font-acme text-[20px]`}>${ buy > 0 || sell > 0 || redeem > 0 ? newMarket.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
+                <p className={`${ammInfo.fsl > newFsl ? "text-red-600" : ammInfo.fsl == newFsl ? "" : "text-green-600"} font-acme text-[20px]`}>{ ammInfo.fsl == newFsl ? "-" : newFsl.toLocaleString('en-US', { maximumFractionDigits: 2 }) }</p>
+                <p className={`${ammInfo.psl > newPsl ? "text-red-600" : ammInfo.psl == newPsl ? "" : "text-green-600"} font-acme text-[20px]`}>{ buy > 0 || sell > 0 || redeem > 0 ? newPsl.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
               </div>
             </div>
             <div className="flex flex-row w-[40%] px-3 justify-between mr-3 rounded-xl border-2 border-black mt-2 bg-white">
               <RightAmmBoxText />
-              <RightAmmBoxCurNums supply={supply} />
+              <RightAmmBoxCurNums supply={ammInfo.supply} />
               <div className="flex flex-col items-end justify-between w-[30%]">
-                <p className={`${supply > newSupply ? "text-red-600" : supply == newSupply ? "" : "text-green-600"} font-acme text-[20px]`}>{ supply == newSupply ? "-" : newSupply.toLocaleString('en-US') }</p>
-                <p className="font-acme text-[20px]">{ targetRatio > 0 ? formatAsPercentage.format(targetRatio) : "-" }</p>
-                <p className="font-acme text-[20px] whitespace-nowrap">{lastFloorRaise}</p>
+                <p className={`${ammInfo.supply > newSupply ? "text-red-600" : ammInfo.supply == newSupply ? "" : "text-green-600"} font-acme text-[20px]`}>{ ammInfo.supply == newSupply ? "-" : newSupply.toLocaleString('en-US', { maximumFractionDigits: 2 }) }</p>
+                <p className="font-acme text-[20px]">{ ammInfo.targetRatio > 0 ? formatAsPercentage.format(ammInfo.targetRatio) : "-" }</p>
+                <p className="font-acme text-[20px] whitespace-nowrap">{useFormatDate(ammInfo.lastFloorRaise * Math.pow(10, 21))}</p>
               </div>
             </div>
           </div>

@@ -8,8 +8,8 @@ import { metaMaskWallet, injectedWallet, rainbowWallet, rabbyWallet, ledgerWalle
 import "@rainbow-me/rainbowkit/styles.css"
 
 const { chains, provider } = configureChains(
-  // [fuji],
-  [devnet],
+  [fuji],
+  // [devnet],
   [
     jsonRpcProvider({
       rpc: chain => ({ http: chain.rpcUrls.default.http[0] }),

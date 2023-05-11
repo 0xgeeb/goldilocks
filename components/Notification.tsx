@@ -3,14 +3,13 @@ import Link from "next/link"
 import { NotificationProps } from "../utils/interfaces"
 import { useNotification } from "../providers/NotificationProvider"
 
-const Notification = ({ hash, title, direction, amount, price, isOpen, isError }: NotificationProps) => {
+const Notification = ({ hash, title, direction, amount, price }: NotificationProps) => {
   
   const { closeNotification } = useNotification()
 
   const [clickedClose, setClickedClose] = useState<boolean>(false)
 
   const close = () => {
-    console.log('just closed')
     setClickedClose(true)
     closeNotification(hash)
   }
@@ -23,7 +22,6 @@ const Notification = ({ hash, title, direction, amount, price, isOpen, isError }
       <Link href={`https://testnet.snowtrace.io/tx/${hash}`} target="_blank"><h1 className="hover:underline">link to tx</h1></Link>
     </div>
   )
-
 
 }
 
