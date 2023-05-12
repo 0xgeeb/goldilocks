@@ -28,8 +28,8 @@ const NotificationManager = () => {
     <div className={`fixed z-999 bg-[#ffffb4] top-[40%] left-[35%] w-[30%] rounded-xl ${notifications.length ? "border-2 border-black" : ""}`}>
       {
         notifications.map((n, index) => {
-          const { title, hash, direction, amount, price } = n
-          return <Notification hash={hash} title={title} direction={direction} amount={amount} price={price} key={hash} isOpen={areOpen[index]} />
+          const { title, hash, direction, amount, price, page } = n
+          return <Notification hash={hash} title={title} direction={direction} amount={amount} price={price} page={page} key={hash} />
         })
       }
     </div>

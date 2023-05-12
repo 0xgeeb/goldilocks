@@ -30,8 +30,7 @@ export type NotificationProps = {
   direction: string;
   amount: number;
   price: number;
-  isOpen?: boolean;
-  isError?: boolean;
+  page: string;
 }
 
 export interface NotificationProviderState {

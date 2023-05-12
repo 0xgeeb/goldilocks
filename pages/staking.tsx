@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react"
 import Head from "next/head"
-import { ethers, BigNumber } from "ethers"
+import { 
+  useNotification,
+  useWallet,
+  useInfo,
+  useTx
+} from "../providers"
 import { useSpring, animated } from "@react-spring/web"
-import useDebounce from "../hooks/useDebounce"
 import Bear from "../components/Bear"
 import { contracts } from "../utils"
-import { useAccount, useContractReads, useNetwork, usePrepareContractWrite, useContractWrite, useWaitForTransaction } from "wagmi"
 
 export default function Staking() {
 
@@ -13,22 +16,9 @@ export default function Staking() {
 
   const [displayString, setDisplayString] = useState<string>('')
   
-  const [floorPrice, setFloorPrice] = useState<number>(0)
-  const [locksBalance, setLocksBalance] = useState<number>(0)
-  const [stakedBalance, setStakedBalance] = useState<number>(0)
-  const [honeyBalance, setHoneyBalance] = useState<number>(0)
-  const [porridgeBalance, setPorridgeBalance] = useState<number>(0)
-  const [claimBalance, setClaimBalance] = useState<number>(0)
-  
   const [stake, setStake] = useState<number>(0)
-  const debouncedStake = useDebounce(stake, 1000)
   const [unstake, setUnstake] = useState<number>(0)
-  const debouncedUnstake = useDebounce(unstake, 1000)
   const [realize, setRealize] = useState<number>(0)
-  const debouncedRealize = useDebounce(realize, 1000)
-
-  const [locksAllowance, setLocksAllowance] = useState<number>(0)
-  const [testhoneyAllowance, setTestHoneyAllowance] = useState<number>(0)
   
   const [stakeToggle, setStakeToggle] = useState<boolean>(true)
   const [unstakeToggle, setUnstakeToggle] = useState<boolean>(false)
@@ -36,205 +26,71 @@ export default function Staking() {
 
   const [popupToggle, setPopupToggle] = useState<boolean>(false)
 
-  const account = useAccount()
-  const chain = useNetwork()
-
-  const maxApproval: string = '115792089237316195423570985008687907853269984665640564039457584007913129639935'
+  const { openNotification } = useNotification()
+  const { balance, wallet, isConnected, signer, network, getBalances, refreshBalances } = useWallet()
+  const { stakeInfo, getStakeInfo, refreshStakeInfo } = useInfo()
+  const { checkAllowance, sendApproveTx, sendStakeTx, sendUnstakeTx } = useTx()
   
   const springs = useSpring({
     from: { x: -900 },
     to: { x: 0 },
   })
 
+  const fetchBalances = async () => {
+    await getBalances()
+  }
+  
+  const fetchInfo = async () => {
+    await getStakeInfo()
+  }
+
+  const refreshInfo = async (signer: any) => {
+    console.log('running refreshtakeinfo')
+    await refreshStakeInfo(signer)
+  }
+
+  useEffect(() => {
+    fetchBalances()
+    fetchInfo()
+  }, [isConnected])
+
   useEffect(() => {
     setInitialRender(true)
   }, [])
 
-  const { data, isError, isLoading } = useContractReads({
-    contracts: [
-      {
-        address: contracts.amm.address as `0x${string}`,
-        abi: contracts.amm.abi,
-        functionName: 'fsl'
-      },
-      {
-        address: contracts.amm.address as `0x${string}`,
-        abi: contracts.amm.abi,
-        functionName: 'supply'
-      },
-      {
-        address: contracts.locks.address as `0x${string}`,
-        abi: contracts.locks.abi,
-        functionName: 'balanceOf',
-        args: [account.address]
-      },
-      {
-        address: contracts.porridge.address as `0x${string}`,
-        abi: contracts.porridge.abi,
-        functionName: 'getStaked',
-        args: [account.address]
-      },
-      {
-        address: contracts.porridge.address as `0x${string}`,
-        abi: contracts.porridge.abi,
-        functionName: 'balanceOf',
-        args: [account.address]
-      },
-      {
-        address: contracts.porridge.address as `0x${string}`,
-        abi: contracts.porridge.abi,
-        functionName: '_calculateYield',
-        args: [account.address]
-      },
-      {
-        address: contracts.locks.address as `0x${string}`,
-        abi: contracts.locks.abi,
-        functionName: 'allowance',
-        args: [account.address, contracts.porridge.address]
-      },
-      {
-        address: contracts.honey.address as `0x${string}`,
-        abi: contracts.honey.abi,
-        functionName: 'allowance',
-        args: [account.address, contracts.porridge.address]
-      },
-      {
-        address: contracts.honey.address as `0x${string}`,
-        abi: contracts.honey.abi,
-        functionName: 'balanceOf',
-        args: [account.address]
-      }
-    ],
-    onSettled(data: any) {
-      if(!data[0]) {
-        const button = document.getElementById('amm-button')
-        if(button) {
-          button.innerHTML = "error loading data"
-        }
-      }
-      else {
-        setFloorPrice((parseInt(data[0]._hex, 16) / Math.pow(10, 18)) / (parseInt(data[1]._hex, 16) / Math.pow(10, 18)))
-        if(data[2]) {
-          setLocksBalance(parseInt(data[2]._hex, 16) / Math.pow(10, 18))
-        }
-        if(data[3]) {
-          setStakedBalance(parseInt(data[3]._hex, 16) / Math.pow(10, 18))
-        }
-        if(data[4]) {
-          setPorridgeBalance(parseInt(data[4]._hex, 16) / Math.pow(10, 18))
-        }
-        if(data[5]) {
-          setClaimBalance(parseInt(data[5]._hex, 16) / Math.pow(10, 18))
-        }
-        if(data[6]) {
-          setLocksAllowance(parseInt(data[6]._hex, 16) / Math.pow(10, 18))
-        }
-        if(data[7]) {
-          setTestHoneyAllowance(parseInt(data[7]._hex, 16) / Math.pow(10, 18))
-        }
-        if(data[8]) {
-          setHoneyBalance(parseInt(data[8]._hex, 16) / Math.pow(10, 18))
-        }
-      }
-    }
-  })
+  // const { config: realizeConfig } = usePrepareContractWrite({
+  //   address: contracts.porridge.address as `0x${string}`,
+  //   abi: contracts.porridge.abi,
+  //   functionName: 'realize',
+  //   args: [BigNumber.from(ethers.utils.parseUnits(debouncedRealize.toString(), 18))],
+  //   enabled: Boolean(debouncedRealize),
+  //   onSettled() {
+  //     console.log('just settled realize')
+  //     console.log('debouncedRealize: ', debouncedRealize)
+  //   }
+  // })
+  // const { data: realizeData, write: realizeInteraction } = useContractWrite(realizeConfig)
+  // const { isLoading: realizeIsLoading, isSuccess: realizeIsSuccess } = useWaitForTransaction({
+  //   hash: realizeData?.hash
+  // })
 
-  const { config: locksApproveConfig } = usePrepareContractWrite({
-    address: contracts.locks.address as `0x${string}`,
-    abi: contracts.locks.abi,
-    functionName: 'approve',
-    args: ['0x69B228b9247dF2c1F194f92fC19A340A9F2803f7', maxApproval],
-    enabled: true,
-    onSettled() {
-      console.log('just settled locksApprove')
-    }
-  })
-  const { data: locksApproveData, write: locksApproveInteraction } = useContractWrite(locksApproveConfig)
-  const { isLoading: locksApproveIsLoading, isSuccess: locksApproveIsSuccess } = useWaitForTransaction({
-    hash: locksApproveData?.hash
-  })
-
-  const { config: testhoneyApproveConfig } = usePrepareContractWrite({
-    address: contracts.honey.address as `0x${string}`,
-    abi: contracts.honey.abi,
-    functionName: 'approve',
-    args: ['0x69B228b9247dF2c1F194f92fC19A340A9F2803f7', maxApproval],
-    enabled: true,
-    onSettled() {
-      console.log('just settled testhoneyApprove')
-    }
-  })
-  const { data: testhoneyApproveData, write: testhoneyApproveInteraction } = useContractWrite(testhoneyApproveConfig)
-  const { isLoading: testhoneyApproveIsLoading, isSuccess: testhoneyApproveIsSuccess} = useWaitForTransaction({
-    hash: testhoneyApproveData?.hash
-  })
-
-  const { config: stakeConfig } = usePrepareContractWrite({
-    address: contracts.porridge.address as `0x${string}`,
-    abi: contracts.porridge.abi,
-    functionName: 'stake',
-    args: [BigNumber.from(ethers.utils.parseUnits(debouncedStake.toString(), 18))],
-    enabled: false,
-    // enabled: Boolean(debouncedStake),
-    onSettled() {
-      console.log('just settled stake')
-      console.log('debouncedStake: ', debouncedStake)
-    }
-  })
-  const { data: stakeData, write: stakeInteraction } = useContractWrite(stakeConfig)
-  const { isLoading: stakeIsLoading, isSuccess: stakeIsSuccess } = useWaitForTransaction({
-    hash: stakeData?.hash
-  })
-
-  const {config: unstakeConfig } = usePrepareContractWrite({
-    address: contracts.porridge.address as `0x${string}`,
-    abi: contracts.porridge.abi,
-    functionName: 'unstake',
-    args: [BigNumber.from(ethers.utils.parseUnits(debouncedUnstake.toString(), 18))],
-    enabled: false,
-    // enabled: Boolean(debouncedUnstake),
-    onSettled() {
-      console.log('just settled unstake')
-      console.log('debouncedUnstake: ', debouncedUnstake)
-    }
-  })
-  const { data: unstakeData, write: unstakeInteraction } = useContractWrite(unstakeConfig)
-  const { isLoading: unstakeIsLoading, isSuccess: unstakeIsSuccess } = useWaitForTransaction({
-    hash: unstakeData?.hash
-  })
-
-  const { config: realizeConfig } = usePrepareContractWrite({
-    address: contracts.porridge.address as `0x${string}`,
-    abi: contracts.porridge.abi,
-    functionName: 'realize',
-    args: [BigNumber.from(ethers.utils.parseUnits(debouncedRealize.toString(), 18))],
-    enabled: Boolean(debouncedRealize),
-    onSettled() {
-      console.log('just settled realize')
-      console.log('debouncedRealize: ', debouncedRealize)
-    }
-  })
-  const { data: realizeData, write: realizeInteraction } = useContractWrite(realizeConfig)
-  const { isLoading: realizeIsLoading, isSuccess: realizeIsSuccess } = useWaitForTransaction({
-    hash: realizeData?.hash
-  })
-
-  const { config: claimConfig } = usePrepareContractWrite({
-    address: contracts.porridge.address as `0x${string}`,
-    abi: contracts.porridge.abi,
-    functionName: 'claim',
-    enabled: true,
-    onSettled() {
-      console.log('just settled claim')
-    }
-  })
-  const { data: claimData, write: claimInteraction } = useContractWrite(claimConfig)
-  const { isLoading: claimIsLoading, isSuccess: claimIsSuccess } = useWaitForTransaction({
-    hash: claimData?.hash
-  })
+  // const { config: claimConfig } = usePrepareContractWrite({
+  //   address: contracts.porridge.address as `0x${string}`,
+  //   abi: contracts.porridge.abi,
+  //   functionName: 'claim',
+  //   enabled: true,
+  //   onSettled() {
+  //     console.log('just settled claim')
+  //   }
+  // })
+  // const { data: claimData, write: claimInteraction } = useContractWrite(claimConfig)
+  // const { isLoading: claimIsLoading, isSuccess: claimIsSuccess } = useWaitForTransaction({
+  //   hash: claimData?.hash
+  // })
 
   function test() {
-    console.log('hello')
+    console.log(balance)
+    console.log(stakeInfo)
   }
 
   function handlePill(action: number) {
@@ -289,92 +145,96 @@ export default function Staking() {
 
   function handleTopInput() {
     if(stakeToggle) {
-      return parseFloat(displayString) >= locksBalance ? '' : displayString
+      return parseFloat(displayString) >= balance.locks ? '' : displayString
     }
     if(unstakeToggle) {
-      return parseFloat(displayString) >= stakedBalance ? '' : displayString
+      return parseFloat(displayString) >= stakeInfo.staked ? '' : displayString
     }
     if(realizeToggle) {
-      return parseFloat(displayString) >= porridgeBalance ? '' : displayString
+      return parseFloat(displayString) >= balance.prg ? '' : displayString
     }
   }
 
   async function handleButtonClick() {
     const button = document.getElementById('amm-button')
-    if(!account.isConnected) {
-      if(button) {
-        button.innerHTML = "connect wallet"
-      }
+
+    if(!isConnected) {
+      button && (button.innerHTML = "connect wallet")
     }
-    else if(chain?.chain?.id !== 43113) {
-      if(button) {
-        button.innerHTML = "switch to devnet plz"
-      }
+    else if(network !== "Avalanche Fuji C-Chain") {
+      button && (button.innerHTML = "switch to devnet plz")
     }
     else {
       if(stakeToggle) {
-        if(button) {
-          button.innerHTML = "stake"
+        if(stake == 0) {
+          return
         }
-        if(stake > locksAllowance) {
-          if(button) {
-            button.innerHTML = "approve locks"
-          }
-          locksApproveInteraction?.()
+        const sufficientAllowance: boolean | void = await checkAllowance('locks', contracts.porridge.address, stake, signer)
+        if(sufficientAllowance) {
+          button && (button.innerHTML = "staking...")
+          const stakeTx = await sendStakeTx(stake, signer)
+          stakeTx && openNotification({
+            title: 'Successfully Staked $LOCKS!',
+            hash: stakeTx.hash,
+            direction: 'staked',
+            amount: stake,
+            price: 0,
+            page: 'stake'
+          })
+          button && (button.innerHTML = "stake")
+          setStake(0)
+          setDisplayString('')
+          refreshBalances(wallet, signer)
+          refreshInfo(signer)
         }
         else {
-          stakeInteraction?.()
+          button && (button.innerHTML = "approving...")
+          await sendApproveTx('locks', contracts.porridge.address, stake , signer)
+          setTimeout(() => {
+            button && (button.innerHTML = "stake")
+          }, 10000)
         }
       }
       if(unstakeToggle) {
-        if(button) {
-          button.innerHTML = "unstake"
+        if(unstake == 0) {
+          return
         }
-        unstakeInteraction?.()
+        button && (button.innerHTML = "unstaking...")
+        const unstakeTx = await sendUnstakeTx(unstake, signer)
+        unstakeTx && openNotification({
+          title: 'Successfully Unstaked $LOCKS!',
+          hash: unstakeTx.hash,
+          direction: 'unstaked',
+          amount: unstake,
+          price: 0,
+          page: 'stake'
+        })
+        button && (button.innerHTML = "unstake")
+        setUnstake(0)
+        setDisplayString('')
+        refreshBalances(wallet, signer)
+        refreshInfo(signer)
       }
       if(realizeToggle) {
-        if(button) {
-          button.innerHTML = "realize"
-        }
-        if(realize * floorPrice > testhoneyAllowance) {
-          if(button) {
-            button.innerHTML = "approve honey"
-          }
-          testhoneyApproveInteraction?.()
-        }
-        else {
-          realizeInteraction?.()
-        }
+
       }
     }
   }
   
 
   function renderButton() {
-    if(claimIsLoading) {
-      return 'claiming...'
-    }
     if(stakeToggle) {
-      if(locksApproveIsLoading) {
-        return 'approving locks...'
-      }
-      if(stakeIsLoading) {
-        return 'staking...'
+      if(stake > stakeInfo.locksPrgAllowance) {
+        return 'approve use of $locks'
       }
       return 'stake'
     }
     if(unstakeToggle) {
-      if(unstakeIsLoading) {
-        return 'unstaking...'
-      }
       return 'unstake'
     }
     if(realizeToggle) {
-      if(testhoneyApproveIsLoading) {
-        return 'approving honey...'
-      }
-      if(realizeIsLoading) {
-        return 'stirring...'
+      if(realize > stakeInfo.honeyPrgAllowance) {
+        return 'approve use of $honey'
       }
       return 'stir'
     }
@@ -394,71 +254,71 @@ export default function Staking() {
 
   function handleBalance() {
     if(stakeToggle) {
-      return locksBalance > 0 ? locksBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.0"
+      return balance.locks > 0 ? balance.locks.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.0"
     }
     if(unstakeToggle) {
-      return stakedBalance > 0 ? stakedBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.0"
+      return stakeInfo.staked > 0 ? stakeInfo.staked.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.0"
     }
     if(realizeToggle) {
-      return porridgeBalance > 0 ? porridgeBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.0"
+      return balance.prg > 0 ? balance.prg.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.0"
     }
   }
 
   function handlePercentageButtons(action: number) {
     if(action == 1) {
       if(stakeToggle) {
-        setDisplayString((locksBalance / 4).toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setStake(locksBalance / 4)
+        setDisplayString((balance.locks / 4).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setStake(balance.locks / 4)
       }
       if(unstakeToggle) {
-        setDisplayString((stakedBalance / 4).toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setUnstake(stakedBalance / 4)
+        setDisplayString((stakeInfo.staked / 4).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setUnstake(stakeInfo.staked / 4)
       }
       if(realizeToggle) {
-        setDisplayString((porridgeBalance / 4).toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setRealize(porridgeBalance / 4)
+        setDisplayString((balance.prg / 4).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setRealize(balance.prg / 4)
       }
     }
     if(action == 2) {
       if(stakeToggle) {
-        setDisplayString((locksBalance / 2).toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setStake(locksBalance / 2)
+        setDisplayString((balance.locks / 2).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setStake(balance.locks / 2)
       }
       if(unstakeToggle) {
-        setDisplayString((stakedBalance / 2).toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setUnstake(stakedBalance / 2)
+        setDisplayString((stakeInfo.staked / 2).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setUnstake(stakeInfo.staked / 2)
       }
       if(realizeToggle) {
-        setDisplayString((porridgeBalance / 2).toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setRealize(porridgeBalance / 2)
+        setDisplayString((balance.prg / 2).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setRealize(balance.prg / 2)
       }
     }
     if(action == 3) {
       if(stakeToggle) {
-        setDisplayString((locksBalance * 0.75).toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setStake(locksBalance * 0.75)
+        setDisplayString((balance.locks * 0.75).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setStake(balance.locks * 0.75)
       }
       if(unstakeToggle) {
-        setDisplayString((stakedBalance * 0.75).toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setUnstake(stakedBalance * 0.75)
+        setDisplayString((stakeInfo.staked * 0.75).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setUnstake(stakeInfo.staked * 0.75)
       }
       if(realizeToggle) {
-        setDisplayString((porridgeBalance * 0.75).toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setRealize(porridgeBalance * 0.75)
+        setDisplayString((balance.prg * 0.75).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setRealize(balance.prg * 0.75)
       }
     }
     if(action == 4) {
       if(stakeToggle) {
-        setDisplayString(locksBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setStake(locksBalance)
+        setDisplayString(balance.locks.toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setStake(balance.locks)
       }
       if(unstakeToggle) {
-        setDisplayString(stakedBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setUnstake(stakedBalance)
+        setDisplayString(stakeInfo.staked.toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setUnstake(stakeInfo.staked)
       }
       if(realizeToggle) {
-        setDisplayString(porridgeBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        setRealize(porridgeBalance)
+        setDisplayString(balance.prg.toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setRealize(balance.prg)
       }
     }
   }
@@ -502,7 +362,7 @@ export default function Staking() {
                     </div>
                   </div>
                   <div className="absolute top-[45%]">
-                    <input className="border-none focus:outline-none font-acme rounded-xl text-[40px] pl-10" placeholder="0" type="number" value={handleTopInput()} onChange={(e) => handleTopChange(e.target.value)} id="number-input" autoFocus />
+                    <input className="border-none focus:outline-none font-acme rounded-xl text-[40px] pl-10" placeholder="0.00" type="number" value={handleTopInput()} onChange={(e) => handleTopChange(e.target.value)} id="number-input" autoFocus />
                   </div>
                   <div className="absolute right-0 bottom-[35%]">
                     <h1 className="text-[23px] mr-6 font-acme text-[#878d97]">balance: {handleBalance()}</h1>
@@ -516,31 +376,32 @@ export default function Staking() {
                 <div className="w-[100%] h-[70%] flex p-6 flex-col bg-white rounded-xl border-2 border-black">
                   <div className="flex flex-row justify-between items-center mt-3">
                     <h1 className="font-acme text-[24px]">$LOCKS floor price:</h1>
-                    <p className="font-acme text-[20px]">${floorPrice > 0 ? floorPrice.toLocaleString('en-US', { maximumFractionDigits: 4 }) : 0}</p>
+                    <p className="font-acme text-[20px]">${(stakeInfo.fsl / stakeInfo.supply) > 0 ? (stakeInfo.fsl / stakeInfo.supply).toLocaleString('en-US', { maximumFractionDigits: 2 }) : '0'}</p>
                   </div>
                   <div className="flex flex-row justify-between items-center mt-3">
                     <h1 className="font-acme text-[24px]">$LOCKS balance:</h1>
-                    <p className="font-acme text-[20px]">{locksBalance > 0 ? locksBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : 0}</p>
+                    <p className="font-acme text-[20px]">{balance.locks > 0 ? balance.locks.toLocaleString('en-US', { maximumFractionDigits: 2 }) : '0'}</p>
                   </div>
                   <div className="flex flex-row justify-between items-center mt-3">
                     <h1 className="font-acme text-[24px]">$HONEY balance:</h1>
-                    <p className="font-acme text-[20px]">{honeyBalance > 0 ? honeyBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : 0}</p>
+                    <p className="font-acme text-[20px]">{balance.honey > 0 ? balance.honey.toLocaleString('en-US', { maximumFractionDigits: 2 }) : '0'}</p>
                   </div>
                   <div className="flex flex-row justify-between items-center mt-3">
                     <h1 className="font-acme text-[24px]">staked $LOCKS:</h1>
-                    <p className="font-acme text-[20px]">{stakedBalance > 0 ? stakedBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : 0}</p>
+                    <p className="font-acme text-[20px]">{stakeInfo.staked > 0 ? stakeInfo.staked.toLocaleString('en-US', { maximumFractionDigits: 2 }) : '0'}</p>
                   </div>
                   <div className="flex flex-row justify-between items-center mt-3">
                     <h1 className="font-acme text-[24px]">$PRG balance:</h1>
-                    <p className="font-acme text-[20px]">{porridgeBalance > 0 ? porridgeBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : 0}</p>
+                    <p className="font-acme text-[20px]">{balance.prg > 0 ? balance.prg.toLocaleString('en-US', { maximumFractionDigits: 2 }) : '0'}</p>
                   </div>
                   <div className="flex flex-row justify-between items-center mt-3">
                     <h1 className="font-acme text-[24px]">$PRG available to claim:</h1>
-                    <p className="font-acme text-[20px]">{claimBalance > 0 ? claimBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : 0}</p>
+                    <p className="font-acme text-[20px]">{stakeInfo.yieldToClaim > 0 ? stakeInfo.yieldToClaim.toLocaleString('en-US', { maximumFractionDigits: 2 }) : '0'}</p>
                   </div>
                 </div>
-                {account.isConnected && <div className="h-[10%] w-[70%] mx-auto mt-4">
-                  <button className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[25px]" id="amm-button" onClick={() => claimInteraction?.()} >claim yield</button>
+                {isConnected && <div className="h-[10%] w-[70%] mx-auto mt-4">
+                  <button className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[25px]" id="amm-button" >claim yield</button>
+                  {/* <button className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[25px]" id="amm-button" onClick={() => claimInteraction?.()} >claim yield</button> */}
                 </div>}
               </div>
             </div>

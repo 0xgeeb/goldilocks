@@ -56,7 +56,8 @@ export default function Amm() {
   })
 
   async function test() {
-    refreshInfo(signer)
+    console.log(ammInfo.psl)
+    console.log(newPsl)
   }
 
   const fetchBalances = async () => {
@@ -64,12 +65,12 @@ export default function Amm() {
   }
 
   const fetchInfo = async () => {
-    await getAmmInfo()
-    setNewFsl(ammInfo.fsl)
-    setNewPsl(ammInfo.psl)
-    setNewFloor(floorPrice(ammInfo.fsl, ammInfo.supply))
-    setNewMarket(marketPrice(ammInfo.fsl, ammInfo.psl, ammInfo.supply))
-    setNewSupply(ammInfo.supply)
+    const data = await getAmmInfo()
+    setNewFsl(data.fsl)
+    setNewPsl(data.psl)
+    setNewFloor(floorPrice(data.fsl, data.supply))
+    setNewMarket(marketPrice(data.fsl, data.psl, data.supply))
+    setNewSupply(data.supply)
   }
 
   const refreshInfo = async (signer: any) => {
@@ -261,7 +262,7 @@ export default function Amm() {
   
   function renderButton() {
     if(buyToggle) {
-      if(cost > ammInfo.honeyAllowance) {
+      if(cost > ammInfo.honeyAmmAllowance) {
         return 'approve use of $honey'
       }
       return 'buy'
@@ -285,6 +286,9 @@ export default function Amm() {
     }
     else {
       if(buyToggle) {
+        if(buy == 0) {
+          return
+        }
         const sufficientAllowance: boolean | void = await checkAllowance('honey', contracts.amm.address, cost, signer)
         if(sufficientAllowance) {
           button && (button.innerHTML = "buying...")
@@ -294,7 +298,8 @@ export default function Amm() {
             hash: buyTx.hash,
             direction: 'bought',
             amount: buy,
-            price: cost
+            price: cost,
+            page: 'amm'
           })
           button && (button.innerHTML = "buy")
           setBuy(0)
@@ -311,6 +316,9 @@ export default function Amm() {
         }
       }
       if(sellToggle) {
+        if(sell == 0) {
+          return
+        }
         button && (button.innerHTML = "selling...")
         const sellTx = await sendSellTx(sell, receive, signer)
         sellTx && openNotification({
@@ -318,7 +326,8 @@ export default function Amm() {
           hash: sellTx.hash,
           direction: 'sold',
           amount: sell,
-          price: receive
+          price: receive,
+          page: 'amm'
         })
         button && (button.innerHTML = "sell")
         setSell(0)
@@ -327,6 +336,9 @@ export default function Amm() {
         refreshInfo(signer)
       }
       if(redeemToggle) {
+        if(redeem == 0) {
+          return
+        }
         button && (button.innerHTML = "redeeming...")
         const redeemTx = await sendRedeemTx(redeem, signer)
         redeemTx && openNotification({
@@ -334,7 +346,8 @@ export default function Amm() {
           hash: redeemTx.hash,
           direction: 'redeemed',
           amount: redeem,
-          price: redeem * (ammInfo.fsl / ammInfo.supply)
+          price: redeem * (ammInfo.fsl / ammInfo.supply),
+          page: 'amm'
         })
         button && (button.innerHTML = "redeem")
         setRedeem(0)
