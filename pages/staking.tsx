@@ -29,7 +29,7 @@ export default function Staking() {
   const { openNotification } = useNotification()
   const { balance, wallet, isConnected, signer, network, getBalances, refreshBalances } = useWallet()
   const { stakeInfo, getStakeInfo, refreshStakeInfo } = useInfo()
-  const { checkAllowance, sendApproveTx, sendStakeTx, sendUnstakeTx } = useTx()
+  const { checkAllowance, sendApproveTx, sendStakeTx, sendUnstakeTx, sendRealizeTx, sendClaimTx } = useTx()
   
   const springs = useSpring({
     from: { x: -900 },
@@ -216,8 +216,59 @@ export default function Staking() {
         refreshInfo(signer)
       }
       if(realizeToggle) {
-
+        if(realize == 0) {
+          return
+        }
+        const sufficientAllowance: boolean | void = await checkAllowance('honey', contracts.porridge.address, realize, signer)
+        if(sufficientAllowance) {
+          button && (button.innerHTML = "stirring...")
+          const realizeTx = await sendRealizeTx(realize, signer)
+          realizeTx && openNotification({
+            title: 'Successfully Stirred $LOCKS!',
+            hash: realizeTx.hash,
+            direction: 'stirred',
+            amount: realize,
+            price: 0,
+            page: 'stake'
+          })
+          button && (button.innerHTML = "realize")
+          setRealize(0)
+          setDisplayString('')
+          refreshBalances(wallet, signer)
+          refreshInfo(signer)
+        }
+        else {
+          button && (button.innerHTML = "approving...")
+          await sendApproveTx('honey', contracts.porridge.address, realize, signer)
+          setTimeout(() => {
+            button && (button.innerHTML = "realize")
+          }, 10000)
+        }
       }
+    }
+  }
+
+  async function handleClaimFunction() {
+    console.log('hello')
+    const button = document.getElementById('claim-button')
+
+    if(network !== "Avalanche Fuji C-Chain") {
+      button && (button.innerHTML = "switch to devnet plz")
+    }
+    else {
+      button && (button.innerHTML = "claiming...")
+      const claimTx = await sendClaimTx(signer)
+      claimTx && openNotification({
+        title: 'Successfully Claimed $PRG!',
+        hash: claimTx.hash,
+        direction: 'claimed',
+        amount: stakeInfo.yieldToClaim,
+        price: 0,
+        page: 'claim'
+      })
+      button && (button.innerHTML = "claim yield")
+      refreshBalances(wallet, signer)
+      refreshInfo(signer)
     }
   }
   
@@ -400,8 +451,7 @@ export default function Staking() {
                   </div>
                 </div>
                 {isConnected && <div className="h-[10%] w-[70%] mx-auto mt-4">
-                  <button className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[25px]" id="amm-button" >claim yield</button>
-                  {/* <button className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[25px]" id="amm-button" onClick={() => claimInteraction?.()} >claim yield</button> */}
+                  <button className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[25px]" id="claim-button" onClick={() => handleClaimFunction()}>claim yield</button>
                 </div>}
               </div>
             </div>

@@ -26,6 +26,27 @@ contract AMMPriceTest is Test {
     honey.approve(address(amm), type(uint256).max);
   }
 
+  function testStress() public {
+    locks.transferToAMM(1600000e18, 400000e18);
+    vm.store(address(amm), bytes32(uint256(5)), bytes32(uint256(1000e18)));
+
+    (uint256 market0, uint256 floor0) = amm.buy(1e18, type(uint256).max);
+
+    (uint256 market, uint256 floor) = amm.buy(1e18, type(uint256).max);
+    console.log('market: ', market, 'floor: ', floor);
+    (uint256 market1, uint256 floor1) = amm.buy(10e18, type(uint256).max);
+    console.log('market: ', market1, 'floor: ', floor1);
+    (uint256 market5, uint256 floor5) = amm.buy(50e18, type(uint256).max);
+    console.log('market: ', market5, 'floor: ', floor5);
+    (uint256 market2, uint256 floor2) = amm.buy(100e18, type(uint256).max);
+    console.log('market: ', market2, 'floor: ', floor2);
+    (uint256 market3, uint256 floor3) = amm.buy(500e18, type(uint256).max);
+    console.log('market: ', market3, 'floor: ', floor3);
+    (uint256 market4, uint256 floor4) = amm.buy(1000e18, type(uint256).max);
+    console.log('market: ', market4, 'floor: ', floor4);
+      
+  }
+
   function testPurchase1() public {
     locks.transferToAMM(1600000e18, 400000e18);
     vm.store(address(amm), bytes32(uint256(5)), bytes32(uint256(1000e18)));

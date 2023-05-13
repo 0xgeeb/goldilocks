@@ -214,7 +214,6 @@ export const InfoProvider = (props: PropsWithChildren<{}>) => {
     response = { ...response, honeyPrgAllowance: allowanceHoneyTx._hex / Math.pow(10, 18)}
 
     setStakeInfoState(response)
-    console.log(response)
   }
 
   return (

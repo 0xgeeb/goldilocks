@@ -10,7 +10,9 @@ const INITIAL_STATE = {
   sendSellTx: async (sell: number, receive: number, signer: any): Promise<any> => {},
   sendRedeemTx: async (redeem: number, signer: any): Promise<any> => {},
   sendStakeTx: async (stake: number, signer: any): Promise<any> => {},
-  sendUnstakeTx: async (unstake: number, signer: any): Promise<any> => {}
+  sendUnstakeTx: async (unstake: number, signer: any): Promise<any> => {},
+  sendRealizeTx: async (realize: number, signer: any): Promise<any> => {},
+  sendClaimTx: async (signer: any): Promise<any> => {},
 }
 
 const TxContext = createContext(INITIAL_STATE)
@@ -143,6 +145,40 @@ export const TxProvider = (props: PropsWithChildren<{}>) => {
     }
   }
 
+  const sendRealizeTx = async (realize: number, signer: any): Promise<any> => {
+    const prgContract = new ethers.Contract(
+      contracts.porridge.address,
+      contracts.porridge.abi,
+      signer
+    )
+    try {
+      const realizeReceipt = await prgContract.realize(BigNumber.from(ethers.utils.parseUnits(realize.toString(), 18)))
+      await realizeReceipt.wait()
+      return realizeReceipt
+    }
+    catch (e) {
+      console.log('user denied tx')
+      console.log('or: ', e)
+    }
+  }
+
+  const sendClaimTx = async (signer: any): Promise<any> => {
+    const prgContract = new ethers.Contract(
+      contracts.porridge.address,
+      contracts.porridge.abi,
+      signer
+    )
+    try {
+      const claimReceipt = await prgContract.claim()
+      await claimReceipt.wait()
+      return claimReceipt
+    }
+    catch (e) {
+      console.log('user denied tx')
+      console.log('or: ', e)
+    }
+  }
+
   return (
     <TxContext.Provider
       value={{
@@ -152,7 +188,9 @@ export const TxProvider = (props: PropsWithChildren<{}>) => {
         sendSellTx,
         sendRedeemTx,
         sendStakeTx,
-        sendUnstakeTx
+        sendUnstakeTx,
+        sendRealizeTx,
+        sendClaimTx
       }}
     >
       { children }
