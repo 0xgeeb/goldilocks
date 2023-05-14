@@ -28,13 +28,18 @@ contract AMMTest is Test {
   }
 
   function testMarketPrice() public {
-    vm.store(address(amm), bytes32(uint256(2)), bytes32(uint256(10e18)));
-    vm.store(address(amm), bytes32(uint256(3)), bytes32(uint256(5e18)));
-    vm.store(address(amm), bytes32(uint256(5)), bytes32(uint256(4e18)));
-    // uint256 regularResult = amm.marketPrice();
-    uint256 soladyResult = amm.soladyMarketPrice();
-    // console.log(regularResult);
+    vm.store(address(amm), bytes32(uint256(2)), bytes32(uint256(243457e18)));
+    vm.store(address(amm), bytes32(uint256(3)), bytes32(uint256(4645e18)));
+    vm.store(address(amm), bytes32(uint256(5)), bytes32(uint256(668e18)));
+    uint256 regularResult = amm.marketPrice();
+    uint256 soladyResult = amm.soladyMarketPrice(243457e18, 4645e18, 668e18);
+    console.log(regularResult);
     console.log(soladyResult);
+  }
+
+  function testLibraryGas() public {
+    uint256 result = amm.soladyMarketPrice(243457e18, 4645e18, 668e18);
+    // console.log(result);;
   }
 
 }
