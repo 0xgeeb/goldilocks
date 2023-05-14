@@ -91,14 +91,14 @@ contract AMM {
     if (_leftover > 0) {
       _market = soladyMarketPrice(_fsl, _psl, _supply);
       _floor = _floorPrice(_fsl, _supply);
-      _purchasePrice += _mulWad(_market, _leftover);
+      _purchasePrice += FixedPointMathLib.mulWad(_market, _leftover);
       _supply += _leftover;
       if (_psl * 100 >= _fsl * 50) {
-        _fsl += _mulWad(_market, _leftover);
+        _fsl += FixedPointMathLib.mulWad(_market, _leftover);
       }
       else {
-        _psl += _mulWad((_market - _floor), _leftover);
-        _fsl += _mulWad(_floor, _leftover);
+        _psl += FixedPointMathLib.mulWad((_market - _floor), _leftover);
+        _fsl += FixedPointMathLib.mulWad(_floor, _leftover);
       }
     }
     uint256 _tax = (_purchasePrice / 1000) * 3;
@@ -135,9 +135,9 @@ contract AMM {
     if (_leftover > 0) {
       _market = soladyMarketPrice(_fsl, _psl, _supply);
       _floor = _floorPrice(_fsl, _supply);
-      _saleAmount += _mulWad(_market, _leftover);
-      _psl -= _mulWad((_market - _floor), _leftover);
-      _fsl -= _mulWad(_floor, _leftover); 
+      _saleAmount += FixedPointMathLib.mulWad(_market, _leftover);
+      _psl -= FixedPointMathLib.mulWad((_market - _floor), _leftover);
+      _fsl -= FixedPointMathLib.mulWad(_floor, _leftover); 
       _supply -= _leftover;
     }
     uint256 _tax = (_saleAmount / 1000) * 53;
@@ -166,7 +166,7 @@ contract AMM {
 
   /// @dev calculates floor price of $LOCKS
   function _floorPrice(uint256 _fsl, uint256 _supply) internal pure returns (uint256) {
-    return _divWad(_fsl, _supply);
+    return FixedPointMathLib.divWad(_fsl, _supply);
   }
   
   /// @dev calculates market price of $LOCKS
@@ -211,45 +211,6 @@ contract AMM {
 
   function approveBorrowForHoney(address _borrowAddress) external onlyAdmin {
     honey.approve(_borrowAddress, 10000000e18);
-  }
-
-  function _mulWad(uint256 x, uint256 y) internal pure returns (uint256 z) {
-    assembly {
-      if mul(y, gt(x, div(not(0), y))) {            
-        mstore(0x00, 0xbac65e5b)
-        revert(0x1c, 0x04)
-      }
-      z := div(mul(x, y), WAD)
-    }
-  }
-
-  function _divWad(uint256 x, uint256 y) internal pure returns (uint256 z) {
-    /// @solidity memory-safe-assembly
-    assembly {
-      // Equivalent to `require(y != 0 && (WAD == 0 || x <= type(uint256).max / WAD))`.
-      if iszero(mul(y, iszero(mul(WAD, gt(x, div(not(0), WAD)))))) {
-        // Store the function selector of `DivWadFailed()`.
-        mstore(0x00, 0x7c5f487d)
-        // Revert with (offset, size).
-        revert(0x1c, 0x04)
-      }
-      z := div(mul(x, WAD), y)
-    }
-  }
-
-  function pow(uint256 x, uint256 y) internal pure returns (uint256 result) {
-    // Calculate the first iteration of the loop in advance.
-    result = y & 1 > 0 ? x : 1e18;
-
-    // Equivalent to "for(y /= 2; y > 0; y /= 2)" but faster.
-    for (y >>= 1; y > 0; y >>= 1) {
-      x = _mulWad(x, x);
-
-      // Equivalent to "y % 2 == 1" but faster.
-      if (y & 1 > 0) {
-        result = _mulWad(result, x);
-      }
-    }
   }
 
 }
