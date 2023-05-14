@@ -28,12 +28,12 @@ contract AMMTest is Test {
   }
 
   function testMarketPrice() public {
-    vm.store(address(amm), bytes32(uint256(2)), bytes32(uint256(10678e18)));
-    vm.store(address(amm), bytes32(uint256(3)), bytes32(uint256(54657e18)));
-    vm.store(address(amm), bytes32(uint256(5)), bytes32(uint256(3567e18)));
-    uint256 regularResult = amm.marketPrice();
+    vm.store(address(amm), bytes32(uint256(2)), bytes32(uint256(10e18)));
+    vm.store(address(amm), bytes32(uint256(3)), bytes32(uint256(5e18)));
+    vm.store(address(amm), bytes32(uint256(5)), bytes32(uint256(4e18)));
+    // uint256 regularResult = amm.marketPrice();
     uint256 soladyResult = amm.soladyMarketPrice();
-    console.log(regularResult);
+    // console.log(regularResult);
     console.log(soladyResult);
   }
 
