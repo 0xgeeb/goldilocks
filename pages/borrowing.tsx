@@ -1,175 +1,180 @@
 import React, { useEffect, useState } from "react"
 import Head from "next/head"
-import { ethers, BigNumber } from "ethers"
+import { 
+  useNotification,
+  useWallet,
+  useInfo,
+  useTx
+} from "../providers"
 import { useSpring, animated } from "@react-spring/web"
-import useDebounce from "../hooks/useDebounce"
 import Bear from "../components/Bear"
 import { contracts } from "../utils"
-import { useAccount, useContractReads, useNetwork, usePrepareContractWrite, useContractWrite, useWaitForTransaction } from "wagmi"
 
 export default function Borrowing() {
 
   const [displayString, setDisplayString] = useState<string>('')
-
-  const [floorPrice, setFloorPrice] = useState<number>(0)
-  const [locksBalance, setLocksBalance] = useState<number>(0)
-  const [stakedBalance, setStakedBalance] = useState<number>(0)
-  const [lockedBalance, setLockedBalance] = useState<number>(0)
-  const [honeyBalance, setHoneyBalance] = useState<number>(0)
-  const [borrowedBalance, setBorrowedBalance] = useState<number>(0)
   
   const [borrow, setBorrow] = useState<number>(0)
-  const debouncedBorrow = useDebounce(borrow, 1000)
   const [repay, setRepay] = useState<number>(0)
-  const debouncedRepay = useDebounce(repay, 1000)
-  
-  const [honeyAllowance, setHoneyAllowance] = useState<number>(0)
 
   const [borrowToggle, setBorrowToggle] = useState<boolean>(true)
   const [repayToggle, setRepayToggle] = useState<boolean>(false)
 
-  const account = useAccount()
-  const chain = useNetwork()
-
-  const maxApproval: string = '115792089237316195423570985008687907853269984665640564039457584007913129639935'
+  const { openNotification } = useNotification()
+  const { balance, wallet, isConnected, signer, network, getBalances, refreshBalances } = useWallet()
+  const { borrowInfo, getBorrowInfo, refreshBorrowInfo } = useInfo()
 
   const springs = useSpring({
     from: { x: -900 },
     to: { x: 0 },
   })
 
-  const { data, isError, isLoading } = useContractReads({
-    contracts: [
-      {
-        address: contracts.locks.address as `0x${string}`,
-        abi: contracts.locks.abi,
-        functionName: 'balanceOf',
-        args: [account.address]
-      },
-      {
-        address: contracts.porridge.address as `0x${string}`,
-        abi: contracts.porridge.abi,
-        functionName: 'getStaked',
-        args: [account.address]
-      },
-      {
-        address: contracts.borrow.address as `0x${string}`,
-        abi: contracts.borrow.abi,
-        functionName: 'getBorrowed',
-        args: [account.address]
-      },
-      {
-        address: contracts.borrow.address as `0x${string}`,
-        abi: contracts.borrow.abi,
-        functionName: 'getLocked',
-        args: [account.address]
-      },
-      {
-        address: contracts.amm.address as `0x${string}`,
-        abi: contracts.amm.abi,
-        functionName: 'fsl'
-      },
-      {
-        address: contracts.amm.address as `0x${string}`,
-        abi: contracts.amm.abi,
-        functionName: 'supply'
-      },
-      {
-        address: contracts.honey.address as `0x${string}`,
-        abi: contracts.honey.abi,
-        functionName: 'allowance',
-        args: [account.address, contracts.borrow.address]
-      },
-      {
-        address: contracts.honey.address as `0x${string}`,
-        abi: contracts.honey.abi,
-        functionName: 'balanceOf',
-        args: [account.address]
-      }
-    ],
-    onSettled(data: any) {
-      if(!data[0]) {
-        const button = document.getElementById('amm-button')
-        if(button) {
-          button.innerHTML = "error loading data"
-        }
-      }
-      else {
-        setFloorPrice((parseInt(data[4]._hex, 16) / Math.pow(10, 18)) / (parseInt(data[5]._hex, 16) / Math.pow(10, 18)))
-        if(data[0]) {
-          setLocksBalance(parseInt(data[0]._hex, 16) / Math.pow(10, 18))
-        }
-        if(data[1]) {
-          setStakedBalance(parseInt(data[1]._hex, 16) / Math.pow(10, 18))
-        }
-        if(data[2]) {
-          setBorrowedBalance(parseInt(data[2]._hex, 16) / Math.pow(10, 18))
-        }
-        if(data[3]) {
-          setLockedBalance(parseInt(data[3]._hex, 16) / Math.pow(10, 18))
-        }
-        if(data[6]) {
-          setHoneyAllowance(parseInt(data[6]._hex, 16) / Math.pow(10, 18))
-        }
-        if(data[7]) {
-          setHoneyBalance(parseInt(data[7]._hex, 16) / Math.pow(10, 18))
-        }
-      }
-    }
-  })
+  const fetchBalances = async () => {
+    await getBalances()
+  }
 
-  const { config: honeyApproveConfig } = usePrepareContractWrite({
-    address: contracts.honey.address as `0x${string}`,
-    abi: contracts.honey.abi,
-    functionName: 'approve',
-    args: ['0x1b408d277D9f168A8893b1728d3B6cb75929a67d', maxApproval],
-    enabled: true,
-    onSettled() {
-      console.log('just settled honeyApprove')
-    }
-  })
-  const { data: honeyApproveData, write: honeyApproveInteraction } = useContractWrite(honeyApproveConfig)
-  const { isLoading: honeyApproveIsLoading, isSuccess: honeyApproveIsSuccess } = useWaitForTransaction({
-    hash: honeyApproveData?.hash
-  })
+  const fetchInfo = async () => {
+    await getBorrowInfo()
+  }
 
-  const { config: borrowConfig } = usePrepareContractWrite({
-    address: contracts.borrow.address as `0x${string}`,
-    abi: contracts.borrow.abi,
-    functionName: 'borrow',
-    args: [BigNumber.from(ethers.utils.parseUnits(debouncedBorrow.toString(), 18))],
-    enabled: Boolean(debouncedBorrow),
-    // enabled: false,
-    onSettled() {
-      console.log('just settled borrow')
-    }
-  })
-  const { data: borrowData, write: borrowInteraction } = useContractWrite(borrowConfig)
-  const { isLoading: borrowIsLoading, isSuccess: borrowIsSuccess } = useWaitForTransaction({
-    hash: borrowData?.hash
-  })
+  const refreshInfo = async (signer: any) => {
+    await refreshBorrowInfo(signer)
+  }
 
-  const { config: repayConfig } = usePrepareContractWrite({
-    address: contracts.borrow.address as `0x${string}`,
-    abi: contracts.borrow.abi,
-    functionName: 'repay',
-    args: [BigNumber.from(ethers.utils.parseUnits(debouncedRepay.toString(), 18))],
-    // enabled: false,
-    enabled: Boolean(debouncedRepay),
-    onSettled() {
-      console.log('just settled repay')
-    }
-  })
-  const { data: repayData, write: repayInteraction } = useContractWrite(repayConfig)
-  const { isLoading: repayIsLoading, isSuccess: repayIsSuccess } = useWaitForTransaction({
-    hash: repayData?.hash
-  })
+  useEffect(() => {
+    fetchBalances()
+    fetchInfo()
+  }, [isConnected])
+
+  // const { data, isError, isLoading } = useContractReads({
+  //   contracts: [
+  //     {
+  //       address: contracts.locks.address as `0x${string}`,
+  //       abi: contracts.locks.abi,
+  //       functionName: 'balanceOf',
+  //       args: [account.address]
+  //     },
+  //     {
+  //       address: contracts.porridge.address as `0x${string}`,
+  //       abi: contracts.porridge.abi,
+  //       functionName: 'getStaked',
+  //       args: [account.address]
+  //     },
+  //     {
+  //       address: contracts.borrow.address as `0x${string}`,
+  //       abi: contracts.borrow.abi,
+  //       functionName: 'getBorrowed',
+  //       args: [account.address]
+  //     },
+  //     {
+  //       address: contracts.borrow.address as `0x${string}`,
+  //       abi: contracts.borrow.abi,
+  //       functionName: 'getLocked',
+  //       args: [account.address]
+  //     },
+  //     {
+  //       address: contracts.amm.address as `0x${string}`,
+  //       abi: contracts.amm.abi,
+  //       functionName: 'fsl'
+  //     },
+  //     {
+  //       address: contracts.amm.address as `0x${string}`,
+  //       abi: contracts.amm.abi,
+  //       functionName: 'supply'
+  //     },
+  //     {
+  //       address: contracts.honey.address as `0x${string}`,
+  //       abi: contracts.honey.abi,
+  //       functionName: 'allowance',
+  //       args: [account.address, contracts.borrow.address]
+  //     },
+  //     {
+  //       address: contracts.honey.address as `0x${string}`,
+  //       abi: contracts.honey.abi,
+  //       functionName: 'balanceOf',
+  //       args: [account.address]
+  //     }
+  //   ],
+  //   onSettled(data: any) {
+  //     if(!data[0]) {
+  //       const button = document.getElementById('amm-button')
+  //       if(button) {
+  //         button.innerHTML = "error loading data"
+  //       }
+  //     }
+  //     else {
+  //       set(borrowInfo.fsl / borrowInfo.supply)((parseInt(data[4]._hex, 16) / Math.pow(10, 18)) / (parseInt(data[5]._hex, 16) / Math.pow(10, 18)))
+  //       if(data[0]) {
+  //         setbalance.locks(parseInt(data[0]._hex, 16) / Math.pow(10, 18))
+  //       }
+  //       if(data[1]) {
+  //         setborrowInfo.staked(parseInt(data[1]._hex, 16) / Math.pow(10, 18))
+  //       }
+  //       if(data[2]) {
+  //         setborrowInfo.borrowed(parseInt(data[2]._hex, 16) / Math.pow(10, 18))
+  //       }
+  //       if(data[3]) {
+  //         setborrowInfo.locked(parseInt(data[3]._hex, 16) / Math.pow(10, 18))
+  //       }
+  //       if(data[6]) {
+  //         setHoneyAllowance(parseInt(data[6]._hex, 16) / Math.pow(10, 18))
+  //       }
+  //       if(data[7]) {
+  //         setbalance.honey(parseInt(data[7]._hex, 16) / Math.pow(10, 18))
+  //       }
+  //     }
+  //   }
+  // })
+
+  // const { config: honeyApproveConfig } = usePrepareContractWrite({
+  //   address: contracts.honey.address as `0x${string}`,
+  //   abi: contracts.honey.abi,
+  //   functionName: 'approve',
+  //   args: ['0x1b408d277D9f168A8893b1728d3B6cb75929a67d', maxApproval],
+  //   enabled: true,
+  //   onSettled() {
+  //     console.log('just settled honeyApprove')
+  //   }
+  // })
+  // const { data: honeyApproveData, write: honeyApproveInteraction } = useContractWrite(honeyApproveConfig)
+  // const { isLoading: honeyApproveIsLoading, isSuccess: honeyApproveIsSuccess } = useWaitForTransaction({
+  //   hash: honeyApproveData?.hash
+  // })
+
+  // const { config: borrowConfig } = usePrepareContractWrite({
+  //   address: contracts.borrow.address as `0x${string}`,
+  //   abi: contracts.borrow.abi,
+  //   functionName: 'borrow',
+  //   args: [BigNumber.from(ethers.utils.parseUnits(debouncedBorrow.toString(), 18))],
+  //   enabled: Boolean(debouncedBorrow),
+  //   // enabled: false,
+  //   onSettled() {
+  //     console.log('just settled borrow')
+  //   }
+  // })
+  // const { data: borrowData, write: borrowInteraction } = useContractWrite(borrowConfig)
+  // const { isLoading: borrowIsLoading, isSuccess: borrowIsSuccess } = useWaitForTransaction({
+  //   hash: borrowData?.hash
+  // })
+
+  // const { config: repayConfig } = usePrepareContractWrite({
+  //   address: contracts.borrow.address as `0x${string}`,
+  //   abi: contracts.borrow.abi,
+  //   functionName: 'repay',
+  //   args: [BigNumber.from(ethers.utils.parseUnits(debouncedRepay.toString(), 18))],
+  //   // enabled: false,
+  //   enabled: Boolean(debouncedRepay),
+  //   onSettled() {
+  //     console.log('just settled repay')
+  //   }
+  // })
+  // const { data: repayData, write: repayInteraction } = useContractWrite(repayConfig)
+  // const { isLoading: repayIsLoading, isSuccess: repayIsSuccess } = useWaitForTransaction({
+  //   hash: repayData?.hash
+  // })
 
   function test() {
-    console.log('displayString: ', displayString)
-    console.log('borrow: ', borrow)
-    console.log('repay: ', repay)
-    console.log('borrowedBalance: ', borrowedBalance)
+    console.log(borrowInfo)
   }
 
   function handlePill(action: number) {
@@ -208,41 +213,38 @@ export default function Borrowing() {
 
   function handleTopInput() {
     if(borrowToggle) {
-      return parseFloat(displayString) >= floorPrice * stakedBalance  ? '' : displayString
+      return parseFloat(displayString) >= (borrowInfo.fsl / borrowInfo.supply) * borrowInfo.staked  ? '' : displayString
     }
     if(repayToggle) {
-      return parseFloat(displayString) >= borrowedBalance ? '' : displayString
+      return parseFloat(displayString) >= borrowInfo.borrowed ? '' : displayString
     }
   }
 
   async function handleButtonClick() {
     const button = document.getElementById('amm-button')
-    if(!account.isConnected) {
-      if(button) {
-        button.innerHTML = "connect wallet"
-      }
+
+    if(!isConnected) {
+      button && (button.innerHTML = "connect wallet")
     }
-    else if(chain?.chain?.id !== 43113) {
-      if(button) {
-        button.innerHTML = "switch to devnet plz"
-      }
+    else if(network !== "Avalanche Fuji C-Chain") {
+      button && (button.innerHTML = "switch to devnet plz")
     }
     else {
       if(borrowToggle) {
         if(button) {
           button.innerHTML = "borrow"
         }
-        borrowInteraction?.()
+        // borrowInteraction?.()
       }
       if(repayToggle) {
-        if(repay > honeyAllowance) {
+        if(repay > borrowInfo.honeyBorrowAllowance) {
           if(button) {
             button.innerHTML = "approve"
           }
-          honeyApproveInteraction?.()
+          // honeyApproveInteraction?.()
         }
         else {
-          repayInteraction?.()
+          // repayInteraction?.()
         }
       }
     }
@@ -250,17 +252,11 @@ export default function Borrowing() {
 
   function renderButton() {
     if(borrowToggle) {
-      if(borrowIsLoading) {
-        return 'borrowing...'
-      }
       return 'borrow'
     }
     if(repayToggle) {
-      if(honeyApproveIsLoading) {
-        return 'approving...'
-      }
-      if(repayIsLoading) {
-        return 'repaying...'
+      if(repay > borrowInfo.honeyBorrowAllowance) {
+        return 'approve use of $honey'
       }
       return 'repay'
     }
@@ -277,52 +273,52 @@ export default function Borrowing() {
 
   function handleBalance() {
     if(borrowToggle) {
-      return ((stakedBalance - lockedBalance) * floorPrice) > 0 ? ((stakedBalance - lockedBalance) * floorPrice).toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.0"
+      return ((borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply)) > 0 ? ((borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply)).toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.0"
     }
     if(repayToggle) {
-      return borrowedBalance > 0 ? borrowedBalance.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.0"
+      return borrowInfo.borrowed > 0 ? borrowInfo.borrowed.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.0"
     }
   }
 
   function handlePercentageButtons(action: number) {
     if(action == 1) {
       if(borrowToggle) {
-        setDisplayString((((stakedBalance - lockedBalance) * floorPrice) / 4).toLocaleString('en-US', { maximumFractionDigits: 2 }))
-        setBorrow(((stakedBalance - lockedBalance) * floorPrice) / 4)
+        setDisplayString((((borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply)) / 4).toLocaleString('en-US', { maximumFractionDigits: 2 }))
+        setBorrow(((borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply)) / 4)
       }
       if(repayToggle) {
-        setDisplayString((borrowedBalance / 4).toLocaleString('en-US', { maximumFractionDigits: 2 }))
-        setRepay(borrowedBalance / 4)
+        setDisplayString((borrowInfo.borrowed / 4).toLocaleString('en-US', { maximumFractionDigits: 2 }))
+        setRepay(borrowInfo.borrowed / 4)
       }
     }
     if(action == 2) {
       if(borrowToggle) {
-        setDisplayString((((stakedBalance - lockedBalance) * floorPrice) / 2).toLocaleString('en-US', { maximumFractionDigits: 2 }))
-        setBorrow(((stakedBalance - lockedBalance) * floorPrice) / 2)
+        setDisplayString((((borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply)) / 2).toLocaleString('en-US', { maximumFractionDigits: 2 }))
+        setBorrow(((borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply)) / 2)
       }
       if(repayToggle) {
-        setDisplayString((borrowedBalance / 2).toLocaleString('en-US', { maximumFractionDigits: 2 }))
-        setRepay(borrowedBalance / 2)
+        setDisplayString((borrowInfo.borrowed / 2).toLocaleString('en-US', { maximumFractionDigits: 2 }))
+        setRepay(borrowInfo.borrowed / 2)
       }
     }
     if(action == 3) {
       if(borrowToggle) {
-        setDisplayString((((stakedBalance - lockedBalance) * floorPrice) * 0.75).toLocaleString('en-US', { maximumFractionDigits: 2 }))
-        setBorrow(((stakedBalance - lockedBalance) * floorPrice) * 0.75)
+        setDisplayString((((borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply)) * 0.75).toLocaleString('en-US', { maximumFractionDigits: 2 }))
+        setBorrow(((borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply)) * 0.75)
       }
       if(repayToggle) {
-        setDisplayString((borrowedBalance * 0.75).toLocaleString('en-US', { maximumFractionDigits: 2 }))
-        setRepay(borrowedBalance * 0.75)
+        setDisplayString((borrowInfo.borrowed * 0.75).toLocaleString('en-US', { maximumFractionDigits: 2 }))
+        setRepay(borrowInfo.borrowed * 0.75)
       }
     }
     if(action == 4) {
       if(borrowToggle) {
-        setDisplayString(((stakedBalance - lockedBalance) * floorPrice).toLocaleString('en-US', { maximumFractionDigits: 2 }))
-        setBorrow((stakedBalance - lockedBalance) * floorPrice)
+        setDisplayString(((borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply)).toLocaleString('en-US', { maximumFractionDigits: 2 }))
+        setBorrow((borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply))
       }
       if(repayToggle) {
-        setDisplayString(borrowedBalance.toLocaleString('en-US', { maximumFractionDigits: 2 }))
-        setRepay(borrowedBalance)
+        setDisplayString(borrowInfo.borrowed.toLocaleString('en-US', { maximumFractionDigits: 2 }))
+        setRepay(borrowInfo.borrowed)
       }
     }
   }
@@ -368,31 +364,31 @@ export default function Borrowing() {
             <div className="w-[40%] h-[85%] bg-white border-2 border-black rounded-xl flex flex-col px-6 py-5 mr-3">
               <div className="flex flex-row justify-between items-center">
                 <h1 className="font-acme text-[24px]">borrow limit:</h1>
-                <p className="font-acme text-[20px]">${stakedBalance ? ((stakedBalance - lockedBalance) * floorPrice).toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
+                <p className="font-acme text-[20px]">${borrowInfo.staked ? ((borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply)).toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
               </div>
               <div className="flex flex-row justify-between items-center mt-6">
                 <h1 className="font-acme text-[24px]">$LOCKS floor price:</h1>
-                <p className="font-acme text-[20px]">{floorPrice > 0 ? `$${floorPrice.toLocaleString('en-US', { maximumFractionDigits: 2 })}` : 0}</p>
+                <p className="font-acme text-[20px]">{(borrowInfo.fsl / borrowInfo.supply) > 0 ? `$${(borrowInfo.fsl / borrowInfo.supply).toLocaleString('en-US', { maximumFractionDigits: 2 })}` : 0}</p>
               </div>
               <div className="flex flex-row justify-between items-center mt-6">
                 <h1 className="font-acme text-[24px]">$LOCKS balance:</h1>
-                <p className="font-acme text-[20px]">{locksBalance > 0 ? locksBalance.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
+                <p className="font-acme text-[20px]">{balance.locks > 0 ? balance.locks.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
               </div>
               <div className="flex flex-row justify-between items-center mt-6">
                 <h1 className="font-acme text-[24px]">staked $LOCKS:</h1>
-                <p className="font-acme text-[20px]">{stakedBalance ? stakedBalance.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
+                <p className="font-acme text-[20px]">{borrowInfo.staked ? borrowInfo.staked.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
               </div>
               <div className="flex flex-row justify-between items-center mt-6">
                 <h1 className="font-acme text-[24px]">locked $LOCKS:</h1>
-                <p className="font-acme text-[20px]">{lockedBalance > 0 ? lockedBalance.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
+                <p className="font-acme text-[20px]">{borrowInfo.locked > 0 ? borrowInfo.locked.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
               </div>
               <div className="flex flex-row justify-between items-center mt-6">
                 <h1 className="font-acme text-[24px]">$HONEY balance:</h1>
-                <p className="font-acme text-[20px]">{honeyBalance > 0 ? honeyBalance.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
+                <p className="font-acme text-[20px]">{balance.honey > 0 ? balance.honey.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
               </div>
               <div className="flex flex-row justify-between items-center mt-6">
                 <h1 className="font-acme text-[24px]">borrowed $HONEY:</h1>
-                <p className="font-acme text-[20px]">{borrowedBalance > 0 ? borrowedBalance.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
+                <p className="font-acme text-[20px]">{borrowInfo.borrowed > 0 ? borrowInfo.borrowed.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
               </div>
             </div>
           </div>

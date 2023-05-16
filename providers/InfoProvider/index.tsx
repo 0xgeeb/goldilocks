@@ -21,10 +21,20 @@ const INITIAL_STATE = {
     locksPrgAllowance: 0,
     honeyPrgAllowance: 0
   },
+  borrowInfo: {
+    staked: 0,
+    borrowed: 0,
+    locked: 0,
+    fsl: 0,
+    supply: 0,
+    honeyBorrowAllowance: 0
+  },
   getAmmInfo: async (): Promise<any> => {},
   refreshAmmInfo: async (signer: any): Promise<any> => {},
   getStakeInfo: async () => {},
-  refreshStakeInfo: async (signer: any) => {}
+  refreshStakeInfo: async (signer: any) => {},
+  getBorrowInfo: async () => {},
+  refreshBorrowInfo: async (signer: any) => {}
 }
 
 const InfoContext = createContext(INITIAL_STATE)
@@ -37,6 +47,7 @@ export const InfoProvider = (props: PropsWithChildren<{}>) => {
 
   const [ammInfoState, setAmmInfoState] = useState(INITIAL_STATE.ammInfo)
   const [stakeInfoState, setStakeInfoState] = useState(INITIAL_STATE.stakeInfo)
+  const [borrowInfoState, setBorrowInfoState] = useState(INITIAL_STATE.borrowInfo)
 
   const { data: info } = useContractReads({
     contracts: [
@@ -94,6 +105,24 @@ export const InfoProvider = (props: PropsWithChildren<{}>) => {
         abi: contracts.honey.abi,
         functionName: 'allowance',
         args: [wallet, contracts.porridge.address]
+      },
+      {
+        address: contracts.borrow.address as `0x${string}`,
+        abi: contracts.borrow.abi,
+        functionName: 'getBorrowed',
+        args: [wallet]
+      },
+      {
+        address: contracts.borrow.address as `0x${string}`,
+        abi: contracts.borrow.abi,
+        functionName: 'getLocked',
+        args: [wallet]
+      },
+      {
+        address: contracts.honey.address as `0x${string}`,
+        abi: contracts.honey.abi,
+        functionName: 'allowance',
+        args: [wallet, contracts.borrow.address]
       },
     ]
   })
@@ -216,15 +245,36 @@ export const InfoProvider = (props: PropsWithChildren<{}>) => {
     setStakeInfoState(response)
   }
 
+  const getBorrowInfo = async () => {
+    if(info) {
+      const [fsl, psl, supply, targetRatio, lastFloorRaise, honeyAmmAllowance, staked, yieldToClaim, locksPrgAllowance, honeyPrgAllowance, borrowed, locked, honeyBorrowAllowance] = info as unknown as [number, number, number, number, number, number, number, number, number, number, number, number, number]
+      let response = {
+        staked: staked / Math.pow(10, 18),
+        borrowed: borrowed / Math.pow(10, 18),
+        locked: locked / Math.pow(10, 18),
+        fsl: fsl / Math.pow(10, 18),
+        supply: supply / Math.pow(10, 18),
+        honeyBorrowAllowance: honeyBorrowAllowance / Math.pow(10, 18)
+      }
+      setBorrowInfoState(response)
+    }
+  }
+
+  const refreshBorrowInfo = async (signer: Signer) => {
+  
+  }
   return (
     <InfoContext.Provider
       value={{
         ammInfo: ammInfoState,
         stakeInfo: stakeInfoState,
+        borrowInfo: borrowInfoState,
         getAmmInfo,
         refreshAmmInfo,
         getStakeInfo,
-        refreshStakeInfo
+        refreshStakeInfo,
+        getBorrowInfo,
+        refreshBorrowInfo
       }}
     >
       { children }

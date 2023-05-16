@@ -249,7 +249,6 @@ export default function Staking() {
   }
 
   async function handleClaimFunction() {
-    console.log('hello')
     const button = document.getElementById('claim-button')
 
     if(network !== "Avalanche Fuji C-Chain") {

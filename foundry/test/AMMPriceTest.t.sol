@@ -32,9 +32,9 @@ contract AMMPriceTest is Test {
 
     (uint256 market0, uint256 floor0) = amm.buy(1e18, type(uint256).max);
 
-    (uint256 market, uint256 floor) = amm.buy(1e18, type(uint256).max);
+    (uint256 market, uint256 floor) = amm.buy(12e18, type(uint256).max);
     console.log('market: ', market, 'floor: ', floor);
-    (uint256 market1, uint256 floor1) = amm.buy(10e18, type(uint256).max);
+    (uint256 market1, uint256 floor1) = amm.buy(12e18, type(uint256).max);
     console.log('market: ', market1, 'floor: ', floor1);
     (uint256 market5, uint256 floor5) = amm.buy(50e18, type(uint256).max);
     console.log('market: ', market5, 'floor: ', floor5);
