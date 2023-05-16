@@ -261,7 +261,54 @@ export const InfoProvider = (props: PropsWithChildren<{}>) => {
   }
 
   const refreshBorrowInfo = async (signer: Signer) => {
-  
+    console.log('refreshing borrow info')
+    let response = {
+      staked: 0,
+      borrowed: 0,
+      locked: 0,
+      fsl: 0,
+      supply: 0,
+      honeyBorrowAllowance: 0
+    }
+
+    const borrowContract = new ethers.Contract(
+      contracts.borrow.address,
+      contracts.borrow.abi,
+      signer
+    )
+    const lockedTx = await borrowContract.getLocked(wallet)
+    response = { ...response, locked: lockedTx / Math.pow(10, 18)}
+    const borrowedTx = await borrowContract.getBorrowed(wallet)
+    response = { ...response, borrowed: borrowedTx / Math.pow(10, 18)}
+
+    const prgContract = new ethers.Contract(
+      contracts.porridge.address,
+      contracts.porridge.abi,
+      signer
+    )
+    const stakedTx = await prgContract.getStaked(wallet)
+    response = { ...response, staked: stakedTx._hex / Math.pow(10, 18)}
+
+    const ammContract = new ethers.Contract(
+      contracts.amm.address,
+      contracts.amm.abi,
+      signer
+    )
+    const fslTx = await ammContract.fsl()
+    response = { ...response, fsl: fslTx._hex / Math.pow(10, 18)}
+    const supplyTx = await ammContract.supply()
+    response = { ...response, supply: supplyTx._hex / Math.pow(10, 18)}
+
+    const honeyContract = new ethers.Contract(
+      contracts.honey.address,
+      contracts.honey.abi,
+      signer
+    )
+    const allowanceHoneyTx = await honeyContract.allowance(wallet, contracts.borrow.address)
+    response = { ...response, honeyBorrowAllowance: allowanceHoneyTx._hex / Math.pow(10, 18)}
+
+    console.log(response)
+    setBorrowInfoState(response)
   }
   return (
     <InfoContext.Provider

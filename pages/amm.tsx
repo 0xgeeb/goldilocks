@@ -66,20 +66,24 @@ export default function Amm() {
 
   const fetchInfo = async () => {
     const data = await getAmmInfo()
-    setNewFsl(data.fsl)
-    setNewPsl(data.psl)
-    setNewFloor(floorPrice(data.fsl, data.supply))
-    setNewMarket(marketPrice(data.fsl, data.psl, data.supply))
-    setNewSupply(data.supply)
+    if(data) {
+      setNewFsl(data.fsl)
+      setNewPsl(data.psl)
+      setNewFloor(floorPrice(data.fsl, data.supply))
+      setNewMarket(marketPrice(data.fsl, data.psl, data.supply))
+      setNewSupply(data.supply)
+    }
   }
 
   const refreshInfo = async (signer: any) => {
     const data = await refreshAmmInfo(signer)
-    setNewFsl(data.fsl)
-    setNewPsl(data.psl)
-    setNewFloor(floorPrice(data.fsl, data.supply))
-    setNewMarket(marketPrice(data.fsl, data.psl, data.supply))
-    setNewSupply(data.supply)
+    if(data) {
+      setNewFsl(data.fsl)
+      setNewPsl(data.psl)
+      setNewFloor(floorPrice(data.fsl, data.supply))
+      setNewMarket(marketPrice(data.fsl, data.psl, data.supply))
+      setNewSupply(data.supply)
+    }
   }
 
   useEffect(() => {

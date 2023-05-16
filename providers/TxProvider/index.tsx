@@ -13,6 +13,8 @@ const INITIAL_STATE = {
   sendUnstakeTx: async (unstake: number, signer: any): Promise<any> => {},
   sendRealizeTx: async (realize: number, signer: any): Promise<any> => {},
   sendClaimTx: async (signer: any): Promise<any> => {},
+  sendBorrowTx: async (borrow: number, signer: any): Promise<any> => {},
+  sendRepayTx: async (repay: number, signer: any): Promise<any> => {}
 }
 
 const TxContext = createContext(INITIAL_STATE)
@@ -179,6 +181,40 @@ export const TxProvider = (props: PropsWithChildren<{}>) => {
     }
   }
 
+  const sendBorrowTx = async (borrow: number, signer: any): Promise<any> => {
+    const borrowContract = new ethers.Contract(
+      contracts.borrow.address,
+      contracts.borrow.abi,
+      signer
+    )
+    try {
+      const borrowReceipt = await borrowContract.borrow(BigNumber.from(ethers.utils.parseUnits(borrow.toString(), 18)))
+      await borrowReceipt.wait()
+      return borrowReceipt
+    }
+    catch (e) {
+      console.log('user denied tx')
+      console.log('or: ', e)
+    }
+  }
+
+  const sendRepayTx = async (repay: number, signer: any): Promise<any> => {
+    const borrowContract = new ethers.Contract(
+      contracts.borrow.address,
+      contracts.borrow.abi,
+      signer
+    )
+    try {
+      const repayReceipt = await borrowContract.repay(BigNumber.from(ethers.utils.parseUnits(repay.toString(), 18)))
+      await repayReceipt.wait()
+      return repayReceipt
+    }
+    catch (e) {
+      console.log('user denied tx')
+      console.log('or: ', e)
+    }
+  }
+
   return (
     <TxContext.Provider
       value={{
@@ -190,7 +226,9 @@ export const TxProvider = (props: PropsWithChildren<{}>) => {
         sendStakeTx,
         sendUnstakeTx,
         sendRealizeTx,
-        sendClaimTx
+        sendClaimTx,
+        sendBorrowTx,
+        sendRepayTx
       }}
     >
       { children }

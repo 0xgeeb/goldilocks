@@ -23,6 +23,7 @@ export default function Borrowing() {
   const { openNotification } = useNotification()
   const { balance, wallet, isConnected, signer, network, getBalances, refreshBalances } = useWallet()
   const { borrowInfo, getBorrowInfo, refreshBorrowInfo } = useInfo()
+  const { checkAllowance, sendApproveTx, sendBorrowTx, sendRepayTx } = useTx()
 
   const springs = useSpring({
     from: { x: -900 },
@@ -45,133 +46,6 @@ export default function Borrowing() {
     fetchBalances()
     fetchInfo()
   }, [isConnected])
-
-  // const { data, isError, isLoading } = useContractReads({
-  //   contracts: [
-  //     {
-  //       address: contracts.locks.address as `0x${string}`,
-  //       abi: contracts.locks.abi,
-  //       functionName: 'balanceOf',
-  //       args: [account.address]
-  //     },
-  //     {
-  //       address: contracts.porridge.address as `0x${string}`,
-  //       abi: contracts.porridge.abi,
-  //       functionName: 'getStaked',
-  //       args: [account.address]
-  //     },
-  //     {
-  //       address: contracts.borrow.address as `0x${string}`,
-  //       abi: contracts.borrow.abi,
-  //       functionName: 'getBorrowed',
-  //       args: [account.address]
-  //     },
-  //     {
-  //       address: contracts.borrow.address as `0x${string}`,
-  //       abi: contracts.borrow.abi,
-  //       functionName: 'getLocked',
-  //       args: [account.address]
-  //     },
-  //     {
-  //       address: contracts.amm.address as `0x${string}`,
-  //       abi: contracts.amm.abi,
-  //       functionName: 'fsl'
-  //     },
-  //     {
-  //       address: contracts.amm.address as `0x${string}`,
-  //       abi: contracts.amm.abi,
-  //       functionName: 'supply'
-  //     },
-  //     {
-  //       address: contracts.honey.address as `0x${string}`,
-  //       abi: contracts.honey.abi,
-  //       functionName: 'allowance',
-  //       args: [account.address, contracts.borrow.address]
-  //     },
-  //     {
-  //       address: contracts.honey.address as `0x${string}`,
-  //       abi: contracts.honey.abi,
-  //       functionName: 'balanceOf',
-  //       args: [account.address]
-  //     }
-  //   ],
-  //   onSettled(data: any) {
-  //     if(!data[0]) {
-  //       const button = document.getElementById('amm-button')
-  //       if(button) {
-  //         button.innerHTML = "error loading data"
-  //       }
-  //     }
-  //     else {
-  //       set(borrowInfo.fsl / borrowInfo.supply)((parseInt(data[4]._hex, 16) / Math.pow(10, 18)) / (parseInt(data[5]._hex, 16) / Math.pow(10, 18)))
-  //       if(data[0]) {
-  //         setbalance.locks(parseInt(data[0]._hex, 16) / Math.pow(10, 18))
-  //       }
-  //       if(data[1]) {
-  //         setborrowInfo.staked(parseInt(data[1]._hex, 16) / Math.pow(10, 18))
-  //       }
-  //       if(data[2]) {
-  //         setborrowInfo.borrowed(parseInt(data[2]._hex, 16) / Math.pow(10, 18))
-  //       }
-  //       if(data[3]) {
-  //         setborrowInfo.locked(parseInt(data[3]._hex, 16) / Math.pow(10, 18))
-  //       }
-  //       if(data[6]) {
-  //         setHoneyAllowance(parseInt(data[6]._hex, 16) / Math.pow(10, 18))
-  //       }
-  //       if(data[7]) {
-  //         setbalance.honey(parseInt(data[7]._hex, 16) / Math.pow(10, 18))
-  //       }
-  //     }
-  //   }
-  // })
-
-  // const { config: honeyApproveConfig } = usePrepareContractWrite({
-  //   address: contracts.honey.address as `0x${string}`,
-  //   abi: contracts.honey.abi,
-  //   functionName: 'approve',
-  //   args: ['0x1b408d277D9f168A8893b1728d3B6cb75929a67d', maxApproval],
-  //   enabled: true,
-  //   onSettled() {
-  //     console.log('just settled honeyApprove')
-  //   }
-  // })
-  // const { data: honeyApproveData, write: honeyApproveInteraction } = useContractWrite(honeyApproveConfig)
-  // const { isLoading: honeyApproveIsLoading, isSuccess: honeyApproveIsSuccess } = useWaitForTransaction({
-  //   hash: honeyApproveData?.hash
-  // })
-
-  // const { config: borrowConfig } = usePrepareContractWrite({
-  //   address: contracts.borrow.address as `0x${string}`,
-  //   abi: contracts.borrow.abi,
-  //   functionName: 'borrow',
-  //   args: [BigNumber.from(ethers.utils.parseUnits(debouncedBorrow.toString(), 18))],
-  //   enabled: Boolean(debouncedBorrow),
-  //   // enabled: false,
-  //   onSettled() {
-  //     console.log('just settled borrow')
-  //   }
-  // })
-  // const { data: borrowData, write: borrowInteraction } = useContractWrite(borrowConfig)
-  // const { isLoading: borrowIsLoading, isSuccess: borrowIsSuccess } = useWaitForTransaction({
-  //   hash: borrowData?.hash
-  // })
-
-  // const { config: repayConfig } = usePrepareContractWrite({
-  //   address: contracts.borrow.address as `0x${string}`,
-  //   abi: contracts.borrow.abi,
-  //   functionName: 'repay',
-  //   args: [BigNumber.from(ethers.utils.parseUnits(debouncedRepay.toString(), 18))],
-  //   // enabled: false,
-  //   enabled: Boolean(debouncedRepay),
-  //   onSettled() {
-  //     console.log('just settled repay')
-  //   }
-  // })
-  // const { data: repayData, write: repayInteraction } = useContractWrite(repayConfig)
-  // const { isLoading: repayIsLoading, isSuccess: repayIsSuccess } = useWaitForTransaction({
-  //   hash: repayData?.hash
-  // })
 
   function test() {
     console.log(borrowInfo)
@@ -231,20 +105,53 @@ export default function Borrowing() {
     }
     else {
       if(borrowToggle) {
-        if(button) {
-          button.innerHTML = "borrow"
+        if(borrow == 0) {
+          return
         }
-        // borrowInteraction?.()
+        button && (button.innerHTML = "borrowing...")
+        const borrowTx = await sendBorrowTx(borrow, signer)
+        borrowTx && openNotification({
+          title: 'Successfully Borrowed $HONEY!',
+          hash: borrowTx.hash,
+          direction: 'borrowed',
+          amount: borrow,
+          price: 0,
+          page: 'borrow'
+        })
+        button && (button.innerHTML = "borrow")
+        setBorrow(0)
+        setDisplayString('')
+        refreshBalances(wallet, signer)
+        refreshInfo(signer)
       }
       if(repayToggle) {
-        if(repay > borrowInfo.honeyBorrowAllowance) {
-          if(button) {
-            button.innerHTML = "approve"
-          }
-          // honeyApproveInteraction?.()
+        if(repay == 0) {
+          return
+        }
+        const sufficientAllowance: boolean | void = await checkAllowance('honey', contracts.borrow.address, repay, signer)
+        if(sufficientAllowance) {
+          button && (button.innerHTML = "repaying...")
+          const repayTx = await sendRepayTx(repay, signer)
+          repayTx && openNotification({
+            title: 'Successfully Repaid $HONEY!',
+            hash: repayTx.hash,
+            direction: 'repaid',
+            amount: repay,
+            price: 0,
+            page: 'borrow'
+          })
+          button && (button.innerHTML = "repay")
+          setRepay(0)
+          setDisplayString('')
+          refreshBalances(wallet, signer)
+          refreshInfo(signer)
         }
         else {
-          // repayInteraction?.()
+          button && (button.innerHTML = "approving...")
+          await sendApproveTx('honey', contracts.borrow.address, repay, signer)
+          setTimeout(() => {
+            button && (button.innerHTML = "repay")
+          }, 10000)
         }
       }
     }
@@ -273,10 +180,10 @@ export default function Borrowing() {
 
   function handleBalance() {
     if(borrowToggle) {
-      return ((borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply)) > 0 ? ((borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply)).toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.0"
+      return ((borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply)) > 0 ? ((borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply)).toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
     }
     if(repayToggle) {
-      return borrowInfo.borrowed > 0 ? borrowInfo.borrowed.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.0"
+      return borrowInfo.borrowed > 0 ? borrowInfo.borrowed.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
     }
   }
 
@@ -329,10 +236,10 @@ export default function Borrowing() {
         <title>mf borrowing</title>
       </Head>
       <div className="flex flex-row py-3">
-        <animated.div className="w-[57%] flex flex-col pt-8 pb-2 pl-24 rounded-xl bg-slate-300 ml-24 mt-12 h-[700px] border-2 border-black" style={springs}>
-          <h1 className="text-[50px] font-acme text-[#ffff00]" id="text-outline" onClick={() => test()}>borrowing</h1>
-          <div className="flex flex-row ml-2 items-center justify-between">
-            <h3 className="font-acme text-[24px] ml-2">lock staked $locks and borrow $honey</h3>
+        <animated.div className="w-[57%] flex flex-col pt-8 pb-2 px-3 rounded-xl bg-slate-300 ml-24 mt-12 h-[700px] border-2 border-black" style={springs}>
+          <h1 className="text-[50px] font-acme text-[#ffff00] ml-5" id="text-outline" onClick={() => test()}>borrowing</h1>
+          <div className="flex flex-row ml-5 items-center justify-between">
+            <h3 className="font-acme text-[24px] ml-5">lock staked $locks and borrow $honey</h3>
             <div className="flex flex-row bg-white rounded-2xl border-2 border-black mr-3">
               <div className={`font-acme w-20 py-2 ${borrowToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-l-2xl text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(1)}>borrow</div>
               <div className={`font-acme w-20 py-2 ${repayToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] text-center rounded-r-2xl cursor-pointer`} onClick={() => handlePill(2)}>repay</div>
@@ -351,7 +258,7 @@ export default function Borrowing() {
                   </div>
                 </div>
                 <div className="w-[100%] flex">
-                  <input className="border-none focus:outline-none font-acme rounded-xl text-[40px] pl-12 w-[80%]" placeholder="0" type="number" value={handleTopInput()} onChange={(e) => handleTopChange(e.target.value)} id="number-input" autoFocus />
+                  <input className="border-none focus:outline-none font-acme rounded-xl text-[40px] pl-12 w-[80%]" placeholder="0.00" type="number" value={handleTopInput()} onChange={(e) => handleTopChange(e.target.value)} id="number-input" autoFocus />
                 </div>
                 <div className="absolute right-0 bottom-[35%]">
                   <h1 className="text-[23px] mr-3 font-acme text-[#878d97]">balance: {handleBalance()}</h1>
@@ -361,34 +268,34 @@ export default function Borrowing() {
                 <button className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[30px]" id="amm-button" onClick={() => handleButtonClick()} >{renderButton()}</button>
               </div>
             </div>
-            <div className="w-[40%] h-[85%] bg-white border-2 border-black rounded-xl flex flex-col px-6 py-5 mr-3">
+            <div className="w-[40%] h-[85%] bg-white border-2 border-black rounded-xl flex flex-col px-6 py-5">
               <div className="flex flex-row justify-between items-center">
                 <h1 className="font-acme text-[24px]">borrow limit:</h1>
-                <p className="font-acme text-[20px]">${borrowInfo.staked ? ((borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply)).toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
+                <p className="font-acme text-[20px]">${borrowInfo.staked ? ((borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply)).toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
               </div>
               <div className="flex flex-row justify-between items-center mt-6">
                 <h1 className="font-acme text-[24px]">$LOCKS floor price:</h1>
-                <p className="font-acme text-[20px]">{(borrowInfo.fsl / borrowInfo.supply) > 0 ? `$${(borrowInfo.fsl / borrowInfo.supply).toLocaleString('en-US', { maximumFractionDigits: 2 })}` : 0}</p>
+                <p className="font-acme text-[20px]">{(borrowInfo.fsl / borrowInfo.supply) > 0 ? `$${(borrowInfo.fsl / borrowInfo.supply).toLocaleString('en-US', { maximumFractionDigits: 2 })}` : "-"}</p>
               </div>
               <div className="flex flex-row justify-between items-center mt-6">
                 <h1 className="font-acme text-[24px]">$LOCKS balance:</h1>
-                <p className="font-acme text-[20px]">{balance.locks > 0 ? balance.locks.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
+                <p className="font-acme text-[20px]">{balance.locks > 0 ? balance.locks.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
               </div>
               <div className="flex flex-row justify-between items-center mt-6">
                 <h1 className="font-acme text-[24px]">staked $LOCKS:</h1>
-                <p className="font-acme text-[20px]">{borrowInfo.staked ? borrowInfo.staked.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
+                <p className="font-acme text-[20px]">{borrowInfo.staked ? borrowInfo.staked.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
               </div>
               <div className="flex flex-row justify-between items-center mt-6">
                 <h1 className="font-acme text-[24px]">locked $LOCKS:</h1>
-                <p className="font-acme text-[20px]">{borrowInfo.locked > 0 ? borrowInfo.locked.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
+                <p className="font-acme text-[20px]">{borrowInfo.locked > 0 ? borrowInfo.locked.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
               </div>
               <div className="flex flex-row justify-between items-center mt-6">
                 <h1 className="font-acme text-[24px]">$HONEY balance:</h1>
-                <p className="font-acme text-[20px]">{balance.honey > 0 ? balance.honey.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
+                <p className="font-acme text-[20px]">{balance.honey > 0 ? balance.honey.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
               </div>
               <div className="flex flex-row justify-between items-center mt-6">
                 <h1 className="font-acme text-[24px]">borrowed $HONEY:</h1>
-                <p className="font-acme text-[20px]">{borrowInfo.borrowed > 0 ? borrowInfo.borrowed.toLocaleString('en-US', { maximumFractionDigits: 2 }) : 0}</p>
+                <p className="font-acme text-[20px]">{borrowInfo.borrowed > 0 ? borrowInfo.borrowed.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
               </div>
             </div>
           </div>

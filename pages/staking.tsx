@@ -58,36 +58,6 @@ export default function Staking() {
     setInitialRender(true)
   }, [])
 
-  // const { config: realizeConfig } = usePrepareContractWrite({
-  //   address: contracts.porridge.address as `0x${string}`,
-  //   abi: contracts.porridge.abi,
-  //   functionName: 'realize',
-  //   args: [BigNumber.from(ethers.utils.parseUnits(debouncedRealize.toString(), 18))],
-  //   enabled: Boolean(debouncedRealize),
-  //   onSettled() {
-  //     console.log('just settled realize')
-  //     console.log('debouncedRealize: ', debouncedRealize)
-  //   }
-  // })
-  // const { data: realizeData, write: realizeInteraction } = useContractWrite(realizeConfig)
-  // const { isLoading: realizeIsLoading, isSuccess: realizeIsSuccess } = useWaitForTransaction({
-  //   hash: realizeData?.hash
-  // })
-
-  // const { config: claimConfig } = usePrepareContractWrite({
-  //   address: contracts.porridge.address as `0x${string}`,
-  //   abi: contracts.porridge.abi,
-  //   functionName: 'claim',
-  //   enabled: true,
-  //   onSettled() {
-  //     console.log('just settled claim')
-  //   }
-  // })
-  // const { data: claimData, write: claimInteraction } = useContractWrite(claimConfig)
-  // const { isLoading: claimIsLoading, isSuccess: claimIsSuccess } = useWaitForTransaction({
-  //   hash: claimData?.hash
-  // })
-
   function test() {
     console.log(balance)
     console.log(stakeInfo)
@@ -304,13 +274,13 @@ export default function Staking() {
 
   function handleBalance() {
     if(stakeToggle) {
-      return balance.locks > 0 ? balance.locks.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.0"
+      return balance.locks > 0 ? balance.locks.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
     }
     if(unstakeToggle) {
-      return stakeInfo.staked > 0 ? stakeInfo.staked.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.0"
+      return stakeInfo.staked > 0 ? stakeInfo.staked.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
     }
     if(realizeToggle) {
-      return balance.prg > 0 ? balance.prg.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.0"
+      return balance.prg > 0 ? balance.prg.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
     }
   }
 
