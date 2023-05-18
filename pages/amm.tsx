@@ -21,6 +21,7 @@ import RightAmmBoxCurNums from "../components/RightAmmBoxCurNums"
 export default function Amm() {
 
   const [displayString, setDisplayString] = useState<string>('')
+  const [slippageDisplayString, setSlippageDisplayString] = useState<string>('0.1')
   
   const [newFsl, setNewFsl] = useState<number>(0)
   const [newPsl, setNewPsl] = useState<number>(0)
@@ -31,6 +32,7 @@ export default function Amm() {
   const [buy, setBuy] = useState<number>(0)
   const [sell, setSell] = useState<number>(0)
   const [redeem, setRedeem] = useState<number>(0)
+  const [slippage, setSlippage] = useState<number>(0.1)
   
   const [buyToggle, setBuyToggle] = useState<boolean>(true)
   const [sellToggle, setSellToggle] = useState<boolean>(false)
@@ -57,8 +59,8 @@ export default function Amm() {
   })
 
   async function test() {
-    console.log(ammInfo.psl)
-    console.log(newPsl)
+    console.log('slippage: ', slippage)
+    console.log('percentage: ', (slippage / 100) + 1)
   }
 
   const fetchBalances = async () => {
@@ -103,7 +105,7 @@ export default function Amm() {
       setNewSupply(ammInfo.supply)
       setCost(0)
     }
-  }, [buy])
+  }, [buy, slippage])
 
   useEffect(() => {
     if(sell <= ammInfo.supply) {
@@ -116,7 +118,7 @@ export default function Amm() {
       setNewSupply(ammInfo.supply)
       setReceive(0)
     }
-  }, [sell])
+  }, [sell, slippage])
 
   useEffect(() => {
     if(redeem <= ammInfo.supply) {
@@ -172,7 +174,7 @@ export default function Amm() {
     setNewFsl(_fsl + _tax)
     setNewPsl(_psl)
     setNewSupply(_supply)
-    setCost(_purchasePrice + _tax)
+    setCost((_purchasePrice + _tax) * ((slippage / 100) + 1))
     simulateFloorRaise(_fsl + _tax, _psl, _supply)
   }
   
@@ -208,7 +210,7 @@ export default function Amm() {
     setNewFsl(_fsl + _tax)
     setNewPsl(_psl)
     setNewSupply(_supply)
-    setReceive(_salePrice - _tax)
+    setReceive((_salePrice - _tax) * (1 - (slippage / 100)))
   }
   
   function simulateRedeem() {
@@ -540,7 +542,22 @@ export default function Amm() {
                   <span className="absolute right-2 rounded-full border-2 border-black px-2 top-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => setSlippageToggle(false)}>x</span>
                   <div className="flex flex-col font-acme">
                     <h3 className="mt-5 mx-auto text-[2rem]">set slippage</h3>
-                    <input className="border-none focus:outline-none bg-slate-100 w-[50%] pl-[5%] mx-auto font-acme rounded-xl my-5 py-1 text-[1.5rem]" type="number" id="number-input" />
+                    <div className="mx-auto w-[50%] relative">
+                      <input className="border-none focus:outline-none bg-slate-100 pl-[15%] font-acme rounded-xl my-5 py-1 text-[1.5rem]" type="number" value={slippageDisplayString} 
+                        onChange={(e) => {
+                          setSlippageDisplayString(e.target.value)
+                            if(!e.target.value) {
+                              setSlippage(0)
+                            }
+                            else {
+                              setSlippage(parseFloat(e.target.value))
+                            }
+                          
+                        }} 
+                        id="number-input" 
+                      />
+                      <p className="absolute right-[5%] top-[35%] text-[1.2rem]">%</p>
+                    </div>
                   </div>
                 </div>
               }
