@@ -35,6 +35,7 @@ export default function Amm() {
   const [buyToggle, setBuyToggle] = useState<boolean>(true)
   const [sellToggle, setSellToggle] = useState<boolean>(false)
   const [redeemToggle, setRedeemToggle] = useState<boolean>(false)
+  const [slippageToggle, setSlippageToggle] = useState<boolean>(false)
   
   const [cost, setCost] = useState<number>(0)
   const [receive, setReceive] = useState<number>(0)
@@ -523,14 +524,26 @@ export default function Amm() {
           <h1 className="text-[50px] font-acme text-[#ffff00]" id="text-outline">goldilocks AMM</h1>
           <div className="flex flex-row ml-2 items-center justify-between">
             <h3 className="font-acme text-[24px] ml-2">trading between $honey & $locks</h3>
-            <div className="flex flex-row bg-white rounded-2xl border-2 border-black">
-              <div className={`font-acme w-20 py-2 ${buyToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-l-2xl text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(1)}>buy</div>
-              <div className={`font-acme w-20 py-2 ${sellToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(2)}>sell</div>
-              <div className={`font-acme w-20 py-2 ${redeemToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-r-2xl text-center cursor-pointer`} onClick={() => handlePill(3)}>redeem</div>
+            <div className="flex flex-row items-center">
+              <h1 className="mr-4 text-[28px] hover:opacity-25 hover:cursor-pointer" onClick={() => setSlippageToggle(true)}>⚙️</h1>
+              <div className="flex flex-row bg-white rounded-2xl border-2 border-black">
+                <div className={`font-acme w-20 py-2 ${buyToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-l-2xl text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(1)}>buy</div>
+                <div className={`font-acme w-20 py-2 ${sellToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(2)}>sell</div>
+                <div className={`font-acme w-20 py-2 ${redeemToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-r-2xl text-center cursor-pointer`} onClick={() => handlePill(3)}>redeem</div>
+              </div>
             </div>
           </div>
           <div className="h-[75%] relative mt-4 flex flex-col">
             <div className="h-[67%] px-6">
+              { slippageToggle && 
+                <div className="fixed z-999 bg-[#ffffb4] rounded-xl border-2 border-black w-[25%] left-[40%] top-[40%] px-4 opacity-100">
+                  <span className="absolute right-2 rounded-full border-2 border-black px-2 top-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => setSlippageToggle(false)}>x</span>
+                  <div className="flex flex-col font-acme">
+                    <h3 className="mt-5 mx-auto text-[2rem]">set slippage</h3>
+                    <input className="border-none focus:outline-none bg-slate-100 w-[50%] pl-[5%] mx-auto font-acme rounded-xl my-5 py-1 text-[1.5rem]" type="number" id="number-input" />
+                  </div>
+                </div>
+              }
               <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
                 <div className="h-[50%] flex flex-row items-center justify-between">
                   <div className="flex flex-row mt-3">

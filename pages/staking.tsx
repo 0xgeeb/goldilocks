@@ -366,7 +366,15 @@ export default function Staking() {
               <div className="flex flex-row bg-white rounded-2xl border-2 border-black">
                 <div className={`font-acme w-20 py-2 ${stakeToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-l-2xl text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(1)}>stake</div>
                 <div className={`font-acme w-20 py-2 ${unstakeToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(2)}>unstake</div>
-                <div className={`font-acme w-20 py-2 ${realizeToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-r-2xl text-center cursor-pointer`} onClick={() => handlePill(3)}>stir <span className="ml-1 rounded-full px-2 border-2 border-black hover:bg-black hover:text-white" onClick={() => setPopupToggle(true)}>?</span></div>
+                <div className={`font-acme w-20 py-2 ${realizeToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-r-2xl text-center cursor-pointer`} onClick={() => handlePill(3)}>stir 
+                  <span className="ml-1 rounded-full px-2 border-2 border-black hover:bg-black hover:text-white" 
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setPopupToggle(true)
+                    }}
+                  >?
+                </span>
+                </div>
               </div>
             </div>
             <div className="h-[100%] mt-4 flex flex-row">
