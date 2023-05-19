@@ -213,4 +213,14 @@ contract AMM {
     honey.approve(_borrowAddress, 10000000e18);
   }
 
+  function pow(uint256 x, uint256 y) internal pure returns (uint256 result) {
+    result = y & 1 > 0 ? x : 1e18;
+    for (y >>= 1; y > 0; y >>= 1) {
+      x = FixedPointMathLib.mulWad(x, x);
+      if (y & 1 > 0) {
+        result = FixedPointMathLib.mulWad(result, x);
+      }
+    }
+  }
+
 }
