@@ -58,9 +58,84 @@ export default function Amm() {
     to: { x: 0 },
   })
 
+  function _simulateBuy(locks: number): number {
+    let _leftover = locks
+    let _fsl = ammInfo.fsl
+    let _psl = ammInfo.psl
+    let _supply = ammInfo.supply
+    let _purchasePrice = 0
+    let _tax = 0
+    let _market = 0
+    let _floor = 0
+    while(_leftover >= 1) {
+      _market = marketPrice(_fsl, _psl, _supply)
+      _floor = floorPrice(_fsl, _supply)
+      _purchasePrice += _market
+      _supply++
+      if(_psl / _fsl >= 0.50) {
+        _fsl += _market
+      }
+      else {
+        _fsl += _floor
+        _psl += (_market - _floor)
+      }
+      _leftover--
+    }
+    if(_leftover > 0) {
+      _market = marketPrice(_fsl, _psl, _supply)
+      _floor = floorPrice(_fsl, _supply)
+      _purchasePrice += _market * _leftover
+      _supply += _leftover
+      if(_psl / _fsl >= 0.50) {
+        _fsl += _market * _leftover
+      }
+      else {
+        _psl += (_market - _floor) * _leftover
+        _fsl += _floor * _leftover
+      }
+    }
+    _tax = _purchasePrice * 0.003
+    return _purchasePrice + _tax
+  }
+
   async function test() {
-    console.log('slippage: ', slippage)
-    console.log('percentage: ', (slippage / 100) + 1)
+    const honey: number = 2000
+    let locks: number = 1
+    let temp: number = 0
+    while(parseFloat(temp.toFixed(3)) !== parseFloat(honey.toFixed(3))) {
+      temp = _simulateBuy(locks)
+      console.log(parseFloat(temp.toFixed(3)))
+      if(parseFloat(temp.toFixed(3)) > parseFloat(honey.toFixed(3))) {
+        const diff = temp - honey
+        if(diff > 100) {
+          locks -= 0.01
+        }
+        else if(diff > 10) {
+          locks -= 0.001
+        }
+        else {
+          locks -= 0.0000001
+        }
+      }
+      else if(parseFloat(temp.toFixed(3)) < parseFloat(honey.toFixed(3))) {
+        const diff = honey - temp
+        if(diff > 100) {
+          locks += 0.01
+        }
+        else if(diff > 10) {
+          locks += 0.001
+        }
+        else {
+          locks += 0.0000001
+        }
+      }
+      else {
+        console.log('found it: ', parseFloat(temp.toFixed(3)))
+        console.log('locks: ', locks)
+        temp = parseFloat(honey.toFixed(3))
+      }
+    }
+    console.log('cost: ', cost)
   }
 
   const fetchBalances = async () => {
