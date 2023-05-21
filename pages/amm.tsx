@@ -99,43 +99,7 @@ export default function Amm() {
   }
 
   async function test() {
-    const honey: number = 2000
-    let locks: number = 1
-    let temp: number = 0
-    while(parseFloat(temp.toFixed(3)) !== parseFloat(honey.toFixed(3))) {
-      temp = _simulateBuy(locks)
-      console.log(parseFloat(temp.toFixed(3)))
-      if(parseFloat(temp.toFixed(3)) > parseFloat(honey.toFixed(3))) {
-        const diff = temp - honey
-        if(diff > 100) {
-          locks -= 0.01
-        }
-        else if(diff > 10) {
-          locks -= 0.001
-        }
-        else {
-          locks -= 0.0000001
-        }
-      }
-      else if(parseFloat(temp.toFixed(3)) < parseFloat(honey.toFixed(3))) {
-        const diff = honey - temp
-        if(diff > 100) {
-          locks += 0.01
-        }
-        else if(diff > 10) {
-          locks += 0.001
-        }
-        else {
-          locks += 0.0000001
-        }
-      }
-      else {
-        console.log('found it: ', parseFloat(temp.toFixed(3)))
-        console.log('locks: ', locks)
-        temp = parseFloat(honey.toFixed(3))
-      }
-    }
-    console.log('cost: ', cost)
+
   }
 
   const fetchBalances = async () => {
@@ -170,8 +134,8 @@ export default function Amm() {
   }, [isConnected])
 
   useEffect(() => {
-    if(buy < 999) {
-      simulateBuy()
+    if(buy < balance.honey) {
+      // simulateBuy()
     }
     else {
       setNewFloor(ammInfo.fsl / ammInfo.supply)
@@ -206,6 +170,45 @@ export default function Amm() {
       setRedeemReceive(0)
     }
   }, [redeem])
+
+  function findLocksAmount() {
+    const honey: number = 2000
+    let locks: number = 1
+    let temp: number = 0
+    while(parseFloat(temp.toFixed(3)) !== parseFloat(honey.toFixed(3))) {
+      temp = _simulateBuy(locks)
+      if(parseFloat(temp.toFixed(3)) > parseFloat(honey.toFixed(3))) {
+        const diff = temp - honey
+        if(diff > 100) {
+          locks -= 0.01
+        }
+        else if(diff > 10) {
+          locks -= 0.001
+        }
+        else {
+          locks -= 0.0000001
+        }
+      }
+      else if(parseFloat(temp.toFixed(3)) < parseFloat(honey.toFixed(3))) {
+        const diff = honey - temp
+        if(diff > 100) {
+          locks += 0.01
+        }
+        else if(diff > 10) {
+          locks += 0.001
+        }
+        else {
+          locks += 0.0000001
+        }
+      }
+      else {
+        console.log('found it: ', parseFloat(temp.toFixed(3)))
+        console.log('locks: ', locks)
+        temp = parseFloat(honey.toFixed(3))
+      }
+    }
+    console.log('cost: ', cost)
+  }
   
   function simulateBuy() {
     let _leftover = buy
@@ -341,6 +344,22 @@ export default function Amm() {
       setRedeemToggle(true)
     }
   }
+
+  function flipTokens() {
+    if(buyToggle) {
+      setBuyToggle(false)
+      setSellToggle(true)
+      setRedeemToggle(false)
+    }
+    if(sellToggle) {
+      setBuyToggle(true)
+      setSellToggle(false)
+      setRedeemToggle(false)
+    }
+    if(redeemToggle) {
+      return
+    }
+  }
   
   function renderButton() {
     if(buyToggle) {
@@ -470,7 +489,6 @@ export default function Amm() {
       }
     }
     if(action == 3) {
-
       if(buyToggle) {
         setDisplayString((balance.honey * 0.75).toFixed(2))
         setBuy(balance.honey * 0.75)
@@ -527,10 +545,14 @@ export default function Amm() {
       }
     }
   }
+
+  function handleBottomChange(input: string) {
+
+  }
   
   function handleTopInput() {
     if(buyToggle) {
-      return buy > 999 ? '' : displayString
+      return buy > balance.honey ? '' : displayString
     }
     if(sellToggle) {
       return sell > ammInfo.supply ? '' : displayString
@@ -569,7 +591,7 @@ export default function Amm() {
 
   function handleTopBalance() {
     if(buyToggle) {
-      return balance.locks > 0 ? balance.locks.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
+      return balance.honey > 0 ? balance.honey.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
     }
     if(sellToggle) {
       return balance.locks > 0 ? balance.locks.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
@@ -578,10 +600,10 @@ export default function Amm() {
       return balance.locks > 0 ? balance.locks.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
     }
   }
-
+  
   function handleBottomBalance() {
     if(buyToggle) {
-      return balance.honey > 0 ? balance.honey.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
+      return balance.locks > 0 ? balance.locks.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
     }
     if(sellToggle) {
       return balance.honey > 0 ? balance.honey.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
@@ -597,8 +619,8 @@ export default function Amm() {
         <title>mf amm</title>
       </Head>
       <div className="flex flex-row py-3 overflow-hidden">
-        <animated.div className="w-[57%] flex flex-col pt-8 pb-2 px-24 rounded-xl bg-slate-300 ml-24 mt-12 h-[95%] border-2 border-black" style={springs}>
-          <h1 className="text-[50px] font-acme text-[#ffff00]" id="text-outline">goldilocks AMM</h1>
+        <animated.div className="w-[57%] flex flex-col pt-6 pb-4 px-24 rounded-xl bg-slate-300 ml-24 mt-8 h-[95%] border-2 border-black" style={springs}>
+          <h1 className="text-[50px] font-acme text-[#ffff00]" id="text-outline" onClick={() => test()} >goldilocks AMM</h1>
           <div className="flex flex-row ml-2 items-center justify-between">
             <h3 className="font-acme text-[24px] ml-2">trading between $honey & $locks</h3>
             <div className="flex flex-row items-center">
@@ -638,10 +660,7 @@ export default function Amm() {
               }
               <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
                 <div className="h-[50%] flex flex-row items-center justify-between">
-                  <div className="flex flex-row mt-3">
-                    <h1 className="font-acme text-[30px] pl-10 pr-5 mt-2">{useLabel(buyToggle, sellToggle, redeemToggle, "topLabel")}</h1>
-                    <div className="rounded-[50px] p-2 flex flex-row bg-slate-100 border-2 border-black items-center">{useLabel(buyToggle, sellToggle, redeemToggle, "topToken")}</div>
-                  </div>
+                  <div className="rounded-[50px] m-6 p-2 flex flex-row bg-slate-100 border-2 border-black items-center">{useLabel(buyToggle, sellToggle, redeemToggle, "topToken")}</div>
                   <div className="flex flex-row items-center mr-10">
                     <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(1)}>25%</button>
                     <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(2)}>50%</button>
@@ -654,16 +673,16 @@ export default function Amm() {
                   <h1 className="mr-10 mt-4 text-[23px] font-acme text-[#878d97]">balance: {handleTopBalance()}</h1>
                 </div>
               </div>
-              <div className="absolute top-[31%] left-[50%] h-10 w-10 bg-[#ffff00] border-2 border-black rounded-3xl flex justify-center items-center" onClick={() => test()}>
+              <div className="absolute top-[31%] left-[50%] h-10 w-10 bg-[#ffff00] border-2 border-black rounded-3xl flex justify-center items-center" onClick={() => flipTokens()}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0D111C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
               </div>
               <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
                 <div className="h-[50%] flex flex-row items-center">
-                  <h1 className="font-acme text-[30px] ml-10 pr-5 mt-3">{useLabel(buyToggle, sellToggle, redeemToggle, "bottomLabel")}</h1>
-                  <div className="rounded-[50px] mt-3 p-2 flex flex-row bg-slate-100 border-2 border-black items-center">{useLabel(buyToggle, sellToggle, redeemToggle, "bottomToken")}</div>
+                  <div className="rounded-[50px] m-6 p-2 flex flex-row bg-slate-100 border-2 border-black items-center">{useLabel(buyToggle, sellToggle, redeemToggle, "bottomToken")}</div>
                 </div>
                 <div className="h-[50%] pl-10 flex flex-row items-center justify-between">
-                  <h1 className={`${buyToggle && !cost || sellToggle && !receive || redeemToggle && !redeemReceive ? "text-[#9ca3af]" : ""} font-acme text-[40px]`}>{handleBottomInput()}</h1>
+                  {/* <h1 className={`${buyToggle && !cost || sellToggle && !receive || redeemToggle && !redeemReceive ? "text-[#9ca3af]" : ""} font-acme text-[40px]`}>{handleBottomInput()}</h1> */}
+                  <input className="border-none focus:outline-none bg-transparent font-acme rounded-xl text-[40px]" placeholder="0.00" value={handleBottomInput()} onChange={(e) => handleBottomChange(e.target.value)} type="number" id="number-input" />
                   <h1 className="mr-10 mt-4 text-[23px] font-acme text-[#878d97]">balance: {handleBottomBalance()}</h1>
                 </div>
               </div>
