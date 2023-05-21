@@ -443,58 +443,58 @@ export default function Amm() {
   function handlePercentageButtons(action: number) {
     if(action == 1) {
       if(buyToggle) {
-        setDisplayString((balance.honey / 4).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setDisplayString((balance.honey / 4).toFixed(2))
         setBuy(balance.honey / 4)
       }
       if(sellToggle) {
-        setDisplayString((balance.locks / 4).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setDisplayString((balance.locks / 4).toFixed(2))
         setSell(balance.locks / 4)        
       }
       if(redeemToggle) {
-        setDisplayString((balance.locks / 4).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setDisplayString((balance.locks / 4).toFixed(2))
         setRedeem(balance.locks / 4)
       }
     }
     if(action == 2) {
       if(buyToggle) {
-        setDisplayString((balance.honey / 2).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setDisplayString((balance.honey / 2).toFixed(2))
         setBuy(balance.honey / 2)
       }
       if(sellToggle) {
-        setDisplayString((balance.locks / 2).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setDisplayString((balance.locks / 2).toFixed(2))
         setSell(balance.locks / 2)
       }
       if(redeemToggle) {
-        setDisplayString((balance.locks / 2).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setDisplayString((balance.locks / 2).toFixed(2))
         setRedeem(balance.locks / 2)
       }
     }
     if(action == 3) {
 
       if(buyToggle) {
-        setDisplayString((balance.honey * 0.75).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setDisplayString((balance.honey * 0.75).toFixed(2))
         setBuy(balance.honey * 0.75)
       }
       if(sellToggle) {
-        setDisplayString((balance.locks * 0.75).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setDisplayString((balance.locks * 0.75).toFixed(2))
         setSell(balance.locks * 0.75)
       }
       if(redeemToggle) {
-        setDisplayString((balance.locks * 0.75).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setDisplayString((balance.locks * 0.75).toFixed(2))
         setRedeem(balance.locks * 0.75)
       }
     }
     if(action == 4) {
       if(buyToggle) {
-        setDisplayString((balance.honey).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setDisplayString((balance.honey).toFixed(2))
         setBuy(balance.honey > 999 ? 999 : balance.honey)
       }
       if(sellToggle) {
-        setDisplayString((balance.locks).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setDisplayString((balance.locks).toFixed(2))
         setSell(balance.locks)
       }
       if(redeemToggle) {
-        setDisplayString((balance.locks).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setDisplayString((balance.locks).toFixed(2))
         setRedeem(balance.locks)
       }
     }
@@ -530,13 +530,13 @@ export default function Amm() {
   
   function handleTopInput() {
     if(buyToggle) {
-      return parseFloat(displayString) >= 999 ? '' : displayString
+      return buy > 999 ? '' : displayString
     }
     if(sellToggle) {
-      return parseFloat(displayString) >= ammInfo.supply ? '' : displayString
+      return sell > ammInfo.supply ? '' : displayString
     }
     if(redeemToggle) {
-      return parseFloat(displayString) >= ammInfo.supply ? '' : displayString
+      return redeem > ammInfo.supply ? '' : displayString
     }
   }
 

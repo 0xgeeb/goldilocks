@@ -115,13 +115,13 @@ export default function Staking() {
 
   function handleTopInput() {
     if(stakeToggle) {
-      return parseFloat(displayString) >= balance.locks ? '' : displayString
+      return stake > balance.locks ? '' : displayString
     }
     if(unstakeToggle) {
-      return parseFloat(displayString) >= stakeInfo.staked ? '' : displayString
+      return unstake > stakeInfo.staked ? '' : displayString
     }
     if(realizeToggle) {
-      return parseFloat(displayString) >= balance.prg ? '' : displayString
+      return realize > balance.prg ? '' : displayString
     }
   }
 
@@ -287,57 +287,57 @@ export default function Staking() {
   function handlePercentageButtons(action: number) {
     if(action == 1) {
       if(stakeToggle) {
-        setDisplayString((balance.locks / 4).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setDisplayString((balance.locks / 4).toFixed(2))
         setStake(balance.locks / 4)
       }
       if(unstakeToggle) {
-        setDisplayString((stakeInfo.staked / 4).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setDisplayString((stakeInfo.staked / 4).toFixed(2))
         setUnstake(stakeInfo.staked / 4)
       }
       if(realizeToggle) {
-        setDisplayString((balance.prg / 4).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setDisplayString((balance.prg / 4).toFixed(2))
         setRealize(balance.prg / 4)
       }
     }
     if(action == 2) {
       if(stakeToggle) {
-        setDisplayString((balance.locks / 2).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setDisplayString((balance.locks / 2).toFixed(2))
         setStake(balance.locks / 2)
       }
       if(unstakeToggle) {
-        setDisplayString((stakeInfo.staked / 2).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setDisplayString((stakeInfo.staked / 2).toFixed(2))
         setUnstake(stakeInfo.staked / 2)
       }
       if(realizeToggle) {
-        setDisplayString((balance.prg / 2).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setDisplayString((balance.prg / 2).toFixed(2))
         setRealize(balance.prg / 2)
       }
     }
     if(action == 3) {
       if(stakeToggle) {
-        setDisplayString((balance.locks * 0.75).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setDisplayString((balance.locks * 0.75).toFixed(2))
         setStake(balance.locks * 0.75)
       }
       if(unstakeToggle) {
-        setDisplayString((stakeInfo.staked * 0.75).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setDisplayString((stakeInfo.staked * 0.75).toFixed(2))
         setUnstake(stakeInfo.staked * 0.75)
       }
       if(realizeToggle) {
-        setDisplayString((balance.prg * 0.75).toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setDisplayString((balance.prg * 0.75).toFixed(2))
         setRealize(balance.prg * 0.75)
       }
     }
     if(action == 4) {
       if(stakeToggle) {
-        setDisplayString(balance.locks.toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setDisplayString(balance.locks.toFixed(2))
         setStake(balance.locks)
       }
       if(unstakeToggle) {
-        setDisplayString(stakeInfo.staked.toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setDisplayString(stakeInfo.staked.toFixed(2))
         setUnstake(stakeInfo.staked)
       }
       if(realizeToggle) {
-        setDisplayString(balance.prg.toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setDisplayString(balance.prg.toFixed(2))
         setRealize(balance.prg)
       }
     }

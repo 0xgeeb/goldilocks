@@ -38,9 +38,6 @@ contract AMMTest is Test {
   }
 
   function testBuyStarbucks() public {
-    vm.store(address(amm), bytes32(uint256(2)), bytes32(uint256(243457e18)));
-    vm.store(address(amm), bytes32(uint256(3)), bytes32(uint256(4645e18)));
-    vm.store(address(amm), bytes32(uint256(5)), bytes32(uint256(668e18)));
     (uint256 market, uint256 floor) = amm.buy(5e18, type(uint256).max);
   }
 

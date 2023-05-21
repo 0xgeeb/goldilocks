@@ -307,7 +307,6 @@ export const InfoProvider = (props: PropsWithChildren<{}>) => {
     const allowanceHoneyTx = await honeyContract.allowance(wallet, contracts.borrow.address)
     response = { ...response, honeyBorrowAllowance: allowanceHoneyTx._hex / Math.pow(10, 18)}
 
-    console.log(response)
     setBorrowInfoState(response)
   }
   return (

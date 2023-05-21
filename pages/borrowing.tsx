@@ -72,7 +72,7 @@ export default function Borrowing() {
         setBorrow(0)
       }
       else {
-        setBorrow(parseInt(input))
+        setBorrow(parseFloat(input))
       }
     }
     if(repayToggle) {
@@ -80,17 +80,17 @@ export default function Borrowing() {
         setRepay(0)
       }
       else {
-        setRepay(parseInt(input))
+        setRepay(parseFloat(input))
       }
     }
   }
 
   function handleTopInput() {
     if(borrowToggle) {
-      return parseFloat(displayString) >= (borrowInfo.fsl / borrowInfo.supply) * borrowInfo.staked  ? '' : displayString
+      return borrow > (borrowInfo.fsl / borrowInfo.supply) * (borrowInfo.staked - borrowInfo.locked)  ? '' : displayString
     }
     if(repayToggle) {
-      return parseFloat(displayString) >= borrowInfo.borrowed ? '' : displayString
+      return repay > borrowInfo.borrowed ? '' : displayString
     }
   }
 
@@ -180,7 +180,8 @@ export default function Borrowing() {
 
   function handleBalance() {
     if(borrowToggle) {
-      return ((borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply)) > 0 ? ((borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply)).toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
+      const borrowTemp = (borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply)
+      return borrowTemp > 0 ? borrowTemp.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
     }
     if(repayToggle) {
       return borrowInfo.borrowed > 0 ? borrowInfo.borrowed.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
@@ -188,43 +189,44 @@ export default function Borrowing() {
   }
 
   function handlePercentageButtons(action: number) {
+    const borrowTemp = (borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply)
     if(action == 1) {
       if(borrowToggle) {
-        setDisplayString((((borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply)) / 4).toLocaleString('en-US', { maximumFractionDigits: 2 }))
-        setBorrow(((borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply)) / 4)
+        setDisplayString((borrowTemp / 4).toFixed(2))
+        setBorrow(borrowTemp / 4)
       }
       if(repayToggle) {
-        setDisplayString((borrowInfo.borrowed / 4).toLocaleString('en-US', { maximumFractionDigits: 2 }))
+        setDisplayString((borrowInfo.borrowed / 4).toFixed(2))
         setRepay(borrowInfo.borrowed / 4)
       }
     }
     if(action == 2) {
       if(borrowToggle) {
-        setDisplayString((((borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply)) / 2).toLocaleString('en-US', { maximumFractionDigits: 2 }))
-        setBorrow(((borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply)) / 2)
+        setDisplayString((borrowTemp / 2).toFixed(2))
+        setBorrow(borrowTemp / 2)
       }
       if(repayToggle) {
-        setDisplayString((borrowInfo.borrowed / 2).toLocaleString('en-US', { maximumFractionDigits: 2 }))
+        setDisplayString((borrowInfo.borrowed / 2).toFixed(2))
         setRepay(borrowInfo.borrowed / 2)
       }
     }
     if(action == 3) {
       if(borrowToggle) {
-        setDisplayString((((borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply)) * 0.75).toLocaleString('en-US', { maximumFractionDigits: 2 }))
-        setBorrow(((borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply)) * 0.75)
+        setDisplayString((borrowTemp * 0.75).toFixed(2))
+        setBorrow(borrowTemp * 0.75)
       }
       if(repayToggle) {
-        setDisplayString((borrowInfo.borrowed * 0.75).toLocaleString('en-US', { maximumFractionDigits: 2 }))
+        setDisplayString((borrowInfo.borrowed * 0.75).toFixed(2))
         setRepay(borrowInfo.borrowed * 0.75)
       }
     }
     if(action == 4) {
       if(borrowToggle) {
-        setDisplayString(((borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply)).toLocaleString('en-US', { maximumFractionDigits: 2 }))
-        setBorrow((borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply))
+        setDisplayString(borrowTemp.toFixed(2))
+        setBorrow(borrowTemp)
       }
       if(repayToggle) {
-        setDisplayString(borrowInfo.borrowed.toLocaleString('en-US', { maximumFractionDigits: 2 }))
+        setDisplayString(borrowInfo.borrowed.toFixed(2))
         setRepay(borrowInfo.borrowed)
       }
     }
@@ -261,7 +263,7 @@ export default function Borrowing() {
                   <input className="border-none focus:outline-none font-acme rounded-xl text-[40px] pl-12 w-[80%]" placeholder="0.00" type="number" value={handleTopInput()} onChange={(e) => handleTopChange(e.target.value)} id="number-input" autoFocus />
                 </div>
                 <div className="absolute right-0 bottom-[35%]">
-                  <h1 className="text-[23px] mr-3 font-acme text-[#878d97]">balance: {handleBalance()}</h1>
+                  <h1 className="text-[23px] mr-3 font-acme text-[#878d97]">{borrowToggle ? 'borrow limit: ' : 'borrowed $honey: '} {handleBalance()}</h1>
                 </div>
               </div>
               <div className="h-[15%] w-[80%] mx-auto mt-6">
@@ -283,11 +285,11 @@ export default function Borrowing() {
               </div>
               <div className="flex flex-row justify-between items-center mt-6">
                 <h1 className="font-acme text-[24px]">staked $LOCKS:</h1>
-                <p className="font-acme text-[20px]">{borrowInfo.staked ? borrowInfo.staked.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
+                <p className="font-acme text-[20px]">{borrowInfo.staked ? borrowInfo.staked.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "-"}</p>
               </div>
               <div className="flex flex-row justify-between items-center mt-6">
                 <h1 className="font-acme text-[24px]">locked $LOCKS:</h1>
-                <p className="font-acme text-[20px]">{borrowInfo.locked > 0 ? borrowInfo.locked.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
+                <p className="font-acme text-[20px]">{borrowInfo.locked > 0 ? borrowInfo.locked.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "-"}</p>
               </div>
               <div className="flex flex-row justify-between items-center mt-6">
                 <h1 className="font-acme text-[24px]">$HONEY balance:</h1>
