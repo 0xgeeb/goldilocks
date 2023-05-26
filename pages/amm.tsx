@@ -3,7 +3,8 @@ import Head from "next/head"
 import { useSpring, animated } from "@react-spring/web"
 import { 
   useFormatDate,
-  useLabel
+  useLabel,
+  useDebounce
 } from "../hooks/amm"
 import { 
   useNotification,
@@ -30,6 +31,8 @@ export default function Amm() {
   const [newSupply, setNewSupply] = useState<number>(0)
 
   const [buy, setBuy] = useState<number>(0)
+  const [honeyBuy, setHoneyBuy] = useState<number>(0)
+  const debouncedHoneyBuy = useDebounce(honeyBuy, 1500)
   const [sell, setSell] = useState<number>(0)
   const [redeem, setRedeem] = useState<number>(0)
   const [slippage, setSlippage] = useState<number>(0.1)
@@ -40,6 +43,7 @@ export default function Amm() {
   const [slippageToggle, setSlippageToggle] = useState<boolean>(false)
   
   const [cost, setCost] = useState<number>(0)
+  const [buyingLocks, setBuyingLocks] = useState<number>(0)
   const [receive, setReceive] = useState<number>(0)
   const [redeemReceive, setRedeemReceive] = useState<number>(0)
 
@@ -135,6 +139,7 @@ export default function Amm() {
 
   useEffect(() => {
     if(buy < balance.honey) {
+      findLocksAmount()
       // simulateBuy()
     }
     else {
@@ -142,9 +147,9 @@ export default function Amm() {
       setNewFsl(ammInfo.fsl)
       setNewPsl(ammInfo.psl)
       setNewSupply(ammInfo.supply)
-      setCost(0)
+      setBuyingLocks(0)
     }
-  }, [buy, slippage])
+  }, [debouncedHoneyBuy, slippage])
 
   useEffect(() => {
     if(sell <= ammInfo.supply) {
@@ -172,12 +177,16 @@ export default function Amm() {
   }, [redeem])
 
   function findLocksAmount() {
-    const honey: number = 2000
+    const honey: number = honeyBuy
     let locks: number = 1
     let temp: number = 0
-    while(parseFloat(temp.toFixed(3)) !== parseFloat(honey.toFixed(3))) {
+    if(honey > 100000) {
+      console.log('raising locks')
+      locks = 8
+    }
+    while(parseFloat(temp.toFixed(2)) !== parseFloat(honey.toFixed(2))) {
       temp = _simulateBuy(locks)
-      if(parseFloat(temp.toFixed(3)) > parseFloat(honey.toFixed(3))) {
+      if(parseFloat(temp.toFixed(2)) > parseFloat(honey.toFixed(2))) {
         const diff = temp - honey
         if(diff > 100) {
           locks -= 0.01
@@ -189,7 +198,7 @@ export default function Amm() {
           locks -= 0.0000001
         }
       }
-      else if(parseFloat(temp.toFixed(3)) < parseFloat(honey.toFixed(3))) {
+      else if(parseFloat(temp.toFixed(2)) < parseFloat(honey.toFixed(2))) {
         const diff = honey - temp
         if(diff > 100) {
           locks += 0.01
@@ -200,14 +209,15 @@ export default function Amm() {
         else {
           locks += 0.0000001
         }
+        console.log(temp)
       }
       else {
-        console.log('found it: ', parseFloat(temp.toFixed(3)))
+        console.log('found it: ', parseFloat(temp.toFixed(2)))
         console.log('locks: ', locks)
-        temp = parseFloat(honey.toFixed(3))
+        setBuyingLocks(locks)
+        temp = parseFloat(honey.toFixed(2))
       }
     }
-    console.log('cost: ', cost)
   }
   
   function simulateBuy() {
@@ -522,10 +532,11 @@ export default function Amm() {
     setDisplayString(input)
     if(buyToggle) {
       if(!input) {
-        setBuy(0)
+        // setBuy(0)
+        setHoneyBuy(0)
       }
       else {
-        setBuy(parseFloat(input))
+        setHoneyBuy(parseFloat(input))
       }
     }
     if(sellToggle) {
@@ -564,11 +575,11 @@ export default function Amm() {
 
   function handleBottomInput() {
     if(buyToggle) {
-      if(!cost) {
+      if(!buyingLocks) {
         return "0.00"
       }
       else {
-        return cost.toLocaleString('en-US', { maximumFractionDigits: 2 })
+        return buyingLocks.toLocaleString('en-US', { maximumFractionDigits: 2 })
       }
     }
     if(sellToggle) {
