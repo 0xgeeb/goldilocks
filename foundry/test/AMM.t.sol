@@ -38,7 +38,7 @@ contract AMMTest is Test {
   }
 
   function testBuyStarbucks() public {
-    (uint256 market, uint256 floor) = amm.buy(5e18, type(uint256).max);
+    (uint256 market, uint256 floor) = amm.buy(5000e18, type(uint256).max);
   }
 
 }

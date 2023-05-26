@@ -106,13 +106,18 @@ def floor_raise():
   return 'raise'
 
 #tracks what happens when 400 tokens are bought continuously in chunks of 10 with no sells
-bought = 0
-while(bought < 400):
-  buy(10)
-  floor_raise()
-  bought += 10
-  # print("Price:", market_price, "Floor price:", floor_price)
+# bought = 0
+# while(bought < 400):
+#   buy(10)
+#   floor_raise()
+#   bought += 10
+#   # print("Price:", market_price, "Floor price:", floor_price)
 
-market_price *= (10 ** 18)
-enc = encode_single('uint256', int(market_price))
-print("0x" + enc.hex())
+# market_price *= (10 ** 18)
+# enc = encode_single('uint256', int(market_price))
+# print("0x" + enc.hex())
+
+print("Market price:", market_price, "Floor price:", floor_price)
+buy(10)
+print("Market price:", market_price, "Floor price:", floor_price)
+print(fsl, psl, supply)
