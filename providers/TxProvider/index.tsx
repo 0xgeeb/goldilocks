@@ -1,7 +1,7 @@
 import { PropsWithChildren, createContext, useContext } from "react"
 import { BigNumber, Signer, ethers } from "ethers"
 import { useAccount } from "wagmi"
-import { contracts } from "../../utils"
+import { contracts } from "../../utils/addressi"
 
 const INITIAL_STATE = {
   checkAllowance: async (token: string, spender: string, amount: number, signer: any): Promise<void | boolean> => {},
@@ -14,7 +14,8 @@ const INITIAL_STATE = {
   sendRealizeTx: async (realize: number, signer: any): Promise<any> => {},
   sendClaimTx: async (signer: any): Promise<any> => {},
   sendBorrowTx: async (borrow: number, signer: any): Promise<any> => {},
-  sendRepayTx: async (repay: number, signer: any): Promise<any> => {}
+  sendRepayTx: async (repay: number, signer: any): Promise<any> => {},
+  sendMintTx: async (singer: any): Promise<any> => {}
 }
 
 const TxContext = createContext(INITIAL_STATE)
@@ -215,6 +216,23 @@ export const TxProvider = (props: PropsWithChildren<{}>) => {
     }
   }
 
+  const sendMintTx = async (signer: any): Promise<any> => {
+    const honeyContract = new ethers.Contract(
+      contracts.honey.address,
+      contracts.honey.abi,
+      signer
+    )
+    try {
+      const mintReceipt = await honeyContract.mint(walletAddress, BigNumber.from(ethers.utils.parseUnits('1000000', 18)))
+      await mintReceipt.wait()
+      return mintReceipt
+    }
+    catch (e) {
+      console.log('user denied tx')
+      console.log('or: ', e)
+    }
+  }
+
   return (
     <TxContext.Provider
       value={{
@@ -228,7 +246,8 @@ export const TxProvider = (props: PropsWithChildren<{}>) => {
         sendRealizeTx,
         sendClaimTx,
         sendBorrowTx,
-        sendRepayTx
+        sendRepayTx,
+        sendMintTx
       }}
     >
       { children }

@@ -12,7 +12,7 @@ import {
   useInfo,
   useTx
 } from "../providers"
-import { contracts } from "../utils"
+import { contracts } from "../utils/addressi"
 import Bear from "../components/Bear"
 import LeftAmmBoxText from "../components/LeftAmmBoxText"
 import RightAmmBoxText from "../components/RightAmmBoxText"
@@ -180,6 +180,8 @@ export default function Amm() {
     const honey: number = honeyBuy
     let locks: number = 1
     let temp: number = 0
+    // do this by the market price instead of an arbitrary number like 100000
+    // will work good at every price
     if(honey > 100000) {
       console.log('raising locks')
       locks = 8

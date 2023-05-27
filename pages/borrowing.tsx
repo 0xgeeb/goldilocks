@@ -8,7 +8,7 @@ import {
 } from "../providers"
 import { useSpring, animated } from "@react-spring/web"
 import Bear from "../components/Bear"
-import { contracts } from "../utils"
+import { contracts } from "../utils/addressi"
 
 export default function Borrowing() {
 
