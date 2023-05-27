@@ -22,6 +22,7 @@ import RightAmmBoxCurNums from "../components/RightAmmBoxCurNums"
 export default function Amm() {
 
   const [displayString, setDisplayString] = useState<string>('')
+  const [bottomDisplayString, setBottomDisplayString] = useState<string>('')
   const [slippageDisplayString, setSlippageDisplayString] = useState<string>('0.1')
   
   const [newFsl, setNewFsl] = useState<number>(0)
@@ -32,7 +33,7 @@ export default function Amm() {
 
   const [buy, setBuy] = useState<number>(0)
   const [honeyBuy, setHoneyBuy] = useState<number>(0)
-  const debouncedHoneyBuy = useDebounce(honeyBuy, 1500)
+  const debouncedHoneyBuy = useDebounce(honeyBuy, 1000)
   const [sell, setSell] = useState<number>(0)
   const [redeem, setRedeem] = useState<number>(0)
   const [slippage, setSlippage] = useState<number>(0.1)
@@ -217,6 +218,7 @@ export default function Amm() {
         console.log('found it: ', parseFloat(temp.toFixed(2)))
         console.log('locks: ', locks)
         setBuyingLocks(locks)
+        setBottomDisplayString(locks.toLocaleString('en-US', { maximumFractionDigits: 4 }))
         temp = parseFloat(honey.toFixed(2))
       }
     }
@@ -577,12 +579,13 @@ export default function Amm() {
 
   function handleBottomInput() {
     if(buyToggle) {
-      if(!buyingLocks) {
-        return "0.00"
-      }
-      else {
-        return buyingLocks.toLocaleString('en-US', { maximumFractionDigits: 2 })
-      }
+      // if(!buyingLocks) {
+      //   return "0.00"
+      // }
+      // else {
+      //   return buyingLocks.toLocaleString('en-US', { maximumFractionDigits: 4 })
+      // }
+      return buyingLocks > 0 ? bottomDisplayString : ''
     }
     if(sellToggle) {
       if(!receive) {
