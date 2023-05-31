@@ -31,7 +31,6 @@ export default function Amm() {
   const [newMarket, setNewMarket] = useState<number>(0)
   const [newSupply, setNewSupply] = useState<number>(0)
 
-  const [buy, setBuy] = useState<number>(0)
   const [honeyBuy, setHoneyBuy] = useState<number>(0)
   const debouncedHoneyBuy = useDebounce(honeyBuy, 1000)
   const [sell, setSell] = useState<number>(0)
@@ -42,8 +41,10 @@ export default function Amm() {
   const [sellToggle, setSellToggle] = useState<boolean>(false)
   const [redeemToggle, setRedeemToggle] = useState<boolean>(false)
   const [slippageToggle, setSlippageToggle] = useState<boolean>(false)
+
+  const [topInputFlag, setTopInputFlag] = useState<boolean>(false)
+  const [bottomInputFlag, setBottomInputFlag] = useState<boolean>(false)
   
-  const [cost, setCost] = useState<number>(0)
   const [buyingLocks, setBuyingLocks] = useState<number>(0)
   const [receive, setReceive] = useState<number>(0)
   const [redeemReceive, setRedeemReceive] = useState<number>(0)
@@ -108,8 +109,7 @@ export default function Amm() {
     // console.log('displayString: ', displayString)
     // console.log('buyingLocks: ', buyingLocks)
     // console.log('bottomDisplayString: ', bottomDisplayString)
-    console.log('supply: ', ammInfo.supply)
-    console.log('newSupply: ', newSupply)
+    console.log('buyingLocks: ', buyingLocks)
   }
 
   const fetchBalances = async () => {
@@ -144,31 +144,65 @@ export default function Amm() {
   }, [isConnected])
 
   useEffect(() => {
-    if(debouncedHoneyBuy < balance.honey) {
-      if(!debouncedHoneyBuy) {
+    if(!bottomInputFlag) {
+      if(debouncedHoneyBuy < balance.honey) {
+        if(!debouncedHoneyBuy) {
+          setNewFloor(ammInfo.fsl / ammInfo.supply)
+          setNewMarket(marketPrice(ammInfo.fsl, ammInfo.psl, ammInfo.supply))
+          setNewFsl(ammInfo.fsl)
+          setNewPsl(ammInfo.psl)
+          setNewSupply(ammInfo.supply)
+          setBuyingLocks(0)
+          setBottomDisplayString('')
+        }
+        else {
+          setTopInputFlag(true)
+          const locksAmount: number = findLocksAmount(debouncedHoneyBuy)
+          simulateBuy(locksAmount)
+        }
+      }
+      else {
         setNewFloor(ammInfo.fsl / ammInfo.supply)
         setNewMarket(marketPrice(ammInfo.fsl, ammInfo.psl, ammInfo.supply))
         setNewFsl(ammInfo.fsl)
         setNewPsl(ammInfo.psl)
         setNewSupply(ammInfo.supply)
         setBuyingLocks(0)
-        setBottomDisplayString('')        
+        setBottomDisplayString('')
       }
-      else {
-        const locksAmount: number = findLocksAmount(debouncedHoneyBuy)
-        simulateBuy(locksAmount)
-      }
-    }
-    else {
-      setNewFloor(ammInfo.fsl / ammInfo.supply)
-      setNewMarket(marketPrice(ammInfo.fsl, ammInfo.psl, ammInfo.supply))
-      setNewFsl(ammInfo.fsl)
-      setNewPsl(ammInfo.psl)
-      setNewSupply(ammInfo.supply)
-      setBuyingLocks(0)
-      setBottomDisplayString('')
     }
   }, [debouncedHoneyBuy, slippage])
+
+  useEffect(() => {
+    if(!topInputFlag) {
+      if(_simulateBuy(buyingLocks) < balance.honey) {
+        if(!buyingLocks) {
+          setNewFloor(ammInfo.fsl / ammInfo.supply)
+          setNewMarket(marketPrice(ammInfo.fsl, ammInfo.psl, ammInfo.supply))
+          setNewFsl(ammInfo.fsl)
+          setNewPsl(ammInfo.psl)
+          setNewSupply(ammInfo.supply)
+          setHoneyBuy(0)
+          setDisplayString('')
+        }
+        else {
+          setBottomInputFlag(true)
+          setDisplayString(_simulateBuy(buyingLocks).toFixed(4))
+          setHoneyBuy(_simulateBuy(buyingLocks))
+          simulateBuy(buyingLocks)
+        }
+      }
+      else {
+        setNewFloor(ammInfo.fsl / ammInfo.supply)
+        setNewMarket(marketPrice(ammInfo.fsl, ammInfo.psl, ammInfo.supply))
+        setNewFsl(ammInfo.fsl)
+        setNewPsl(ammInfo.psl)
+        setNewSupply(ammInfo.supply)
+        setHoneyBuy(0)
+        setDisplayString('')
+      }
+    }
+  }, [buyingLocks, slippage])
 
   useEffect(() => {
     if(sell <= ammInfo.supply) {
@@ -440,7 +474,7 @@ export default function Amm() {
         }
         else {
           button && (button.innerHTML = "approving...")
-          await sendApproveTx('honey', contracts.amm.address, honeyBuy , signer)
+          await sendApproveTx('honey', contracts.amm.address, honeyBuy, signer)
           setTimeout(() => {
             button && (button.innerHTML = "buy")
           }, 10000)
@@ -552,9 +586,11 @@ export default function Amm() {
     setDisplayString(input)
     if(buyToggle) {
       if(!input) {
+        setBottomInputFlag(false)
         setHoneyBuy(0)
       }
       else {
+        setBottomInputFlag(false)
         setHoneyBuy(parseFloat(input))
       }
     }
@@ -577,7 +613,23 @@ export default function Amm() {
   }
 
   function handleBottomChange(input: string) {
+    setBottomDisplayString(input)
+    if(buyToggle) {
+      if(!input) {
+        setTopInputFlag(false)
+        setBuyingLocks(0)
+      }
+      else {
+        setTopInputFlag(false)
+        setBuyingLocks(parseFloat(input))
+      }
+    }
+    if(sellToggle) {
 
+    }
+    if(redeemToggle) {
+
+    }
   }
   
   function handleTopInput() {
@@ -594,7 +646,7 @@ export default function Amm() {
 
   function handleBottomInput() {
     if(buyToggle) {
-      return buyingLocks > 0 ? bottomDisplayString : ''
+      return _simulateBuy(buyingLocks) > balance.honey ? '' : bottomDisplayString
     }
     if(sellToggle) {
       if(!receive) {

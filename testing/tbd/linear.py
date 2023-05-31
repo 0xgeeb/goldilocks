@@ -1,6 +1,6 @@
 fsl = 1600000
-supply = 1000
 psl = 400000
+supply = 1000
 floor_price = fsl/supply
 market_price = floor_price + ((psl/supply)*((psl+fsl)/fsl)**5)
 
@@ -24,14 +24,13 @@ def buy(amount):
       fsl += floor_price
       psl += (market_price - floor_price)
     market_price = floor_price + ((psl/max(supply, 1))*((psl+fsl)/max(fsl, 1))**5)  
-    invested += market_price
   tax = purchase_price*0.003
   fsl += tax
-  invested += tax
   floor_price = fsl/supply
   market_price = floor_price + ((psl/max(supply, 1))*((psl+fsl)/max(fsl, 1))**5)
   return market_price
 
-print('market: ', market_price, ' | ', 'floor: ', floor_price)
-
-print()
+print('market: ', market_price, ' | ', 'floor: ', floor_price, ' | ', 'psl: ', psl, ' | ', 'fsl: ', fsl, ' | ', 'supply: ', supply)
+print("1000 buys")
+buy(1000)
+print('market: ', market_price, ' | ', 'floor: ', floor_price, ' | ', 'psl: ', psl, ' | ', 'fsl: ', fsl, ' | ', 'supply: ', supply)
