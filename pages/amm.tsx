@@ -145,7 +145,7 @@ export default function Amm() {
 
   useEffect(() => {
     if(!bottomInputFlag) {
-      if(debouncedHoneyBuy < balance.honey) {
+      if(debouncedHoneyBuy <= balance.honey) {
         if(!debouncedHoneyBuy) {
           setNewFloor(ammInfo.fsl / ammInfo.supply)
           setNewMarket(marketPrice(ammInfo.fsl, ammInfo.psl, ammInfo.supply))
@@ -171,11 +171,12 @@ export default function Amm() {
         setBottomDisplayString('')
       }
     }
-  }, [debouncedHoneyBuy, slippage])
+  }, [debouncedHoneyBuy])
 
   useEffect(() => {
     if(!topInputFlag) {
-      if(_simulateBuy(buyingLocks) < balance.honey) {
+      const locksWithSlippage: number = buyingLocks * (1 + (slippage / 100))
+      if(_simulateBuy(locksWithSlippage) < balance.honey) {
         if(!buyingLocks) {
           setNewFloor(ammInfo.fsl / ammInfo.supply)
           setNewMarket(marketPrice(ammInfo.fsl, ammInfo.psl, ammInfo.supply))
@@ -187,9 +188,9 @@ export default function Amm() {
         }
         else {
           setBottomInputFlag(true)
-          setDisplayString(_simulateBuy(buyingLocks).toFixed(4))
-          setHoneyBuy(_simulateBuy(buyingLocks))
-          simulateBuy(buyingLocks)
+          setDisplayString(_simulateBuy(locksWithSlippage).toFixed(4))
+          setHoneyBuy(_simulateBuy(locksWithSlippage))
+          simulateBuy(locksWithSlippage)
         }
       }
       else {
@@ -202,7 +203,12 @@ export default function Amm() {
         setDisplayString('')
       }
     }
-  }, [buyingLocks, slippage])
+  }, [buyingLocks])
+
+  useEffect(() => {
+    const locksAmount: number = findLocksAmount(debouncedHoneyBuy)
+    simulateBuy(locksAmount)
+  }, [slippage])
 
   useEffect(() => {
     if(sell <= ammInfo.supply) {
