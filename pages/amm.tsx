@@ -47,6 +47,7 @@ export default function Amm() {
   
   const [buyingLocks, setBuyingLocks] = useState<number>(0)
   const [gettingHoney, setGettingHoney] = useState<number>(0)
+  const debouncedGettingHoney = useDebounce(gettingHoney, 1000)
   const [redeemReceive, setRedeemReceive] = useState<number>(0)
 
   const { openNotification } = useNotification()
@@ -131,11 +132,12 @@ export default function Amm() {
       _supply -= _leftover
     }
     _tax = _salePrice * 0.053
-    return _salePrice + _tax
+    return _salePrice - _tax
   }
 
   async function test() {
-    console.log(findLocksSellAmount(30000))
+    console.log('gettingHoney: ', gettingHoney)
+    console.log('bottomDisplayString: ', bottomDisplayString)
   }
 
   const fetchBalances = async () => {
@@ -214,8 +216,8 @@ export default function Amm() {
         }
         else {
           setBottomInputFlag(true)
-          setDisplayString(_simulateBuy(locksWithSlippage).toFixed(4))
-          setHoneyBuy(_simulateBuy(locksWithSlippage))
+          !slippageToggle && setDisplayString(_simulateBuy(locksWithSlippage).toFixed(4))
+          !slippageToggle && setHoneyBuy(_simulateBuy(locksWithSlippage))
           simulateBuy(locksWithSlippage)
         }
       }
@@ -230,24 +232,79 @@ export default function Amm() {
       }
     }
   }, [buyingLocks])
-
+  
   useEffect(() => {
-    const locksAmount: number = findLocksBuyAmount(debouncedHoneyBuy)
-    simulateBuy(locksAmount)
+    if(buyToggle) {
+      const locksAmount: number = findLocksBuyAmount(debouncedHoneyBuy)
+      simulateBuy(locksAmount)
+    }
+    if(sellToggle) {
+
+    }
   }, [slippage])
 
   useEffect(() => {
-    if(sellingLocks <= ammInfo.supply) {
-      simulateSell()
+    if(!bottomInputFlag) {
+      if(sellingLocks <= balance.locks) {
+        if(!sellingLocks) {
+          setNewFloor(ammInfo.fsl / ammInfo.supply)
+          setNewMarket(marketPrice(ammInfo.fsl, ammInfo.psl, ammInfo.supply))
+          setNewFsl(ammInfo.fsl)
+          setNewPsl(ammInfo.psl)
+          setNewSupply(ammInfo.supply)
+          setGettingHoney(0)
+          setBottomDisplayString('')
+        }
+        else {
+          setTopInputFlag(true)
+          simulateSell(sellingLocks)
+          setGettingHoney(_simulateSell(sellingLocks))
+          setBottomDisplayString(_simulateSell(sellingLocks).toFixed(4))
+        }
+      }
+      else {
+        setNewFloor(ammInfo.fsl / ammInfo.supply)
+        setNewMarket(marketPrice(ammInfo.fsl, ammInfo.psl, ammInfo.supply))
+        setNewFsl(ammInfo.fsl)
+        setNewPsl(ammInfo.psl)
+        setNewSupply(ammInfo.supply)
+        setGettingHoney(0)
+        setBottomDisplayString('')
+      }
     }
-    else {
-      setNewFloor(ammInfo.fsl / ammInfo.supply)
-      setNewFsl(ammInfo.fsl)
-      setNewPsl(ammInfo.psl)
-      setNewSupply(ammInfo.supply)
-      setGettingHoney(0)
+  }, [sellingLocks])
+
+  useEffect(() => {
+    if(!topInputFlag) {
+      if(findLocksSellAmount(debouncedGettingHoney) < balance.locks) {
+        if(!debouncedGettingHoney) {
+          setNewFloor(ammInfo.fsl / ammInfo.supply)
+          setNewMarket(marketPrice(ammInfo.fsl, ammInfo.psl, ammInfo.supply))
+          setNewFsl(ammInfo.fsl)
+          setNewPsl(ammInfo.psl)
+          setNewSupply(ammInfo.supply)
+          setSellingLocks(0)
+          setDisplayString('')          
+        }
+        else {
+          setBottomInputFlag(true)
+          const honeyAmount: number = findLocksSellAmount(debouncedGettingHoney)
+          simulateSell(honeyAmount)
+          setDisplayString(honeyAmount.toFixed(4))
+          setSellingLocks(honeyAmount)
+        }
+      }
+      else {
+        setNewFloor(ammInfo.fsl / ammInfo.supply)
+        setNewMarket(marketPrice(ammInfo.fsl, ammInfo.psl, ammInfo.supply))
+        setNewFsl(ammInfo.fsl)
+        setNewPsl(ammInfo.psl)
+        setNewSupply(ammInfo.supply)
+        setSellingLocks(0)
+        setDisplayString('')
+      }
     }
-  }, [sellingLocks, slippage])
+  }, [debouncedGettingHoney])
 
   useEffect(() => {
     if(redeem <= ammInfo.supply) {
@@ -294,7 +351,7 @@ export default function Amm() {
       else {
         const locksWithSlippage: number = locks * (1 - (slippage / 100))
         setBuyingLocks(locksWithSlippage)
-        setBottomDisplayString(locksWithSlippage.toLocaleString('en-US', { maximumFractionDigits: 4 }))
+        setBottomDisplayString(locksWithSlippage.toFixed(4))
         console.log('found it: ', parseFloat(temp.toFixed(2)))
         console.log('locks: ', locks)
         console.log('with slippage: ', locksWithSlippage)
@@ -390,8 +447,8 @@ export default function Amm() {
     simulateFloorRaise(_fsl + _tax, _psl, _supply)
   }
   
-  function simulateSell() {
-    let _leftover = sellingLocks
+  function simulateSell(amount: number) {
+    let _leftover = amount
     let _fsl = ammInfo.fsl
     let _psl = ammInfo.psl
     let _supply = ammInfo.supply
@@ -422,7 +479,8 @@ export default function Amm() {
     setNewFsl(_fsl + _tax)
     setNewPsl(_psl)
     setNewSupply(_supply)
-    setGettingHoney((_salePrice - _tax) * (1 - (slippage / 100)))
+    // setGettingHoney((_salePrice - _tax) * (1 - (slippage / 100)))
+    // setBottomDisplayString(((_salePrice - _tax) * (1 - (slippage / 100))).toFixed(4))
   }
   
   function simulateRedeem() {
@@ -459,10 +517,11 @@ export default function Amm() {
 
   function handlePill(action: number) {
     setDisplayString('')
-    setHoneyBuy(0)
     setBottomDisplayString('')
+    setHoneyBuy(0)
     setBuyingLocks(0)
     setSellingLocks(0)
+    setGettingHoney(0)
     setRedeem(0)
     if(action === 1) {
       setBuyToggle(true)
@@ -571,6 +630,8 @@ export default function Amm() {
         button && (button.innerHTML = "sell")
         setSellingLocks(0)
         setDisplayString('')
+        setGettingHoney(0)
+        setBottomDisplayString('')
         refreshBalances(wallet, signer)
         refreshInfo(signer)
       }
@@ -732,7 +793,7 @@ export default function Amm() {
       return _simulateBuy(buyingLocks) > balance.honey ? '' : bottomDisplayString
     }
     if(sellToggle) {
-      return findLocksSellAmount(gettingHoney) > balance.locks ? '' : bottomDisplayString
+      return bottomDisplayString
     }
     if(redeemToggle) {
       if(!redeemReceive) {
@@ -791,7 +852,7 @@ export default function Amm() {
             <div className="h-[67%] px-6">
               { slippageToggle && 
                 <div className="fixed z-999 bg-[#ffffb4] rounded-xl border-2 border-black w-[25%] left-[40%] top-[40%] px-4 opacity-100">
-                  <span className="absolute right-2 rounded-full border-2 border-black px-2 top-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => setSlippageToggle(false)}>x</span>
+                  <span className="absolute right-3 rounded-full border-2 border-black text-[1.2rem] px-3 top-3 hover:bg-black hover:text-white cursor-pointer" onClick={() => setSlippageToggle(false)}>x</span>
                   <div className="flex flex-col font-acme">
                     <h3 className="mt-5 mx-auto text-[2rem]">set slippage</h3>
                     <div className="mx-auto w-[50%] relative">
