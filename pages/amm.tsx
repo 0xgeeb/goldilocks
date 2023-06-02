@@ -34,13 +34,13 @@ export default function Amm() {
   const [honeyBuy, setHoneyBuy] = useState<number>(0)
   const debouncedHoneyBuy = useDebounce(honeyBuy, 1000)
   const [sellingLocks, setSellingLocks] = useState<number>(0)
-  const [redeem, setRedeem] = useState<number>(0)
   const [slippage, setSlippage] = useState<number>(0.1)
   
   const [buyToggle, setBuyToggle] = useState<boolean>(true)
   const [sellToggle, setSellToggle] = useState<boolean>(false)
   const [redeemToggle, setRedeemToggle] = useState<boolean>(false)
   const [slippageToggle, setSlippageToggle] = useState<boolean>(false)
+  const [popupToggle, setPopupToggle] = useState<boolean>(false)
 
   const [topInputFlag, setTopInputFlag] = useState<boolean>(false)
   const [bottomInputFlag, setBottomInputFlag] = useState<boolean>(false)
@@ -48,7 +48,8 @@ export default function Amm() {
   const [buyingLocks, setBuyingLocks] = useState<number>(0)
   const [gettingHoney, setGettingHoney] = useState<number>(0)
   const debouncedGettingHoney = useDebounce(gettingHoney, 1000)
-  const [redeemReceive, setRedeemReceive] = useState<number>(0)
+  const [redeemingLocks, setRedeemingLocks] = useState<number>(0)
+  const [redeemingHoney, setRedeemingHoney] = useState<number>(0)
 
   const { openNotification } = useNotification()
   const { balance, wallet, isConnected, signer, network, getBalances, refreshBalances } = useWallet()
@@ -239,7 +240,8 @@ export default function Amm() {
       simulateBuy(locksAmount)
     }
     if(sellToggle) {
-
+      setGettingHoney(_simulateSell(sellingLocks) * (1 - (slippage / 100)))
+      setBottomDisplayString((_simulateSell(sellingLocks) * (1 - (slippage / 100))).toFixed(4))
     }
   }, [slippage])
 
@@ -258,8 +260,8 @@ export default function Amm() {
         else {
           setTopInputFlag(true)
           simulateSell(sellingLocks)
-          setGettingHoney(_simulateSell(sellingLocks))
-          setBottomDisplayString(_simulateSell(sellingLocks).toFixed(4))
+          setGettingHoney(_simulateSell(sellingLocks) * (1 - (slippage / 100)))
+          setBottomDisplayString((_simulateSell(sellingLocks) * (1 - (slippage / 100))).toFixed(4))
         }
       }
       else {
@@ -276,7 +278,8 @@ export default function Amm() {
 
   useEffect(() => {
     if(!topInputFlag) {
-      if(findLocksSellAmount(debouncedGettingHoney) < balance.locks) {
+      const locksAmountWithSlippage: number = findLocksSellAmount(debouncedGettingHoney) * (1 + (slippage/100))
+      if(locksAmountWithSlippage < balance.locks) {
         if(!debouncedGettingHoney) {
           setNewFloor(ammInfo.fsl / ammInfo.supply)
           setNewMarket(marketPrice(ammInfo.fsl, ammInfo.psl, ammInfo.supply))
@@ -288,10 +291,10 @@ export default function Amm() {
         }
         else {
           setBottomInputFlag(true)
-          const honeyAmount: number = findLocksSellAmount(debouncedGettingHoney)
-          simulateSell(honeyAmount)
-          setDisplayString(honeyAmount.toFixed(4))
-          setSellingLocks(honeyAmount)
+          const locksAmount: number = locksAmountWithSlippage
+          !slippageToggle && setDisplayString(locksAmount.toFixed(4))
+          !slippageToggle && setSellingLocks(locksAmount)
+          simulateSell(locksAmount)
         }
       }
       else {
@@ -307,16 +310,66 @@ export default function Amm() {
   }, [debouncedGettingHoney])
 
   useEffect(() => {
-    if(redeem <= ammInfo.supply) {
-      simulateRedeem()
+    if(!bottomInputFlag) {
+      if(redeemingLocks <= balance.locks) {
+        if(!redeemingLocks) {
+          setNewFloor(ammInfo.fsl / ammInfo.supply)
+          setNewMarket(marketPrice(ammInfo.fsl, ammInfo.psl, ammInfo.supply))
+          setNewFsl(ammInfo.fsl)
+          setNewPsl(ammInfo.psl)
+          setNewSupply(ammInfo.supply)
+          setRedeemingHoney(0)
+          setBottomDisplayString('')
+        }
+        else {
+          setTopInputFlag(true)
+          simulateRedeem(redeemingLocks)
+          setBottomDisplayString((redeemingLocks * floorPrice(ammInfo.fsl, ammInfo.supply)).toFixed(4))
+          setRedeemingHoney(redeemingLocks * floorPrice(ammInfo.fsl, ammInfo.supply))
+        }
+      }
+      else {
+        setNewFloor(ammInfo.fsl / ammInfo.supply)
+        setNewMarket(marketPrice(ammInfo.fsl, ammInfo.psl, ammInfo.supply))
+        setNewFsl(ammInfo.fsl)
+        setNewPsl(ammInfo.psl)
+        setNewSupply(ammInfo.supply)
+        setRedeemingHoney(0)
+        setBottomDisplayString('')
+      }
     }
-    else {
-      setNewFloor(ammInfo.fsl / ammInfo.supply)
-      setNewFsl(ammInfo.fsl)
-      setNewSupply(ammInfo.supply)
-      setRedeemReceive(0)
+  }, [redeemingLocks])
+
+  useEffect(() => {
+    if(!topInputFlag) {
+      if(redeemingHoney / (ammInfo.fsl / ammInfo.supply) <= balance.locks) {
+        if(!redeemingHoney) {
+          setNewFloor(ammInfo.fsl / ammInfo.supply)
+          setNewMarket(marketPrice(ammInfo.fsl, ammInfo.psl, ammInfo.supply))
+          setNewFsl(ammInfo.fsl)
+          setNewPsl(ammInfo.psl)
+          setNewSupply(ammInfo.supply)
+          setDisplayString('')
+          setRedeemingLocks(0)
+        }
+        else {
+          setBottomInputFlag(true)
+          simulateRedeem(redeemingHoney / (ammInfo.fsl / ammInfo.supply))
+          setDisplayString((redeemingHoney / (ammInfo.fsl / ammInfo.supply)).toFixed(4))
+          setRedeemingLocks(redeemingHoney / (ammInfo.fsl / ammInfo.supply))
+        }
+      }
+      else {
+        setNewFloor(ammInfo.fsl / ammInfo.supply)
+        setNewMarket(marketPrice(ammInfo.fsl, ammInfo.psl, ammInfo.supply))
+        setNewFsl(ammInfo.fsl)
+        setNewPsl(ammInfo.psl)
+        setNewSupply(ammInfo.supply)
+        setDisplayString('')
+        setRedeemingLocks(0)
+      }
     }
-  }, [redeem])
+  }, [redeemingHoney])
 
   function findLocksBuyAmount(debouncedValue: number): number {
     const honey: number = debouncedValue
@@ -390,14 +443,12 @@ export default function Amm() {
           locks += 0.0000001
         }
       }
-      else {
-        const locksWithSlippage: number = locks * (1 - (slippage / 100))
-        // setBuyingLocks(locksWithSlippage)
-        // setBottomDisplayString(locksWithSlippage.toLocaleString('en-US', { maximumFractionDigits: 4 }))
-        console.log('found it: ', parseFloat(temp.toFixed(2)))
-        console.log('locks: ', locks)
-        console.log('with slippage: ', locksWithSlippage)
-      }
+      // else {
+        // const locksWithSlippage: number = locks * (1 - (slippage / 100))        
+        // console.log('found it: ', parseFloat(temp.toFixed(2)))
+        // console.log('locks: ', locks)
+        // console.log('with slippage: ', locksWithSlippage)
+      // }
     }
     return locks
   }
@@ -479,18 +530,15 @@ export default function Amm() {
     setNewFsl(_fsl + _tax)
     setNewPsl(_psl)
     setNewSupply(_supply)
-    // setGettingHoney((_salePrice - _tax) * (1 - (slippage / 100)))
-    // setBottomDisplayString(((_salePrice - _tax) * (1 - (slippage / 100))).toFixed(4))
   }
   
-  function simulateRedeem() {
-    let rawTotal: number = redeem * floorPrice(ammInfo.fsl, ammInfo.supply)
-    setRedeemReceive(rawTotal)
+  function simulateRedeem(amount: number) {
+    let rawTotal: number = amount * floorPrice(ammInfo.fsl, ammInfo.supply)
     setNewFsl(ammInfo.fsl - rawTotal)
-    setNewSupply(ammInfo.supply - redeem)
-    setNewFloor(floorPrice(ammInfo.fsl - rawTotal, ammInfo.supply - redeem))
-    setNewMarket(marketPrice(ammInfo.fsl - rawTotal, ammInfo.psl, ammInfo.supply - redeem))
-    simulateFloorRaise(ammInfo.fsl - rawTotal, ammInfo.psl, ammInfo.supply - redeem)
+    setNewSupply(ammInfo.supply - redeemingLocks)
+    setNewFloor(floorPrice(ammInfo.fsl - rawTotal, ammInfo.supply - redeemingLocks))
+    setNewMarket(marketPrice(ammInfo.fsl - rawTotal, ammInfo.psl, ammInfo.supply - redeemingLocks))
+    simulateFloorRaise(ammInfo.fsl - rawTotal, ammInfo.psl, ammInfo.supply - redeemingLocks)
   }
 
   function simulateFloorRaise(_fsl: number, _psl: number, _supply: number) {
@@ -522,7 +570,8 @@ export default function Amm() {
     setBuyingLocks(0)
     setSellingLocks(0)
     setGettingHoney(0)
-    setRedeem(0)
+    setRedeemingLocks(0)
+    setRedeemingHoney(0)
     if(action === 1) {
       setBuyToggle(true)
       setSellToggle(false)
@@ -636,22 +685,24 @@ export default function Amm() {
         refreshInfo(signer)
       }
       if(redeemToggle) {
-        if(redeem == 0) {
+        if(redeemingLocks == 0) {
           return
         }
         button && (button.innerHTML = "redeeming...")
-        const redeemTx = await sendRedeemTx(redeem, signer)
+        const redeemTx = await sendRedeemTx(redeemingLocks, signer)
         redeemTx && openNotification({
           title: 'Successfully Redeemed $LOCKS!',
           hash: redeemTx.hash,
           direction: 'redeemed',
-          amount: redeem,
-          price: redeem * (ammInfo.fsl / ammInfo.supply),
+          amount: redeemingLocks,
+          price: redeemingHoney,
           page: 'amm'
         })
         button && (button.innerHTML = "redeem")
-        setRedeem(0)
+        setRedeemingLocks(0)
+        setRedeemingHoney(0)
         setDisplayString('')
+        setBottomDisplayString('')
         refreshBalances(wallet, signer)
         refreshInfo(signer)
       }
@@ -670,7 +721,7 @@ export default function Amm() {
       }
       if(redeemToggle) {
         setDisplayString((balance.locks / 4).toFixed(4))
-        setRedeem(balance.locks / 4)
+        setRedeemingLocks(balance.locks / 4)
       }
     }
     if(action == 2) {
@@ -684,7 +735,7 @@ export default function Amm() {
       }
       if(redeemToggle) {
         setDisplayString((balance.locks / 2).toFixed(4))
-        setRedeem(balance.locks / 2)
+        setRedeemingLocks(balance.locks / 2)
       }
     }
     if(action == 3) {
@@ -698,7 +749,7 @@ export default function Amm() {
       }
       if(redeemToggle) {
         setDisplayString((balance.locks * 0.75).toFixed(4))
-        setRedeem(balance.locks * 0.75)
+        setRedeemingLocks(balance.locks * 0.75)
       }
     }
     if(action == 4) {
@@ -712,7 +763,7 @@ export default function Amm() {
       }
       if(redeemToggle) {
         setDisplayString((balance.locks).toFixed(4))
-        setRedeem(balance.locks)
+        setRedeemingLocks(balance.locks)
       }
     }
   }
@@ -741,10 +792,12 @@ export default function Amm() {
     }
     if(redeemToggle) {
       if(!input) {
-        setRedeem(0)
+        setBottomInputFlag(false)
+        setRedeemingLocks(0)
       }
       else {
-        setRedeem(parseFloat(input))
+        setBottomInputFlag(false)
+        setRedeemingLocks(parseFloat(input))
       }
     }
   }
@@ -772,7 +825,14 @@ export default function Amm() {
       }
     }
     if(redeemToggle) {
-
+      if(!input) {
+        setTopInputFlag(false)
+        setRedeemingHoney(0)
+      }
+      else {
+        setTopInputFlag(false)
+        setRedeemingHoney(parseFloat(input))
+      }
     }
   }
   
@@ -784,7 +844,7 @@ export default function Amm() {
       return sellingLocks > balance.locks ? '' : displayString
     }
     if(redeemToggle) {
-      return redeem > ammInfo.supply ? '' : displayString
+      return redeemingLocks > balance.locks ? '' : displayString
     }
   }
 
@@ -796,12 +856,7 @@ export default function Amm() {
       return bottomDisplayString
     }
     if(redeemToggle) {
-      if(!redeemReceive) {
-        return "0.00"
-      }
-      else {
-        return redeemReceive.toLocaleString('en-US', { maximumFractionDigits: 2 })
-      }
+      return redeemingHoney / (ammInfo.fsl / ammInfo.supply) > balance.locks ? '' : bottomDisplayString
     }
   }
 
@@ -836,15 +891,29 @@ export default function Amm() {
       </Head>
       <div className="flex flex-row py-3 overflow-hidden">
         <animated.div className="w-[57%] flex flex-col pt-6 pb-4 px-24 rounded-xl bg-slate-300 ml-24 mt-8 h-[95%] border-2 border-black" style={springs}>
+          { popupToggle && 
+            <div className="z-10 bg-white rounded-xl border-2 border-black w-36 h-36 left-[58%] top-[30%] absolute px-4">
+              <span className="absolute right-2 rounded-full border-2 border-black px-2 top-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => setPopupToggle(false)}>x</span>
+              <p className="mt-10 mx-auto font-acme">burn n locks to receive floor price value</p>
+            </div>
+          }
           <h1 className="text-[50px] font-acme text-[#ffff00]" id="text-outline" onClick={() => test()} >goldilocks AMM</h1>
           <div className="flex flex-row ml-2 items-center justify-between">
             <h3 className="font-acme text-[24px] ml-2">trading between $honey & $locks</h3>
             <div className="flex flex-row items-center">
               <h1 className="mr-4 text-[28px] hover:opacity-25 hover:cursor-pointer" onClick={() => setSlippageToggle(true)}>⚙️</h1>
               <div className="flex flex-row bg-white rounded-2xl border-2 border-black">
-                <div className={`font-acme w-20 py-2 ${buyToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-l-2xl text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(1)}>buy</div>
-                <div className={`font-acme w-20 py-2 ${sellToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(2)}>sell</div>
-                <div className={`font-acme w-20 py-2 ${redeemToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-r-2xl text-center cursor-pointer`} onClick={() => handlePill(3)}>redeem</div>
+                <div className={`font-acme w-24 py-2 ${buyToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-l-2xl text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(1)}>buy</div>
+                <div className={`font-acme w-24 py-2 ${sellToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] text-center border-r-2 border-black cursor-pointer`} onClick={() => handlePill(2)}>sell</div>
+                <div className={`font-acme w-24 py-2 ${redeemToggle ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-r-2xl text-center cursor-pointer`} onClick={() => handlePill(3)}>redeem
+                  <span className="ml-1 rounded-full px-2 border-2 border-black hover:bg-black hover:text-white" 
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setPopupToggle(true)
+                      }}
+                    >?
+                  </span>
+                </div>
               </div>
             </div>
           </div>

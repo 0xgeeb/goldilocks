@@ -151,7 +151,7 @@ contract AMM {
     return (_marketPrice(fsl, psl, supply), _floorPrice(fsl, supply));
   }
 
-  /// @dev burns $LOCKS tokens to receive floor value
+  /// @dev burns $LOCKS tokens to receive floor price value
   function redeem(uint256 _amount) public {
     require(_amount > 0, "cannot redeem zero");
     require(IERC20(locksAddress).balanceOf(msg.sender) >= _amount, "insufficient balance");

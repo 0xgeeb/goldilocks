@@ -373,7 +373,7 @@ export default function Staking() {
                       setPopupToggle(true)
                     }}
                   >?
-                </span>
+                  </span>
                 </div>
               </div>
             </div>
