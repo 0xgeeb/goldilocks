@@ -3,14 +3,12 @@ pragma solidity ^0.8.17;
 
 import { ERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import { IERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import { ILocks } from "./interfaces/ILocks.sol";
 import { IBorrow } from "./interfaces/IBorrow.sol";
 import { IAMM } from "./interfaces/IAMM.sol";
 
 contract Porridge is ERC20("Porridge Token", "PRG") {
 
   IERC20 honey;
-  ILocks ilocks;
   IAMM iamm;
   IBorrow iborrow;
 
@@ -21,11 +19,9 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
   uint8 public constant DAILY_EMISSISIONS = 200;
   address public adminAddress;
   address public ammAddress;
-  address public locksAddress;
 
-  constructor(address _ammAddress, address _locksAddress, address _borrowAddress, address _adminAddress) {
+  constructor(address _ammAddress, address _borrowAddress, address _adminAddress) {
     iamm = IAMM(_ammAddress);
-    ilocks = ILocks(_locksAddress);
     iborrow = IBorrow(_borrowAddress);
     adminAddress = _adminAddress;
     ammAddress = _ammAddress;
@@ -48,7 +44,7 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
     }
     stakeStartTime[msg.sender] = block.timestamp;
     staked[msg.sender] += _amount;
-    IERC20(locksAddress).transferFrom(msg.sender, address(this), _amount);
+    IERC20(ammAddress).transferFrom(msg.sender, address(this), _amount);
   }
 
   /// @dev unstakes $LOCKS and claims $PRG rewards
@@ -58,7 +54,7 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
     require(_amount <= staked[msg.sender] - iborrow.getLocked(msg.sender), "you are currently borrowing against your locks");
     _yield = _distributeYield(msg.sender);
     staked[msg.sender] -= _amount;
-    IERC20(locksAddress).transfer(msg.sender, _amount);
+    IERC20(ammAddress).transfer(msg.sender, _amount);
   }
 
   /// @dev claim $PRG rewards
@@ -72,7 +68,7 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
     uint256 floorPrice = iamm.floorPrice();    
     _burn(msg.sender, _amount);
     honey.transferFrom(msg.sender, ammAddress, (_amount * floorPrice) / 1e18);
-    ilocks.porridgeMint(msg.sender, _amount);
+    iamm.porridgeMint(msg.sender, _amount);
   }
 
   function _distributeYield(address _user) private returns (uint256 _yield) {
@@ -93,16 +89,12 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
     return block.timestamp - stakeStartTime[_user];
   }
 
-  function setLocksAddress(address _locksAddress) public onlyAdmin {
-    locksAddress = _locksAddress;
-  }
-
   function setHoneyAddress(address _honeyAddress) public onlyAdmin {
     honey = IERC20(_honeyAddress);
   }
 
   function approveBorrowForLocks(address _borrowAddress) public onlyAdmin {
-    IERC20(locksAddress).approve(_borrowAddress, type(uint256).max);
+    IERC20(ammAddress).approve(_borrowAddress, type(uint256).max);
   }
 
 }

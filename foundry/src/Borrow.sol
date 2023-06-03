@@ -16,17 +16,15 @@ contract Borrow {
   IERC20 honey;
   address public adminAddress;
   address public ammAddress;
-  address public locksAddress;
   address public porridgeAddress;
 
   mapping(address => uint256) public lockedLocks;
   mapping(address => uint256) public borrowedHoney;
 
 
-  constructor(address _ammAddress, address _locksAddress, address _adminAddress) {
+  constructor(address _ammAddress, address _adminAddress) {
     iamm = IAMM(_ammAddress);
     adminAddress = _adminAddress;
-    locksAddress = _locksAddress;
     ammAddress = _ammAddress;
   }
 
@@ -52,7 +50,7 @@ contract Borrow {
     lockedLocks[msg.sender] += (_amount * (1e18)) / _floorPrice;
     borrowedHoney[msg.sender] += _amount;
     uint256 _fee = (_amount / 100) * 3;
-    IERC20(locksAddress).transferFrom(porridgeAddress, address(this), (_amount * (1e18)) / _floorPrice);
+    IERC20(ammAddress).transferFrom(porridgeAddress, address(this), (_amount * (1e18)) / _floorPrice);
     honey.transferFrom(ammAddress, msg.sender, _amount - _fee);
     honey.transferFrom(ammAddress, adminAddress, _fee);
     return _amount - _fee;
@@ -66,7 +64,7 @@ contract Borrow {
     lockedLocks[msg.sender] -= _repaidLocks;
     borrowedHoney[msg.sender] -= _amount;
     honey.transferFrom(msg.sender, ammAddress, _amount);
-    IERC20(locksAddress).transfer(porridgeAddress, _repaidLocks);
+    IERC20(ammAddress).transfer(porridgeAddress, _repaidLocks);
   }
 
   function setPorridge(address _porridgeAddress) public onlyAdmin {

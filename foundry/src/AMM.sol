@@ -2,20 +2,18 @@
 pragma solidity ^0.8.17;
 
 import { FixedPointMathLib } from "../lib/solady/src/utils/FixedPointMathLib.sol";
+import { ERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import { IERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import { ILocks } from "./interfaces/ILocks.sol";
-
 
 /// @title AMM
 /// @author @0xgeeb
 /// @author @kingkongshearer
 /// @dev Goldilocks AMM
-contract AMM {
+contract AMM is ERC20("Locks Token", "LOCKS") {
 
   using FixedPointMathLib for uint256;
 
   IERC20 honey;
-  ILocks ilocks;
   
   uint256 public fsl = 700000e18;
   uint256 public psl = 200000e18;
@@ -25,29 +23,33 @@ contract AMM {
   uint256 public lastFloorDecrease;
   address public adminAddress;
   address public locksAddress;
+  uint256 public startTime;
+  uint256 public totalContribution;
+  uint256 public hardCap = 1000000e18;
+  address public porridgeAddress;
   uint256 internal constant WAD = 1e18;
 
-  constructor(address _locksAddress, address _adminAddress) {
-    ilocks = ILocks(_locksAddress);
+  constructor(address _adminAddress) {
     adminAddress = _adminAddress;
-    locksAddress = _locksAddress;
     lastFloorRaise = block.timestamp;
   }
 
   error MulWadFailed();
   error DivWadFailed();
+  error NotAdmin();
+  error NotPorridge();
 
   event Buy(address indexed user, uint256 amount);
   event Sale(address indexed user, uint256 amount);
   event Redeem(address indexed user, uint256 amount);
 
   modifier onlyAdmin() {
-    require(msg.sender == adminAddress, "not admin");
+    if(msg.sender != adminAddress) revert NotAdmin();
     _;
   }
 
-  modifier onlyLocks() {
-    require(msg.sender == locksAddress, "not locks");
+  modifier onlyPorridge() {
+    if(msg.sender != porridgeAddress) revert NotPorridge();
     _;
   }
 
@@ -57,11 +59,6 @@ contract AMM {
 
   function marketPrice() external view returns (uint256) {
     return _marketPrice(fsl, psl, supply);
-  }
-
-  function initialize(uint256 _fsl, uint256 _psl) external onlyLocks {
-    fsl = _fsl;
-    psl = _psl;
   }
 
   /// @dev calculates price of and mints $LOCKS tokens
@@ -107,7 +104,7 @@ contract AMM {
     supply = _supply;
     require(_purchasePrice + _tax <= _maxAmount, "too much slippage");
     honey.transferFrom(msg.sender, address(this), _purchasePrice + _tax);
-    ilocks.ammMint(msg.sender, _amount);
+    _mint(msg.sender, _amount);
     _floorRaise();
     emit Buy(msg.sender, _amount);
     return (_marketPrice(_fsl + _tax, _psl, _supply), _floorPrice(_fsl + _tax, _supply));
@@ -143,7 +140,7 @@ contract AMM {
     uint256 _tax = (_saleAmount / 1000) * 53;
     require(_saleAmount - _tax >= _minAmount, "too much slippage");
     honey.transfer(msg.sender, _saleAmount - _tax);
-    ilocks.ammBurn(msg.sender, _amount);
+    _burn(msg.sender, _amount);
     fsl = _fsl + _tax;
     psl = _psl;
     supply = _supply;
@@ -158,7 +155,7 @@ contract AMM {
     uint256 _rawTotal = (_amount * ((fsl * 1e18) / supply)) / 1e18;
     supply -= _amount;
     fsl -= _rawTotal;
-    ilocks.ammBurn(msg.sender, _amount);
+    _burn(msg.sender, _amount);
     honey.transfer(msg.sender, _rawTotal);
     _floorRaise();
     emit Redeem(msg.sender, _amount);
@@ -205,8 +202,16 @@ contract AMM {
     }
   }
 
+  function porridgeMint(address _to, uint256 _amount) external onlyPorridge {
+    _mint(_to, _amount);
+  }
+
   function setHoneyAddress(address _honeyAddress) external onlyAdmin {
     honey = IERC20(_honeyAddress);
+  }
+
+  function setPorridgeAddress(address _porridgeAddress) external onlyAdmin {
+    porridgeAddress = _porridgeAddress;
   }
 
   function approveBorrowForHoney(address _borrowAddress) external onlyAdmin {

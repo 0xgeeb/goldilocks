@@ -2,7 +2,6 @@
 pragma solidity ^0.8.17;
 
 import { Script } from "../lib/forge-std/src/Script.sol";
-import { Locks } from "../src/Locks.sol";
 import { Porridge } from "../src/Porridge.sol";
 import { AMM } from  "../src/AMM.sol";
 import { Borrow } from "../src/Borrow.sol";
@@ -10,7 +9,6 @@ import { Honey } from "../src/Honey.sol";
 
 contract Deploy01Script is Script {
 
-  Locks locks;
   Porridge porridge;
   AMM amm;
   Borrow borrow;
@@ -22,19 +20,14 @@ contract Deploy01Script is Script {
     vm.startBroadcast(deployerPrivateKey);
 
     honey = new Honey();
-    locks = new Locks(admin);
-    amm = new AMM(address(locks), admin);
-    borrow = new Borrow(address(amm), address(locks), admin);
-    porridge = new Porridge(address(amm), address(locks), address(borrow), admin);
+    amm = new AMM(admin);
+    borrow = new Borrow(address(amm), admin);
+    porridge = new Porridge(address(amm), address(borrow), admin);
 
-    locks.setAmmAddress(address(amm));
-    locks.setPorridgeAddress(address(porridge));
-    locks.setHoneyAddress(address(honey));
-
-    porridge.setLocksAddress(address(locks));
     porridge.setHoneyAddress(address(honey));
 
     amm.setHoneyAddress(address(honey));
+    amm.setPorridgeAddress(address(porridge));
 
     borrow.setHoneyAddress(address(honey));
     borrow.setPorridge(address(porridge));
@@ -42,9 +35,6 @@ contract Deploy01Script is Script {
     porridge.approveBorrowForLocks(address(borrow));
 
     amm.approveBorrowForHoney(address(borrow));
-
-    honey.mint(address(locks), 1000e18);
-    locks.transferToAMM(700000e18, 200000e18);
     
     vm.stopBroadcast();
   }
