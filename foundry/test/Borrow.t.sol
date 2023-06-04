@@ -2,11 +2,10 @@
 pragma solidity ^0.8.17;
 
 import "../lib/forge-std/src/Test.sol";
-import { Locks } from "../src/Locks.sol";
 import { Porridge } from "../src/Porridge.sol";
 import { AMM } from "../src/AMM.sol";
 import { Borrow } from "../src/Borrow.sol";
-import { Honey } from "../src/Honey.sol";
+import { Honey } from "../src/test/Honey.sol";
 
 contract BorrowTest is Test {
 

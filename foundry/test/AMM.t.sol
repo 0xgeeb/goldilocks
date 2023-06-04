@@ -4,27 +4,27 @@ pragma solidity ^0.8.17;
 import "../lib/forge-std/src/Test.sol";
 import { IERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import { AMM } from "../src/AMM.sol";
-import { Locks } from "../src/Locks.sol";
-import { Honey } from "../src/Honey.sol";
+import { Porridge } from "../src/Porridge.sol";
+import { Borrow } from "../src/Borrow.sol";
+import { Honey } from "../src/test/Honey.sol";
 
 contract AMMTest is Test {
 
   AMM amm;
-  Locks locks;
   Honey honey;
+  Porridge porridge;
+  Borrow borrow;
 
   function setUp() public {
-    locks = new Locks(address(this));
-    amm = new AMM(address(locks), address(this));
     honey = new Honey();
+    amm = new AMM(address(this));
+    borrow = new Borrow(address(amm), address(this));
+    porridge = new Porridge(address(amm), address(borrow), address(this));
     deal(address(honey), address(this), 10000000000000000e18, true);
-    deal(address(locks), address(this), 1000000e18, true);
-    deal(address(honey), address(locks), 100000000000000000000000000000000e18, true);
-    locks.setAmmAddress(address(amm));
-    locks.setHoneyAddress(address(honey));
+    deal(address(honey), address(amm), 100000000000000000000000000000000e18, true);
     amm.setHoneyAddress(address(honey));
+    amm.setPorridgeAddress(address(porridge));
     honey.approve(address(amm), type(uint256).max);
-    locks.transferToAMM(1600000e18, 400000e18);
   }
 
   function testMarketPrice() public {

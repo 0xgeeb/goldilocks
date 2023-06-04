@@ -1,50 +1,118 @@
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.19;
+
+
+// |============================================================================================|
+// |    ______      _____    __      _____    __   __       _____     _____   __  __   ______   |
+// |   /_/\___\    ) ___ (  /\_\    /\ __/\  /\_\ /\_\     ) ___ (   /\ __/\ /\_\\  /\/ ____/\  |
+// |   ) ) ___/   / /\_/\ \( ( (    ) )  \ \ \/_/( ( (    / /\_/\ \  ) )__\/( ( (/ / /) ) __\/  |
+// |  /_/ /  ___ / /_/ (_\ \\ \_\  / / /\ \ \ /\_\\ \_\  / /_/ (_\ \/ / /    \ \_ / /  \ \ \    |
+// |  \ \ \_/\__\\ \ )_/ / // / /__\ \ \/ / // / // / /__\ \ )_/ / /\ \ \_   / /  \ \  _\ \ \   |
+// |   )_)  \/ _/ \ \/_\/ /( (_____() )__/ /( (_(( (_____(\ \/_\/ /  ) )__/\( (_(\ \ \)____) )  |
+// |   \_\____/    )_____(  \/_____/\/___\/  \/_/ \/_____/ )_____(   \/___\/ \/_//__\/\____\/   |
+// |                                                                                            |
+// |============================================================================================|
+// ==============================================================================================
+// ========================================== Borrow ============================================
+// ==============================================================================================
+
 
 import { IERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import { IAMM } from "./interfaces/IAMM.sol";
+import { IGAMM } from "./interfaces/IGAMM.sol";
 import { IPorridge } from "./interfaces/IPorridge.sol";
 
 /// @title Borrow
-/// @author @0xgeeb
-/// @author @kingkongshearer
-/// @dev Goldilocks Borrowing
+/// @notice Borrowing $HONEY against staked $LOCKS tokens
+/// @author geeb
+/// @author ampnoob
 contract Borrow {
 
-  IAMM iamm;
+
+  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+  /*                      STATE VARIABLES                       */
+  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+
+  IGAMM igamm;
   IPorridge iporridge;
   IERC20 honey;
   address public adminAddress;
-  address public ammAddress;
+  address public gammAddress;
   address public porridgeAddress;
-
   mapping(address => uint256) public lockedLocks;
   mapping(address => uint256) public borrowedHoney;
 
 
-  constructor(address _ammAddress, address _adminAddress) {
-    iamm = IAMM(_ammAddress);
+  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+  /*                          CONSTRUCTOR                       */
+  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+
+  /// @notice Constructor of this contract
+  /// @param _gammAddress Address of the GAMM
+  /// @param _adminAddress Address of the GoldilocksDAO multisig
+  constructor(address _gammAddress, address _adminAddress) {
+    igamm = IGAMM(_gammAddress);
     adminAddress = _adminAddress;
-    ammAddress = _ammAddress;
+    gammAddress = _gammAddress;
   }
 
+
+  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+  /*                           ERRORS                           */
+  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+
+  error NotAdmin();
+
+
+  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+  /*                           EVENTS                           */
+  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+
+
+
+
+  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+  /*                         MODIFIERS                          */
+  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+
   modifier onlyAdmin() {
-    require(msg.sender == adminAddress, "not admin");
+    if(msg.sender == adminAddress) revert NotAdmin();
     _;
   }
 
+
+  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+  /*                       VIEW FUNCTIONS                       */
+  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+
+  /// @notice View locked $LOCKS tokens of a user
+  /// @param _user Address of user
+  /// @return locked $LOCKS of user
   function getLocked(address _user) external view returns (uint256) {
     return lockedLocks[_user];
   }
 
+  /// @notice View borrowed $HONEY of a user
+  /// @param _user Address of user
+  /// @return borrowed $HONEY of user
   function getBorrowed(address _user) external view returns (uint256) {
     return borrowedHoney[_user];
   }
 
+
+  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+  /*                    EXTERNAL FUNCTIONS                      */
+  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+
   /// @dev using staked $LOCKS as collateral, lends $HONEY
   function borrow(uint256 _amount) external returns (uint256) {
-    require(_amount > 0, "cannot borrow zero");
-    uint256 _floorPrice = iamm.floorPrice();
+    uint256 _floorPrice = igamm.floorPrice();
     uint256 _stakedLocks = iporridge.getStaked(msg.sender);
     require(_floorPrice * (_stakedLocks - lockedLocks[msg.sender]) / (1e18) >= _amount, "insufficient borrow limit");
     lockedLocks[msg.sender] += (_amount * (1e18)) / _floorPrice;
@@ -67,11 +135,21 @@ contract Borrow {
     IERC20(ammAddress).transfer(porridgeAddress, _repaidLocks);
   }
 
+
+  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+  /*                       ADMIN FUNCTIONS                      */
+  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+
+  /// @notice Set address of Porridge contract
+  /// @param _porridgeAddress Address of Porridge contract
   function setPorridge(address _porridgeAddress) public onlyAdmin {
     iporridge = IPorridge(_porridgeAddress);
     porridgeAddress = _porridgeAddress;
   }
 
+  /// @notice Set address of $HONEY
+  /// @param _honeyAddress Address of $HONEY
   function setHoneyAddress(address _honeyAddress) public onlyAdmin {
     honey = IERC20(_honeyAddress);
   }

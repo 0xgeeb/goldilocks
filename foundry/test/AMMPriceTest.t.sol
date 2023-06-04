@@ -4,8 +4,7 @@ pragma solidity ^0.8.17;
 import "../lib/forge-std/src/Test.sol";
 import { IERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import { AMM } from "../src/AMM.sol";
-import { Locks } from "../src/Locks.sol";
-import { Honey } from "../src/Honey.sol";
+import { Honey } from "../src/test/Honey.sol";
 
 contract AMMPriceTest is Test {
 
