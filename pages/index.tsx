@@ -15,7 +15,7 @@ export default function Home() {
           <Link href="https://twitter.com/goldilocksmoney" target="_blank"><Image className="h-6 w-6 ml-6 rounded-3xl hover:opacity-25" src="/twitter.png" alt="twitter" id="card-div-shadow" width="25" height="25" /></Link>
         </div>
       </div>
-      <Image className="absolute left-2/3 bottom-0" src="/girl_no_bears.png" alt="girl_no_bears" width="500" height="500"></Image>
+      <Image className="absolute left-2/3 bottom-0" src="/goldi_transparent_2.jpg" alt="girl_no_bears" width="500" height="500"></Image>
     </div>
   )
 }
