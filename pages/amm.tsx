@@ -4,7 +4,8 @@ import { useSpring, animated } from "@react-spring/web"
 import { 
   useFormatDate,
   useLabel,
-  useDebounce
+  useDebounce,
+  useGammMath
 } from "../hooks/amm"
 import { 
   useNotification,
@@ -51,6 +52,7 @@ export default function Amm() {
   const [redeemingLocks, setRedeemingLocks] = useState<number>(0)
   const [redeemingHoney, setRedeemingHoney] = useState<number>(0)
 
+  const { floorPrice, marketPrice, simulateBuyDry, simulateSellDry } = useGammMath()
   const { openNotification } = useNotification()
   const { balance, wallet, isConnected, signer, network, getBalances, refreshBalances } = useWallet()
   const { ammInfo, getAmmInfo, refreshAmmInfo } = useInfo()
@@ -65,76 +67,6 @@ export default function Amm() {
     from: { x: -900 },
     to: { x: 0 },
   })
-
-  function _simulateBuy(locks: number): number {
-    let _leftover = locks
-    let _fsl = ammInfo.fsl
-    let _psl = ammInfo.psl
-    let _supply = ammInfo.supply
-    let _purchasePrice = 0
-    let _tax = 0
-    let _market = 0
-    let _floor = 0
-    while(_leftover >= 1) {
-      _market = marketPrice(_fsl, _psl, _supply)
-      _floor = floorPrice(_fsl, _supply)
-      _purchasePrice += _market
-      _supply++
-      if(_psl / _fsl >= 0.50) {
-        _fsl += _market
-      }
-      else {
-        _fsl += _floor
-        _psl += (_market - _floor)
-      }
-      _leftover--
-    }
-    if(_leftover > 0) {
-      _market = marketPrice(_fsl, _psl, _supply)
-      _floor = floorPrice(_fsl, _supply)
-      _purchasePrice += _market * _leftover
-      _supply += _leftover
-      if(_psl / _fsl >= 0.50) {
-        _fsl += _market * _leftover
-      }
-      else {
-        _psl += (_market - _floor) * _leftover
-        _fsl += _floor * _leftover
-      }
-    }
-    _tax = _purchasePrice * 0.003
-    return _purchasePrice + _tax
-  }
-
-  function _simulateSell(locks: number): number {
-    let _leftover = locks
-    let _fsl = ammInfo.fsl
-    let _psl = ammInfo.psl
-    let _supply = ammInfo.supply
-    let _salePrice = 0
-    let _tax = 0
-    let _market = 0
-    let _floor = 0
-    while(_leftover >= 1) {
-      _market = marketPrice(_fsl, _psl, _supply)
-      _floor = floorPrice(_fsl, _supply) 
-      _salePrice += _market
-      _supply--
-      _leftover--
-      _fsl -= _floor
-      _psl -= (_market - _floor)
-    }
-    if(_leftover > 0) {
-      _market = marketPrice(_fsl, _psl, _supply)
-      _floor = floorPrice(_fsl, _supply)
-      _salePrice += _market * _leftover
-      _psl -= (_market - _floor) * _leftover
-      _fsl -= _floor * _leftover
-      _supply -= _leftover
-    }
-    _tax = _salePrice * 0.053
-    return _salePrice - _tax
-  }
 
   async function test() {
     console.log('gettingHoney: ', gettingHoney)
@@ -205,7 +137,7 @@ export default function Amm() {
   useEffect(() => {
     if(!topInputFlag) {
       const locksWithSlippage: number = buyingLocks * (1 + (slippage / 100))
-      if(_simulateBuy(locksWithSlippage) < balance.honey) {
+      if(simulateBuyDry(locksWithSlippage, ammInfo.fsl, ammInfo.psl, ammInfo.supply) < balance.honey) {
         if(!buyingLocks) {
           setNewFloor(ammInfo.fsl / ammInfo.supply)
           setNewMarket(marketPrice(ammInfo.fsl, ammInfo.psl, ammInfo.supply))
@@ -217,8 +149,8 @@ export default function Amm() {
         }
         else {
           setBottomInputFlag(true)
-          !slippageToggle && setDisplayString(_simulateBuy(locksWithSlippage).toFixed(4))
-          !slippageToggle && setHoneyBuy(_simulateBuy(locksWithSlippage))
+          !slippageToggle && setDisplayString(simulateBuyDry(locksWithSlippage, ammInfo.fsl, ammInfo.psl, ammInfo.supply).toFixed(4))
+          !slippageToggle && setHoneyBuy(simulateBuyDry(locksWithSlippage, ammInfo.fsl, ammInfo.psl, ammInfo.supply))
           simulateBuy(locksWithSlippage)
         }
       }
@@ -240,8 +172,8 @@ export default function Amm() {
       simulateBuy(locksAmount)
     }
     if(sellToggle) {
-      setGettingHoney(_simulateSell(sellingLocks) * (1 - (slippage / 100)))
-      setBottomDisplayString((_simulateSell(sellingLocks) * (1 - (slippage / 100))).toFixed(4))
+      setGettingHoney(simulateSellDry(sellingLocks, ammInfo.fsl, ammInfo.psl, ammInfo.supply) * (1 - (slippage / 100)))
+      setBottomDisplayString((simulateSellDry(sellingLocks, ammInfo.fsl, ammInfo.psl, ammInfo.supply) * (1 - (slippage / 100))).toFixed(4))
     }
   }, [slippage])
 
@@ -260,8 +192,8 @@ export default function Amm() {
         else {
           setTopInputFlag(true)
           simulateSell(sellingLocks)
-          setGettingHoney(_simulateSell(sellingLocks) * (1 - (slippage / 100)))
-          setBottomDisplayString((_simulateSell(sellingLocks) * (1 - (slippage / 100))).toFixed(4))
+          setGettingHoney(simulateSellDry(sellingLocks, ammInfo.fsl, ammInfo.psl, ammInfo.supply) * (1 - (slippage / 100)))
+          setBottomDisplayString((simulateSellDry(sellingLocks, ammInfo.fsl, ammInfo.psl, ammInfo.supply) * (1 - (slippage / 100))).toFixed(4))
         }
       }
       else {
@@ -376,7 +308,7 @@ export default function Amm() {
     let locks: number = honey / marketPrice(ammInfo.fsl, ammInfo.psl, ammInfo.supply)
     let temp: number = 0
     while(parseFloat(temp.toFixed(2)) !== parseFloat(honey.toFixed(2))) {
-      temp = _simulateBuy(locks)
+      temp = simulateBuyDry(locks, ammInfo.fsl, ammInfo.psl, ammInfo.supply)
       if(parseFloat(temp.toFixed(2)) > parseFloat(honey.toFixed(2))) {
         const diff = temp - honey
         if(diff > 100) {
@@ -418,7 +350,7 @@ export default function Amm() {
     let locks: number = honey / marketPrice(ammInfo.fsl, ammInfo.psl, ammInfo.supply)
     let temp: number = 0
     while(parseFloat(temp.toFixed(2)) !== parseFloat(honey.toFixed(2))) {
-      temp = _simulateSell(locks)
+      temp = simulateSellDry(locks, ammInfo.fsl, ammInfo.psl, ammInfo.supply)
       if(parseFloat(temp.toFixed(2)) > parseFloat(honey.toFixed(2))) {
         const diff = temp - honey
         if(diff > 100) {
@@ -553,14 +485,6 @@ export default function Amm() {
         return prev - raiseAmount
       })
     }
-  }
-  
-  function floorPrice(_fsl: number, _supply: number) {
-    return _fsl / _supply
-  }
-  
-  function marketPrice(_fsl: number, _psl: number, _supply: number) {
-    return floorPrice(_fsl, _supply) + ((_psl / _supply) * ((_psl + _fsl) / _fsl)**5)
   }
 
   function handlePill(action: number) {
@@ -850,7 +774,7 @@ export default function Amm() {
 
   function handleBottomInput() {
     if(buyToggle) {
-      return _simulateBuy(buyingLocks) > balance.honey ? '' : bottomDisplayString
+      return simulateBuyDry(buyingLocks, ammInfo.fsl, ammInfo.psl, ammInfo.supply) > balance.honey ? '' : bottomDisplayString
     }
     if(sellToggle) {
       return bottomDisplayString
