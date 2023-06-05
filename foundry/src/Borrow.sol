@@ -71,7 +71,7 @@ contract Borrow {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-
+  // todo: add these
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -104,7 +104,7 @@ contract Borrow {
     return borrowedHoney[_user];
   }
 
-
+  // todo: clean these up
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
   /*                    EXTERNAL FUNCTIONS                      */
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
@@ -118,9 +118,9 @@ contract Borrow {
     lockedLocks[msg.sender] += (_amount * (1e18)) / _floorPrice;
     borrowedHoney[msg.sender] += _amount;
     uint256 _fee = (_amount / 100) * 3;
-    IERC20(ammAddress).transferFrom(porridgeAddress, address(this), (_amount * (1e18)) / _floorPrice);
-    honey.transferFrom(ammAddress, msg.sender, _amount - _fee);
-    honey.transferFrom(ammAddress, adminAddress, _fee);
+    IERC20(gammAddress).transferFrom(porridgeAddress, address(this), (_amount * (1e18)) / _floorPrice);
+    honey.transferFrom(gammAddress, msg.sender, _amount - _fee);
+    honey.transferFrom(gammAddress, adminAddress, _fee);
     return _amount - _fee;
   }
 
@@ -131,8 +131,8 @@ contract Borrow {
     uint256 _repaidLocks = (((_amount * 1e18) / borrowedHoney[msg.sender]) * lockedLocks[msg.sender]) / 1e18;
     lockedLocks[msg.sender] -= _repaidLocks;
     borrowedHoney[msg.sender] -= _amount;
-    honey.transferFrom(msg.sender, ammAddress, _amount);
-    IERC20(ammAddress).transfer(porridgeAddress, _repaidLocks);
+    honey.transferFrom(msg.sender, gammAddress, _amount);
+    IERC20(gammAddress).transfer(porridgeAddress, _repaidLocks);
   }
 
 
