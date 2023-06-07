@@ -1,4 +1,4 @@
-import React from "react"
+import React, { ReactElement } from "react"
 
 export interface LayoutProps {
   children: React.ReactNode;
@@ -37,4 +37,9 @@ export interface NotificationProviderState {
   notifications: Array<NotificationProps>;
   openNotification(notification: NotificationProps): void;
   closeNotification(notificationHash: string): void;
+}
+
+export interface Pic {
+  name: string;
+  imageElement: ReactElement;
 }
