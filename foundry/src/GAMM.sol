@@ -132,7 +132,7 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
   /// @param _maxAmount Maximum amount of $HONEY to spend
   function buy(uint256 _amount, uint256 _maxAmount) external {
     uint256 _supply = supply;
-    if(_amount <= _supply / 20) revert LargePriceImpact();
+    // if(_amount <= _supply / 20) revert LargePriceImpact();
     uint256 _leftover = _amount;
     uint256 _fsl = fsl;
     uint256 _psl = psl;
@@ -170,7 +170,7 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
     fsl = _fsl + _tax;
     psl = _psl;
     supply = _supply;
-    if(_purchasePrice + _tax <= _maxAmount) revert ExcessiveSlippage();
+    if(_purchasePrice + _tax > _maxAmount) revert ExcessiveSlippage();
     _floorRaise();
     honey.transferFrom(msg.sender, address(this), _purchasePrice + _tax);
     _mint(msg.sender, _amount);

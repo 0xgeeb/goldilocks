@@ -38,10 +38,13 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
   IERC20 honey;
   IGAMM igamm;
   IBorrow iborrow;
+
   mapping(address => uint256) public staked;
   mapping(address => uint256) public stakeStartTime;
-  uint256 public constant DAYS_SECONDS = 86400e18;
-  uint8 public constant DAILY_EMISSISIONS = 200;
+
+  uint256 public totalStaked;
+  uint256 public immutable DAYS_SECONDS = 86400e18;
+  uint8 public immutable DAILY_EMISSISIONS = 200;
   address public adminAddress;
   address public gammAddress;
 
@@ -102,6 +105,12 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
     return staked[_user];
   }
 
+  /// @notice View the stake start time of an address
+  /// @param _user Address to view stake start time
+  function getStakeStartTime(address _user) external view returns (uint256) {
+    return stakeStartTime[_user];
+  }
+
   /// @notice View the claimable yield of an address
   /// @param _user Address to view claimable yield
   function getYield(address _user) external view returns (uint256) {
@@ -117,10 +126,6 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
   /// @notice stakes $LOCKS to begin earning $PRG
   /// @param _amount Amount of $LOCKS to stake
   function stake(uint256 _amount) external {
-    require(_amount > 0, "cannot stake zero");
-    if(staked[msg.sender] > 0) {
-      _distributeYield(msg.sender);
-    }
     stakeStartTime[msg.sender] = block.timestamp;
     staked[msg.sender] += _amount;
     IERC20(gammAddress).transferFrom(msg.sender, address(this), _amount);

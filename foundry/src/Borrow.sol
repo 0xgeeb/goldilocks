@@ -110,7 +110,8 @@ contract Borrow {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  /// @dev using staked $LOCKS as collateral, lends $HONEY
+  /// @notice Ising staked $LOCKS as collateral, lends $HONEY
+  /// @param _amount Amount of $HONEY to borrow
   function borrow(uint256 _amount) external returns (uint256) {
     uint256 _floorPrice = igamm.floorPrice();
     uint256 _stakedLocks = iporridge.getStaked(msg.sender);
@@ -124,7 +125,8 @@ contract Borrow {
     return _amount - _fee;
   }
 
-  /// @dev repays loan in $HONEY
+  /// @notice Repays $HONEY loans
+  /// @param _amount Amount of $HONEY to repay
   function repay(uint256 _amount) external {
     require(_amount > 0, "cannot repay zero");
     require(borrowedHoney[msg.sender] >= _amount, "repaying too much");

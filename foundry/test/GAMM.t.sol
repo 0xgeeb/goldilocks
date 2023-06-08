@@ -37,8 +37,37 @@ contract GAMMTest is Test {
     console.log(soladyResult);
   }
 
-  function testBuyStarbucks() public {
-    // (uint256 market, uint256 floor) = gamm.buy(5000e18, type(uint256).max);
+  function testBuy1() public {
+    gamm.buy(1e18, type(uint256).max);
   }
+  
+  function testBuy5() public {
+    gamm.buy(5e18, type(uint256).max);
+  }
+  
+  function testBuy10() public {
+    gamm.buy(10e18, type(uint256).max);
+  }
+  
+  function testBuy25() public {
+    gamm.buy(25e18, type(uint256).max);
+  }
+  
+  function testBuy50() public {
+    gamm.buy(50e18, type(uint256).max);
+  }
+  
+  function testBuy100() public {
+    gamm.buy(100e18, type(uint256).max);
+  }
+  
+  function testBuy500() public {
+    gamm.buy(500e18, type(uint256).max);
+  }
+  
+  function testBuy1000() public {
+    gamm.buy(1000e18, type(uint256).max);
+  }
+  
 
 }
