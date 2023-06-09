@@ -69,5 +69,17 @@ contract GAMMTest is Test {
     gamm.buy(1000e18, type(uint256).max);
   }
   
+  function testFlashLoanExploit() public {
+    address blackhat = vm.addr(1);
+    uint256 flashLoanAmount = 10000000e18;
+    deal(address(honey), blackhat, flashLoanAmount);
+    vm.prank(blackhat);
+    honey.approve(address(gamm), type(uint256).max);
+    vm.prank(blackhat);
+    gamm.buy(1000e18, type(uint256).max);
+    vm.prank(blackhat);
+    gamm.sell(1000e18, 0);
+    assert(honey.balanceOf(blackhat) < flashLoanAmount);
+  }
 
 }

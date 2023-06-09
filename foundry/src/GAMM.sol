@@ -68,11 +68,8 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  error MulWadFailed();
-  error DivWadFailed();
   error NotAdmin();
   error NotPorridge();
-  error LargePriceImpact();
   error ExcessiveSlippage();
 
 
@@ -132,7 +129,6 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
   /// @param _maxAmount Maximum amount of $HONEY to spend
   function buy(uint256 _amount, uint256 _maxAmount) external {
     uint256 _supply = supply;
-    // if(_amount <= _supply / 20) revert LargePriceImpact();
     uint256 _leftover = _amount;
     uint256 _fsl = fsl;
     uint256 _psl = psl;
@@ -182,7 +178,6 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
   /// @param _minAmount Minimum amount of $HONEY to receive
   function sell(uint256 _amount, uint256 _minAmount) external {
     uint256 _supply = supply;
-    if(_amount <= _supply / 20) revert LargePriceImpact();
     uint256 _leftover = _amount;
     uint256 _fsl = fsl;
     uint256 _psl = psl;
@@ -210,7 +205,7 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
     fsl = _fsl + _tax;
     psl = _psl;
     supply = _supply;
-    if(_saleAmount - _tax >= _minAmount) revert ExcessiveSlippage();
+    if(_saleAmount - _tax < _minAmount) revert ExcessiveSlippage();
     _burn(msg.sender, _amount);
     honey.transfer(msg.sender, _saleAmount - _tax);
     emit Sale(msg.sender, _amount);
