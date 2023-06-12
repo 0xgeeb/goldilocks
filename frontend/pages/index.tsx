@@ -46,7 +46,7 @@ export default function Home() {
   return (
     <div className="w-screen h-screen relative">
       <div className="absolute top-[20%] left-[20%] py-4 font-acme">
-        <h1 className="text-[4rem]">distributing porridge to beras</h1>
+        <h1 className="text-[4rem]">cooking up porridge for beras</h1>
         <h3 className="text-[1.5rem]">DAO governed defi infrastructure for Berachain</h3>
         <div className="mt-5 flex flex-row items-center">
           <Link href="https://goldilocks-1.gitbook.io/goldidocs/" target="_blank" >
