@@ -21,6 +21,7 @@ import { IERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC
 import { IGAMM } from "./interfaces/IGAMM.sol";
 import { IPorridge } from "./interfaces/IPorridge.sol";
 
+
 /// @title Borrow
 /// @notice Borrowing $HONEY against staked $LOCKS tokens
 /// @author geeb
@@ -80,7 +81,7 @@ contract Borrow {
 
 
   modifier onlyAdmin() {
-    if(msg.sender == adminAddress) revert NotAdmin();
+    if(msg.sender != adminAddress) revert NotAdmin();
     _;
   }
 

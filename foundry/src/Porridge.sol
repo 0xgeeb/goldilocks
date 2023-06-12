@@ -19,6 +19,7 @@ pragma solidity ^0.8.19;
 
 import { ERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import { IERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import { SafeTransferLib } from "../lib/solady/src/utils/SafeTransferLib.sol";
 import { IBorrow } from "./interfaces/IBorrow.sol";
 import { IGAMM } from "./interfaces/IGAMM.sol";
 
@@ -35,18 +36,16 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  IERC20 honey;
-  IGAMM igamm;
-  IBorrow iborrow;
+  uint32 public immutable DAYS_SECONDS = 86400;
+  uint8 public immutable DAILY_EMISSISION_RATE = 200;
 
   mapping(address => uint256) public staked;
   mapping(address => uint256) public stakeStartTime;
 
-  uint256 public totalStaked;
-  uint256 public immutable DAYS_SECONDS = 86400e18;
-  uint8 public immutable DAILY_EMISSISIONS = 200;
-  address public adminAddress;
   address public gammAddress;
+  address public borrowAddress;
+  address public honeyAddress;
+  address public adminAddress;
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -57,12 +56,13 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
   /// @notice Constructor of this contract
   /// @param _gammAddress Address of the GAMM
   /// @param _borrowAddress Address of the Borrow contract
+  /// @param _honeyAddress Address of the HONEY contract
   /// @param _adminAddress Address of the GoldilocksDAO multisig
-  constructor(address _gammAddress, address _borrowAddress, address _adminAddress) {
-    igamm = IGAMM(_gammAddress);
-    iborrow = IBorrow(_borrowAddress);
-    adminAddress = _adminAddress;
+  constructor(address _gammAddress, address _borrowAddress, address _honeyAddress, address _adminAddress) {
     gammAddress = _gammAddress;
+    borrowAddress = _borrowAddress;
+    honeyAddress = _honeyAddress;
+    adminAddress = _adminAddress;
   }
 
 
@@ -71,7 +71,10 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-
+  error NotAdmin();
+  error NoClaimablePRG();
+  error InvalidUnstake();
+  error LocksBorrowedAgainst();
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -79,7 +82,9 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-
+  event Stake(address indexed user, uint256 amount);
+  event Unstake(address indexed user, uint256 amount);
+  event Realize(address indexed user, uint256 amount);
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -89,7 +94,7 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
 
   /// @notice Ensures msg.sender is the admin address
   modifier onlyAdmin() {
-    require(msg.sender == adminAddress, "not admin");
+    if(msg.sender != adminAddress) revert NotAdmin();
     _;
   }
 
@@ -100,21 +105,21 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
 
 
   /// @notice View the staked $LOCKS of an address
-  /// @param _user Address to view staked $LOCKS
-  function getStaked(address _user) external view returns (uint256) {
-    return staked[_user];
+  /// @param user Address to view staked $LOCKS
+  function getStaked(address user) external view returns (uint256) {
+    return staked[user];
   }
 
   /// @notice View the stake start time of an address
-  /// @param _user Address to view stake start time
-  function getStakeStartTime(address _user) external view returns (uint256) {
-    return stakeStartTime[_user];
+  /// @param user Address to view stake start time
+  function getStakeStartTime(address user) external view returns (uint256) {
+    return stakeStartTime[user];
   }
 
   /// @notice View the claimable yield of an address
-  /// @param _user Address to view claimable yield
-  function getYield(address _user) external view returns (uint256) {
-    return _calculateYield(_user);
+  /// @param user Address to view claimable yield
+  function getClaimable(address user) external view returns (uint256) {
+    return _calculateClaimable(user);
   }
 
 
@@ -124,39 +129,40 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
 
 
   /// @notice stakes $LOCKS to begin earning $PRG
-  /// @param _amount Amount of $LOCKS to stake
-  function stake(uint256 _amount) external {
+  /// @param amount Amount of $LOCKS to stake
+  function stake(uint256 amount) external {
+    if(staked[msg.sender] > 0) {
+      _claim(msg.sender);
+    }
     stakeStartTime[msg.sender] = block.timestamp;
-    staked[msg.sender] += _amount;
-    IERC20(gammAddress).transferFrom(msg.sender, address(this), _amount);
+    staked[msg.sender] += amount;
+    SafeTransferLib.safeTransferFrom(gammAddress, msg.sender, address(this), amount);
+    emit Stake(msg.sender, amount);
   }
 
   /// @notice unstakes $LOCKS and claims $PRG rewards
-  /// @param _amount Amount of $LOCKS to unstake
-  /// @return _yield Amount of $PRG earned by staker
-  function unstake(uint256 _amount) external returns (uint256 _yield) {
-    require(_amount > 0, "cannot unstake zero");
-    require(staked[msg.sender] >= _amount, "insufficient staked balance");
-    require(_amount <= staked[msg.sender] - iborrow.getLocked(msg.sender), "you are currently borrowing against your locks");
-    _yield = _distributeYield(msg.sender);
-    staked[msg.sender] -= _amount;
-    IERC20(gammAddress).transfer(msg.sender, _amount);
-  }
-
-  /// @notice Claim $PRG rewards
-  /// @return _yield Amount of $PRG earned by staker
-  function claim() external returns (uint256 _yield){
-    _yield = _distributeYield(msg.sender);
+  /// @param amount Amount of $LOCKS to unstake
+  function unstake(uint256 amount) external {
+    if(amount > staked[msg.sender]) revert InvalidUnstake();
+    if(amount > staked[msg.sender] - IBorrow(borrowAddress).getLocked(msg.sender)) revert LocksBorrowedAgainst();
+    _claim(msg.sender);
+    staked[msg.sender] -= amount;
+    SafeTransferLib.safeTransfer(gammAddress, msg.sender, amount);
+    emit Unstake(msg.sender, amount);
   }
 
   /// @notice Burns $PRG to buy $LOCKS at floor price
-  /// @param _amount Amount of $PRG to burn
-  function realize(uint256 _amount) external {
-    require(_amount > 0, "cannot realize 0");
-    uint256 floorPrice = igamm.floorPrice();    
-    _burn(msg.sender, _amount);
-    honey.transferFrom(msg.sender, gammAddress, (_amount * floorPrice) / 1e18);
-    igamm.porridgeMint(msg.sender, _amount);
+  /// @param amount Amount of $PRG to burn
+  function realize(uint256 amount) external {
+    _burn(msg.sender, amount);
+    SafeTransferLib.safeTransferFrom(honeyAddress, msg.sender, gammAddress, amount * IGAMM(gammAddress).floorPrice());
+    IGAMM(gammAddress).porridgeMint(msg.sender, amount);
+    emit Realize(msg.sender, amount);
+  }
+
+  /// @notice Claim $PRG rewards
+  function claim() external {
+    _claim(msg.sender);
   }
 
 
@@ -165,31 +171,29 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  /// @notice Calculates claimable yield and mints $PRG
-  /// @param _user Address of staker to calculate yield and mint $PRG
-  /// @return _yield Amount of $PRG earned by staker
-  function _distributeYield(address _user) internal returns (uint256 _yield) {
-    _yield = _calculateYield(_user);
-    require(_yield > 0, "nothing to distribute");
-    stakeStartTime[_user] = block.timestamp;
-    _mint(_user, _yield);
+  /// @notice Calculates and distributes yield
+  /// @param user Address of staker to calculate and distribute yield
+  function _claim(address user) internal {
+    uint256 claimable = _calculateClaimable(user);
+    if(claimable == 0) revert NoClaimablePRG();
+    stakeStartTime[user] = block.timestamp;
+    _mint(user, claimable);
   }
 
   /// @notice Calculates claimable yield
-  /// @param _user Address of staker to calculate yield
-  /// @return Amount of $PRG earned by staker
-  function _calculateYield(address _user) internal view returns (uint256) {
-    uint256 _time = _timeStaked(_user);
-    uint256 _yieldPortion = staked[_user] / DAILY_EMISSISIONS;
-    uint256 _yield = (_yieldPortion * ((_time * 1e18 * 1e18) / DAYS_SECONDS)) / 1e18;
-    return _yield;
+  /// @param user Address of staker to calculate yield
+  /// @return yield Amount of $PRG earned by staker
+  function _calculateClaimable(address user) internal view returns (uint256 yield) {
+    uint256 timeStaked = _timeStaked(user);
+    uint256 yieldPortion = staked[user] / DAILY_EMISSISION_RATE;
+    yield = yieldPortion * (timeStaked / DAYS_SECONDS);
   }
 
   /// @notice Calculates time staked of a staker
-  /// @param _user Address of staker to find time staked
-  /// @return Time staked of an address
-  function _timeStaked(address _user) internal view returns (uint256) {
-    return block.timestamp - stakeStartTime[_user];
+  /// @param user Address of staker to find time staked
+  /// @return timeStaked staked of an address
+  function _timeStaked(address user) internal view returns (uint256 timeStaked) {
+    timeStaked = block.timestamp - stakeStartTime[user];
   }
 
 
@@ -197,12 +201,6 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
   /*                       ADMIN FUNCTIONS                      */
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-
-  /// @notice Sets address of $HONEY
-  /// @param _honeyAddress Addresss of $HONEY
-  function setHoneyAddress(address _honeyAddress) external onlyAdmin {
-    honey = IERC20(_honeyAddress);
-  }
 
   // todo: delete this
   function approveBorrowForLocks(address _borrowAddress) external onlyAdmin {
