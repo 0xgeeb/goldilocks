@@ -9,7 +9,7 @@ foundry/broadcast/*/31337/
 foundry/broadcast
 
 # Dotenv file
-.env
+frontend/.env
 foundry/.env
 
 node_modules/

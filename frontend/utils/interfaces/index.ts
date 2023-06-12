@@ -1,4 +1,4 @@
-import React, { ReactElement } from "react"
+import React, { ReactElement } from "../../node_modules/@types/react"
 
 export interface LayoutProps {
   children: React.ReactNode;

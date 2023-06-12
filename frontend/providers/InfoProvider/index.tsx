@@ -1,7 +1,7 @@
 import { createContext, PropsWithChildren, useContext, useState } from "react";
 import { useContractReads } from "wagmi"
 import { Signer, ethers } from "ethers"
-import { useWallet } from "../../providers"
+import { useWallet } from ".."
 import { contracts } from "../../utils/addressi"
 
 const INITIAL_STATE = {

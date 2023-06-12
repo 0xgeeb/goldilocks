@@ -100,11 +100,11 @@
     "jsx": "preserve"
   },
   "include": [
-    "next-env.d.ts",
+    "frontend/next-env.d.ts",
     "**/*.ts",
     "**/*.tsx"
   ],
   "exclude": [
-    "node_modules"
+    "frontend/node_modules"
   ]
 }
