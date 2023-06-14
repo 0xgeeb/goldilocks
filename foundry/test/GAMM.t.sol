@@ -19,7 +19,7 @@ contract GAMMTest is Test {
     honey = new Honey();
     gamm = new GAMM(address(this));
     borrow = new Borrow(address(gamm), address(this));
-    porridge = new Porridge(address(gamm), address(borrow), address(this));
+    porridge = new Porridge(address(gamm), address(borrow), address(honey), address(this));
     deal(address(honey), address(this), 10000000000000000e18, true);
     deal(address(honey), address(gamm), 100000000000000000000000000000000e18, true);
     gamm.setHoneyAddress(address(honey));

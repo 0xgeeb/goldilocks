@@ -65,6 +65,7 @@ contract Borrow {
 
 
   error NotAdmin();
+  error InsufficientBorrowLimit();
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -111,19 +112,18 @@ contract Borrow {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  /// @notice Ising staked $LOCKS as collateral, lends $HONEY
-  /// @param _amount Amount of $HONEY to borrow
-  function borrow(uint256 _amount) external returns (uint256) {
+  /// @notice Using staked $LOCKS as collateral, lends $HONEY
+  /// @param amount Amount of $HONEY to borrow
+  function borrow(uint256 amount) external returns (uint256) {
     uint256 _floorPrice = igamm.floorPrice();
-    uint256 _stakedLocks = iporridge.getStaked(msg.sender);
-    require(_floorPrice * (_stakedLocks - lockedLocks[msg.sender]) / (1e18) >= _amount, "insufficient borrow limit");
-    lockedLocks[msg.sender] += (_amount * (1e18)) / _floorPrice;
-    borrowedHoney[msg.sender] += _amount;
-    uint256 _fee = (_amount / 100) * 3;
-    IERC20(gammAddress).transferFrom(porridgeAddress, address(this), (_amount * (1e18)) / _floorPrice);
-    honey.transferFrom(gammAddress, msg.sender, _amount - _fee);
+    require(_floorPrice * (iporridge.getStaked(msg.sender) - lockedLocks[msg.sender]) / (1e18) >= amount, "insufficient borrow limit");
+    lockedLocks[msg.sender] += (amount * (1e18)) / _floorPrice;
+    borrowedHoney[msg.sender] += amount;
+    uint256 _fee = (amount / 100) * 3;
+    IERC20(gammAddress).transferFrom(porridgeAddress, address(this), (amount * (1e18)) / _floorPrice);
+    honey.transferFrom(gammAddress, msg.sender, amount - _fee);
     honey.transferFrom(gammAddress, adminAddress, _fee);
-    return _amount - _fee;
+    return amount - _fee;
   }
 
   /// @notice Repays $HONEY loans
@@ -135,7 +135,7 @@ contract Borrow {
     lockedLocks[msg.sender] -= _repaidLocks;
     borrowedHoney[msg.sender] -= _amount;
     honey.transferFrom(msg.sender, gammAddress, _amount);
-    IERC20(gammAddress).transfer(porridgeAddress, _repaidLocks);
+    IERC20(gammAddress).transfer(porridgeAddress, _repaidLocks); 
   }
 
 

@@ -18,9 +18,8 @@ contract PorridgeTest is Test {
     honey = new Honey();
     gamm = new GAMM(address(this));
     borrow = new Borrow(address(gamm), address(this));
-    porridge = new Porridge(address(gamm), address(borrow), address(this));
+    porridge = new Porridge(address(gamm), address(borrow), address(honey), address(this));
     borrow.setPorridge(address(porridge));
-    porridge.setHoneyAddress(address(honey));
   }
 
   // function testCalculateYield() public {

@@ -18,13 +18,11 @@ contract BorrowTest is Test {
     honey = new Honey();
     gamm = new GAMM(address(this));
     borrow = new Borrow(address(gamm), address(this));
-    porridge = new Porridge(address(gamm), address(borrow), address(this));
-    porridge.setHoneyAddress(address(honey));
+    porridge = new Porridge(address(gamm), address(borrow), address(honey), address(this));
     gamm.setHoneyAddress(address(honey));
     gamm.setPorridgeAddress(address(porridge));
     borrow.setHoneyAddress(address(honey));
     borrow.setPorridge(address(porridge));
-    gamm.approveBorrowForHoney(address(borrow));
     deal(address(honey), address(this), 1000000e18, true);
     honey.approve(address(borrow), 1000000e18);
     vm.store(address(gamm), bytes32(uint256(5)), bytes32(uint256(1000e18)));
@@ -64,6 +62,17 @@ function testBorrowLimit() public {
     borrow.borrow(borrowAmount);
     vm.expectRevert(bytes("repaying too much"));
     borrow.repay(borrowAmount + 1e18);
+  }
+
+  function testCustomAllow() public {
+    uint256 beforeAllowance = honey.allowance(address(gamm), address(borrow));
+    console.log(beforeAllowance);
+    vm.prank(address(gamm));
+    honey.approve(address(borrow), 69);
+    uint256 afterAllowance = honey.allowance(address(gamm), address(borrow));
+    console.log(afterAllowance);
+    vm.prank(address(borrow));
+    honey.transferFrom(address(gamm), address(this), 10);
   }
 
 }
