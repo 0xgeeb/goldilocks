@@ -23,23 +23,23 @@ export default function Home() {
   const pics: Pic[] = [
     {
       name: "dancing",
-      imageElement: <Image className={`absolute right-0 bottom-0 ${index == 0 ? "opacity-100" : "opacity-0"} transition-opacity duration-500 ease-in-out`} src="/dancing.png" alt="dancing" width="700" height="700"></Image>
+      imageElement: <Image className={`absolute right-0 bottom-0 ${index == 0 ? "opacity-100 transition duration-1000 ease-in" : "opacity-0 transition duration-1000 ease-in"}`} src="/dancing.png" alt="dancing" width="700" height="700"></Image>
     },
     {
       name: "astronaut",
-      imageElement: <Image className={`absolute right-0 bottom-0 ${index == 1 ? "opacity-100" : "opacity-0"} transition-opacity duration-500 ease-in-out`} src="/astronaut.png" alt="astronaut" width="800" height="800"></Image>
+      imageElement: <Image className={`absolute right-0 bottom-0 ${index == 1 ? "opacity-100 transition duration-1000 ease-in" : "opacity-0 transition duration-1000 ease-in"}`} src="/astronaut.png" alt="astronaut" width="800" height="800"></Image>
     },
     {
       name: "no_bears",
-      imageElement: <Image className={`absolute right-0 bottom-0 ${index == 2 ? "opacity-100" : "opacity-0"} transition-opacity duration-500 ease-in-out`} src="/girl_no_bears.png" alt="no bears" width="700" height="700"></Image>
+      imageElement: <Image className={`absolute right-0 bottom-0 ${index == 2 ? "opacity-100 transition duration-1000 ease-in" : "opacity-0 transition duration-1000 ease-in"}`} src="/girl_no_bears.png" alt="no bears" width="700" height="700"></Image>
     },
     {
       name: "with_bear",
-      imageElement: <Image className={`absolute right-0 bottom-0 ${index == 3 ? "opacity-100" : "opacity-0"} transition-opacity duration-500 ease-in-out`} src="/cool_with_bear.png" alt="with bear" width="700" height="700"></Image>
+      imageElement: <Image className={`absolute right-0 bottom-0 ${index == 3 ? "opacity-100 transition duration-1000 ease-in" : "opacity-0 transition duration-1000 ease-in"}`} src="/cool_with_bear.png" alt="with bear" width="700" height="700"></Image>
     },
     {
       name: "real",
-      imageElement: <Image className={`absolute right-0 bottom-0 ${index == 4 ? "opacity-100" : "opacity-0"} transition-opacity duration-500 ease-in-out`} src="/real.png" alt="real" width="800" height="800"></Image>
+      imageElement: <Image className={`absolute right-0 bottom-0 ${index == 4 ? "opacity-100 transition duration-1000 ease-in" : "opacity-0 transition duration-1000 ease-in"}`} src="/real.png" alt="real" width="800" height="800"></Image>
     }
   ]
   
@@ -55,7 +55,11 @@ export default function Home() {
           <Link href="https://twitter.com/goldilocksmoney" target="_blank"><Image className="h-6 w-6 ml-6 rounded-3xl hover:opacity-25" src="/twitter.png" alt="twitter" id="card-div-shadow" width="25" height="25" /></Link>
         </div>
       </div>
-      { pics[index].imageElement }
+      { pics[0].imageElement }
+      { pics[1].imageElement }
+      { pics[2].imageElement }
+      { pics[3].imageElement }
+      { pics[4].imageElement }
     </div>
   )
 }
