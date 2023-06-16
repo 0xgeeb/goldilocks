@@ -9,7 +9,6 @@
 
 #honey-button {
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
-  background-color: green;
 }
 
 #nav-button {
@@ -29,6 +28,7 @@
 }
 
 #page-div {
+  background: rgb(255, 255, 255);
   background: linear-gradient(0deg, rgba(255,255,255,1) 26%, rgba(255,255,0,0.27298669467787116) 100%);
 }
 
@@ -42,6 +42,11 @@
   background: rgb(255,255,255);
   background: linear-gradient(90deg, rgba(255,255,255,1) 22%, rgba(255,255,0,0.99298669467787116) 100%);
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
+
+#claim-button:hover {
+  transform: scale(1.08);
+  transition-duration: 0.2s;
 }
 
 #amm-button:hover {

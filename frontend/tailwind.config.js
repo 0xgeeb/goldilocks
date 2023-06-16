@@ -7,7 +7,7 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        'acme': ['"Acme"']
+        acme: ['var(--font-acme)']
       }
     }
   },

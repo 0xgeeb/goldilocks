@@ -1,9 +1,12 @@
+"use client"
+
 import Image from "next/image"
 import Link from "next/link"
 import { useState, useEffect } from "react"
+import { HomeNav } from "../components"
 import { Pic } from "../utils/interfaces"
 
-export default function Home() {
+export default function Page() {
 
   const [index, setIndex] = useState<number>(0)
 
@@ -44,7 +47,8 @@ export default function Home() {
   ]
   
   return (
-    <div className="w-screen h-screen relative">
+    <div className="w-screen h-screen relative" id="page-div">
+      <HomeNav />
       <div className="absolute top-[20%] left-[20%] py-4 font-acme">
         <h1 className="text-[4rem]">cooking up porridge for beras</h1>
         <h3 className="text-[1.5rem]">DAO governed defi infrastructure for Berachain</h3>
