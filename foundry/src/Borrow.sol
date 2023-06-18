@@ -17,6 +17,7 @@ pragma solidity ^0.8.19;
 // ==============================================================================================
 
 
+import { SafeTransferLib } from "../lib/solady/src/utils/SafeTransferLib.sol";
 import { IERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import { IGAMM } from "./interfaces/IGAMM.sol";
 import { IPorridge } from "./interfaces/IPorridge.sol";
@@ -36,10 +37,12 @@ contract Borrow {
 
   IGAMM igamm;
   IPorridge iporridge;
-  IERC20 honey;
+
+  address public honeyAddress;
   address public adminAddress;
   address public gammAddress;
   address public porridgeAddress;
+
   mapping(address => uint256) public lockedLocks;
   mapping(address => uint256) public borrowedHoney;
 
@@ -52,7 +55,7 @@ contract Borrow {
   /// @notice Constructor of this contract
   /// @param _gammAddress Address of the GAMM
   /// @param _adminAddress Address of the GoldilocksDAO multisig
-  constructor(address _gammAddress, address _adminAddress) {
+  constructor(address _gammAddress, address _honeyAddress, address _adminAddress) {
     igamm = IGAMM(_gammAddress);
     adminAddress = _adminAddress;
     gammAddress = _gammAddress;
@@ -65,6 +68,7 @@ contract Borrow {
 
 
   error NotAdmin();
+  error ExcessiveRepay();
   error InsufficientBorrowLimit();
 
 
@@ -114,29 +118,35 @@ contract Borrow {
 
   /// @notice Using staked $LOCKS as collateral, lends $HONEY
   /// @param amount Amount of $HONEY to borrow
-  function borrow(uint256 amount) external returns (uint256) {
-    uint256 _floorPrice = igamm.floorPrice();
-    require(_floorPrice * (iporridge.getStaked(msg.sender) - lockedLocks[msg.sender]) / (1e18) >= amount, "insufficient borrow limit");
-    lockedLocks[msg.sender] += (amount * (1e18)) / _floorPrice;
+  function borrow(uint256 amount) external {
+    uint256 floorPrice = igamm.floorPrice();
+    if(floorPrice * (iporridge.getStaked(msg.sender) - lockedLocks[msg.sender]) < amount) revert InsufficientBorrowLimit();
+    lockedLocks[msg.sender] += (amount * (1e18)) / floorPrice;
     borrowedHoney[msg.sender] += amount;
-    uint256 _fee = (amount / 100) * 3;
-    IERC20(gammAddress).transferFrom(porridgeAddress, address(this), (amount * (1e18)) / _floorPrice);
-    honey.transferFrom(gammAddress, msg.sender, amount - _fee);
-    honey.transferFrom(gammAddress, adminAddress, _fee);
-    return amount - _fee;
+    uint256 fee = (amount / 100) * 3;
+    igamm.borrowTransfer(msg.sender, amount, fee);
   }
 
   /// @notice Repays $HONEY loans
-  /// @param _amount Amount of $HONEY to repay
-  function repay(uint256 _amount) external {
-    require(_amount > 0, "cannot repay zero");
-    require(borrowedHoney[msg.sender] >= _amount, "repaying too much");
-    uint256 _repaidLocks = (((_amount * 1e18) / borrowedHoney[msg.sender]) * lockedLocks[msg.sender]) / 1e18;
-    lockedLocks[msg.sender] -= _repaidLocks;
-    borrowedHoney[msg.sender] -= _amount;
-    honey.transferFrom(msg.sender, gammAddress, _amount);
-    IERC20(gammAddress).transfer(porridgeAddress, _repaidLocks); 
+  /// @param amount Amount of $HONEY to repay
+  function repay(uint256 amount) external {
+    if(borrowedHoney[msg.sender] < amount) revert ExcessiveRepay();
+    uint256 repaidLocks = _getRepayingLocks(amount);
+    lockedLocks[msg.sender] -= repaidLocks;
+    borrowedHoney[msg.sender] -= amount;
+    SafeTransferLib.safeTransferFrom(honeyAddress, msg.sender, gammAddress, amount);
   }
+
+
+  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+  /*                      INTERNAL FUNCTIONS                    */
+  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+
+  function _getRepayingLocks(uint256 amount) internal returns (uint256 repaidLocks) {
+    repaidLocks = (((amount * 1e18) / borrowedHoney[msg.sender]) * lockedLocks[msg.sender]) / 1e18;
+  }
+
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -149,12 +159,6 @@ contract Borrow {
   function setPorridge(address _porridgeAddress) public onlyAdmin {
     iporridge = IPorridge(_porridgeAddress);
     porridgeAddress = _porridgeAddress;
-  }
-
-  /// @notice Set address of $HONEY
-  /// @param _honeyAddress Address of $HONEY
-  function setHoneyAddress(address _honeyAddress) public onlyAdmin {
-    honey = IERC20(_honeyAddress);
   }
 
 }
