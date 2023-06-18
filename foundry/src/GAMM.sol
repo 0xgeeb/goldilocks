@@ -19,6 +19,7 @@ pragma solidity ^0.8.19;
 
 // todo maybe export this lib to a goldilockslibrary
 import { FixedPointMathLib } from "../lib/solady/src/utils/FixedPointMathLib.sol";
+import { SafeTransferLib } from "../lib/solady/src/utils/SafeTransferLib.sol";
 import { ERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import { IERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
@@ -47,6 +48,7 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
   uint256 public lastFloorDecrease;
   address public adminAddress;
   address public porridgeAddress;
+  address public borrowAddress;
   uint256 internal constant WAD = 1e18;
 
 
@@ -70,6 +72,7 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
 
   error NotAdmin();
   error NotPorridge();
+  error NotBorrow();
   error ExcessiveSlippage();
 
 
@@ -97,6 +100,12 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
   /// @notice Ensures msg.sender is the porridge address
   modifier onlyPorridge() {
     if(msg.sender != porridgeAddress) revert NotPorridge();
+    _;
+  }
+
+  /// @notice Ensures msg.sender is the borrow address
+  modifier onlyBorrow() {
+    if(msg.sender != borrowAddress) revert NotBorrow();
     _;
   }
 
@@ -289,8 +298,13 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-  /*                       ADMIN FUNCTIONS                      */
+  /*                   PERMISSIONED FUNCTIONS                   */
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+
+  function borrowTransfer(address to, uint256 amount) external onlyBorrow {
+    // SafeTransferLib.safeTransfer(honeyAddress, to, amount);
+  }
 
 
   /// @notice Porridge Contract will call this function when users realize $PRG tokens
