@@ -82,9 +82,9 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  event Stake(address indexed user, uint256 amount);
-  event Unstake(address indexed user, uint256 amount);
-  event Realize(address indexed user, uint256 amount);
+  event Staked(address indexed user, uint256 amount);
+  event Unstaked(address indexed user, uint256 amount);
+  event Realized(address indexed user, uint256 amount);
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -137,7 +137,7 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
     stakeStartTime[msg.sender] = block.timestamp;
     staked[msg.sender] += amount;
     SafeTransferLib.safeTransferFrom(gammAddress, msg.sender, address(this), amount);
-    emit Stake(msg.sender, amount);
+    emit Staked(msg.sender, amount);
   }
 
   /// @notice unstakes $LOCKS and claims $PRG rewards
@@ -148,7 +148,7 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
     _claim(msg.sender);
     staked[msg.sender] -= amount;
     SafeTransferLib.safeTransfer(gammAddress, msg.sender, amount);
-    emit Unstake(msg.sender, amount);
+    emit Unstaked(msg.sender, amount);
   }
 
   /// @notice Burns $PRG to buy $LOCKS at floor price
@@ -157,7 +157,7 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
     _burn(msg.sender, amount);
     SafeTransferLib.safeTransferFrom(honeyAddress, msg.sender, gammAddress, amount * IGAMM(gammAddress).floorPrice());
     IGAMM(gammAddress).porridgeMint(msg.sender, amount);
-    emit Realize(msg.sender, amount);
+    emit Realized(msg.sender, amount);
   }
 
   /// @notice Claim $PRG rewards

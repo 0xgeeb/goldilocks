@@ -302,10 +302,14 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  function borrowTransfer(address to, uint256 amount) external onlyBorrow {
-    // SafeTransferLib.safeTransfer(honeyAddress, to, amount);
+  /// @notice Transfers $HONEY to user who is borrowing against their locks
+  /// @param to Address to transfer $HONEY to
+  /// @param amount Amount of $HONEY to transfer
+  /// @param fee Fee that is sent to treasury
+  function borrowTransfer(address to, uint256 amount, uint256 fee) external onlyBorrow {
+    SafeTransferLib.safeTransfer(honeyAddress, to, amount - fee);
+    SafeTransferLib.safeTransfer(adminAddress, to, fee);
   }
-
 
   /// @notice Porridge Contract will call this function when users realize $PRG tokens
   /// @param _to Recipient of minted $LOCKS tokens
