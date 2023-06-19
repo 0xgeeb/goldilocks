@@ -20,19 +20,12 @@ contract Deploy01Script is Script {
     vm.startBroadcast(deployerPrivateKey);
 
     honey = new Honey();
-    gamm = new GAMM(admin);
-    borrow = new Borrow(address(gamm), admin);
+    gamm = new GAMM(address(honey), admin);
+    borrow = new Borrow(address(gamm), address(honey), admin);
     porridge = new Porridge(address(gamm), address(borrow), address(honey), admin);
 
-    gamm.setHoneyAddress(address(honey));
     gamm.setPorridgeAddress(address(porridge));
-
-    borrow.setHoneyAddress(address(honey));
-    borrow.setPorridge(address(porridge));
-
-    porridge.approveBorrowForLocks(address(borrow));
-
-    gamm.approveBorrowForHoney(address(borrow));
+    borrow.setPorridgeAddress(address(porridge));
     
     vm.stopBroadcast();
   }

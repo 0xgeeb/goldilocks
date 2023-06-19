@@ -21,7 +21,6 @@ pragma solidity ^0.8.19;
 import { FixedPointMathLib } from "../lib/solady/src/utils/FixedPointMathLib.sol";
 import { SafeTransferLib } from "../lib/solady/src/utils/SafeTransferLib.sol";
 import { ERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
-import { IERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 
 /// @title Goldilocks AMM (GAMM)
@@ -39,17 +38,19 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
 
 
   //todo clean these up
-  uint256 public fsl = 700000e18;
-  uint256 public psl = 200000e18;
+  uint256 public fsl = 1400000e18;
+  uint256 public psl = 400000e18;
+  uint256 public supply = 5000e18;
+  
   uint256 public targetRatio = 360e15;
-  uint256 public supply = 1000e18;
+
   uint256 public lastFloorRaise;
   uint256 public lastFloorDecrease;
+
   address public porridgeAddress;
   address public borrowAddress;
   address public honeyAddress;
   address public adminAddress;
-  uint256 internal constant WAD = 1e18;
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -284,16 +285,6 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
       uint256 _decreaseFactor = _elapsedRaise / 86400;
       targetRatio -= (targetRatio * _decreaseFactor);
       lastFloorDecrease = block.timestamp;
-    }
-  }
-
-  function _spendAllowance(address owner, address spender, uint256 amount) internal override {
-    uint256 currentAllowance = allowance(owner, spender);
-    if (currentAllowance != type(uint256).max) {
-      require(currentAllowance >= amount, "ERC20: insufficient allowance");
-      unchecked {
-        _approve(owner, spender, currentAllowance - amount);
-      }
     }
   }
 

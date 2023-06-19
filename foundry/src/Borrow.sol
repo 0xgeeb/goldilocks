@@ -174,7 +174,7 @@ contract Borrow {
 
   /// @notice Set address of Porridge contract
   /// @param _porridgeAddress Address of Porridge contract
-  function setPorridge(address _porridgeAddress) external onlyAdmin {
+  function setPorridgeAddress(address _porridgeAddress) external onlyAdmin {
     porridgeAddress = _porridgeAddress;
   }
 

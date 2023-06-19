@@ -1,25 +1,30 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import { Test } from "../lib/forge-std/src/Test.sol";
-import { Porridge } from "../src/Porridge.sol";
+import "../lib/forge-std/src/Test.sol";
+import { Honey } from "../src/test/Honey.sol";
 import { GAMM } from "../src/GAMM.sol";
 import { Borrow } from "../src/Borrow.sol";
-import { Honey } from "../src/test/Honey.sol";
+import { Porridge } from "../src/Porridge.sol";
 
 contract PorridgeTest is Test {
 
-  Porridge porridge;
+  Honey honey;
   GAMM gamm;
   Borrow borrow;
-  Honey honey;
+  Porridge porridge;
 
   function setUp() public {
     honey = new Honey();
-    gamm = new GAMM(address(this));
-    borrow = new Borrow(address(gamm), address(this));
+    gamm = new GAMM(address(honey), address(this));
+    borrow = new Borrow(address(gamm), address(honey), address(this));
     porridge = new Porridge(address(gamm), address(borrow), address(honey), address(this));
-    borrow.setPorridge(address(porridge));
+
+    gamm.setPorridgeAddress(address(porridge));
+    borrow.setPorridgeAddress(address(porridge));
+
+    deal(address(honey), address(gamm), 1800000e18, true);
+    deal(address(gamm), address(this), 5000e18, true);
   }
 
   // function testCalculateYield() public {

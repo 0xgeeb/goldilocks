@@ -2,29 +2,29 @@
 pragma solidity ^0.8.19;
 
 import "../lib/forge-std/src/Test.sol";
-import { IERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import { GAMM } from "../src/GAMM.sol";
-import { Porridge } from "../src/Porridge.sol";
-import { Borrow } from "../src/Borrow.sol";
 import { Honey } from "../src/test/Honey.sol";
+import { GAMM } from "../src/GAMM.sol";
+import { Borrow } from "../src/Borrow.sol";
+import { Porridge } from "../src/Porridge.sol";
 
 contract GAMMTest is Test {
 
-  GAMM gamm;
   Honey honey;
-  Porridge porridge;
+  GAMM gamm;
   Borrow borrow;
+  Porridge porridge;
 
   function setUp() public {
     honey = new Honey();
-    gamm = new GAMM(address(this));
-    borrow = new Borrow(address(gamm), address(this));
+    gamm = new GAMM(address(honey), address(this));
+    borrow = new Borrow(address(gamm), address(honey), address(this));
     porridge = new Porridge(address(gamm), address(borrow), address(honey), address(this));
-    deal(address(honey), address(this), 10000000000000000e18, true);
-    deal(address(honey), address(gamm), 100000000000000000000000000000000e18, true);
-    gamm.setHoneyAddress(address(honey));
+
     gamm.setPorridgeAddress(address(porridge));
-    honey.approve(address(gamm), type(uint256).max);
+    borrow.setPorridgeAddress(address(porridge));
+
+    deal(address(honey), address(gamm), 1800000e18, true);
+    deal(address(gamm), address(this), 5000e18, true);
   }
 
   function testMarketPrice() public {

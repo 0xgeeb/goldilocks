@@ -2,9 +2,8 @@
 pragma solidity ^0.8.19;
 
 import "../lib/forge-std/src/Test.sol";
-import { IERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import { GAMM } from "../src/GAMM.sol";
 import { Honey } from "../src/test/Honey.sol";
+import { GAMM } from "../src/GAMM.sol";
 
 contract GAMMPriceTest is Test {
 
@@ -12,10 +11,10 @@ contract GAMMPriceTest is Test {
   Honey honey;
 
   function setUp() public {
-    gamm = new GAMM(address(this));
     honey = new Honey();
+    gamm = new GAMM(address(honey), address(this));
+    
     deal(address(honey), address(this), 10000000000000000e18, true);
-    gamm.setHoneyAddress(address(honey));
     honey.approve(address(gamm), type(uint256).max);
   }
 
