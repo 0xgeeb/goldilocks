@@ -3,10 +3,13 @@ pragma solidity ^0.8.19;
 
 interface IPorridge {
   
-  function getStaked(address _user) external view returns (uint256);
-  function stake(uint256 _amount) external;
-  function unstake(uint256 _amount) external returns (uint256 _yield);
-  function claim() external returns (uint256 _yield);
-  function realize(uint256 _amount) external;
+  function getStaked(address user) external view returns (uint256);
+  function getStakeStartTime(address user) external view returns (uint256);
+  function getClaimable(address user) external view returns (uint256);
+  
+  function stake(uint256 amount) external;
+  function unstake(uint256 amount) external;
+  function realize(uint256 amount) external;
+  function claim() external;
 
 }

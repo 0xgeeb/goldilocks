@@ -39,16 +39,16 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
 
 
   //todo clean these up
-  IERC20 honey;
   uint256 public fsl = 700000e18;
   uint256 public psl = 200000e18;
   uint256 public targetRatio = 360e15;
   uint256 public supply = 1000e18;
   uint256 public lastFloorRaise;
   uint256 public lastFloorDecrease;
-  address public adminAddress;
   address public porridgeAddress;
   address public borrowAddress;
+  address public honeyAddress;
+  address public adminAddress;
   uint256 internal constant WAD = 1e18;
 
 
@@ -59,7 +59,8 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
 
   /// @notice Constructor of this contract
   /// @param _adminAddress Address of the GoldilocksDAO multisig
-  constructor(address _adminAddress) {
+  constructor(address _honeyAddress, address _adminAddress) {
+    honeyAddress = _honeyAddress;
     adminAddress = _adminAddress;
     lastFloorRaise = block.timestamp;
   }
@@ -177,7 +178,7 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
     supply = _supply;
     if(_purchasePrice + _tax > _maxAmount) revert ExcessiveSlippage();
     _floorRaise();
-    honey.transferFrom(msg.sender, address(this), _purchasePrice + _tax);
+    SafeTransferLib.safeTransferFrom(honeyAddress, msg.sender, address(this), _purchasePrice + _tax);
     _mint(msg.sender, _amount);
     emit Buy(msg.sender, _amount);
   }
@@ -216,7 +217,7 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
     supply = _supply;
     if(_saleAmount - _tax < _minAmount) revert ExcessiveSlippage();
     _burn(msg.sender, _amount);
-    honey.transfer(msg.sender, _saleAmount - _tax);
+    SafeTransferLib.safeTransfer(honeyAddress, msg.sender, _saleAmount - _tax);
     emit Sale(msg.sender, _amount);
   }
 
@@ -228,7 +229,7 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
     fsl -= _rawTotal;
     _floorRaise();
     _burn(msg.sender, _amount);
-    honey.transfer(msg.sender, _rawTotal);
+    SafeTransferLib.safeTransfer(honeyAddress, msg.sender, _rawTotal);
     emit Redeem(msg.sender, _amount);
   }
 
@@ -318,22 +319,10 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
     _mint(_to, _amount);
   }
 
-  /// @notice Sets address of $HONEY
-  /// @param _honeyAddress Addresss of $HONEY
-  function setHoneyAddress(address _honeyAddress) external onlyAdmin {
-    honey = IERC20(_honeyAddress);
-  }
-
   /// @notice Set address of Porridge contract
   /// @param _porridgeAddress Address of Porridge contract
   function setPorridgeAddress(address _porridgeAddress) external onlyAdmin {
     porridgeAddress = _porridgeAddress;
-  }
-
-  /// @notice Allows the Borrow contract to transfer this contract's $HONEY
-  /// @param _borrowAddress Address of the Borrow contract
-  function approveBorrowForHoney(address _borrowAddress) external onlyAdmin {
-    honey.approve(_borrowAddress, 10000000e18);
   }
 
   function pow(uint256 x, uint256 y) internal pure returns (uint256 result) {

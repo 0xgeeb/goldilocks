@@ -85,6 +85,7 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
   event Staked(address indexed user, uint256 amount);
   event Unstaked(address indexed user, uint256 amount);
   event Realized(address indexed user, uint256 amount);
+  event Claimed(address indexed user, uint256 amount);
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -178,6 +179,7 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
     if(claimable == 0) revert NoClaimablePRG();
     stakeStartTime[user] = block.timestamp;
     _mint(user, claimable);
+    emit Claimed(user, claimable);
   }
 
   /// @notice Calculates claimable yield
@@ -202,9 +204,5 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  // todo: delete this
-  function approveBorrowForLocks(address _borrowAddress) external onlyAdmin {
-    IERC20(gammAddress).approve(_borrowAddress, type(uint256).max);
-  }
 
 }

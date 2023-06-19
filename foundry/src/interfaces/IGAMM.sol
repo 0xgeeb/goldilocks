@@ -4,7 +4,13 @@ pragma solidity ^0.8.19;
 interface IGAMM {
 
   function floorPrice() external view returns (uint256);
-  function initialize(uint256 _fsl, uint256 _psl) external;
+  function marketPrice() external view returns (uint256);
+  
+  function buy(uint256 amount, uint256 maxAmount) external;
+  function sell(uint256 amount, uint256 minAmount) external;
+  function redeem(uint256 amount) external;
+
+  function borrowTransfer(address to, uint256 amount, uint256 fee) external;
   function porridgeMint(address _to, uint256 _amount) external;
 
 }

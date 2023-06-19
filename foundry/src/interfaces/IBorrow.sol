@@ -3,9 +3,10 @@ pragma solidity ^0.8.19;
 
 interface IBorrow {
 
-  function getLocked(address _user) external view returns (uint256);
-  function getBorrowed(address _user) external view returns (uint256);
-  function borrow(uint256 _amount) external returns (uint256);
-  function repay(uint256 _amount) external;
+  function getLocked(address user) external view returns (uint256);
+  function getBorrowed(address user) external view returns (uint256);
+  
+  function borrow(uint256 amount) external returns (uint256);
+  function repay(uint256 amount) external;
   
 }

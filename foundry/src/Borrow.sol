@@ -162,7 +162,7 @@ contract Borrow {
   /// @notice Calculates the fee for borrowing
   /// @param amount Amount of $HONEY the user is requesting to borrow
   /// @return fee Fee that user pays for borrowing
-  function _calcFee(uint256 amount) internal view returns (uint256 fee) {
+  function _calcFee(uint256 amount) internal pure returns (uint256 fee) {
     return (amount / 100) * 3;
   }
 
@@ -174,7 +174,7 @@ contract Borrow {
 
   /// @notice Set address of Porridge contract
   /// @param _porridgeAddress Address of Porridge contract
-  function setPorridge(address _porridgeAddress) public onlyAdmin {
+  function setPorridge(address _porridgeAddress) external onlyAdmin {
     porridgeAddress = _porridgeAddress;
   }
 
