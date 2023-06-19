@@ -1,6 +1,7 @@
+"use client"
+
 import React, { createContext, PropsWithChildren, useContext, useState } from "react"
 import { NotificationProps, NotificationProviderState } from "../../utils/interfaces"
-
 
 export const INITIAL_STATE: NotificationProviderState = {
   notifications: new Array<NotificationProps>,

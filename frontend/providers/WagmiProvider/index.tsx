@@ -1,3 +1,5 @@
+"use client"
+
 import { FC, ReactNode } from "react"
 import { configureChains, createClient, WagmiConfig } from "wagmi"
 import { avalancheFuji } from "@wagmi/core/chains"

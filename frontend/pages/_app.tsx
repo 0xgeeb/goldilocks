@@ -11,6 +11,7 @@ import {
   TxProvider
 } from "../providers"
 import NotificationManager from "../components/NotificationManager"
+import "../app/globals.css"
 
 function MyApp({ Component, pageProps }: AppProps) {
 

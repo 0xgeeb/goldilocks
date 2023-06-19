@@ -1,3 +1,5 @@
+"use client"
+
 import { createContext, PropsWithChildren, useContext, useState } from "react";
 import { useContractReads } from "wagmi"
 import { Signer, ethers } from "ethers"
