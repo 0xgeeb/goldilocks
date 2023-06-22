@@ -496,21 +496,21 @@ export default function Amm() {
     setGettingHoney(0)
     setRedeemingLocks(0)
     setRedeemingHoney(0)
-    if(action === 1) {
-      setBuyToggle(true)
-      setSellToggle(false)
-      setRedeemToggle(false)
-    }
-    if(action === 2) {
-      setBuyToggle(false)
-      setSellToggle(true)
-      setRedeemToggle(false)
-    }
-    if(action === 3) {
-      setBuyToggle(false)
-      setSellToggle(false)
-      setRedeemToggle(true)
-    }
+    // if(action === 1) {
+    //   setBuyToggle(true)
+    //   setSellToggle(false)
+    //   setRedeemToggle(false)
+    // }
+    // if(action === 2) {
+    //   setBuyToggle(false)
+    //   setSellToggle(true)
+    //   setRedeemToggle(false)
+    // }
+    // if(action === 3) {
+    //   setBuyToggle(false)
+    //   setSellToggle(false)
+    //   setRedeemToggle(true)
+    // }
   }
 
   function flipTokens() {
@@ -810,7 +810,7 @@ export default function Amm() {
   
   return (
     <>
-      <Head>
+      {/* <Head>
         <title>mf amm</title>
       </Head>
       <div className="flex flex-row py-3 overflow-hidden">
@@ -840,7 +840,7 @@ export default function Amm() {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
           <div className="h-[75%] relative mt-4 flex flex-col">
             <div className="h-[67%] px-6">
               { slippageToggle && 
@@ -920,9 +920,9 @@ export default function Amm() {
               </div>
             </div>
           </div>
-        </animated.div>
+        {/* </animated.div>
         <Bear />
-      </div>
+      </div> */}
     </>
   )
 }

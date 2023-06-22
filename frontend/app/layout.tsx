@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Acme } from 'next/font/google'
+import { LayoutProps } from '../utils/interfaces'
 import './globals.css'
 
 const acme = Acme({
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
   description: 'bera themed defi protocol'
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: LayoutProps) {
   return (
     <html lang="en" className={`${acme.variable}`}>
       <body>
