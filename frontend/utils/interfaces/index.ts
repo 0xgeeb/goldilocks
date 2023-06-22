@@ -49,7 +49,18 @@ export interface RedeemPopupProps {
   setPopupToggle: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export interface ActiveToggleProps {
+export interface SlippagePopupProps {
+  slippage: number;
+  setSlippage: React.Dispatch<React.SetStateAction<number>>;
+  slippageToggle: boolean;
+  setSlippageToggle: React.Dispatch<React.SetStateAction<boolean>>;
+  slippageDisplayString: string;
+  setSlippageDisplayString: React.Dispatch<React.SetStateAction<string>>;
+}
+
+export interface ToggleProps {
   activeToggle: string;
   setActiveToggle: React.Dispatch<React.SetStateAction<string>>;
+  slippageToggle: boolean;
+  setSlippageToggle: React.Dispatch<React.SetStateAction<boolean>>;
 }

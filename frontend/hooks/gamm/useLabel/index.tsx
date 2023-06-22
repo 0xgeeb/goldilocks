@@ -1,30 +1,28 @@
 import Image from "next/image"
 
 export function useLabel(
-  buyToggle: boolean, 
-  sellToggle: boolean,
-  redeemToggle: boolean,
+  activeToggle: string,
   action: string
 ): string | JSX.Element | undefined {
   if(action === "topToken") {
-    if(buyToggle) {
+    if(activeToggle === 'buy') {
       return <><Image className="" width="35" height="35" src="/honey_logo.png" alt="lost"/><span className="font-acme text-[25px] ml-4">$honey</span></>
     }
-    if(sellToggle) {
+    if(activeToggle === 'sell') {
       return <><Image className="" width="35" height="35" src="/locks_logo.png" alt="lost"/><span className="font-acme text-[25px] ml-4">$locks</span></>
     }
-    if(redeemToggle) {
+    if(activeToggle === 'redeem') {
       return <><Image className="" width="35" height="35" src="/locks_logo.png" alt="lost"/><span className="font-acme text-[25px] ml-4">$locks</span></>
     }
   }
   if(action === "bottomToken") {
-    if(buyToggle) {
+    if(activeToggle === 'buy') {
       return <><Image className="" width="35" height="35" src="/locks_logo.png" alt="lost"/><span className="font-acme text-[25px] ml-4">$locks</span></>
     }
-    if(sellToggle) {
+    if(activeToggle === 'sell') {
       return <><Image className="" width="35" height="35" src="/honey_logo.png" alt="lost"/><span className="font-acme text-[25px] ml-4">$honey</span></>
     }
-    if(redeemToggle) {
+    if(activeToggle === 'redeem') {
       return <><Image className="" width="35" height="35" src="/honey_logo.png" alt="lost"/><span className="font-acme text-[25px] ml-4">$honey</span></>
     }
   }
