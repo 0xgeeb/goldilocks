@@ -2,14 +2,16 @@
 
 import { useState } from "react"
 import { RedeemPopup } from "../../gamm"
+import { useActiveToggle } from "../../../hooks/gamm"
 import { ToggleProps } from "../../../utils/interfaces"
 
-export const TitleBar = ({ activeToggle, setActiveToggle, slippageToggle, setSlippageToggle }: ToggleProps) => {
+export const TitleBar = ({ slippageToggle, setSlippageToggle }: ToggleProps) => {
 
   const [popupToggle, setPopupToggle] = useState<boolean>(false)
+  const [activeToggle, setActiveToggle] = useActiveToggle('buy')
 
   const test = () => {
-    console.log('this test')
+    console.log('titleBar: ', activeToggle)
   }
 
   return (

@@ -1,6 +1,8 @@
 import { useState } from "react"
 
-export const useActiveToggle = (initialValue: string) => {
+type ActiveToggleHookResult = [string, (toggle: string) => void]
+
+export const useActiveToggle = (initialValue: string): ActiveToggleHookResult => {
 
   const [activeToggle, setActiveToggle] = useState<string>(initialValue)
 

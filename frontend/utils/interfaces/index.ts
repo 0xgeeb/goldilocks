@@ -59,8 +59,6 @@ export interface SlippagePopupProps {
 }
 
 export interface ToggleProps {
-  activeToggle: string;
-  setActiveToggle: React.Dispatch<React.SetStateAction<string>>;
   slippageToggle: boolean;
   setSlippageToggle: React.Dispatch<React.SetStateAction<boolean>>;
 }
