@@ -13,17 +13,6 @@ export interface Contracts {
   [key: string]: Contract;
 }
 
-export interface LeftAmmBoxCurNumsProps {
-  floor: number;
-  market: number;
-  fsl: number;
-  psl: number;
-}
-
-export interface RightAmmBoxCurNumProps {
-  supply: number;
-}
-
 export type NotificationProps = {
   hash: string;
   title: string;
@@ -47,18 +36,4 @@ export interface Pic {
 export interface RedeemPopupProps {
   popupToggle: boolean;
   setPopupToggle: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-export interface SlippagePopupProps {
-  slippage: number;
-  setSlippage: React.Dispatch<React.SetStateAction<number>>;
-  slippageToggle: boolean;
-  setSlippageToggle: React.Dispatch<React.SetStateAction<boolean>>;
-  slippageDisplayString: string;
-  setSlippageDisplayString: React.Dispatch<React.SetStateAction<string>>;
-}
-
-export interface ToggleProps {
-  slippageToggle: boolean;
-  setSlippageToggle: React.Dispatch<React.SetStateAction<boolean>>;
 }

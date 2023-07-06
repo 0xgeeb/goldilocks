@@ -5,30 +5,17 @@ import {
   SlippagePopup,
   GammButton
 } from "../../gamm"
-import { useActiveToggle } from "../../../hooks/gamm"
-import { ToggleProps } from "../../../utils/interfaces"
 
-export const TradeBox = ({ slippageToggle, setSlippageToggle }: ToggleProps) => {
-
-  const [slippage, setSlippage] = useState<number>(0.1)
-  const [slippageDisplayString, setSlippageDisplayString] = useState<string>('0.1')
-  const [activeToggle, setActiveToggle] = useActiveToggle('buy')
+export const TradeBox = () => {
 
   const test = () => {
-    console.log('tradeBox: ', activeToggle)
+    
   }
 
   return (
     <div className="h-[75%] relative mt-4 flex flex-col" onClick={() => test()}>
       <div className="h-[67%] px-6">
-        <SlippagePopup
-          slippage={slippage}
-          setSlippage={setSlippage}
-          slippageToggle={slippageToggle}
-          setSlippageToggle={setSlippageToggle}
-          slippageDisplayString={slippageDisplayString}
-          setSlippageDisplayString={setSlippageDisplayString}
-        />
+        <SlippagePopup />
         {/* <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
           <div className="h-[50%] flex flex-row items-center justify-between">
             <div className="rounded-[50px] m-6 p-2 flex flex-row bg-slate-100 border-2 border-black items-center">{useLabel(activeToggle, "topToken")}</div>

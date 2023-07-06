@@ -3,8 +3,7 @@ import {
   NotificationProvider,
   WagmiProvider,
   WalletProvider,
-  InfoProvider,
-  TxProvider
+  GammProvider
 } from "../../providers"
 import {
   GammBox,
@@ -24,18 +23,16 @@ export default function Gamm() {
     <NotificationProvider>
       <WagmiProvider>
         <WalletProvider>
-          <InfoProvider>
-            <TxProvider>
-              <div className="w-screen h-screen" id="page-div">
-                <NavBar />
-                <div className="h-[80%] flex flex-row">
-                  <GammBox />
-                  <GammImages />
-                </div>
+          <GammProvider>
+            <div className="w-screen h-screen" id="page-div">
+              <NavBar />
+              <div className="h-[80%] flex flex-row">
+                <GammBox />
+                <GammImages />
               </div>
-              <NotificationManager />
-            </TxProvider>
-          </InfoProvider>
+            </div>
+            <NotificationManager />
+          </GammProvider>
         </WalletProvider>
       </WagmiProvider>
     </NotificationProvider>

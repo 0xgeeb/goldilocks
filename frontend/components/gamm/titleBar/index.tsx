@@ -3,12 +3,15 @@
 import { useState } from "react"
 import { RedeemPopup } from "../../gamm"
 import { useActiveToggle } from "../../../hooks/gamm"
-import { ToggleProps } from "../../../utils/interfaces"
+import { useGamm } from "../../../providers"
 
-export const TitleBar = ({ slippageToggle, setSlippageToggle }: ToggleProps) => {
+export const TitleBar = () => {
 
   const [popupToggle, setPopupToggle] = useState<boolean>(false)
   const [activeToggle, setActiveToggle] = useActiveToggle('buy')
+
+  const { changeSlippageToggle } = useGamm()
+
 
   const test = () => {
     console.log('titleBar: ', activeToggle)
@@ -21,7 +24,7 @@ export const TitleBar = ({ slippageToggle, setSlippageToggle }: ToggleProps) => 
       <div className="flex flex-row ml-2 items-center justify-between">
         <h3 className="font-acme text-[24px] ml-2">trading between $honey & $locks</h3>
         <div className="flex flex-row items-center">
-          <h1 className="mr-4 text-[28px] hover:opacity-25 hover:cursor-pointer" onClick={() => setSlippageToggle(true)}>⚙️</h1>
+          <h1 className="mr-4 text-[28px] hover:opacity-25 hover:cursor-pointer" onClick={() => changeSlippageToggle(true)}>⚙️</h1>
           <div className="flex flex-row bg-white rounded-2xl border-2 border-black">
             <div className={`font-acme w-24 py-2 ${activeToggle === 'buy' ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-l-2xl text-center border-r-2 border-black cursor-pointer`} onClick={() => setActiveToggle('buy')}>buy</div>
             <div className={`font-acme w-24 py-2 ${activeToggle === 'sell' ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] text-center border-r-2 border-black cursor-pointer`} onClick={() => setActiveToggle('sell')}>sell</div>

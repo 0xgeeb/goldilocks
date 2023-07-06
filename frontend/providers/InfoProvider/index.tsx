@@ -1,20 +1,12 @@
 "use client"
 
-import { createContext, PropsWithChildren, useContext, useState } from "react";
+import { createContext, PropsWithChildren, useContext, useState } from "react"
 import { useContractReads } from "wagmi"
 import { Signer, ethers } from "ethers"
 import { useWallet } from ".."
 import { contracts } from "../../utils/addressi"
 
 const INITIAL_STATE = {
-  ammInfo: {
-    fsl: 0,
-    psl: 0,
-    supply: 0,
-    targetRatio: 0,
-    lastFloorRaise: 0,
-    honeyAmmAllowance: 0
-  },
   stakeInfo: {
     fsl: 0,
     supply: 0,
@@ -31,8 +23,6 @@ const INITIAL_STATE = {
     supply: 0,
     honeyBorrowAllowance: 0
   },
-  getAmmInfo: async (): Promise<any> => {},
-  refreshAmmInfo: async (signer: any): Promise<any> => {},
   getStakeInfo: async () => {},
   refreshStakeInfo: async (signer: any) => {},
   getBorrowInfo: async () => {},
@@ -47,7 +37,6 @@ export const InfoProvider = (props: PropsWithChildren<{}>) => {
 
   const { wallet } = useWallet()
 
-  const [ammInfoState, setAmmInfoState] = useState(INITIAL_STATE.ammInfo)
   const [stakeInfoState, setStakeInfoState] = useState(INITIAL_STATE.stakeInfo)
   const [borrowInfoState, setBorrowInfoState] = useState(INITIAL_STATE.borrowInfo)
 
@@ -128,60 +117,6 @@ export const InfoProvider = (props: PropsWithChildren<{}>) => {
       },
     ]
   })
-
-  const getAmmInfo = async (): Promise<any> => {
-    if(info) {
-      const [fsl, psl, supply, targetRatio, lastFloorRaise, honeyAmmAllowance] = info as unknown as [number, number, number, number, number, number]
-      let response = {
-        fsl: fsl / Math.pow(10, 18),
-        psl: psl / Math.pow(10, 18),
-        supply: supply / Math.pow(10, 18),
-        targetRatio: targetRatio / Math.pow(10, 18),
-        lastFloorRaise: lastFloorRaise / Math.pow(10, 18),
-        honeyAmmAllowance: honeyAmmAllowance / Math.pow(10, 18)
-      }
-      setAmmInfoState(response)
-      return response
-    }
-  }
-
-  const refreshAmmInfo = async (signer: Signer): Promise<any> => {
-    let response = {
-      fsl: 0,
-      psl: 0,
-      supply: 0,
-      targetRatio: 0,
-      lastFloorRaise: 0,
-      honeyAmmAllowance: 0
-    }
-
-    const ammContract = new ethers.Contract(
-      contracts.amm.address,
-      contracts.amm.abi,
-      signer
-    )
-    const fslTx = await ammContract.fsl()
-    response = { ...response, fsl: fslTx._hex / Math.pow(10, 18)}
-    const pslTx = await ammContract.psl()
-    response = { ...response, psl: pslTx._hex / Math.pow(10, 18)}
-    const supplyTx = await ammContract.supply()
-    response = { ...response, supply: supplyTx._hex / Math.pow(10, 18)}
-    const ratioTx = await ammContract.targetRatio()
-    response = { ...response, targetRatio: ratioTx._hex / Math.pow(10, 18)}
-    const lastRaiseTx = await ammContract.lastFloorRaise()
-    response = { ...response, lastFloorRaise: lastRaiseTx._hex / Math.pow(10, 18)}
-
-    const honeyContract = new ethers.Contract(
-      contracts.honey.address,
-      contracts.honey.abi,
-      signer
-    )
-    const allowanceTx = await honeyContract.allowance(wallet, contracts.amm.address)
-    response = { ...response, honeyAmmAllowance: allowanceTx._hex / Math.pow(10, 18)}
-
-    setAmmInfoState(response)
-    return response
-  }
 
   const getStakeInfo = async () => {
     if(info) {
@@ -314,15 +249,12 @@ export const InfoProvider = (props: PropsWithChildren<{}>) => {
   return (
     <InfoContext.Provider
       value={{
-        ammInfo: ammInfoState,
         stakeInfo: stakeInfoState,
         borrowInfo: borrowInfoState,
-        getAmmInfo,
-        refreshAmmInfo,
         getStakeInfo,
         refreshStakeInfo,
         getBorrowInfo,
-        refreshBorrowInfo
+        refreshBorrowInfo,
       }}
     >
       { children }

@@ -1,7 +1,12 @@
+import { useInfo } from "../../../providers"
+
 export const GammButton = () => {
+
+  const { testNumber, changeTestNumber } = useInfo()
 
   const handleButtonClick = () => {
     console.log('clicked')
+    changeTestNumber(69)
   }
 
   const renderButton = () => {
