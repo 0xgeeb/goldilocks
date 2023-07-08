@@ -2,7 +2,7 @@ import { useGamm } from "../../../providers"
 
 export const SlippagePopup = () => {
 
-  const { slippage, changeSlippage, changeSlippageToggle, changeSlippageDisplayString } = useGamm()
+  const { slippage, changeSlippage, changeSlippageToggle } = useGamm()
 
   return (
     <>
@@ -14,13 +14,11 @@ export const SlippagePopup = () => {
             <div className="mx-auto w-[50%] relative">
               <input className="border-none focus:outline-none bg-slate-100 pl-[15%] font-acme rounded-xl my-5 py-1 text-[1.5rem]" type="number" value={slippage.displayString} 
                 onChange={(e) => {
-                  changeSlippageDisplayString(e.target.value)
-                  //todo: these are clashing by changing state to different values at same time
                   if(!e.target.value) {
-                    changeSlippage(0)
+                    changeSlippage(0, e.target.value)
                   }
                   else {
-                    changeSlippage(parseFloat(e.target.value))
+                    changeSlippage(parseFloat(e.target.value), e.target.value)
                   }
                 }} 
                 id="number-input" 

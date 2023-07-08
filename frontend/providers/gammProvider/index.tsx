@@ -28,9 +28,8 @@ const INITIAL_STATE = {
     toggle: false,
     displayString: '0.1'
   },
-  changeSlippage: (amount: number) => {},
+  changeSlippage: (amount: number, displayString: string) => {},
   changeSlippageToggle: (toggle: boolean) => {},
-  changeSlippageDisplayString: (displayString: string) => {},
   getGammInfo: async (): Promise<any> => {},
   refreshGammInfo: async (signer: any): Promise<any> => {},
   checkAllowance: async (token: string, spender: string, amount: number, signer: any): Promise<void | boolean> => {},
@@ -88,23 +87,16 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
     ]
   })
 
-  const changeSlippage = (amount: number) => {
+  const changeSlippage = (amount: number, displayString: string) => {
     const updatedState = { ...slippageState }
     updatedState.amount = amount
+    updatedState.displayString = displayString
     setSlippageState(updatedState)
   }
 
   const changeSlippageToggle = (toggle: boolean) => {
     const updatedState = { ...slippageState }
     updatedState.toggle = toggle
-    setSlippageState(updatedState)
-  }
-
-  const changeSlippageDisplayString = (displayString: string) => {
-    console.log('parameter: ', displayString)
-    const updatedState = { ...slippageState }
-    updatedState.displayString = displayString
-    console.log('updatedState: ', updatedState)
     setSlippageState(updatedState)
   }
 
@@ -257,7 +249,6 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
         slippage: slippageState,
         changeSlippage,
         changeSlippageToggle,
-        changeSlippageDisplayString,
         getGammInfo,
         refreshGammInfo,
         checkAllowance,
