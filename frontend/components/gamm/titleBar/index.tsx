@@ -2,15 +2,13 @@
 
 import { useState } from "react"
 import { RedeemPopup } from "../../gamm"
-import { useActiveToggle } from "../../../hooks/gamm"
 import { useGamm } from "../../../providers"
 
 export const TitleBar = () => {
 
   const [popupToggle, setPopupToggle] = useState<boolean>(false)
-  const [activeToggle, setActiveToggle] = useActiveToggle('buy')
 
-  const { changeSlippageToggle } = useGamm()
+  const { changeSlippageToggle, activeToggle, changeActiveToggle } = useGamm()
 
 
   const test = () => {
@@ -26,9 +24,9 @@ export const TitleBar = () => {
         <div className="flex flex-row items-center">
           <h1 className="mr-4 text-[28px] hover:opacity-25 hover:cursor-pointer" onClick={() => changeSlippageToggle(true)}>⚙️</h1>
           <div className="flex flex-row bg-white rounded-2xl border-2 border-black">
-            <div className={`font-acme w-24 py-2 ${activeToggle === 'buy' ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-l-2xl text-center border-r-2 border-black cursor-pointer`} onClick={() => setActiveToggle('buy')}>buy</div>
-            <div className={`font-acme w-24 py-2 ${activeToggle === 'sell' ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] text-center border-r-2 border-black cursor-pointer`} onClick={() => setActiveToggle('sell')}>sell</div>
-            <div className={`font-acme w-24 py-2 ${activeToggle === 'redeem' ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-r-2xl text-center cursor-pointer`} onClick={() => setActiveToggle('redeem')}>redeem
+            <div className={`font-acme w-24 py-2 ${activeToggle === 'buy' ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-l-2xl text-center border-r-2 border-black cursor-pointer`} onClick={() => changeActiveToggle('buy')}>buy</div>
+            <div className={`font-acme w-24 py-2 ${activeToggle === 'sell' ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] text-center border-r-2 border-black cursor-pointer`} onClick={() => changeActiveToggle('sell')}>sell</div>
+            <div className={`font-acme w-24 py-2 ${activeToggle === 'redeem' ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-r-2xl text-center cursor-pointer`} onClick={() => changeActiveToggle('redeem')}>redeem
               <span className="ml-1 rounded-full px-2 border-2 border-black hover:bg-black hover:text-white" 
                   onClick={(e) => {
                     e.stopPropagation()

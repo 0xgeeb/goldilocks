@@ -2,11 +2,13 @@
 
 import { createContext, PropsWithChildren, useContext, useState } from "react"
 import { useContractReads } from "wagmi"
+//todo: viem
 import { BigNumber, Signer, ethers } from "ethers"
 import { useWallet } from ".."
+import { useDebounce } from "../../hooks/gamm"
 import { contracts } from "../../utils/addressi"
-import { update } from "@react-spring/web"
 
+//todo: type
 const INITIAL_STATE = {
   gammInfo: {
     fsl: 0,
@@ -28,8 +30,22 @@ const INITIAL_STATE = {
     toggle: false,
     displayString: '0.1'
   },
+
+  honeyBuy: 0,
+  sellingLocks: 0,
+  redeemingLocks: 0,
+
   changeSlippage: (amount: number, displayString: string) => {},
   changeSlippageToggle: (toggle: boolean) => {},
+
+  activeToggle: 'buy',
+  changeActiveToggle: (toggle: string) => {},
+
+  displayString: '',
+  changeDisplayString: (displayString: string) => {},
+  handlePercentageButtons: (action: number) => {},
+
+  //todo: could maybe put the below in a hook instead
   getGammInfo: async (): Promise<any> => {},
   refreshGammInfo: async (signer: any): Promise<any> => {},
   checkAllowance: async (token: string, spender: string, amount: number, signer: any): Promise<void | boolean> => {},
@@ -45,11 +61,19 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
 
   const { children } = props
 
-  const { wallet } = useWallet()
+  const { balance, wallet } = useWallet()
 
+  //todo: type
   const [gammInfoState, setGammInfoState] = useState(INITIAL_STATE.gammInfo)
   const [newInfoState, setNewInfoState] = useState(INITIAL_STATE.newInfo)
   const [slippageState, setSlippageState] = useState(INITIAL_STATE.slippage)
+  const [activeToggleState, setActiveToggleState] = useState<string>(INITIAL_STATE.activeToggle)
+  const [displayStringState, setDisplayStringState] = useState<string>(INITIAL_STATE.displayString)
+
+  const [honeyBuyState, setHoneyBuyState] = useState<number>(INITIAL_STATE.honeyBuy)
+  const debouncedHoneyBuyState = useDebounce(honeyBuyState, 1000)
+  const [sellingLocksState, setSellingLocksState] = useState<number>(INITIAL_STATE.sellingLocks)
+  const [redeemingLocksState, setRedeemingLocksState] = useState<number>(INITIAL_STATE.redeemingLocks)
 
   const { data: info } = useContractReads({
     contracts: [
@@ -98,6 +122,73 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
     const updatedState = { ...slippageState }
     updatedState.toggle = toggle
     setSlippageState(updatedState)
+  }
+
+  const changeActiveToggle = (toggle: string) => {
+    setActiveToggleState(toggle)
+  }
+  
+  const changeDisplayString = (displayString: string) => {
+    setDisplayStringState(displayString)
+  }
+
+  const handlePercentageButtons = (action: number) => {
+    if(action == 1) {
+      if(activeToggleState === 'buy') {
+        setDisplayStringState((balance.honey / 4).toFixed(4))
+        setHoneyBuyState(balance.honey / 4)
+      }
+      if(activeToggleState === 'sell') {
+        setDisplayStringState((balance.locks / 4).toFixed(4))
+        setSellingLocksState(balance.locks / 4)
+      }
+      if(activeToggleState === 'redeem') {
+        setDisplayStringState((balance.locks / 4).toFixed(4))
+        setRedeemingLocksState(balance.locks / 4)
+      }
+    }
+    if(action == 2) {
+      if(activeToggleState === 'buy') {
+        setDisplayStringState((balance.honey / 2).toFixed(4))
+        setHoneyBuyState(balance.honey / 2)
+      }
+      if(activeToggleState === 'sell') {
+        setDisplayStringState((balance.locks / 2).toFixed(4))
+        setSellingLocksState(balance.locks / 2)
+      }
+      if(activeToggleState === 'redeem') {
+        setDisplayStringState((balance.locks / 2).toFixed(4))
+        setRedeemingLocksState(balance.locks / 2)
+      }
+    }
+    if(action == 3) {
+      if(activeToggleState === 'buy') {
+        setDisplayStringState((balance.honey * 0.75).toFixed(4))
+        setHoneyBuyState(balance.honey * 0.75)
+      }
+      if(activeToggleState === 'sell') {
+        setDisplayStringState((balance.locks * 0.75).toFixed(4))
+        setSellingLocksState(balance.locks * 0.75)
+      }
+      if(activeToggleState === 'redeem') {
+        setDisplayStringState((balance.locks * 0.75).toFixed(4))
+        setRedeemingLocksState(balance.locks * 0.75)
+      }
+    }
+    if(action == 4) {
+      if(activeToggleState === 'buy') {
+        setDisplayStringState(balance.honey.toFixed(4))
+        setHoneyBuyState(balance.honey)
+      }
+      if(activeToggleState === 'sell') {
+        setDisplayStringState(balance.locks.toFixed(4))
+        setSellingLocksState(balance.locks)
+      }
+      if(activeToggleState === 'redeem') {
+        setDisplayStringState(balance.locks.toFixed(4))
+        setRedeemingLocksState(balance.locks)
+      }
+    }
   }
 
   const getGammInfo = async (): Promise<any> => {
@@ -247,6 +338,14 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
         gammInfo: gammInfoState,
         newInfo: newInfoState,
         slippage: slippageState,
+        activeToggle: activeToggleState,
+        displayString: displayStringState,
+        honeyBuy: honeyBuyState,
+        sellingLocks: sellingLocksState,
+        redeemingLocks: redeemingLocksState,
+        changeDisplayString,
+        handlePercentageButtons,
+        changeActiveToggle,
         changeSlippage,
         changeSlippageToggle,
         getGammInfo,
