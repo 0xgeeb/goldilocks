@@ -1,22 +1,24 @@
 "use client"
 
-import { createContext, PropsWithChildren, useContext, useState } from "react";
-import { useAccount, useSigner, useNetwork, useContractReads } from "wagmi"
-import { Signer, ethers } from "ethers"
+import { createContext, PropsWithChildren, useContext, useState } from "react"
+import { useAccount, useNetwork, useWalletClient, useContractReads } from "wagmi"
+import { getContract } from "@wagmi/core"
+import { WalletClient, parseEther } from "viem"
 import { contracts } from "../../utils/addressi"
+import { WalletInitialState, BalanceState } from "../../utils/interfaces"
 
-const INITIAL_STATE = {
+//todo: type
+const INITIAL_STATE: WalletInitialState = {
   balance: {
-    locks: 0,
-    prg: 0,
-    honey: 0
+    locks: parseEther('0'),
+    prg: parseEther('0'),
+    honey: parseEther('0')
   },
   wallet: '',
   isConnected: false,
-  signer: null as Signer | null,
+  signer: null as WalletClient | null,
   network: '',
-  getBalances: async () => {},
-  refreshBalances: async (address: string, signer: any) => {},
+  refreshBalances: async () => {},
 }
 
 const WalletContext = createContext(INITIAL_STATE)
@@ -25,96 +27,93 @@ export const WalletProvider = (props: PropsWithChildren<{}>) => {
 
   const { children } = props
 
-  const { data: signer } = useSigner()
+  const { data: signer } = useWalletClient()
   const { chain } = useNetwork()
-  const { address } = useAccount()
+  const { address, isConnected } = useAccount()
 
-  const [balanceState, setBalanceState] = useState(INITIAL_STATE.balance)
+  //todo: type
+  const [balanceState, setBalanceState] = useState<BalanceState>(INITIAL_STATE.balance)
 
-  const walletAddress = address
-  const isConnected = !!walletAddress && !!signer
-
-  const { data: balances } = useContractReads({
-    contracts: [
-      {
-        address: contracts.locks.address as `0x${string}`,
-        abi: contracts.locks.abi,
-        functionName: 'balanceOf',
-        args: [walletAddress]
-      },
-      {
-        address: contracts.porridge.address as `0x${string}`,
-        abi: contracts.porridge.abi,
-        functionName: 'balanceOf',
-        args: [walletAddress]
-      },
-      {
-        address: contracts.honey.address as `0x${string}`,
-        abi: contracts.honey.abi,
-        functionName: 'balanceOf',
-        args: [walletAddress]
-      }
-    ],
+  const locksContract = getContract({
+    address: contracts.locks.address as `0x${string}`,
+    abi: contracts.locks.abi
   })
+
+  const porridgeContract = getContract({
+    address: contracts.porridge.address as `0x${string}`,
+    abi: contracts.porridge.abi
+  })
+
+  const honeyContract = getContract({
+    address: contracts.honey.address as `0x${string}`,
+    abi: contracts.honey.abi
+  })
+
+  // const { data: balances } = useContractReads({
+  //   contracts: [
+  //     {
+  //       address: contracts.locks.address as `0x${string}`,
+  //       abi: contracts.locks.abi,
+  //       functionName: 'balanceOf',
+  //       args: [address as `0x${string}`]
+  //     },
+  //     {
+  //       address: contracts.porridge.address as `0x${string}`,
+  //       abi: contracts.porridge.abi,
+  //       functionName: 'balanceOf',
+  //       args: [address as `0x${string}`]
+  //     },
+  //     {
+  //       address: contracts.honey.address as `0x${string}`,
+  //       abi: contracts.honey.abi,
+  //       functionName: 'balanceOf',
+  //       args: [address as `0x${string}`]
+  //     }
+  //   ],
+  // })
   
-  const getBalances = async () => {
-    if(!walletAddress) {
-      return
-    }
-    if (balances) {
-      const [locks, prg, honey] = balances as unknown as [number, number, number]
+  // const getBalances = async () => {
+
+
+
+    // if(!walletAddress) {
+    //   return
+    // }
+    // if (balances) {
+    //   const [locks, prg, honey] = balances as unknown as [number, number, number]
+    //   let response = {
+    //     locks: locks / Math.pow(10, 18),
+    //     prg: prg / Math.pow(10, 18),
+    //     honey: honey / Math.pow(10, 18)
+    //   }
+    //   setBalanceState(response)
+    // }
+  // }
+
+  const refreshBalances = async () => {
+    if(address) {
+      const locksBalance = await locksContract.read.balanceOf([address])
+      const porridgeBalance = await porridgeContract.read.balanceOf([address])
+      const honeyBalance = await honeyContract.read.balanceOf([address])
+
       let response = {
-        locks: locks / Math.pow(10, 18),
-        prg: prg / Math.pow(10, 18),
-        honey: honey / Math.pow(10, 18)
+        locks: locksBalance as unknown as bigint,
+        prg: porridgeBalance as unknown as bigint,
+        honey: honeyBalance as unknown as bigint
       }
+
       setBalanceState(response)
     }
-  }
-
-  const refreshBalances = async (address: string, signer: Signer) => {
-    let response = {
-      locks: 0,
-      prg: 0,
-      honey: 0
-    }
-
-    const locksContract = new ethers.Contract(
-      contracts.locks.address,
-      contracts.locks.abi,
-      signer
-    )
-    const locksTx = await locksContract.balanceOf(address)
-    response = { ...response, locks: locksTx._hex / Math.pow(10, 18)}
-
-    const porridgeContract = new ethers.Contract(
-      contracts.porridge.address,
-      contracts.porridge.abi,
-      signer
-    )
-    const porridgeTx = await porridgeContract.balanceOf(address)
-    response = { ...response, prg: porridgeTx._hex / Math.pow(10, 18)}
-
-    const honeyContract = new ethers.Contract(
-      contracts.honey.address,
-      contracts.honey.abi,
-      signer
-    )
-    const honeyTx = await honeyContract.balanceOf(address)
-    response = { ...response, honey: honeyTx._hex / Math.pow(10, 18)}
-    
-    setBalanceState(response)
   }
 
   return (
     <WalletContext.Provider
       value={{
         balance: balanceState,
-        wallet: walletAddress ? walletAddress : '',
+        wallet: address ? address : '',
         isConnected,
         signer: signer || null,
         network: chain?.name ? chain.name : '',
-        getBalances,
         refreshBalances
       }}
     >

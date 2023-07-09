@@ -1,4 +1,5 @@
 import React, { ReactElement } from "../../node_modules/@types/react"
+import { WalletClient } from "viem"
 
 export interface LayoutProps {
   children: React.ReactNode;
@@ -36,4 +37,19 @@ export interface Pic {
 export interface RedeemPopupProps {
   popupToggle: boolean;
   setPopupToggle: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export interface BalanceState {
+  locks: bigint;
+  prg: bigint;
+  honey: bigint;
+}
+
+export interface WalletInitialState {
+  balance: BalanceState;
+  wallet: string;
+  isConnected: boolean;
+  signer: WalletClient | null;
+  network: string;
+  refreshBalances: () => void;
 }
