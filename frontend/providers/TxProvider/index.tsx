@@ -1,7 +1,6 @@
 "use client"
 
 import { PropsWithChildren, createContext, useContext } from "react"
-import { BigNumber, Signer, ethers } from "ethers"
 import { useAccount } from "wagmi"
 import { contracts } from "../../utils/addressi"
 

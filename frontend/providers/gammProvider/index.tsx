@@ -3,7 +3,6 @@
 import { createContext, PropsWithChildren, useContext, useState } from "react"
 import { useContractReads } from "wagmi"
 //todo: viem
-import { BigNumber, Signer, ethers } from "ethers"
 import { useWallet } from ".."
 import { useDebounce, useGammMath } from "../../hooks/gamm"
 import { contracts } from "../../utils/addressi"

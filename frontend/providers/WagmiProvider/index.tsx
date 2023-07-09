@@ -1,17 +1,17 @@
 "use client"
 
 import { FC, ReactNode } from "react"
-import { configureChains, createClient, WagmiConfig } from "wagmi"
+import { configureChains, createConfig, WagmiConfig } from "wagmi"
 import { avalancheFuji } from "@wagmi/core/chains"
-import { devnet, fuji } from "../../utils/customChains"
+import { fuji } from "../../utils/customChains"
 import { jsonRpcProvider } from "@wagmi/core/providers/jsonRpc"
-import { connectorsForWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit"
+import { createPublicClient, http } from "viem"
+import { connectorsForWallets, getDefaultWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit"
 import { metaMaskWallet, injectedWallet, rainbowWallet, rabbyWallet, ledgerWallet } from "@rainbow-me/rainbowkit/wallets"
 import "@rainbow-me/rainbowkit/styles.css"
 
-const { chains, provider } = configureChains(
+const { chains } = configureChains(
   [fuji],
-  // [devnet],
   [
     jsonRpcProvider({
       rpc: chain => ({ http: chain.rpcUrls.default.http[0] }),
@@ -19,27 +19,25 @@ const { chains, provider } = configureChains(
   ]
 )
 
-const connectors = connectorsForWallets([
-  {
-    groupName: "Goldilocks v0.3",
-    wallets: [
-      metaMaskWallet({chains, shimDisconnect: true}),
-      injectedWallet({ chains, shimDisconnect: true }),
-      rainbowWallet({ chains }),
-      rabbyWallet({ chains }),
-      ledgerWallet({ chains })
-    ]
-  }
-])
+const projectId = 'WalletConnectID'
 
-const wagmiClient = createClient({
-  autoConnect: true,
+const { connectors } = getDefaultWallets({
+  appName: "Goldilocks Alpha",
+  projectId,
+  chains
+})
+
+const config = createConfig({
+  autoConnect: false,
   connectors,
-  provider
+  publicClient: createPublicClient({
+    chain: fuji,
+    transport: http(),
+  })
 })
 
 export const WagmiProvider: FC<{ children: ReactNode }> = ({ children }) => 
-  <WagmiConfig client={wagmiClient}>
+  <WagmiConfig config={config}>
     <RainbowKitProvider chains={chains} coolMode>
       {children}
     </RainbowKitProvider>
