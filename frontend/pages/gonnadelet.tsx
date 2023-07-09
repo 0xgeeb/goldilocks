@@ -843,7 +843,7 @@ export default function Amm() {
           </div> */}
           <div className="h-[75%] relative mt-4 flex flex-col">
             <div className="h-[67%] px-6">
-              { slippageToggle && 
+              {/* { slippageToggle && 
                 <div className="fixed z-999 bg-[#ffffb4] rounded-xl border-2 border-black w-[25%] left-[40%] top-[40%] px-4 opacity-100">
                   <span className="absolute right-3 rounded-full border-2 border-black text-[1.2rem] px-3 top-3 hover:bg-black hover:text-white cursor-pointer" onClick={() => setSlippageToggle(false)}>x</span>
                   <div className="flex flex-col font-acme">
@@ -866,7 +866,7 @@ export default function Amm() {
                     </div>
                   </div>
                 </div>
-              }
+              } */}
               <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
                 <div className="h-[50%] flex flex-row items-center justify-between">
                   {/* <div className="rounded-[50px] m-6 p-2 flex flex-row bg-slate-100 border-2 border-black items-center">{useLabel(buyToggle, sellToggle, redeemToggle, "topToken")}</div> */}
@@ -899,7 +899,7 @@ export default function Amm() {
               <button className="h-[50%] w-[50%] bg-white rounded-xl mt-5 py-3 px-6 border-2 border-black font-acme text-[30px]" id="amm-button" onClick={() => handleButtonClick()} >{renderButton()}</button>
             </div>
           </div>
-          <div className="flex flex-row justify-between">
+          {/* <div className="flex flex-row justify-between">
             <div className="flex flex-row w-[55%] px-3 ml-3 justify-between rounded-xl border-2 border-black mt-2 bg-white">
               <LeftAmmBoxText />
               <LeftAmmBoxCurNums floor={floorPrice(ammInfo.fsl, ammInfo.supply)} market={marketPrice(ammInfo.fsl, ammInfo.psl, ammInfo.supply)} fsl={ammInfo.fsl} psl={ammInfo.psl} />
@@ -919,7 +919,7 @@ export default function Amm() {
                 <p className="font-acme text-[20px] whitespace-nowrap">{useFormatDate(ammInfo.lastFloorRaise * Math.pow(10, 21))}</p>
               </div>
             </div>
-          </div>
+          </div> */}
         {/* </animated.div>
         <Bear />
       </div> */}

@@ -10,26 +10,36 @@ import { useGamm } from "../../../providers"
 
 export const TradeBox = () => {
 
-  const { activeToggle, handlePercentageButtons, honeyBuy } = useGamm()
+  const { 
+    activeToggle, 
+    handlePercentageButtons, 
+    handleTopBalance, 
+    handleTopInput, 
+    handleTopChange,
+    flipTokens,
+    handleBottomBalance,
+    handleBottomChange,
+    handleBottomInput
+  } = useGamm()
 
   const test = () => {
-    console.log(honeyBuy)
+    console.log(handleTopBalance())
   }
 
   return (
     <div className="h-[75%] relative mt-4 flex flex-col" onClick={() => test()}>
       <div className="h-[67%] px-6">
         <SlippagePopup />
-        {/* <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
+        <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
           <div className="h-[50%] flex flex-row items-center justify-between">
-            <div className="rounded-[50px] m-6 p-2 flex flex-row bg-slate-100 border-2 border-black items-center">{useLabel(activeToggle, "topToken")}</div> */}
+            <div className="rounded-[50px] m-6 p-2 flex flex-row bg-slate-100 border-2 border-black items-center">{useLabel(activeToggle, "topToken")}</div>
             <div className="flex flex-row items-center mr-10">
               <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(1)}>25%</button>
               <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(2)}>50%</button>
               <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(3)}>75%</button>
               <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(4)}>MAX</button>
             </div>
-          {/* </div>
+          </div>
           <div className="h-[50%] pl-10 flex flex-row items-center justify-between">
             <input className="border-none focus:outline-none bg-transparent font-acme rounded-xl text-[40px]" placeholder="0.00" value={handleTopInput()} onChange={(e) => handleTopChange(e.target.value)} type="number" id="number-input" autoFocus />
             <h1 className="mr-10 mt-4 text-[23px] font-acme text-[#878d97]">balance: {handleTopBalance()}</h1>
@@ -46,7 +56,7 @@ export const TradeBox = () => {
             <input className="border-none focus:outline-none bg-transparent font-acme rounded-xl text-[40px]" placeholder="0.00" value={handleBottomInput()} onChange={(e) => handleBottomChange(e.target.value)} type="number" id="number-input" />
             <h1 className="mr-10 mt-4 text-[23px] font-acme text-[#878d97]">balance: {handleBottomBalance()}</h1>
           </div>
-        </div>  */}
+        </div> 
       </div>
       <GammButton />
     </div>

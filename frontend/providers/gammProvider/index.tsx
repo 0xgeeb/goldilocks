@@ -5,7 +5,7 @@ import { useContractReads } from "wagmi"
 //todo: viem
 import { BigNumber, Signer, ethers } from "ethers"
 import { useWallet } from ".."
-import { useDebounce } from "../../hooks/gamm"
+import { useDebounce, useGammMath } from "../../hooks/gamm"
 import { contracts } from "../../utils/addressi"
 
 //todo: type
@@ -35,6 +35,13 @@ const INITIAL_STATE = {
   sellingLocks: 0,
   redeemingLocks: 0,
 
+  buyingLocks: 0,
+  gettingHoney: 0,
+  redeemingHoney: 0,
+
+  topInputFlag: false,
+  bottomInputFlag: false,
+
   changeSlippage: (amount: number, displayString: string) => {},
   changeSlippageToggle: (toggle: boolean) => {},
 
@@ -43,7 +50,20 @@ const INITIAL_STATE = {
 
   displayString: '',
   changeDisplayString: (displayString: string) => {},
+  bottomDisplayString: '',
+  changeBottomDisplayString: (bottomDisplayString: string) => {},
+
   handlePercentageButtons: (action: number) => {},
+
+  flipTokens: () => {},
+
+  handleTopInput: (): string => '',
+  handleTopChange: (input: string) => {},
+  handleTopBalance: (): string => "0.00",
+
+  handleBottomInput: (): string => '',
+  handleBottomChange: (input: string) => {},
+  handleBottomBalance: (): string => "0.00",
 
   //todo: could maybe put the below in a hook instead
   getGammInfo: async (): Promise<any> => {},
@@ -62,18 +82,29 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
   const { children } = props
 
   const { balance, wallet } = useWallet()
+  const { simulateBuyDry } = useGammMath()
 
   //todo: type
   const [gammInfoState, setGammInfoState] = useState(INITIAL_STATE.gammInfo)
   const [newInfoState, setNewInfoState] = useState(INITIAL_STATE.newInfo)
   const [slippageState, setSlippageState] = useState(INITIAL_STATE.slippage)
   const [activeToggleState, setActiveToggleState] = useState<string>(INITIAL_STATE.activeToggle)
+
   const [displayStringState, setDisplayStringState] = useState<string>(INITIAL_STATE.displayString)
+  const [bottomDisplayStringState, setBottomDisplayStringState] = useState<string>(INITIAL_STATE.bottomDisplayString)
 
   const [honeyBuyState, setHoneyBuyState] = useState<number>(INITIAL_STATE.honeyBuy)
   const debouncedHoneyBuyState = useDebounce(honeyBuyState, 1000)
   const [sellingLocksState, setSellingLocksState] = useState<number>(INITIAL_STATE.sellingLocks)
   const [redeemingLocksState, setRedeemingLocksState] = useState<number>(INITIAL_STATE.redeemingLocks)
+
+  const [buyingLocksState, setBuyingLocksState] = useState<number>(INITIAL_STATE.buyingLocks)
+  const [gettingHoneyState, setGettingHoneyState] = useState<number>(INITIAL_STATE.gettingHoney)
+  const debouncedGettingHoney = useDebounce(gettingHoneyState, 1000)
+  const [redeemingHoneyState, setRedeemingHoneyState] = useState<number>(INITIAL_STATE.redeemingHoney)
+
+  const [topInputFlagState, setTopInputFlagState] = useState<boolean>(INITIAL_STATE.topInputFlag)
+  const [bottomInputFlagState, setBottomInputFlagState] = useState<boolean>(INITIAL_STATE.bottomInputFlag)
 
   const { data: info } = useContractReads({
     contracts: [
@@ -132,6 +163,10 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
     setDisplayStringState(displayString)
   }
 
+  const changeBottomDisplayString = (bottomDisplayString: string) => {
+    setBottomDisplayStringState(bottomDisplayString)
+  }
+
   const handlePercentageButtons = (action: number) => {
     if(action == 1) {
       if(activeToggleState === 'buy') {
@@ -188,6 +223,130 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
         setDisplayStringState(balance.locks.toFixed(4))
         setRedeemingLocksState(balance.locks)
       }
+    }
+  }
+
+  const handleTopBalance = (): string => {
+    if(activeToggleState === 'buy') {
+      return balance.honey > 0 ? balance.honey.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"      
+    }
+    else {
+      return balance.locks > 0 ? balance.locks.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
+    }
+  }
+
+  const handleBottomBalance = (): string => {
+    if(activeToggleState === 'buy') {
+      return balance.locks > 0 ? balance.locks.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
+    }
+    else {
+      return balance.honey > 0 ? balance.honey.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"      
+    }
+  }
+
+  const handleTopInput = (): string => {
+    if(activeToggleState === 'buy') {
+      return honeyBuyState > balance.honey ? '' : displayStringState
+    }
+    else if(activeToggleState === 'sell') {
+      return sellingLocksState > balance.locks ? '' : displayStringState
+    }
+    else {
+      return redeemingLocksState > balance.locks ? '' : displayStringState
+    }
+  }
+
+  const handleBottomInput = (): string => {
+    if(activeToggleState === 'buy') {
+      return simulateBuyDry(buyingLocksState, gammInfoState.fsl, gammInfoState.psl, gammInfoState.supply) > balance.honey ? '' : bottomDisplayStringState
+    }
+    else if(activeToggleState === 'sell') {
+      return bottomDisplayStringState
+    }
+    else {
+      return redeemingHoneyState / (gammInfoState.fsl / gammInfoState.supply) > balance.locks ? '' : bottomDisplayStringState
+    }
+  }
+
+  //todo: move setflag to once above conditionals
+  const handleTopChange = (input: string) => {
+    setDisplayStringState(input)
+    if(activeToggleState === 'buy') {
+      if(!input) {
+        setBottomInputFlagState(false)
+        setHoneyBuyState(0)
+      }
+      else {
+        setBottomInputFlagState(false)
+        setHoneyBuyState(parseFloat(input))
+      }
+    }
+    else if(activeToggleState === 'sell') {
+      if(!input) {
+        setBottomInputFlagState(false)
+        setSellingLocksState(0)
+      }
+      else {
+        setBottomInputFlagState(false)
+        setSellingLocksState(parseFloat(input))
+      }
+    }
+    else {
+      if(!input) {
+        setBottomInputFlagState(false)
+        setRedeemingLocksState(0)
+      }
+      else {
+        setBottomInputFlagState(false)
+        setRedeemingLocksState(parseFloat(input))
+      }
+    }
+  }
+  
+  //todo: move setflag to once above conditionals
+  const handleBottomChange = (input: string) => {
+    setBottomDisplayStringState(input)
+    if(activeToggleState === 'buy') {
+      if(!input) {
+        setTopInputFlagState(false)
+        setBuyingLocksState(0)
+      }
+      else {
+        setTopInputFlagState(false)
+        setBuyingLocksState(parseFloat(input))
+      }
+    }
+    else if(activeToggleState === 'sell') {
+      if(!input) {
+        setTopInputFlagState(false)
+        setGettingHoneyState(0)
+      }
+      else {
+        setTopInputFlagState(false)
+        setGettingHoneyState(parseFloat(input))
+      }
+    }
+    else {
+      if(!input) {
+        setTopInputFlagState(false)
+        setRedeemingHoneyState(0)
+      }
+      else {
+        setTopInputFlagState(false)
+        setRedeemingHoneyState(parseFloat(input))
+      }
+    }
+  }
+
+  const flipTokens = () => {
+    if(activeToggleState === 'buy') {
+      setActiveToggleState('sell')
+    }
+    else if(activeToggleState === 'sell') {
+      setActiveToggleState('buy')
+    }
+    else {
+      return
     }
   }
 
@@ -340,11 +499,25 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
         slippage: slippageState,
         activeToggle: activeToggleState,
         displayString: displayStringState,
+        bottomDisplayString: bottomDisplayStringState,
         honeyBuy: honeyBuyState,
         sellingLocks: sellingLocksState,
         redeemingLocks: redeemingLocksState,
+        buyingLocks: buyingLocksState,
+        gettingHoney: gettingHoneyState,
+        redeemingHoney: redeemingHoneyState,
+        topInputFlag: topInputFlagState,
+        bottomInputFlag: bottomInputFlagState,
+        flipTokens,
         changeDisplayString,
+        changeBottomDisplayString,
         handlePercentageButtons,
+        handleTopBalance,
+        handleTopInput,
+        handleTopChange,
+        handleBottomBalance,
+        handleBottomChange,
+        handleBottomInput,
         changeActiveToggle,
         changeSlippage,
         changeSlippageToggle,
