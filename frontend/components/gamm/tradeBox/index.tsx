@@ -16,11 +16,12 @@ export const TradeBox = () => {
     flipTokens,
     handleBottomBalance,
     handleBottomChange,
-    handleBottomInput
+    handleBottomInput,
+    sendApproveTx
   } = useGamm()
 
   const test = () => {
-    console.log(handleTopBalance())
+    sendApproveTx(69)
   }
 
   return (

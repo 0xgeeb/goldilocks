@@ -2,7 +2,6 @@
 
 import { FC, ReactNode } from "react"
 import { configureChains, createConfig, WagmiConfig } from "wagmi"
-import { avalancheFuji } from "@wagmi/core/chains"
 import { fuji } from "../../utils/customChains"
 import { jsonRpcProvider } from "@wagmi/core/providers/jsonRpc"
 import { createPublicClient, http } from "viem"
@@ -19,16 +18,31 @@ const { chains } = configureChains(
   ]
 )
 
-const projectId = 'WalletConnectID'
+const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_ID as string
 
-const { connectors } = getDefaultWallets({
+const { wallets } = getDefaultWallets({
   appName: "Goldilocks Alpha",
   projectId,
   chains
 })
 
+//todo: organize wallets
+const connectors = connectorsForWallets([
+  ...wallets,
+  {
+    groupName: 'Other',
+    wallets: [
+      injectedWallet({ chains }),
+      metaMaskWallet({ projectId, chains }),
+      rainbowWallet({ projectId, chains }),
+      rabbyWallet({ chains }),
+      ledgerWallet({ projectId, chains })
+    ]
+  }
+])
+
 const config = createConfig({
-  autoConnect: false,
+  autoConnect: true,
   connectors,
   publicClient: createPublicClient({
     chain: fuji,

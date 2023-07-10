@@ -40,9 +40,9 @@ export interface RedeemPopupProps {
 }
 
 export interface BalanceState {
-  locks: bigint;
-  prg: bigint;
-  honey: bigint;
+  locks: number;
+  prg: number;
+  honey: number;
 }
 
 export interface WalletInitialState {

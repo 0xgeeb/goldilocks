@@ -1,8 +1,8 @@
 "use client"
 
 import { createContext, PropsWithChildren, useContext, useState } from "react"
-import { useContractReads } from "wagmi"
-//todo: viem
+import { parseEther, formatEther } from "viem"
+import { getContract, writeContract } from "@wagmi/core"
 import { useWallet } from ".."
 import { useDebounce, useGammMath } from "../../hooks/gamm"
 import { contracts } from "../../utils/addressi"
@@ -67,8 +67,8 @@ const INITIAL_STATE = {
   //todo: could maybe put the below in a hook instead
   getGammInfo: async (): Promise<any> => {},
   refreshGammInfo: async (signer: any): Promise<any> => {},
-  checkAllowance: async (token: string, spender: string, amount: number, signer: any): Promise<void | boolean> => {},
-  sendApproveTx: async (token: string, spender: string, amount: number, signer: any) => {},
+  checkAllowance: async (amt: number): Promise<void | boolean> => {},
+  sendApproveTx: async (amt: number) => {},
   sendBuyTx: async (buy: number, amount: number, signer: any): Promise<any> => {},
   sendSellTx: async (sell: number, receive: number, signer: any): Promise<any> => {},
   sendRedeemTx: async (redeem: number, signer: any): Promise<any> => {}
@@ -105,41 +105,51 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
   const [topInputFlagState, setTopInputFlagState] = useState<boolean>(INITIAL_STATE.topInputFlag)
   const [bottomInputFlagState, setBottomInputFlagState] = useState<boolean>(INITIAL_STATE.bottomInputFlag)
 
-  const { data: info } = useContractReads({
-    contracts: [
-      {
-        address: contracts.amm.address as `0x${string}`,
-        abi: contracts.amm.abi,
-        functionName: 'fsl'
-      },
-      {
-        address: contracts.amm.address as `0x${string}`,
-        abi: contracts.amm.abi,
-        functionName: 'psl'
-      },
-      {
-        address: contracts.amm.address as `0x${string}`,
-        abi: contracts.amm.abi,
-        functionName: 'supply'
-      },
-      {
-        address: contracts.amm.address as `0x${string}`,
-        abi: contracts.amm.abi,
-        functionName: 'targetRatio'
-      },
-      {
-        address: contracts.amm.address as `0x${string}`,
-        abi: contracts.amm.abi,
-        functionName: 'lastFloorRaise'
-      },
-      {
-        address: contracts.honey.address as `0x${string}`,
-        abi: contracts.honey.abi,
-        functionName: 'allowance',
-        args: [wallet, contracts.amm.address]
-      }
-    ]
+  const honeyContract = getContract({
+    address: contracts.honey.address as `0x${string}`,
+    abi: contracts.honey.abi
   })
+
+  const gammContract = getContract({
+    address: contracts.amm.address as `0x${string}`,
+    abi: contracts.amm.abi
+  })
+
+  // const { data: info } = useContractReads({
+  //   contracts: [
+  //     {
+  //       address: contracts.amm.address as `0x${string}`,
+  //       abi: contracts.amm.abi,
+  //       functionName: 'fsl'
+  //     },
+  //     {
+  //       address: contracts.amm.address as `0x${string}`,
+  //       abi: contracts.amm.abi,
+  //       functionName: 'psl'
+  //     },
+  //     {
+  //       address: contracts.amm.address as `0x${string}`,
+  //       abi: contracts.amm.abi,
+  //       functionName: 'supply'
+  //     },
+  //     {
+  //       address: contracts.amm.address as `0x${string}`,
+  //       abi: contracts.amm.abi,
+  //       functionName: 'targetRatio'
+  //     },
+  //     {
+  //       address: contracts.amm.address as `0x${string}`,
+  //       abi: contracts.amm.abi,
+  //       functionName: 'lastFloorRaise'
+  //     },
+  //     {
+  //       address: contracts.honey.address as `0x${string}`,
+  //       abi: contracts.honey.abi,
+  //       functionName: 'allowance',
+  //       args: [wallet, contracts.amm.address]
+  //     }
+  //   ]
+  // })
 
   const changeSlippage = (amount: number, displayString: string) => {
     const updatedState = { ...slippageState }
@@ -403,17 +413,14 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
     return response
   }
 
-  const checkAllowance = async (token: string, spender: string, amount: number, signer: Signer): Promise<boolean> => {
-    const tokenContract = new ethers.Contract(
-      contracts[token].address,
-      contracts[token].abi,
-      signer
-    )
-    const allowanceTx = await tokenContract.allowance(wallet, spender)
-    const allowanceNum = allowanceTx._hex / Math.pow(10, 18)
+  const checkAllowance = async (amt: number): Promise<boolean> => {
+    const allowance = await honeyContract.read.allowance([wallet, contracts.amm.address])
+    const allowanceNum = parseFloat(formatEther(allowance as unknown as bigint))
+
     console.log('allowanceNum: ', allowanceNum)
-    console.log('amount: ', amount)
-    if(amount > allowanceNum) {
+    console.log('amount: ', amt)
+    
+    if(amt > allowanceNum) {
       return false
     }
     else {
@@ -421,17 +428,14 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
     }
   }
 
-  const sendApproveTx = async (token: string, spender: string, amount: number, signer: any) => {
-    const tokenContract = new ethers.Contract(
-      contracts[token].address,
-      contracts[token].abi,
-      signer
-    )
-
+  const sendApproveTx = async (amt: number) => {
     try {
-      const approveTx = await tokenContract.approve(spender, BigNumber.from(ethers.utils.parseUnits((amount + 0.01).toString(), 18))) 
-      await approveTx.wait()
-      console.log('done waiting')
+      await writeContract({
+        address: contracts.honey.address as `0x${string}`,
+        abi: contracts.honey.abi,
+        functionName: 'approve',
+        args: [contracts.amm.address, parseEther(`${amt + 0.01}`)]
+      })
     }
     catch (e) {
       console.log('user denied tx')
@@ -439,16 +443,15 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
     }
   }
 
-  const sendBuyTx = async (buy: number, amount: number, signer: any): Promise<any> => {
-    const ammContract = new ethers.Contract(
-      contracts.amm.address,
-      contracts.amm.abi,
-      signer
-    )
+  //todo: receipt and receipt type
+  const sendBuyTx = async (buyAmt: number, maxCost: number): Promise<any> => {
     try {
-      const buyReceipt = await ammContract.buy(BigNumber.from(ethers.utils.parseUnits(buy.toString(), 18)), BigNumber.from(ethers.utils.parseUnits(amount.toString(), 18)))
-      await buyReceipt.wait()
-      return buyReceipt
+      await writeContract({
+        address: contracts.amm.address as `0x${string}`,
+        abi: contracts.amm.abi,
+        functionName: 'buy',
+        args: [parseEther(`${buyAmt}`), parseEther(`${maxCost}`)]
+      })
     }
     catch (e) {
       console.log('user denied tx')
@@ -456,16 +459,15 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
     }
   }
 
-  const sendSellTx = async (sell: number, receive: number, signer: any): Promise<any> => {
-    const ammContract = new ethers.Contract(
-      contracts.amm.address,
-      contracts.amm.abi,
-      signer
-    )
+  //todo: receipt and receipt type
+  const sendSellTx = async (sellAmt: number, minReceive: number): Promise<any> => {
     try {
-      const sellReceipt = await ammContract.sell(BigNumber.from(ethers.utils.parseUnits(sell.toString(), 18)), BigNumber.from(ethers.utils.parseUnits(receive.toString(), 18)))
-      await sellReceipt.wait()
-      return sellReceipt
+      await writeContract({
+        address: contracts.amm.address as `0x${string}`,
+        abi: contracts.amm.abi,
+        functionName: 'sell',
+        args: [parseEther(`${sellAmt}`), parseEther(`${minReceive}`)]
+      })
     }
     catch (e) {
       console.log('user denied tx')
@@ -473,16 +475,15 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
     }
   }
 
-  const sendRedeemTx = async (redeem: number, signer: any): Promise<any> => {
-    const ammContract = new ethers.Contract(
-      contracts.amm.address,
-      contracts.amm.abi,
-      signer
-    )
+  //todo: receipt and receipt type
+  const sendRedeemTx = async (redeemAmt: number): Promise<any> => {
     try {
-      const redeemReceipt = await ammContract.redeem(BigNumber.from(ethers.utils.parseUnits(redeem.toString(), 18)))
-      await redeemReceipt.wait()
-      return redeemReceipt
+      await writeContract({
+        address: contracts.amm.address as `0x${string}`,
+        abi: contracts.amm.abi,
+        functionName: 'redeem',
+        args: [parseEther(`${redeemAmt}`)]
+      })
     }
     catch (e) {
       console.log('user denied tx')

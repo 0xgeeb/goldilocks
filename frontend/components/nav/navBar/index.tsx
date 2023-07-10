@@ -9,27 +9,28 @@ import {
 
 export const NavBar = () => {
 
+  //todo: maybe just put minttx in here
   const { wallet, isConnected, network, signer, refreshBalances } = useWallet()
-  const { sendMintTx } = useTx()
+  // const { sendMintTx } = useTx()
 
   async function handleButtonClick() {
-    const button = document.getElementById('honey-button')
+    // const button = document.getElementById('honey-button')
 
-    if(!isConnected) {
-      button && (button.innerHTML = "where wallet")
-    }
-    else if(network !== "Avalanche Fuji C-Chain") {
-      button && (button.innerHTML = "where fuji")
-    }
-    else {
-      button && (button.innerHTML = "loading...")
-      await sendMintTx(signer)
-      button && (button.innerHTML = "u got $honey")
-      refreshBalances(wallet, signer)
-      setTimeout(() => {
-        button && (button.innerHTML = "$honey")
-      }, 5000)
-    }
+    // if(!isConnected) {
+    //   button && (button.innerHTML = "where wallet")
+    // }
+    // else if(network !== "Avalanche Fuji C-Chain") {
+    //   button && (button.innerHTML = "where fuji")
+    // }
+    // else {
+    //   button && (button.innerHTML = "loading...")
+    //   await sendMintTx(signer)
+    //   button && (button.innerHTML = "u got $honey")
+    //   refreshBalances()
+    //   setTimeout(() => {
+    //     button && (button.innerHTML = "$honey")
+    //   }, 5000)
+    // }
   }
 
   return (
@@ -42,12 +43,14 @@ export const NavBar = () => {
       <div className="flex flex-row justify-between w-[50%]">
         <div className="flex flex-row">
           <button className={`w-36 py-2 text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme`} id="honey-button" onClick={() => handleButtonClick()} >$honey</button>
+          {/* todo: change this link */}
           <a href="http://k8s-devnet-faucet-c59c30eb9c-922569211.us-west-2.elb.amazonaws.com/" target="_blank"><button className="w-24 py-2 text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl font-acme" id="home-button">faucet</button></a>
         </div>
         <div className="flex flex-row">
           <a href="/gamm"><button className="w-24 py-2 text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme" id="home-button">gamm</button></a>
           <a href="/staking"><button className="w-24 py-2 text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme" id="home-button">stake</button></a>
           <a href="/borrowing"><button className="w-24 py-2 text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme" id="home-button">borrow</button></a>
+          {/* todo: this is disappearing on page refresh */}
           <ConnectButton label="connect wallet" chainStatus="icon" showBalance={false} />
         </div>
       </div>
