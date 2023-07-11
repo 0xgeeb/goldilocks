@@ -1,9 +1,14 @@
+"use client"
+
 import { 
   SlippagePopup,
   GammButton
 } from "../../gamm"
 import { useLabel } from "../../../hooks/gamm"
-import { useGamm } from "../../../providers"
+import { 
+  useGamm, 
+  useWallet 
+} from "../../../providers"
 
 export const TradeBox = () => {
 
@@ -20,9 +25,10 @@ export const TradeBox = () => {
     sendApproveTx,
     refreshGammInfo
   } = useGamm()
+  const { isConnected } = useWallet()
 
   const test = () => {
-    refreshGammInfo()
+    console.log(isConnected)
   }
 
   return (
@@ -41,6 +47,7 @@ export const TradeBox = () => {
           </div>
           <div className="h-[50%] pl-10 flex flex-row items-center justify-between">
             <input className="border-none focus:outline-none bg-transparent font-acme rounded-xl text-[40px]" placeholder="0.00" value={handleTopInput()} onChange={(e) => handleTopChange(e.target.value)} type="number" id="number-input" autoFocus />
+            {/* todo: hide this and bottom one if not connected, have to debug hydration errors */}
             <h1 className="mr-10 mt-4 text-[23px] font-acme text-[#878d97]">balance: {handleTopBalance()}</h1>
           </div>
         </div>

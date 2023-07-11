@@ -10,7 +10,9 @@ export const TitleBar = () => {
   const { changeSlippageToggle, activeToggle, changeActiveToggle } = useGamm()
 
   const test = () => {
-    
+    navigator.geolocation.getCurrentPosition(position => {
+      console.log(position)
+    })
   }
 
   return (

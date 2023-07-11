@@ -64,6 +64,8 @@ const INITIAL_STATE = {
   handleBottomChange: (input: string) => {},
   handleBottomBalance: (): string => "0.00",
 
+  debouncedHoneyBuy: 0,
+
   //todo: could maybe put the below in a hook instead
   refreshGammInfo: async () => {},
   checkAllowance: async (amt: number): Promise<void | boolean> => {},
@@ -79,7 +81,7 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
 
   const { children } = props
 
-  const { balance, wallet } = useWallet()
+  const { balance, wallet, isConnected } = useWallet()
   const { simulateBuyDry } = useGammMath()
 
   //todo: type
@@ -127,6 +129,7 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
     setSlippageState(updatedState)
   }
 
+  //todo: zero honeybuy and shit out when doing this
   const changeActiveToggle = (toggle: string) => {
     setActiveToggleState(toggle)
   }
@@ -218,7 +221,7 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
 
   const handleTopInput = (): string => {
     if(activeToggleState === 'buy') {
-      return honeyBuyState > balance.honey ? '' : displayStringState
+      return isConnected && honeyBuyState > balance.honey ? '' : displayStringState
     }
     else if(activeToggleState === 'sell') {
       return sellingLocksState > balance.locks ? '' : displayStringState
@@ -433,6 +436,7 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
         displayString: displayStringState,
         bottomDisplayString: bottomDisplayStringState,
         honeyBuy: honeyBuyState,
+        debouncedHoneyBuy: debouncedHoneyBuyState,
         sellingLocks: sellingLocksState,
         redeemingLocks: redeemingLocksState,
         buyingLocks: buyingLocksState,

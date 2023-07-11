@@ -1,21 +1,32 @@
-import { useInfo } from "../../../providers"
+import { useGamm, useWallet } from "../../../providers"
 
 export const GammButton = () => {
 
-  const { testNumber, changeTestNumber } = useInfo()
+  const { activeToggle, debouncedHoneyBuy, gammInfo } = useGamm()
+  const { isConnected } = useWallet()
 
   const handleButtonClick = () => {
     console.log('clicked')
-    changeTestNumber(69)
   }
 
   const renderButton = () => {
-    return 'button'
+    if(activeToggle === 'buy') {
+      if(isConnected && debouncedHoneyBuy > gammInfo.honeyAmmAllowance) {
+        return 'approve use of $honey'
+      }
+      return 'buy'
+    }
+    else if(activeToggle === 'sell') {
+      return 'sell'
+    }
+    else {
+      return 'redeem'
+    }
   }
 
   return (
     <div className="h-[33%] w-[100%] flex justify-center items-center">
-      <button className="h-[50%] w-[50%] bg-white rounded-xl mt-5 py-3 px-6 border-2 border-black font-acme text-[30px]" id="amm-button" onClick={() => handleButtonClick()} >{renderButton()}</button>
+      <button className="h-[50%] w-[50%] bg-white rounded-xl py-3 px-6 border-2 border-black font-acme text-[30px]" id="amm-button" onClick={() => handleButtonClick()} >{renderButton()}</button>
     </div>
   )
 }
