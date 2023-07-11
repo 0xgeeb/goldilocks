@@ -65,13 +65,12 @@ const INITIAL_STATE = {
   handleBottomBalance: (): string => "0.00",
 
   //todo: could maybe put the below in a hook instead
-  getGammInfo: async (): Promise<any> => {},
-  refreshGammInfo: async (signer: any): Promise<any> => {},
+  refreshGammInfo: async () => {},
   checkAllowance: async (amt: number): Promise<void | boolean> => {},
   sendApproveTx: async (amt: number) => {},
-  sendBuyTx: async (buy: number, amount: number, signer: any): Promise<any> => {},
-  sendSellTx: async (sell: number, receive: number, signer: any): Promise<any> => {},
-  sendRedeemTx: async (redeem: number, signer: any): Promise<any> => {}
+  sendBuyTx: async (buyAmt: number, maxCost: number): Promise<any> => {},
+  sendSellTx: async (sellAmt: number, minReceive: number): Promise<any> => {},
+  sendRedeemTx: async (redeemAmt: number): Promise<any> => {}
 }
 
 const GammContext = createContext(INITIAL_STATE)
@@ -114,42 +113,6 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
     address: contracts.amm.address as `0x${string}`,
     abi: contracts.amm.abi
   })
-
-  // const { data: info } = useContractReads({
-  //   contracts: [
-  //     {
-  //       address: contracts.amm.address as `0x${string}`,
-  //       abi: contracts.amm.abi,
-  //       functionName: 'fsl'
-  //     },
-  //     {
-  //       address: contracts.amm.address as `0x${string}`,
-  //       abi: contracts.amm.abi,
-  //       functionName: 'psl'
-  //     },
-  //     {
-  //       address: contracts.amm.address as `0x${string}`,
-  //       abi: contracts.amm.abi,
-  //       functionName: 'supply'
-  //     },
-  //     {
-  //       address: contracts.amm.address as `0x${string}`,
-  //       abi: contracts.amm.abi,
-  //       functionName: 'targetRatio'
-  //     },
-  //     {
-  //       address: contracts.amm.address as `0x${string}`,
-  //       abi: contracts.amm.abi,
-  //       functionName: 'lastFloorRaise'
-  //     },
-  //     {
-  //       address: contracts.honey.address as `0x${string}`,
-  //       abi: contracts.honey.abi,
-  //       functionName: 'allowance',
-  //       args: [wallet, contracts.amm.address]
-  //     }
-  //   ]
-  // })
 
   const changeSlippage = (amount: number, displayString: string) => {
     const updatedState = { ...slippageState }
@@ -359,58 +322,27 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
     }
   }
 
-  const getGammInfo = async (): Promise<any> => {
-    if(info) {
-      const [fsl, psl, supply, targetRatio, lastFloorRaise, honeyAmmAllowance] = info as unknown as [number, number, number, number, number, number]
-      let response = {
-        fsl: fsl / Math.pow(10, 18),
-        psl: psl / Math.pow(10, 18),
-        supply: supply / Math.pow(10, 18),
-        targetRatio: targetRatio / Math.pow(10, 18),
-        lastFloorRaise: lastFloorRaise / Math.pow(10, 18),
-        honeyAmmAllowance: honeyAmmAllowance / Math.pow(10, 18)
-      }
-      setGammInfoState(response)
-      return response
-    }
-  }
-
-  const refreshGammInfo = async (signer: Signer): Promise<any> => {
-    let response = {
-      fsl: 0,
-      psl: 0,
-      supply: 0,
-      targetRatio: 0,
-      lastFloorRaise: 0,
-      honeyAmmAllowance: 0
+  const refreshGammInfo = async () => {
+    const fsl = await gammContract.read.fsl([])
+    const psl = await gammContract.read.psl([])
+    const supply = await gammContract.read.supply([])
+    const targetRatio = await gammContract.read.targetRatio([])
+    const lastFloorRaise = await gammContract.read.lastFloorRaise([])
+    let honeyAmmAllowance
+    if(wallet) {
+      honeyAmmAllowance = await honeyContract.read.allowance([wallet, contracts.amm.address])
     }
 
-    const ammContract = new ethers.Contract(
-      contracts.amm.address,
-      contracts.amm.abi,
-      signer
-    )
-    const fslTx = await ammContract.fsl()
-    response = { ...response, fsl: fslTx._hex / Math.pow(10, 18)}
-    const pslTx = await ammContract.psl()
-    response = { ...response, psl: pslTx._hex / Math.pow(10, 18)}
-    const supplyTx = await ammContract.supply()
-    response = { ...response, supply: supplyTx._hex / Math.pow(10, 18)}
-    const ratioTx = await ammContract.targetRatio()
-    response = { ...response, targetRatio: ratioTx._hex / Math.pow(10, 18)}
-    const lastRaiseTx = await ammContract.lastFloorRaise()
-    response = { ...response, lastFloorRaise: lastRaiseTx._hex / Math.pow(10, 18)}
-
-    const honeyContract = new ethers.Contract(
-      contracts.honey.address,
-      contracts.honey.abi,
-      signer
-    )
-    const allowanceTx = await honeyContract.allowance(wallet, contracts.amm.address)
-    response = { ...response, honeyAmmAllowance: allowanceTx._hex / Math.pow(10, 18)}
+    const response = {
+      fsl: parseFloat(formatEther(fsl as unknown as bigint)),
+      psl: parseFloat(formatEther(psl as unknown as bigint)),
+      supply: parseFloat(formatEther(supply as unknown as bigint)),
+      targetRatio: parseFloat(formatEther(targetRatio as unknown as bigint)),
+      lastFloorRaise: parseFloat(formatEther(lastFloorRaise as unknown as bigint)),
+      honeyAmmAllowance: wallet ? parseFloat(formatEther(honeyAmmAllowance as unknown as bigint)) : 0
+    }
 
     setGammInfoState(response)
-    return response
   }
 
   const checkAllowance = async (amt: number): Promise<boolean> => {
@@ -521,7 +453,6 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
         changeActiveToggle,
         changeSlippage,
         changeSlippageToggle,
-        getGammInfo,
         refreshGammInfo,
         checkAllowance,
         sendApproveTx,

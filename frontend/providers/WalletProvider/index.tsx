@@ -53,7 +53,7 @@ export const WalletProvider = (props: PropsWithChildren<{}>) => {
       const porridgeBalance = await porridgeContract.read.balanceOf([address])
       const honeyBalance = await honeyContract.read.balanceOf([address])
 
-      let response = {
+      const response = {
         locks: parseFloat(formatEther(locksBalance as unknown as bigint)),
         prg: parseFloat(formatEther(porridgeBalance as unknown as bigint)),
         honey: parseFloat(formatEther(honeyBalance as unknown as bigint))

@@ -17,11 +17,12 @@ export const TradeBox = () => {
     handleBottomBalance,
     handleBottomChange,
     handleBottomInput,
-    sendApproveTx
+    sendApproveTx,
+    refreshGammInfo
   } = useGamm()
 
   const test = () => {
-    sendApproveTx(69)
+    refreshGammInfo()
   }
 
   return (

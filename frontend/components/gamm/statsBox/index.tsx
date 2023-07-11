@@ -1,3 +1,6 @@
+"use client"
+
+import { useEffect } from "react"
 import { useGammMath, useFormatDate } from "../../../hooks/gamm"
 import { useGamm } from "../../../providers"
 
@@ -10,7 +13,11 @@ export const StatsBox = () => {
   })
 
   const { floorPrice, marketPrice } = useGammMath()
-  const { gammInfo, newInfo } = useGamm()
+  const { gammInfo, newInfo, refreshGammInfo } = useGamm()
+
+  useEffect(() => {
+    refreshGammInfo()
+  }, [])
 
   return (
     <div className="flex flex-row justify-between">
