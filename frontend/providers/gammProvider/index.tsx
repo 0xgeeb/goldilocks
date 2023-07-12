@@ -52,6 +52,8 @@ const INITIAL_STATE = {
   bottomDisplayString: '',
   changeBottomDisplayString: (bottomDisplayString: string) => {},
 
+  changeNewInfo: (fsl: number, psl: number, floor: number, market: number, supply: number) => {},
+
   handlePercentageButtons: (action: number) => {},
 
   flipTokens: () => {},
@@ -65,6 +67,8 @@ const INITIAL_STATE = {
   handleBottomBalance: (): string => "0.00",
 
   debouncedHoneyBuy: 0,
+
+  findLocksBuyAmount: (debouncedValue: number) => 0,
 
   //todo: could maybe put the below in a hook instead
   refreshGammInfo: async () => {},
@@ -82,7 +86,7 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
   const { children } = props
 
   const { balance, wallet, isConnected } = useWallet()
-  const { simulateBuyDry } = useGammMath()
+  const { simulateBuyDry, floorPrice, marketPrice } = useGammMath()
 
   //todo: type
   const [gammInfoState, setGammInfoState] = useState(INITIAL_STATE.gammInfo)
@@ -142,6 +146,16 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
     setBottomDisplayStringState(bottomDisplayString)
   }
 
+  const changeNewInfo = (fsl: number, psl: number, floor: number, market: number, supply: number) => {
+    setNewInfoState({
+      fsl: fsl,
+      psl: psl,
+      floor: floor,
+      market: market,
+      supply: supply
+    })
+  }
+
   const handlePercentageButtons = (action: number) => {
     if(action == 1) {
       if(activeToggleState === 'buy') {
@@ -199,6 +213,48 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
         setRedeemingLocksState(balance.locks)
       }
     }
+  }
+
+  const findLocksBuyAmount = (debouncedValue: number): number => {
+    const honey: number = debouncedValue
+    let locks: number = honey / marketPrice(gammInfoState.fsl, gammInfoState.psl, gammInfoState.supply)
+    let temp: number = 0
+    while(parseFloat(temp.toFixed(2)) !== parseFloat(honey.toFixed(2))) {
+      temp = simulateBuyDry(locks, gammInfoState.fsl, gammInfoState.psl, gammInfoState.supply)
+      if(parseFloat(temp.toFixed(2)) > parseFloat(honey.toFixed(2))) {
+        const diff = temp - honey
+        if(diff > 100) {
+          locks -= 0.01
+        }
+        else if(diff > 10) {
+          locks -= 0.001
+        }
+        else {
+          locks -= 0.0000001
+        }
+      }
+      else if(parseFloat(temp.toFixed(2)) < parseFloat(honey.toFixed(2))) {
+        const diff = honey - temp
+        if(diff > 100) {
+          locks += 0.01
+        }
+        else if(diff > 10) {
+          locks += 0.001
+        }
+        else {
+          locks += 0.0000001
+        }
+      }
+      else {
+        const locksWithSlippage: number = locks * (1 - (slippageState.amount / 100))
+        setBuyingLocksState(locksWithSlippage)
+        setBottomDisplayStringState(locksWithSlippage.toFixed(4))
+        console.log('found it: ', parseFloat(temp.toFixed(2)))
+        console.log('locks: ', locks)
+        console.log('with slippage: ', locksWithSlippage)
+      }
+    }
+    return locks
   }
 
   const handleTopBalance = (): string => {
@@ -345,7 +401,16 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
       honeyAmmAllowance: wallet ? parseFloat(formatEther(honeyAmmAllowance as unknown as bigint)) : 0
     }
 
+    const newResponse = {
+      fsl: parseFloat(formatEther(fsl as unknown as bigint)),
+      psl: parseFloat(formatEther(psl as unknown as bigint)),
+      floor: floorPrice(parseFloat(formatEther(fsl as unknown as bigint)), parseFloat(formatEther(supply as unknown as bigint))),
+      market: marketPrice(parseFloat(formatEther(fsl as unknown as bigint)), parseFloat(formatEther(psl as unknown as bigint)), parseFloat(formatEther(supply as unknown as bigint))),
+      supply: parseFloat(formatEther(supply as unknown as bigint)),
+    }
+
     setGammInfoState(response)
+    setNewInfoState(newResponse)
   }
 
   const checkAllowance = async (amt: number): Promise<boolean> => {
@@ -444,7 +509,9 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
         redeemingHoney: redeemingHoneyState,
         topInputFlag: topInputFlagState,
         bottomInputFlag: bottomInputFlagState,
+        changeNewInfo,
         flipTokens,
+        findLocksBuyAmount,
         changeDisplayString,
         changeBottomDisplayString,
         handlePercentageButtons,

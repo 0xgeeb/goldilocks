@@ -1,10 +1,14 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { 
   SlippagePopup,
   GammButton
 } from "../../gamm"
-import { useLabel } from "../../../hooks/gamm"
+import { 
+  useLabel,
+  useGammMath
+} from "../../../hooks/gamm"
 import { 
   useGamm, 
   useWallet 
@@ -12,7 +16,11 @@ import {
 
 export const TradeBox = () => {
 
-  const { 
+  const [balancesLoading, setBalancesLoading] = useState<boolean>(false)
+  const {
+    gammInfo,
+    debouncedHoneyBuy,
+    changeBottomDisplayString,
     activeToggle, 
     handlePercentageButtons, 
     handleTopBalance, 
@@ -22,14 +30,44 @@ export const TradeBox = () => {
     handleBottomBalance,
     handleBottomChange,
     handleBottomInput,
-    sendApproveTx,
-    refreshGammInfo
+    changeNewInfo,
+    findLocksBuyAmount,
+    sendApproveTx
   } = useGamm()
-  const { isConnected } = useWallet()
+  const { 
+    isConnected, 
+    balance, 
+    refreshBalances 
+  } = useWallet()
+  const { 
+    floorPrice,
+    marketPrice
+  } = useGammMath()
+
+  useEffect(() => {
+    setBalancesLoading(true)
+    refreshBalances()
+    setBalancesLoading(false)
+  }, [])
 
   const test = () => {
     console.log(isConnected)
   }
+
+  const loadingElement = () => {
+    return <span className="loader"></span>
+  }
+
+  useEffect(() => {
+    if(!debouncedHoneyBuy || (isConnected && debouncedHoneyBuy > balance.honey)) {
+      changeNewInfo(gammInfo.fsl, gammInfo.psl, floorPrice(gammInfo.fsl, gammInfo.supply), marketPrice(gammInfo.fsl, gammInfo.psl, gammInfo.supply), gammInfo.supply)
+      changeBottomDisplayString('')
+    }
+    else {
+      const locksAmount: number = findLocksBuyAmount(debouncedHoneyBuy)
+      // simulateBuy(locksAmount)
+    }
+  }, [debouncedHoneyBuy])
 
   return (
     <div className="h-[75%] relative mt-4 flex flex-col" onClick={() => test()}>
@@ -48,7 +86,7 @@ export const TradeBox = () => {
           <div className="h-[50%] pl-10 flex flex-row items-center justify-between">
             <input className="border-none focus:outline-none bg-transparent font-acme rounded-xl text-[40px]" placeholder="0.00" value={handleTopInput()} onChange={(e) => handleTopChange(e.target.value)} type="number" id="number-input" autoFocus />
             {/* todo: hide this and bottom one if not connected, have to debug hydration errors */}
-            <h1 className="mr-10 mt-4 text-[23px] font-acme text-[#878d97]">balance: {handleTopBalance()}</h1>
+            <h1 className="mr-10 mt-4 text-[23px] font-acme text-[#878d97]">balance: {balancesLoading ? loadingElement() : handleTopBalance()}</h1>
           </div>
         </div>
         <div className="absolute top-[31%] left-[50%] h-10 w-10 bg-[#ffff00] border-2 border-black rounded-3xl flex justify-center items-center" onClick={() => flipTokens()}>

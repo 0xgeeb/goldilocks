@@ -15,8 +15,12 @@ export const StatsBox = () => {
   const { floorPrice, marketPrice } = useGammMath()
   const { gammInfo, newInfo, refreshGammInfo } = useGamm()
 
+  const fetchInfo = async () => {
+    await refreshGammInfo()
+  }
+
   useEffect(() => {
-    refreshGammInfo()
+    fetchInfo()
   }, [])
 
   return (

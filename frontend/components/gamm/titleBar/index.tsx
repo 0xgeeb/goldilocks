@@ -10,9 +10,9 @@ export const TitleBar = () => {
   const { changeSlippageToggle, activeToggle, changeActiveToggle } = useGamm()
 
   const test = () => {
-    navigator.geolocation.getCurrentPosition(position => {
-      console.log(position)
-    })
+    // navigator.geolocation.getCurrentPosition(position => {
+    //   console.log(position)
+    // })
   }
 
   return (
@@ -52,12 +52,14 @@ export const TitleBar = () => {
               onClick={() => changeActiveToggle('redeem')}
             >
               redeem
-              <span className="ml-1 rounded-full px-2 border-2 border-black hover:bg-black hover:text-white" 
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setPopupToggle(true)
-                  }}
-                >?
+              <span 
+                className="ml-1 rounded-full px-2 border-2 border-black hover:bg-black hover:text-white" 
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setPopupToggle(true)
+                }}
+              >
+                ?
               </span>
             </div>
           </div>
