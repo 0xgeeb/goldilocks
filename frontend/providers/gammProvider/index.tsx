@@ -34,12 +34,16 @@ const INITIAL_STATE = {
   sellingLocks: 0,
   redeemingLocks: 0,
 
+  setHoneyBuy: (honeyBuy: number) => {},
+
   buyingLocks: 0,
   gettingHoney: 0,
   redeemingHoney: 0,
 
   topInputFlag: false,
   bottomInputFlag: false,
+  changeTopInputFlag: (bool: boolean) => {},
+  changeBottomInputFlag: (bool: boolean) => {},
 
   changeSlippage: (amount: number, displayString: string) => {},
   changeSlippageToggle: (toggle: boolean) => {},
@@ -53,6 +57,7 @@ const INITIAL_STATE = {
   changeBottomDisplayString: (bottomDisplayString: string) => {},
 
   changeNewInfo: (fsl: number, psl: number, floor: number, market: number, supply: number) => {},
+  simulateBuy: (amt: number) => {},
 
   handlePercentageButtons: (action: number) => {},
 
@@ -120,6 +125,7 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
     abi: contracts.amm.abi
   })
 
+  //todo: can abstract away all change functions by exporting setstate functions
   const changeSlippage = (amount: number, displayString: string) => {
     const updatedState = { ...slippageState }
     updatedState.amount = amount
@@ -133,8 +139,15 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
     setSlippageState(updatedState)
   }
 
-  //todo: zero honeybuy and shit out when doing this
   const changeActiveToggle = (toggle: string) => {
+    setDisplayStringState('')
+    setBottomDisplayStringState('')
+    setHoneyBuyState(0)
+    setBuyingLocksState(0)
+    setSellingLocksState(0)
+    setGettingHoneyState(0)
+    setRedeemingLocksState(0)
+    setRedeemingHoneyState(0)
     setActiveToggleState(toggle)
   }
   
@@ -144,6 +157,14 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
 
   const changeBottomDisplayString = (bottomDisplayString: string) => {
     setBottomDisplayStringState(bottomDisplayString)
+  }
+
+  const changeTopInputFlag = (bool: boolean) => {
+    setTopInputFlagState(bool)
+  }
+
+  const changeBottomInputFlag = (bool: boolean) => {
+    setBottomInputFlagState(bool)
   }
 
   const changeNewInfo = (fsl: number, psl: number, floor: number, market: number, supply: number) => {
@@ -254,7 +275,78 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
         console.log('with slippage: ', locksWithSlippage)
       }
     }
-    return locks
+    return locks * (1 - (slippageState.amount / 100))
+  }
+
+  const simulateBuy = (amt: number) => {
+    let _leftover = amt
+    let _fsl = gammInfoState.fsl
+    let _psl = gammInfoState.psl
+    let _supply = gammInfoState.supply
+    let _purchasePrice = 0
+    let _tax = 0
+    let _market = 0
+    let _floor = 0
+    while(_leftover >= 1) {
+      _market = marketPrice(_fsl, _psl, _supply)
+      _floor = floorPrice(_fsl, _supply)
+      _purchasePrice += _market
+      _supply++
+      if(_psl / _fsl >= 0.50) {
+        _fsl += _market
+      }
+      else {
+        _fsl += _floor
+        _psl += (_market - _floor)
+      }
+      _leftover--
+    }
+    if(_leftover > 0) {
+      _market = marketPrice(_fsl, _psl, _supply)
+      _floor = floorPrice(_fsl, _supply)
+      _purchasePrice += _market * _leftover
+      _supply += _leftover
+      if(_psl / _fsl >= 0.50) {
+        _fsl += _market * _leftover
+      }
+      else {
+        _psl += (_market - _floor) * _leftover
+        _fsl += _floor * _leftover
+      }
+    }
+    _tax = _purchasePrice * 0.003
+
+    const response = {
+      fsl: _fsl,
+      psl: _psl,
+      floor: floorPrice(_fsl + _tax, _supply),
+      market: marketPrice(_fsl + _tax, _psl, _supply),
+      supply: _supply
+    }
+
+    setNewInfoState(response)
+
+    simulateFloorRaise(_fsl + _tax, _psl, _supply)
+  }
+
+  const simulateFloorRaise = (_fsl: number, _psl: number, _supply: number) => {
+    if(_psl / _fsl >= gammInfoState.targetRatio) {
+      let raiseAmount: number = (_psl / _fsl) * (_psl / 32)
+      setNewInfoState((prevState) => {
+        const newFsl = prevState.fsl + raiseAmount;
+        const newPsl = prevState.psl - raiseAmount;
+        const newFloor = floorPrice(newFsl, prevState.supply);
+        const newMarket = marketPrice(newPsl, newPsl - raiseAmount, prevState.supply);
+      
+        return {
+          ...prevState,
+          fsl: newFsl,
+          psl: newPsl,
+          floor: newFloor,
+          market: newMarket
+        }
+      })
+    }
   }
 
   const handleTopBalance = (): string => {
@@ -289,7 +381,7 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
 
   const handleBottomInput = (): string => {
     if(activeToggleState === 'buy') {
-      return simulateBuyDry(buyingLocksState, gammInfoState.fsl, gammInfoState.psl, gammInfoState.supply) > balance.honey ? '' : bottomDisplayStringState
+      return isConnected && simulateBuyDry(buyingLocksState, gammInfoState.fsl, gammInfoState.psl, gammInfoState.supply) > balance.honey ? '' : bottomDisplayStringState
     }
     else if(activeToggleState === 'sell') {
       return bottomDisplayStringState
@@ -502,6 +594,7 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
         bottomDisplayString: bottomDisplayStringState,
         honeyBuy: honeyBuyState,
         debouncedHoneyBuy: debouncedHoneyBuyState,
+        setHoneyBuy: setHoneyBuyState,
         sellingLocks: sellingLocksState,
         redeemingLocks: redeemingLocksState,
         buyingLocks: buyingLocksState,
@@ -509,7 +602,10 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
         redeemingHoney: redeemingHoneyState,
         topInputFlag: topInputFlagState,
         bottomInputFlag: bottomInputFlagState,
+        changeTopInputFlag,
+        changeBottomInputFlag,
         changeNewInfo,
+        simulateBuy,
         flipTokens,
         findLocksBuyAmount,
         changeDisplayString,

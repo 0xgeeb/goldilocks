@@ -19,9 +19,18 @@ export const TradeBox = () => {
   const [balancesLoading, setBalancesLoading] = useState<boolean>(false)
   const {
     gammInfo,
+    simulateBuy,
+    slippage,
     debouncedHoneyBuy,
+    setHoneyBuy,
+    changeDisplayString,
     changeBottomDisplayString,
-    activeToggle, 
+    buyingLocks,
+    changeTopInputFlag,
+    changeBottomInputFlag,
+    activeToggle,
+    topInputFlag,
+    bottomInputFlag,
     handlePercentageButtons, 
     handleTopBalance, 
     handleTopInput, 
@@ -32,7 +41,7 @@ export const TradeBox = () => {
     handleBottomInput,
     changeNewInfo,
     findLocksBuyAmount,
-    sendApproveTx
+    bottomDisplayString
   } = useGamm()
   const { 
     isConnected, 
@@ -41,7 +50,8 @@ export const TradeBox = () => {
   } = useWallet()
   const { 
     floorPrice,
-    marketPrice
+    marketPrice,
+    simulateBuyDry
   } = useGammMath()
 
   useEffect(() => {
@@ -51,7 +61,17 @@ export const TradeBox = () => {
   }, [])
 
   const test = () => {
-    console.log(isConnected)
+    console.log(bottomDisplayString)
+  }
+
+  const resetBottom = (input: string) => {
+    changeNewInfo(gammInfo.fsl, gammInfo.psl, floorPrice(gammInfo.fsl, gammInfo.supply), marketPrice(gammInfo.fsl, gammInfo.psl, gammInfo.supply), gammInfo.supply)
+    if(input === 'top') {
+      changeBottomDisplayString('')
+    }
+    else {
+      changeDisplayString('')
+    }
   }
 
   const loadingElement = () => {
@@ -59,15 +79,32 @@ export const TradeBox = () => {
   }
 
   useEffect(() => {
-    if(!debouncedHoneyBuy || (isConnected && debouncedHoneyBuy > balance.honey)) {
-      changeNewInfo(gammInfo.fsl, gammInfo.psl, floorPrice(gammInfo.fsl, gammInfo.supply), marketPrice(gammInfo.fsl, gammInfo.psl, gammInfo.supply), gammInfo.supply)
-      changeBottomDisplayString('')
-    }
-    else {
-      const locksAmount: number = findLocksBuyAmount(debouncedHoneyBuy)
-      // simulateBuy(locksAmount)
+    if(!bottomInputFlag) {
+      if(!debouncedHoneyBuy || (isConnected && debouncedHoneyBuy > balance.honey)) {
+        resetBottom('top')
+      }
+      else {
+        changeTopInputFlag(true)
+        const locksAmount: number = findLocksBuyAmount(debouncedHoneyBuy)
+        simulateBuy(locksAmount)
+      }
     }
   }, [debouncedHoneyBuy])
+
+  useEffect(() => {
+    if(!topInputFlag) {
+      const locksWithSlippage: number = buyingLocks * (1 + (slippage.amount / 100))
+      if(!buyingLocks || (isConnected && simulateBuyDry(locksWithSlippage, gammInfo.fsl, gammInfo.psl, gammInfo.supply) > balance.honey)) {
+        resetBottom('bottom')
+      }
+      else {
+        changeBottomInputFlag(true)
+        !slippage.toggle && changeDisplayString(simulateBuyDry(locksWithSlippage, gammInfo.fsl, gammInfo.psl, gammInfo.supply).toFixed(4))
+        !slippage.toggle && setHoneyBuy(simulateBuyDry(locksWithSlippage, gammInfo.fsl, gammInfo.psl, gammInfo.supply))
+        simulateBuy(locksWithSlippage)
+      }
+    }
+  }, [buyingLocks])
 
   return (
     <div className="h-[75%] relative mt-4 flex flex-col" onClick={() => test()}>
