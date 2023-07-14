@@ -22,39 +22,75 @@ contract PorridgeTest is Test {
 
     gamm.setPorridgeAddress(address(porridge));
     borrow.setPorridgeAddress(address(porridge));
-
-    deal(address(honey), address(gamm), 1800000e18, true);
-    deal(address(gamm), address(this), 5000e18, true);
   }
 
-  // function testCalculateYield() public {
-  //   porridge.setLocksAddress(address(locks));
-  //   deal(address(locks), address(this), 100e18);
-  //   locks.approve(address(porridge), 100e18);
-  //   porridge.stake(100e18);
-  //   vm.warp(block.timestamp + 86400);
-  //   uint256 result = porridge.claim();
-  //   assertEq(result, 5e17);
-  // }
+  modifier deal100Locks() {
+    deal(address(gamm), address(this), 100e18);
+    gamm.approve(address(porridge), 100e18);
+    _;
+  }
 
-  // function testUnstake() public {
-  //   porridge.setLocksAddress(address(locks));
-  //   deal(address(locks), address(this), 100e18);
-  //   locks.approve(address(porridge), 100e18);
-  //   porridge.stake(100e18);
-  //   vm.warp(block.timestamp + 129600);
-  //   porridge.unstake(100e18);
-  //   assertEq(porridge.balanceOf(address(this)), 75e16);
-  // }
+  modifier deal280Honey() {
+    deal(address(honey), address(this), 280e18);
+    honey.approve(address(porridge), 280e18);
+    _;
+  }
 
-  // function testRealize() public {
-  //   deal(address(honey), address(this), 1000000e18, true);
-  //   deal(address(honey), address(locks), 1000000e18, true);
-  //   deal(address(porridge), address(this), 1000000e18, true);
-  //   locks.transferToAMM(1600000e18, 400000e18);
-  //   honey.approve(address(porridge), 1600000000e18);
-  //   porridge.realize(10e18);
-  //   assertEq(locks.balanceOf(address(this)), 10e18);
-  // }
+  function testCalculate1DayofYield() public deal100Locks {
+    porridge.stake(100e18);
+    vm.warp(block.timestamp + porridge.DAYS_SECONDS());
+    porridge.claim();
+
+    uint256 OneDayofYield = 5e17;
+    uint256 prgBalance = porridge.balanceOf(address(this));
+
+    assertEq(prgBalance, OneDayofYield);
+  }
+
+  function testStake() public deal100Locks {
+    porridge.stake(100e18);
+
+    uint256 userBalanceofLocks = gamm.balanceOf(address(this));
+    uint256 contractBalance = gamm.balanceOf(address(porridge));
+    uint256 getStakedUserBalance = porridge.getStaked(address(this));
+
+    assertEq(userBalanceofLocks, 0);
+    assertEq(contractBalance, 100e18);
+    assertEq(getStakedUserBalance, 100e18);
+  }
+
+  function testUnstake() public deal100Locks {
+    porridge.stake(100e18);
+    vm.warp(block.timestamp + porridge.DAYS_SECONDS());
+    porridge.unstake(100e18);
+
+    uint256 OneDayofYield = 5e17;
+    uint256 userBalanceofLocks = gamm.balanceOf(address(this));
+    uint256 contractBalance = gamm.balanceOf(address(porridge));
+    uint256 getStakedUserBalance = porridge.getStaked(address(this));
+    uint256 prgBalance = porridge.balanceOf(address(this));
+
+    assertEq(userBalanceofLocks, 100e18);
+    assertEq(contractBalance, 0);
+    assertEq(getStakedUserBalance, 0);
+    assertEq(prgBalance, OneDayofYield);
+  }
+
+  function testRealize() public deal100Locks deal280Honey {
+    porridge.stake(100e18);
+    vm.warp(block.timestamp + (2 * porridge.DAYS_SECONDS()));
+    porridge.unstake(100e18);
+    porridge.realize(1e18);
+
+    uint256 userBalanceofPrg = porridge.balanceOf(address(this));
+    uint256 userBalanceofLocks = gamm.balanceOf(address(this));
+    uint256 userBalanceofHoney = honey.balanceOf(address(this));
+    uint256 gammBalanceofHoney = honey.balanceOf(address(gamm));
+
+    assertEq(userBalanceofPrg, 0);
+    assertEq(userBalanceofLocks, 101e18);
+    assertEq(userBalanceofHoney, 0);
+    assertEq(gammBalanceofHoney, 280e18);
+  }
 
 }

@@ -31,7 +31,7 @@ contract BorrowTest is Test {
   function testBorrowTransfers() public {
     gamm.approve(address(porridge), type(uint256).max);
     porridge.stake(50e18);
-    uint256 floorPrice = gamm.floorPrice();
+    // uint256 floorPrice = gamm.floorPrice();
     
     // uint256 borrowAmount = (50e18 * floorPrice) / 1e18;
     // borrow.borrow(borrowAmount);

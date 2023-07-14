@@ -17,7 +17,7 @@ pragma solidity ^0.8.19;
 // ==============================================================================================
 
 
-// todo maybe export this lib to a goldilockslibrary
+// todo: maybe export this lib to a goldilockslibrary
 import { FixedPointMathLib } from "../lib/solady/src/utils/FixedPointMathLib.sol";
 import { SafeTransferLib } from "../lib/solady/src/utils/SafeTransferLib.sol";
 import { ERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
@@ -29,15 +29,13 @@ import { ERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20
 /// @author ampnoob
 contract GAMM is ERC20("Locks Token", "LOCKS") {
 
-  using FixedPointMathLib for uint256;
-
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
   /*                      STATE VARIABLES                       */
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  //todo clean these up
+  //todo: clean these up
   uint256 public fsl = 1400000e18;
   uint256 public psl = 400000e18;
   uint256 public supply = 5000e18;
@@ -138,6 +136,7 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
   /// @notice Purchases $LOCKS tokens with $HONEY tokens
   /// @param _amount Amount of $LOCKS to buy
   /// @param _maxAmount Maximum amount of $HONEY to spend
+  //todo: compartenalize this big function
   function buy(uint256 _amount, uint256 _maxAmount) external {
     uint256 _supply = supply;
     uint256 _leftover = _amount;

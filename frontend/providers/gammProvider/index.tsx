@@ -135,7 +135,6 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
     abi: contracts.amm.abi
   })
 
-  //todo: can abstract away all change functions by exporting setstate functions
   const changeSlippage = (amount: number, displayString: string) => {
     const updatedState = { ...slippageState }
     updatedState.amount = amount
