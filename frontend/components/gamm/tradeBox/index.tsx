@@ -75,9 +75,7 @@ export const TradeBox = () => {
   }, [])
 
   const test = () => {
-    console.log(displayString)
-    console.log(honeyBuy)
-    console.log(balance.honey)
+
   }
 
   const resetInfo = () => {

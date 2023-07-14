@@ -1,12 +1,136 @@
-import { useGamm, useWallet } from "../../../providers"
+import { 
+  useGamm, 
+  useWallet,
+  useNotification
+} from "../../../providers"
+import { contracts } from "../../../utils/addressi"
 
 export const GammButton = () => {
 
-  const { activeToggle, debouncedHoneyBuy, gammInfo } = useGamm()
-  const { isConnected } = useWallet()
+  const { 
+    activeToggle, 
+    debouncedHoneyBuy, 
+    gammInfo,
+    honeyBuy,
+    setHoneyBuy,
+    sellingLocks,
+    setSellingLocks,
+    setDisplayString,
+    buyingLocks,
+    setBuyingLocks,
+    gettingHoney,
+    setGettingHoney,
+    redeemingLocks,
+    redeemingHoney,
+    setRedeemingHoney,
+    setRedeemingLocks,
+    setBottomDisplayString,
+    checkAllowance,
+    sendApproveTx,
+    sendBuyTx,
+    sendSellTx,
+    sendRedeemTx,
+    refreshGammInfo
+  } = useGamm()
+  const { 
+    isConnected, 
+    network,
+    refreshBalances
+  } = useWallet()
+  const { openNotification } = useNotification()
 
-  const handleButtonClick = () => {
-    console.log('clicked')
+  //todo: it is not waiting for tx to be done
+  const handleButtonClick = async () => {
+    const button = document.getElementById('amm-button')
+
+    if(!isConnected) {
+      button && (button.innerHTML = "connect wallet")
+    }
+    else if(network !== "Avalanche Fuji C-Chain") {
+      button && (button.innerHTML = "switch to devnet plz")
+    }
+    else {
+      if(activeToggle === 'buy') {
+        if(honeyBuy == 0) {
+          return
+        }
+        const sufficientAllowance: boolean | void = await checkAllowance(honeyBuy)
+        if(sufficientAllowance) {
+          button && (button.innerHTML = "buying...")
+          const buyTx = await sendBuyTx(buyingLocks, honeyBuy)
+          buyTx && openNotification({
+            title: 'Successfully Purchased $LOCKS!',
+            hash: buyTx.hash,
+            direction: 'bought',
+            amount: buyingLocks,
+            price: honeyBuy,
+            page: 'amm'
+          })
+          button && (button.innerHTML = "buy")
+          setHoneyBuy(0)
+          setDisplayString('')
+          setBuyingLocks(0)
+          setBottomDisplayString('')
+          refreshBalances()
+          refreshGammInfo()
+        }
+        else {
+          button && (button.innerHTML = "approving...")
+          await sendApproveTx(honeyBuy)
+          setTimeout(() => {
+            button && (button.innerHTML = "buy")
+          }, 10000)
+        }
+      }
+      if(activeToggle === 'sell') {
+        if(sellingLocks == 0) {
+          return
+        }
+        button && (button.innerHTML = "selling...")
+        const sellTx = await sendSellTx(sellingLocks, gettingHoney)
+        sellTx && openNotification({
+          title: 'Successfully Sold $LOCKS!',
+          hash: sellTx.hash,
+          direction: 'sold',
+          amount: sellingLocks,
+          price: gettingHoney,
+          page: 'amm'
+        })
+        button && (button.innerHTML = "sell")
+        setSellingLocks(0)
+        setDisplayString('')
+        setGettingHoney(0)
+        setBottomDisplayString('')
+        refreshBalances()
+        refreshGammInfo
+      }
+      if(activeToggle === 'redeem') {
+        if(redeemingLocks == 0) {
+          return
+        }
+        button && (button.innerHTML = "redeeming...")
+        console.log('sending tx')
+        const redeemTx = await sendRedeemTx(redeemingLocks)
+        console.log('done sending tx')
+        redeemTx && openNotification({
+          title: 'Successfully Redeemed $LOCKS!',
+          hash: redeemTx.hash,
+          direction: 'redeemed',
+          amount: redeemingLocks,
+          price: redeemingHoney,
+          page: 'amm'
+        })
+        button && (button.innerHTML = "redeem")
+        setRedeemingLocks(0)
+        setRedeemingHoney(0)
+        setDisplayString('')
+        setBottomDisplayString('')
+        console.log('refreshing')
+        refreshBalances()
+        refreshGammInfo()
+        console.log('done refreshing')
+      }
+    }
   }
 
   const renderButton = () => {
