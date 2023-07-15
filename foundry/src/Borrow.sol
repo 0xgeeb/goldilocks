@@ -129,7 +129,7 @@ contract Borrow {
   function borrow(uint256 amount) external {
     uint256 floorPrice = IGAMM(gammAddress).floorPrice();
     if(!_borrowLimitCheck(amount, floorPrice)) revert InsufficientBorrowLimit();
-    lockedLocks[msg.sender] += amount / floorPrice;
+    lockedLocks[msg.sender] += FixedPointMathLib.divWad(amount, floorPrice);
     borrowedHoney[msg.sender] += amount;
     uint256 fee = _calcFee(amount);
     IGAMM(gammAddress).borrowTransfer(msg.sender, amount, fee);
@@ -166,7 +166,7 @@ contract Borrow {
   /// @return check Returns true if the user has enough borrowing power
   function _borrowLimitCheck(uint256 amount, uint256 floorPrice) internal view returns (bool check) {
     uint256 limit = _borrowLimit(msg.sender, floorPrice);
-    check = limit <= amount;
+    check = limit >= amount;
   }
 
   /// @notice Checks if the user has enough borrowing power

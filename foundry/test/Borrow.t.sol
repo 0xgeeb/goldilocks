@@ -14,6 +14,8 @@ contract BorrowTest is Test {
   Borrow borrow;
   Porridge porridge;
 
+  bytes4 InsufficientBorrowLimitSelector = 0xda392797;
+
   function setUp() public {
     honey = new Honey();
     gamm = new GAMM(address(honey), address(this));
@@ -50,23 +52,30 @@ contract BorrowTest is Test {
     uint256 borrowAmount = 280e20;
     uint256 gammHoneyBalance = honey.balanceOf(address(gamm));
     uint256 userHoneyBalance = honey.balanceOf(address(this));
+    uint256 locked = borrow.getLocked(address(this));
+    uint256 borrowed = borrow.getBorrowed(address(this));
 
     assertEq(gammHoneyBalance, type(uint256).max - borrowAmount);
     assertEq(userHoneyBalance, borrowAmount);
+    assertEq(locked, 100e18);
+    assertEq(borrowed, borrowAmount);
   }
 
-// function testBorrowLimit() public {
-//     porridge.stake(50e18);
-//     uint256 floorPrice = gamm.floorPrice();
-//     uint256 borrowAmount = (50e18 * floorPrice) / 1e18;
-//     vm.expectRevert(bytes("insufficient borrow limit"));
-//     borrow.borrow(borrowAmount + 1e18);
-//   }
+  function testRepay() public dealandStake100Locks dealGammMaxHoney {
+    borrow.borrow(280e20);
+    borrow.repay(280e20);
+
+
+    // assertEq();
+  }
+
+function testBorrowLimitRevert() public dealandStake100Locks dealGammMaxHoney {
+    vm.expectRevert(InsufficientBorrowLimitSelector);
+    borrow.borrow(280e20 + 1);
+  }
 
 //   function testRepay() public {
-//     porridge.stake(50e18);
-//     uint256 floorPrice = gamm.floorPrice();
-//     uint256 borrowAmount = (50e18 * floorPrice) / 1e18;
+
 //     borrow.borrow(borrowAmount);
 //     borrow.repay(borrowAmount);
 //     assertEq(borrow.getLocked(address(this)), 0);
