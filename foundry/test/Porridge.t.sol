@@ -21,6 +21,7 @@ contract PorridgeTest is Test {
     porridge = new Porridge(address(gamm), address(borrow), address(honey), address(this));
 
     gamm.setPorridgeAddress(address(porridge));
+    gamm.setBorrowAddress(address(borrow));
     borrow.setPorridgeAddress(address(porridge));
   }
 
@@ -41,10 +42,10 @@ contract PorridgeTest is Test {
     vm.warp(block.timestamp + porridge.DAYS_SECONDS());
     porridge.claim();
 
-    uint256 OneDayofYield = 5e17;
+    uint256 oneDayofYield = 5e17;
     uint256 prgBalance = porridge.balanceOf(address(this));
 
-    assertEq(prgBalance, OneDayofYield);
+    assertEq(prgBalance, oneDayofYield);
   }
 
   function testStake() public deal100Locks {

@@ -21,22 +21,38 @@ contract BorrowTest is Test {
     porridge = new Porridge(address(gamm), address(borrow), address(honey), address(this));
 
     gamm.setPorridgeAddress(address(porridge));
+    gamm.setBorrowAddress(address(borrow));
     borrow.setPorridgeAddress(address(porridge));
-
-    deal(address(honey), address(gamm), 1800000e18, true);
-    deal(address(gamm), address(this), 5000e18, true);
-    deal(address(honey), address(this), 1000000e18, true);
   }
 
-  function testBorrowTransfers() public {
-    gamm.approve(address(porridge), type(uint256).max);
-    porridge.stake(50e18);
-    // uint256 floorPrice = gamm.floorPrice();
-    
-    // uint256 borrowAmount = (50e18 * floorPrice) / 1e18;
-    // borrow.borrow(borrowAmount);
-    // uint256 fee = (borrowAmount / 100) * 3;
-    // assertEq(result, borrowAmount - fee);
+  modifier dealGammMaxHoney() {
+    deal(address(honey), address(gamm), type(uint256).max);
+    _;
+  }
+
+    modifier dealandStake100Locks() {
+    deal(address(gamm), address(this), 100e18);
+    gamm.approve(address(porridge), 100e18);
+    porridge.stake(100e18);
+    _;
+  }
+
+  function testBorrowLimit() public dealandStake100Locks {
+    uint256 limit = borrow.borrowLimit(address(this));
+    uint256 expectedLimit = 280e20;
+
+    assertEq(limit, expectedLimit);
+  }
+
+  function testBorrow() public dealandStake100Locks dealGammMaxHoney{
+    borrow.borrow(280e20);
+
+    uint256 borrowAmount = 280e20;
+    uint256 gammHoneyBalance = honey.balanceOf(address(gamm));
+    uint256 userHoneyBalance = honey.balanceOf(address(this));
+
+    assertEq(gammHoneyBalance, type(uint256).max - borrowAmount);
+    assertEq(userHoneyBalance, borrowAmount);
   }
 
 // function testBorrowLimit() public {

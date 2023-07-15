@@ -18,6 +18,7 @@ pragma solidity ^0.8.19;
 
 
 import { SafeTransferLib } from "../lib/solady/src/utils/SafeTransferLib.sol";
+import { FixedPointMathLib } from "../lib/solady/src/utils/FixedPointMathLib.sol";
 import { IGAMM } from "./interfaces/IGAMM.sol";
 import { IPorridge } from "./interfaces/IPorridge.sol";
 
@@ -109,6 +110,14 @@ contract Borrow {
     return borrowedHoney[user];
   }
 
+  /// @notice View borrow limit of a user
+  /// @param user Address of user
+  /// @return limit Limit of user
+  function borrowLimit(address user) external view returns (uint256) {
+    uint256 floorPrice = IGAMM(gammAddress).floorPrice();
+    return _borrowLimit(user, floorPrice);
+  }
+
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
   /*                    EXTERNAL FUNCTIONS                      */
@@ -156,7 +165,18 @@ contract Borrow {
   /// @param floorPrice Current floor price of $LOCKS
   /// @return check Returns true if the user has enough borrowing power
   function _borrowLimitCheck(uint256 amount, uint256 floorPrice) internal view returns (bool check) {
-    return floorPrice * (IPorridge(porridgeAddress).getStaked(msg.sender) - lockedLocks[msg.sender]) <= amount;
+    uint256 limit = _borrowLimit(msg.sender, floorPrice);
+    check = limit <= amount;
+  }
+
+  /// @notice Checks if the user has enough borrowing power
+  /// @param user Address of user
+  /// @param floorPrice Current floor price of $LOCKS
+  /// @return limit Returns the borrowing power of the user
+  function _borrowLimit(address user, uint256 floorPrice) internal view returns (uint256 limit) {
+    uint256 staked = IPorridge(porridgeAddress).getStaked(user);
+    uint256 locked = lockedLocks[user];
+    limit = FixedPointMathLib.mulWad(floorPrice, staked - locked);
   }
 
   /// @notice Calculates the fee for borrowing

@@ -299,7 +299,7 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
   /// @param fee Fee that is sent to treasury
   function borrowTransfer(address to, uint256 amount, uint256 fee) external onlyBorrow {
     SafeTransferLib.safeTransfer(honeyAddress, to, amount - fee);
-    SafeTransferLib.safeTransfer(adminAddress, to, fee);
+    SafeTransferLib.safeTransfer(honeyAddress, adminAddress, fee);
   }
 
   /// @notice Porridge Contract will call this function when users realize $PRG tokens
@@ -313,6 +313,12 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
   /// @param _porridgeAddress Address of Porridge contract
   function setPorridgeAddress(address _porridgeAddress) external onlyAdmin {
     porridgeAddress = _porridgeAddress;
+  }
+
+  /// @notice Set address of Borrow contract
+  /// @param _borrowAddress Address of Borrow contract
+  function setBorrowAddress(address _borrowAddress) external onlyAdmin {
+    borrowAddress = _borrowAddress;
   }
 
   function pow(uint256 x, uint256 y) internal pure returns (uint256 result) {
