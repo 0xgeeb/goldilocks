@@ -4,7 +4,7 @@ import Image from "next/image"
 import { useState, useEffect } from "react"
 import { Pic } from "../../../utils/interfaces"
 
-export const GammImages = () => {
+export const RotatingImages = () => {
 
   const [index, setIndex] = useState<number>(0)
 

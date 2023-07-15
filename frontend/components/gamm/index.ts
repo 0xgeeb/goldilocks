@@ -1,5 +1,4 @@
 export * from './gammBox'
-export * from './gammImages'
 export * from './redeemPopup'
 export * from './titleBar'
 export * from './tradeBox'

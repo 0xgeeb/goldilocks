@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useNotification } from "../../../providers/NotificationProvider"
-import Notification from "../notification"
+import Notification from "../../utils/notification"
 
 const AUTOHIDE_TIMER = 1000 * 15
 

@@ -6,14 +6,6 @@ import { useWallet } from ".."
 import { contracts } from "../../utils/addressi"
 
 const INITIAL_STATE = {
-  stakeInfo: {
-    fsl: 0,
-    supply: 0,
-    staked: 0,
-    yieldToClaim: 0,
-    locksPrgAllowance: 0,
-    honeyPrgAllowance: 0
-  },
   borrowInfo: {
     staked: 0,
     borrowed: 0,
