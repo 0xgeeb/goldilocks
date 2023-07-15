@@ -2,7 +2,7 @@
 
 import { createContext, PropsWithChildren, useContext, useState } from "react"
 import { parseEther, formatEther } from "viem"
-import { getContract, writeContract } from "@wagmi/core"
+import { getContract, writeContract, waitForTransaction } from "@wagmi/core"
 import { useWallet } from ".."
 import { useDebounce, useGammMath } from "../../hooks/gamm"
 import { contracts } from "../../utils/addressi"
@@ -491,73 +491,31 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
     }
   }
 
-  //todo: move setflag to once above conditionals
   const handleTopChange = (input: string) => {
     setDisplayStringState(input)
+    setBottomInputFlagState(false)
     if(activeToggleState === 'buy') {
-      if(!input) {
-        setBottomInputFlagState(false)
-        setHoneyBuyState(0)
-      }
-      else {
-        setBottomInputFlagState(false)
-        setHoneyBuyState(parseFloat(input))
-      }
+      !input ? setHoneyBuyState(0) : setHoneyBuyState(parseFloat(input))
     }
     else if(activeToggleState === 'sell') {
-      if(!input) {
-        setBottomInputFlagState(false)
-        setSellingLocksState(0)
-      }
-      else {
-        setBottomInputFlagState(false)
-        setSellingLocksState(parseFloat(input))
-      }
+      !input ? setSellingLocksState(0) : setSellingLocksState(parseFloat(input))
     }
     else {
-      if(!input) {
-        setBottomInputFlagState(false)
-        setRedeemingLocksState(0)
-      }
-      else {
-        setBottomInputFlagState(false)
-        setRedeemingLocksState(parseFloat(input))
-      }
+      !input ? setRedeemingLocksState(0) : setRedeemingLocksState(parseFloat(input))
     }
   }
   
-  //todo: move setflag to once above conditionals
   const handleBottomChange = (input: string) => {
     setBottomDisplayStringState(input)
+    setTopInputFlagState(false)
     if(activeToggleState === 'buy') {
-      if(!input) {
-        setTopInputFlagState(false)
-        setBuyingLocksState(0)
-      }
-      else {
-        setTopInputFlagState(false)
-        setBuyingLocksState(parseFloat(input))
-      }
+      !input ? setBuyingLocksState(0) : setBuyingLocksState(parseFloat(input))
     }
     else if(activeToggleState === 'sell') {
-      if(!input) {
-        setTopInputFlagState(false)
-        setGettingHoneyState(0)
-      }
-      else {
-        setTopInputFlagState(false)
-        setGettingHoneyState(parseFloat(input))
-      }
+      !input ? setGettingHoneyState(0) : setGettingHoneyState(parseFloat(input))
     }
     else {
-      if(!input) {
-        setTopInputFlagState(false)
-        setRedeemingHoneyState(0)
-      }
-      else {
-        setTopInputFlagState(false)
-        setRedeemingHoneyState(parseFloat(input))
-      }
+      !input ? setRedeemingHoneyState(0) : setRedeemingHoneyState(parseFloat(input))
     }
   }
 
@@ -623,53 +581,63 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
     }
   }
 
-  //todo: receipt and receipt type
-  const sendBuyTx = async (buyAmt: number, maxCost: number): Promise<any> => {
+  const sendBuyTx = async (buyAmt: number, maxCost: number): Promise<string> => {
     try {
-      await writeContract({
+      const { hash } = await writeContract({
         address: contracts.amm.address as `0x${string}`,
         abi: contracts.amm.abi,
         functionName: 'buy',
         args: [parseEther(`${buyAmt}`), parseEther(`${maxCost}`)]
       })
+      const data = await waitForTransaction({ hash })
+      return data.transactionHash
     }
     catch (e) {
       console.log('user denied tx')
       console.log('or: ', e)
     }
+
+    return ''
   }
 
-  //todo: receipt and receipt type
-  const sendSellTx = async (sellAmt: number, minReceive: number): Promise<any> => {
+  const sendSellTx = async (sellAmt: number, minReceive: number): Promise<string> => {
     try {
-      await writeContract({
+      const { hash } = await writeContract({
         address: contracts.amm.address as `0x${string}`,
         abi: contracts.amm.abi,
         functionName: 'sell',
         args: [parseEther(`${sellAmt}`), parseEther(`${minReceive}`)]
       })
+      const data = await waitForTransaction({ hash })
+      return data.transactionHash
     }
     catch (e) {
       console.log('user denied tx')
       console.log('or: ', e)
     }
+
+    return ''
   }
 
-  //todo: receipt and receipt type
-  const sendRedeemTx = async (redeemAmt: number): Promise<any> => {
+  const sendRedeemTx = async (redeemAmt: number): Promise<string> => {
     try {
-      await writeContract({
+      const { hash } = await writeContract({
         address: contracts.amm.address as `0x${string}`,
         abi: contracts.amm.abi,
         functionName: 'redeem',
         args: [parseEther(`${redeemAmt}`)]
       })
+      const data = await waitForTransaction({ hash })
+      return data.transactionHash
     }
     catch (e) {
       console.log('user denied tx')
       console.log('or: ', e)
     }
+
+    return ''
   }
+  
 
   return (
     <GammContext.Provider

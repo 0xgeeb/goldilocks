@@ -39,7 +39,6 @@ export const GammButton = () => {
   } = useWallet()
   const { openNotification } = useNotification()
 
-  //todo: it is not waiting for tx to be done
   const handleButtonClick = async () => {
     const button = document.getElementById('amm-button')
 
@@ -60,7 +59,7 @@ export const GammButton = () => {
           const buyTx = await sendBuyTx(buyingLocks, honeyBuy)
           buyTx && openNotification({
             title: 'Successfully Purchased $LOCKS!',
-            hash: buyTx.hash,
+            hash: buyTx,
             direction: 'bought',
             amount: buyingLocks,
             price: honeyBuy,
@@ -90,7 +89,7 @@ export const GammButton = () => {
         const sellTx = await sendSellTx(sellingLocks, gettingHoney)
         sellTx && openNotification({
           title: 'Successfully Sold $LOCKS!',
-          hash: sellTx.hash,
+          hash: sellTx,
           direction: 'sold',
           amount: sellingLocks,
           price: gettingHoney,
@@ -114,7 +113,7 @@ export const GammButton = () => {
         console.log('done sending tx')
         redeemTx && openNotification({
           title: 'Successfully Redeemed $LOCKS!',
-          hash: redeemTx.hash,
+          hash: redeemTx,
           direction: 'redeemed',
           amount: redeemingLocks,
           price: redeemingHoney,
