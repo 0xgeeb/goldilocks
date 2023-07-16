@@ -28,8 +28,15 @@ const INITIAL_STATE = {
   displayString: '',
   setDisplayString: (displayString: string) => {},
 
-  activeToggle: 'buy',
+  activeToggle: 'stake',
   changeActiveToggle: (toggle: string) => {},
+
+  renderLabel: () => '',
+  handleBalance: () => '',
+  handlePercentageButtons: (action: number) => {},
+  handleTopChange: (input: string) => {},
+  handleTopInput: (): string => {}
+
 }
 
 const StakingContext = createContext(INITIAL_STATE)
@@ -66,6 +73,18 @@ export const StakingProvider = (props: PropsWithChildren<{}>) => {
     setUnstakeState(0)
     setRealizeState(0)
     setActiveToggleState(toggle)
+  }
+
+  const handleBalance = (): string => {
+    if(activeToggleState === 'stake') {
+      return balance.locks > 0 ? balance.locks.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
+    }
+    if(activeToggleState === 'unstake') {
+      return stakingInfoState.staked > 0 ? stakingInfoState.staked.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
+    }
+    if(activeToggleState === 'realize') {
+      return balance.prg > 0 ? balance.prg.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
+    }
   }
 
   const handlePercentageButtons = (action: number) => {
@@ -127,6 +146,47 @@ export const StakingProvider = (props: PropsWithChildren<{}>) => {
     }
   }
 
+  const renderLabel = (): string => {
+    if(activeToggleState === 'stake') {
+      return 'stake'
+    }
+    if(activeToggleState === 'unstake') {
+      return 'unstake'
+    }
+    if(activeToggleState === 'realize') {
+      return 'sir'
+    }
+
+    return ''
+  }
+
+  const handleTopChange = (input: string) => {
+    setDisplayStringState(input)
+    if(activeToggleState === 'stake') {
+      !input ? setStakeState(0) : setStakeState(parseFloat(input))
+    }
+    if(activeToggleState === 'unstake') {
+      !input ? setUnstakeState(0) : setUnstakeState(parseFloat(input))
+    }
+    if(activeToggleState === 'realize') {
+      !input ? setRealizeState(0) : setRealizeState(parseFloat(input))
+    }
+  }
+
+  const handleTopInput = (): string => {
+    if(activeToggleState === 'stake') {
+      return stakeState > balance.locks ? '' : displayStringState
+    }
+    if(activeToggleState === 'unstake') {
+      return unstakeState > stakingInfoState.staked ? '' : displayStringState
+    }
+    if(activeToggleState === 'realize') {
+      return realizeState > balance.prg ? '' : displayStringState
+    }
+
+    return ''
+  }
+
   return (
     <StakingContext.Provider
       value={{
@@ -140,7 +200,12 @@ export const StakingProvider = (props: PropsWithChildren<{}>) => {
         displayString: displayStringState,
         setDisplayString: setDisplayStringState,
         activeToggle: activeToggleState,
-        changeActiveToggle
+        changeActiveToggle,
+        renderLabel,
+        handleBalance,
+        handlePercentageButtons,
+        handleTopChange,
+        handleTopInput
       }}
     >
       { children }

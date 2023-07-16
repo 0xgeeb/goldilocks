@@ -34,7 +34,7 @@ export interface Pic {
   imageElement: ReactElement;
 }
 
-export interface RedeemPopupProps {
+export interface PopupProps {
   popupToggle: boolean;
   setPopupToggle: React.Dispatch<React.SetStateAction<boolean>>;
 }

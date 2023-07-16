@@ -72,7 +72,7 @@ export const TradeBox = () => {
     setBalancesLoading(true)
     refreshBalances()
     setBalancesLoading(false)
-  }, [])
+  }, [isConnected])
 
   const test = () => {
 

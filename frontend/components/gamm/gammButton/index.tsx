@@ -108,9 +108,7 @@ export const GammButton = () => {
           return
         }
         button && (button.innerHTML = "redeeming...")
-        console.log('sending tx')
         const redeemTx = await sendRedeemTx(redeemingLocks)
-        console.log('done sending tx')
         redeemTx && openNotification({
           title: 'Successfully Redeemed $LOCKS!',
           hash: redeemTx,
@@ -124,10 +122,8 @@ export const GammButton = () => {
         setRedeemingHoney(0)
         setDisplayString('')
         setBottomDisplayString('')
-        console.log('refreshing')
         refreshBalances()
         refreshGammInfo()
-        console.log('done refreshing')
       }
     }
   }
