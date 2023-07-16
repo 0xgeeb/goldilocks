@@ -52,4 +52,5 @@ export interface WalletInitialState {
   signer: WalletClient | null;
   network: string;
   refreshBalances: () => void;
+  sendMintTx: () => void;
 }

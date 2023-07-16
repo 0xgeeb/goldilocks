@@ -35,7 +35,7 @@ const INITIAL_STATE = {
   handleBalance: () => '',
   handlePercentageButtons: (action: number) => {},
   handleTopChange: (input: string) => {},
-  handleTopInput: (): string => {}
+  handleTopInput: () => ''
 
 }
 
@@ -85,6 +85,8 @@ export const StakingProvider = (props: PropsWithChildren<{}>) => {
     if(activeToggleState === 'realize') {
       return balance.prg > 0 ? balance.prg.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
     }
+
+    return ''
   }
 
   const handlePercentageButtons = (action: number) => {

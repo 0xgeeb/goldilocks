@@ -163,23 +163,6 @@ export const TxProvider = (props: PropsWithChildren<{}>) => {
     }
   }
 
-  const sendMintTx = async (signer: any): Promise<any> => {
-    const honeyContract = new ethers.Contract(
-      contracts.honey.address,
-      contracts.honey.abi,
-      signer
-    )
-    try {
-      const mintReceipt = await honeyContract.mint(walletAddress, BigNumber.from(ethers.utils.parseUnits('1000000', 18)))
-      await mintReceipt.wait()
-      return mintReceipt
-    }
-    catch (e) {
-      console.log('user denied tx')
-      console.log('or: ', e)
-    }
-  }
-
   return (
     <TxContext.Provider
       value={{
@@ -191,7 +174,6 @@ export const TxProvider = (props: PropsWithChildren<{}>) => {
         sendClaimTx,
         sendBorrowTx,
         sendRepayTx,
-        sendMintTx
       }}
     >
       { children }

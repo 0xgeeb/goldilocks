@@ -2,7 +2,7 @@
 
 import { createContext, PropsWithChildren, useContext, useState } from "react"
 import { useAccount, useNetwork, useWalletClient, useContractReads } from "wagmi"
-import { getContract } from "@wagmi/core"
+import { getContract, writeContract, waitForTransaction } from "@wagmi/core"
 import { WalletClient, parseEther, formatEther } from "viem"
 import { contracts } from "../../utils/addressi"
 import { WalletInitialState, BalanceState } from "../../utils/interfaces"
@@ -18,6 +18,7 @@ const INITIAL_STATE: WalletInitialState = {
   signer: null as WalletClient | null,
   network: '',
   refreshBalances: async () => {},
+  sendMintTx: async () => {}
 }
 
 const WalletContext = createContext(INITIAL_STATE)
@@ -63,6 +64,22 @@ export const WalletProvider = (props: PropsWithChildren<{}>) => {
     }
   }
 
+  const sendMintTx = async () => {
+    try {
+      const { hash } = await writeContract({
+        address: contracts.honey.address as`0x${string}`,
+        abi: contracts.honey.abi,
+        functionName: 'mint',
+        args: [address, parseEther(`${1000000}`)]
+      })
+      await waitForTransaction({ hash })
+    }
+    catch (e) {
+      console.log('user denied tx')
+      console.log('or: ', e)
+    }
+  }
+
   return (
     <WalletContext.Provider
       value={{
@@ -71,7 +88,8 @@ export const WalletProvider = (props: PropsWithChildren<{}>) => {
         isConnected,
         signer: signer || null,
         network: chain?.name ? chain.name : '',
-        refreshBalances
+        refreshBalances,
+        sendMintTx
       }}
     >
       { children }

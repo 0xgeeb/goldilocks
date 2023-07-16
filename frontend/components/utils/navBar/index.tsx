@@ -2,35 +2,30 @@
 
 import Image from "next/image"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
-import {
-  useWallet,
-  useTx
-} from "../../../providers"
+import { useWallet } from "../../../providers"
 
 export const NavBar = () => {
 
-  //todo: maybe just put minttx in here
-  const { wallet, isConnected, network, signer, refreshBalances } = useWallet()
-  // const { sendMintTx } = useTx()
+  const { isConnected, network, refreshBalances, sendMintTx } = useWallet()
 
-  async function handleButtonClick() {
-    // const button = document.getElementById('honey-button')
+  const handleButtonClick = async () => {
+    const button = document.getElementById('honey-button')
 
-    // if(!isConnected) {
-    //   button && (button.innerHTML = "where wallet")
-    // }
-    // else if(network !== "Avalanche Fuji C-Chain") {
-    //   button && (button.innerHTML = "where fuji")
-    // }
-    // else {
-    //   button && (button.innerHTML = "loading...")
-    //   await sendMintTx(signer)
-    //   button && (button.innerHTML = "u got $honey")
-    //   refreshBalances()
-    //   setTimeout(() => {
-    //     button && (button.innerHTML = "$honey")
-    //   }, 5000)
-    // }
+    if(!isConnected) {
+      button && (button.innerHTML = "where wallet")
+    }
+    else if(network !== "Avalanche Fuji C-Chain") {
+      button && (button.innerHTML = "where fuji")
+    }
+    else {
+      button && (button.innerHTML = "loading...")
+      await sendMintTx()
+      button && (button.innerHTML = "u got $honey")
+      await refreshBalances()
+      setTimeout(() => {
+        button && (button.innerHTML = "$honey")
+      }, 5000)
+    }
   }
 
   return (
@@ -42,16 +37,68 @@ export const NavBar = () => {
       </div></a>
       <div className="flex flex-row justify-between w-[50%]">
         <div className="flex flex-row">
-          <button className={`w-36 py-2 text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme`} id="honey-button" onClick={() => handleButtonClick()} >$honey</button>
-          {/* todo: change this link */}
-          <a href="http://k8s-devnet-faucet-c59c30eb9c-922569211.us-west-2.elb.amazonaws.com/" target="_blank"><button className="w-24 py-2 text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl font-acme" id="home-button">faucet</button></a>
+          <button 
+            className={`w-36 py-2 text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme`} 
+            id="honey-button" 
+            onClick={() => handleButtonClick()}
+          >
+            $honey
+          </button>
+          <a href="https://core.app/tools/testnet-faucet" target="_blank">
+            <button 
+              className="w-24 py-2 text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl font-acme" 
+              id="home-button"
+            >
+              faucet
+            </button>
+          </a>
         </div>
         <div className="flex flex-row">
-          <a href="/gamm"><button className="w-24 py-2 text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme" id="home-button">gamm</button></a>
-          <a href="/staking"><button className="w-24 py-2 text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme" id="home-button">stake</button></a>
-          <a href="/borrowing"><button className="w-24 py-2 text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme" id="home-button">borrow</button></a>
-          {/* todo: this is disappearing on page refresh */}
-          <ConnectButton label="connect wallet" chainStatus="icon" showBalance={false} />
+          <a href="/gamm">
+            <button 
+              className="w-24 py-2 text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme" 
+              id="home-button"
+            >
+              gamm
+            </button>
+          </a>
+          <a href="/staking">
+            <button 
+              className="w-24 py-2 text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme" 
+              id="home-button"
+            >
+              stake
+            </button>
+          </a>
+          <a href="/borrowing">
+            <button 
+              className="w-24 py-2 text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme" 
+              id="home-button"
+            >
+              borrow
+            </button>
+          </a>
+          <ConnectButton.Custom>
+            {({
+              account,
+              mounted
+            }) => {
+              return (
+                <button 
+                  className="w-24 py-2 text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme" 
+                  id="home-button">
+                    { 
+                    !mounted ? 
+                      'connect' 
+                    : !account ? 
+                      'connect' 
+                    : 
+                      `${account.address.slice(0, 4)}...${account?.address.slice(-3)}` 
+                    }
+                </button>
+              )
+            }}
+          </ConnectButton.Custom>
         </div>
       </div>
     </div>
