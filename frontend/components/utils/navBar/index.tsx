@@ -81,12 +81,15 @@ export const NavBar = () => {
           <ConnectButton.Custom>
             {({
               account,
-              mounted
+              mounted,
+              openConnectModal
             }) => {
               return (
                 <button 
                   className="w-24 py-2 text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme" 
-                  id="home-button">
+                  id="home-button"
+                  onClick={openConnectModal}
+                >
                     { 
                     !mounted ? 
                       'connect' 
