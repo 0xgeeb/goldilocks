@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import { StakingButton } from "../../staking"
 import {
   useWallet,
@@ -12,9 +13,17 @@ export const StakeBox = () => {
     renderLabel,
     handleBalance,
     handlePercentageButtons,
-    handleTopChange,
-    handleTopInput
+    handleChange,
+    handleInput
   } = useStaking()
+  const {
+    isConnected,
+    refreshBalances
+  } = useWallet()
+
+  useEffect(() => {
+    refreshBalances()
+  }, [isConnected])
 
   return (
     <div className="w-[60%] flex flex-col">
@@ -29,7 +38,7 @@ export const StakeBox = () => {
           </div>
         </div>
         <div className="absolute top-[45%]">
-          <input className="border-none focus:outline-none font-acme rounded-xl text-[40px] pl-10" placeholder="0.00" type="number" value={handleTopInput()} onChange={(e) => handleTopChange(e.target.value)} id="number-input" autoFocus />
+          <input className="border-none focus:outline-none font-acme rounded-xl text-[40px] pl-10" placeholder="0.00" type="number" value={handleInput()} onChange={(e) => handleChange(e.target.value)} id="number-input" autoFocus />
         </div>
         <div className="absolute right-0 bottom-[35%]">
           <h1 className="text-[23px] mr-6 font-acme text-[#878d97]">balance: {handleBalance()}</h1>

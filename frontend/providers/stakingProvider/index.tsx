@@ -34,9 +34,17 @@ const INITIAL_STATE = {
   renderLabel: () => '',
   handleBalance: () => '',
   handlePercentageButtons: (action: number) => {},
-  handleTopChange: (input: string) => {},
-  handleTopInput: () => ''
+  handleChange: (input: string) => {},
+  handleInput: () => '',
 
+
+  refreshStakingInfo: async () =>  {},
+  checkAllowance: async (amt: number, token: string): Promise<void | boolean> => {},
+  sendApproveTx: async (amt: number, token: string) => {},
+  sendStakeTx: async (stakeAmt: number): Promise<any> => {},
+  sendUnstakeTx: async (unstakeAmt: number): Promise<any> => {},
+  sendRealizeTx: async (realizeAmt: number): Promise<any> => {},
+  sendClaimTx: async (): Promise<any> => {}
 }
 
 const StakingContext = createContext(INITIAL_STATE)
@@ -45,7 +53,7 @@ export const StakingProvider = (props: PropsWithChildren<{}>) => {
   
   const { children } = props
 
-  const { balance, wallet, isConnected } = useWallet()
+  const { balance, wallet } = useWallet()
 
   //todo: type
   const [stakingInfoState, setStakingInfoState] = useState(INITIAL_STATE.stakingInfo)
@@ -57,7 +65,7 @@ export const StakingProvider = (props: PropsWithChildren<{}>) => {
   const [unstakeState, setUnstakeState] = useState<number>(INITIAL_STATE.unstake)
   const [realizeState, setRealizeState] = useState<number>(INITIAL_STATE.realize)
 
-  const stakingContract = getContract({
+  const porridgeContract = getContract({
     address: contracts.porridge.address as `0x${string}`,
     abi: contracts.porridge.abi
   })
@@ -65,6 +73,11 @@ export const StakingProvider = (props: PropsWithChildren<{}>) => {
   const gammContract = getContract({
     address: contracts.amm.address as `0x${string}`,
     abi: contracts.amm.abi
+  })
+
+  const honeyContract = getContract({
+    address: contracts.honey.address as `0x${string}`,
+    abi: contracts.honey.abi
   })
 
   const changeActiveToggle = (toggle: string) => {
@@ -162,7 +175,7 @@ export const StakingProvider = (props: PropsWithChildren<{}>) => {
     return ''
   }
 
-  const handleTopChange = (input: string) => {
+  const handleChange = (input: string) => {
     setDisplayStringState(input)
     if(activeToggleState === 'stake') {
       !input ? setStakeState(0) : setStakeState(parseFloat(input))
@@ -175,7 +188,7 @@ export const StakingProvider = (props: PropsWithChildren<{}>) => {
     }
   }
 
-  const handleTopInput = (): string => {
+  const handleInput = (): string => {
     if(activeToggleState === 'stake') {
       return stakeState > balance.locks ? '' : displayStringState
     }
@@ -184,6 +197,168 @@ export const StakingProvider = (props: PropsWithChildren<{}>) => {
     }
     if(activeToggleState === 'realize') {
       return realizeState > balance.prg ? '' : displayStringState
+    }
+
+    return ''
+  }
+
+  const refreshStakingInfo = async () => {
+    const fsl = await gammContract.read.fsl([])
+    const supply = await gammContract.read.supply([])
+    let staked
+    let yieldToClaim
+    let locksPrgAllowance
+    let honeyPrgAllowance
+    //todo: update abi
+    if(wallet) {
+      staked = await porridgeContract.read.getStaked([wallet])
+      // yieldToClaim = await porridgeContract.read.getClaimable([wallet])
+      // locksPrgAllowance = await gammContract.read.allowance([wallet, contracts.porridge.address])
+      honeyPrgAllowance = await honeyContract.read.allowance([wallet, contracts.porridge.address])
+    } 
+
+
+    const response = {
+      fsl: parseFloat(formatEther(fsl as unknown as bigint)),
+      supply: parseFloat(formatEther(supply as unknown as bigint)),
+      staked: wallet ? parseFloat(formatEther(staked as unknown as bigint)) : 0, 
+      // yieldToClaim: wallet ? parseFloat(formatEther(yieldToClaim as unknown as bigint)) : 0, 
+      // locksPrgAllowance: wallet ? parseFloat(formatEther(locksPrgAllowance as unknown as bigint)) : 0, 
+      yieldToClaim: 0,
+      locksPrgAllowance: 0,
+      honeyPrgAllowance: wallet ? parseFloat(formatEther(honeyPrgAllowance as unknown as bigint)) : 0, 
+    }
+
+    setStakingInfoState(response)
+  }
+
+  const checkAllowance = async (amt: number, token: string): Promise<boolean> => {
+    let allowance
+    let allowanceNum
+
+    if(token === 'locks') {
+      allowance = await gammContract.read.allowance([wallet, contracts.porridge.address])
+      allowanceNum = parseFloat(formatEther(allowance as unknown as bigint))
+    }
+    else {
+      allowance = await honeyContract.read.allowance([wallet, contracts.porridge.address])
+      allowanceNum = parseFloat(formatEther(allowance as unknown as bigint))
+    }
+
+    console.log('allowanceNum: ', allowanceNum)
+    console.log('amount: ', amt)
+    
+    if(amt > allowanceNum) {
+      return false
+    }
+    else {
+      return true
+    }
+  }
+
+  const sendApproveTx = async (amt: number, token: string) => {
+    if(token === 'locks') {
+      try {
+        await writeContract({
+          address: contracts.amm.address as `0x${string}`,
+          abi: contracts.amm.abi,
+          functionName: 'approve',
+          args: [contracts.porridge.address, parseEther(`${amt}`)]
+        })
+      }
+      catch (e) {
+        console.log('user denied tx')
+        console.log('or: ', e)
+      }
+    }
+    else {
+      try {
+        await writeContract({
+          address: contracts.honey.address as `0x${string}`,
+          abi: contracts.honey.abi,
+          functionName: 'approve',
+          args: [contracts.porridge.address, parseEther(`${amt}`)]
+        })
+      }
+      catch (e) {
+        console.log('user denied tx')
+        console.log('or: ', e)
+      }
+
+    }
+  }
+
+  const sendStakeTx = async (stakeAmt: number): Promise<string> => {
+    try {
+      const { hash } = await writeContract({
+        address: contracts.porridge.address as `0x${string}`,
+        abi: contracts.porridge.abi,
+        functionName: 'stake',
+        args: [parseEther(`${stakeAmt}`)]
+      })
+      const data = await waitForTransaction({ hash })
+      return data.transactionHash
+    }
+    catch (e) {
+      console.log('user denied tx')
+      console.log('or: ', e)
+    }
+
+    return ''
+  }
+
+  const sendUnstakeTx = async (unstakeAmt: number): Promise<string> => {
+    try {
+      const { hash } = await writeContract({
+        address: contracts.porridge.address as `0x${string}`,
+        abi: contracts.porridge.abi,
+        functionName: 'unstake',
+        args: [parseEther(`${unstakeAmt}`)]
+      })
+      const data = await waitForTransaction({ hash })
+      return data.transactionHash
+    }
+    catch (e) {
+      console.log('user denied tx')
+      console.log('or: ', e)
+    }
+
+    return ''
+  }
+
+  const sendRealizeTx = async (realizeAmt: number): Promise<string> => {
+    try {
+      const { hash } = await writeContract({
+        address: contracts.porridge.address as `0x${string}`,
+        abi: contracts.porridge.abi,
+        functionName: 'realize',
+        args: [parseEther(`${realizeAmt}`)]
+      })
+      const data = await waitForTransaction({ hash })
+      return data.transactionHash
+    }
+    catch (e) {
+      console.log('user denied tx')
+      console.log('or: ', e)
+    }
+
+    return ''
+  }
+
+  const sendClaimTx = async (): Promise<string> => {
+    try {
+      const { hash } = await writeContract({
+        address: contracts.porridge.address as `0x${string}`,
+        abi: contracts.porridge.abi,
+        functionName: 'claim',
+        args: []
+      })
+      const data = await waitForTransaction({ hash })
+      return data.transactionHash
+    }
+    catch (e) {
+      console.log('user denied tx')
+      console.log('or: ', e)
     }
 
     return ''
@@ -206,8 +381,15 @@ export const StakingProvider = (props: PropsWithChildren<{}>) => {
         renderLabel,
         handleBalance,
         handlePercentageButtons,
-        handleTopChange,
-        handleTopInput
+        handleChange,
+        handleInput,
+        refreshStakingInfo,
+        checkAllowance,
+        sendApproveTx,
+        sendStakeTx,
+        sendUnstakeTx,
+        sendRealizeTx,
+        sendClaimTx
       }}
     >
       { children }

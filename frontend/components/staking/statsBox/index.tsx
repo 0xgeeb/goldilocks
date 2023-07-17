@@ -1,16 +1,68 @@
 "use client"
 
 import { useEffect } from "react"
-import { useStaking, useWallet } from "../../../providers"
+import { 
+  useStaking, 
+  useWallet,
+  useNotification
+} from "../../../providers"
 
 export const StatsBox = () => {
 
-  const { isConnected, balance } = useWallet()
-  const { stakingInfo } = useStaking()
-  
+  const { 
+    stakingInfo,
+    refreshStakingInfo,
+    sendClaimTx
+  } = useStaking()
+  const { 
+    isConnected,
+    refreshBalances,
+    balance,
+    network
+  } = useWallet()
+  const { openNotification } = useNotification()
 
+  const fetchInfo = async () => {
+    await refreshStakingInfo()
+  }
+
+  useEffect(() => {
+    fetchInfo()
+  }, [])
+
+  const test = () => {
+    console.log(stakingInfo)
+  }
+
+  const handleClaimClick = async () => {
+    const button = document.getElementById('claim-button')
+
+    if(!isConnected) {
+      return
+    }
+
+    if(network !== "Avalanche Fuji C-Chain") {
+      button && (button.innerHTML = "switch to devnet plz")
+    }
+    else {
+      button && (button.innerHTML = "claiming...")
+      const claimTx = await sendClaimTx()
+      claimTx && openNotification({
+        title: 'Successfully Claimed $PRG!',
+        hash: claimTx.hash,
+        direction: 'claimed',
+        amount: stakingInfo.yieldToClaim,
+        price: 0,
+        page: 'claim'
+      })
+      button && (button.innerHTML = "claim yield")
+      refreshBalances()
+      refreshStakingInfo()
+    }
+  }
+  
   return (
-    <div className="flex flex-col w-[40%] h-[100%] mt-4 ml-4">
+    <div className="flex flex-col w-[40%] h-[100%] mt-4 ml-4" onClick={() => test()}>
       <div className="w-[100%] h-[70%] flex p-6 flex-col bg-white rounded-xl border-2 border-black">
         <div className="flex flex-row justify-between items-center mt-3">
           <h1 className="font-acme text-[24px]">$LOCKS floor price:</h1>
@@ -37,9 +89,15 @@ export const StatsBox = () => {
           <p className="font-acme text-[20px]">{stakingInfo.yieldToClaim > 0 ? stakingInfo.yieldToClaim.toLocaleString('en-US', { maximumFractionDigits: 2 }) : '0'}</p>
         </div>
       </div>
-      {isConnected && <div className="h-[10%] w-[70%] mx-auto mt-4">
-        {/* <button className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[25px]" id="claim-button" onClick={() => sendClaimTx()}>claim yield</button> */}
-      </div>}
+      <div className="h-[10%] w-[70%] mx-auto mt-4">
+        <button 
+          className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[25px]" 
+          id="claim-button" 
+          onClick={() => handleClaimClick()}
+        >
+          claim yield
+        </button>
+      </div>
     </div>
   )
 }

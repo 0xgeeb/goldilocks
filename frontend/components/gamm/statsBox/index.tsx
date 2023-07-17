@@ -15,6 +15,7 @@ export const StatsBox = () => {
   const { floorPrice, marketPrice } = useGammMath()
   const { gammInfo, newInfo, refreshGammInfo } = useGamm()
 
+  //todo: could be place to put loading symbols
   const fetchInfo = async () => {
     await refreshGammInfo()
   }

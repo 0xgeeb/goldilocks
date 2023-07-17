@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
-import { StakingMainBox } from "../../components/staking"
+import { BorrowMainBox } from "../../components/borrow"
 import {
   NotificationProvider,
   WagmiProvider,
   WalletProvider,
-  StakingProvider
+  BorrowProvider
 } from "../../providers"
 import { 
   NavBar,
@@ -13,26 +13,26 @@ import {
 } from "../../components/utils"
 
 export const metadata: Metadata = {
-  title: "mf staking",
+  title: "mf borrowing",
   description: "testing yo"
 }
 
-export default function Staking() {
+export default function Borrow() {
 
   return (
     <NotificationProvider>
       <WagmiProvider>
         <WalletProvider>
-          <StakingProvider>
+          <BorrowProvider>
             <div className="w-screen h-screen" id="page-div">
               <NavBar />
               <div className="h-[80%] flex flex-row">
-                <StakingMainBox />
+                <BorrowMainBox />
                 <RotatingImages />
               </div>
             </div>
             <NotificationManager />
-          </StakingProvider>
+          </BorrowProvider>
         </WalletProvider>
       </WagmiProvider>
     </NotificationProvider>
