@@ -22,7 +22,7 @@ contract Deploy01Script is Script {
     honey = new Honey();
     gamm = new GAMM(address(honey), admin);
     borrow = new Borrow(address(gamm), address(honey), admin);
-    porridge = new Porridge(address(gamm), address(borrow), address(honey), admin);
+    porridge = new Porridge(address(gamm), address(borrow), address(honey));
 
     gamm.setPorridgeAddress(address(porridge));
     borrow.setPorridgeAddress(address(porridge));

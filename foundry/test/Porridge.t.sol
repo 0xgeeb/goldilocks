@@ -14,31 +14,44 @@ contract PorridgeTest is Test {
   Borrow borrow;
   Porridge porridge;
 
+  uint256 OneDayofYield = 5e17;
+  uint256 borrowAmount = 280e20;
+
+  bytes4 NoClaimablePRGSelector = 0x018bb287;
+  bytes4 InvalidUnstakeSelector = 0x280cf628;
+  bytes4 LocksBorrowedAgainstSelector = 0xad7facc8;
+
   function setUp() public {
     honey = new Honey();
     gamm = new GAMM(address(honey), address(this));
     borrow = new Borrow(address(gamm), address(honey), address(this));
-    porridge = new Porridge(address(gamm), address(borrow), address(honey), address(this));
+    porridge = new Porridge(address(gamm), address(borrow), address(honey));
 
     gamm.setPorridgeAddress(address(porridge));
     gamm.setBorrowAddress(address(borrow));
     borrow.setPorridgeAddress(address(porridge));
   }
 
-  modifier deal100Locks() {
+  modifier dealandStake100Locks() {
     deal(address(gamm), address(this), 100e18);
     gamm.approve(address(porridge), 100e18);
+    porridge.stake(100e18);
+
     _;
   }
 
-  modifier deal280Honey() {
+  modifier dealUser280Honey() {
     deal(address(honey), address(this), 280e18);
     honey.approve(address(porridge), 280e18);
     _;
   }
 
-  function testCalculate1DayofYield() public deal100Locks {
-    porridge.stake(100e18);
+  modifier dealGammMaxHoney() {
+    deal(address(honey), address(gamm), type(uint256).max);
+    _;
+  }
+
+  function testCalculate1DayofYield() public dealandStake100Locks {
     vm.warp(block.timestamp + porridge.DAYS_SECONDS());
     porridge.claim();
 
@@ -48,9 +61,7 @@ contract PorridgeTest is Test {
     assertEq(prgBalance, oneDayofYield);
   }
 
-  function testStake() public deal100Locks {
-    porridge.stake(100e18);
-
+  function testStake() public dealandStake100Locks {
     uint256 userBalanceofLocks = gamm.balanceOf(address(this));
     uint256 contractBalance = gamm.balanceOf(address(porridge));
     uint256 getStakedUserBalance = porridge.getStaked(address(this));
@@ -60,12 +71,10 @@ contract PorridgeTest is Test {
     assertEq(getStakedUserBalance, 100e18);
   }
 
-  function testUnstake() public deal100Locks {
-    porridge.stake(100e18);
+  function testUnstake() public dealandStake100Locks {
     vm.warp(block.timestamp + porridge.DAYS_SECONDS());
     porridge.unstake(100e18);
 
-    uint256 OneDayofYield = 5e17;
     uint256 userBalanceofLocks = gamm.balanceOf(address(this));
     uint256 contractBalance = gamm.balanceOf(address(porridge));
     uint256 getStakedUserBalance = porridge.getStaked(address(this));
@@ -77,8 +86,7 @@ contract PorridgeTest is Test {
     assertEq(prgBalance, OneDayofYield);
   }
 
-  function testRealize() public deal100Locks deal280Honey {
-    porridge.stake(100e18);
+  function testRealize() public dealandStake100Locks dealUser280Honey {
     vm.warp(block.timestamp + (2 * porridge.DAYS_SECONDS()));
     porridge.unstake(100e18);
     porridge.realize(1e18);
@@ -92,6 +100,34 @@ contract PorridgeTest is Test {
     assertEq(userBalanceofLocks, 101e18);
     assertEq(userBalanceofHoney, 0);
     assertEq(gammBalanceofHoney, 280e18);
+  
+  }
+
+  function testClaim() public dealandStake100Locks {
+    vm.warp(block.timestamp + porridge.DAYS_SECONDS());
+    porridge.claim();
+
+    uint256 userBalanceofPrg = porridge.balanceOf(address(this));
+    uint256 userStakedLocks = porridge.getStaked(address(this));
+
+    assertEq(userBalanceofPrg, OneDayofYield);
+    assertEq(userStakedLocks, 100e18);
+  }
+
+  function testNoClaimablePRG() public dealandStake100Locks {
+    vm.expectRevert(NoClaimablePRGSelector);
+    porridge.claim();
+  }
+
+  function testInvalidUnstake() public dealandStake100Locks {
+    vm.expectRevert(InvalidUnstakeSelector);
+    porridge.unstake(100e18 + 1);
+  }
+
+  function testLocksBorrowedAgainst() public dealandStake100Locks dealGammMaxHoney {
+    borrow.borrow(borrowAmount);
+    vm.expectRevert(LocksBorrowedAgainstSelector);
+    porridge.unstake(1);
   }
 
 }

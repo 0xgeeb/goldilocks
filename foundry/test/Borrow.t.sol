@@ -14,17 +14,28 @@ contract BorrowTest is Test {
   Borrow borrow;
   Porridge porridge;
 
+  uint256 borrowAmount = 280e20;
+
+  bytes4 NotAdminSelector = 0x7bfa4b9f;
   bytes4 InsufficientBorrowLimitSelector = 0xda392797;
+  bytes4 ExcessiveRepaySelector = 0x7bc3c3ef;
 
   function setUp() public {
     honey = new Honey();
     gamm = new GAMM(address(honey), address(this));
     borrow = new Borrow(address(gamm), address(honey), address(this));
-    porridge = new Porridge(address(gamm), address(borrow), address(honey), address(this));
+    porridge = new Porridge(address(gamm), address(borrow), address(honey));
 
     gamm.setPorridgeAddress(address(porridge));
     gamm.setBorrowAddress(address(borrow));
     borrow.setPorridgeAddress(address(porridge));
+  }
+
+  modifier dealandStake100Locks() {
+    deal(address(gamm), address(this), 100e18);
+    gamm.approve(address(porridge), 100e18);
+    porridge.stake(100e18);
+    _;
   }
 
   modifier dealGammMaxHoney() {
@@ -32,24 +43,15 @@ contract BorrowTest is Test {
     _;
   }
 
-    modifier dealandStake100Locks() {
-    deal(address(gamm), address(this), 100e18);
-    gamm.approve(address(porridge), 100e18);
-    porridge.stake(100e18);
-    _;
-  }
-
-  function testBorrowLimit() public dealandStake100Locks {
+  function testBorrowLimitCalculation() public dealandStake100Locks {
     uint256 limit = borrow.borrowLimit(address(this));
-    uint256 expectedLimit = 280e20;
 
-    assertEq(limit, expectedLimit);
+    assertEq(limit, borrowAmount);
   }
 
   function testBorrow() public dealandStake100Locks dealGammMaxHoney{
-    borrow.borrow(280e20);
+    borrow.borrow(borrowAmount);
 
-    uint256 borrowAmount = 280e20;
     uint256 gammHoneyBalance = honey.balanceOf(address(gamm));
     uint256 userHoneyBalance = honey.balanceOf(address(this));
     uint256 locked = borrow.getLocked(address(this));
@@ -62,44 +64,36 @@ contract BorrowTest is Test {
   }
 
   function testRepay() public dealandStake100Locks dealGammMaxHoney {
-    borrow.borrow(280e20);
-    borrow.repay(280e20);
+    borrow.borrow(borrowAmount);
+    honey.approve(address(borrow), 280e20);
+    borrow.repay(borrowAmount);
 
+    uint256 locked = borrow.getLocked(address(this));
+    uint256 borrowed = borrow.getBorrowed(address(this));
+    uint256 userHoneyBalance = honey.balanceOf(address(this));
+    uint256 userStakedLocksBalance = porridge.getStaked(address(this));
 
-    // assertEq();
+    assertEq(locked, 0);
+    assertEq(borrowed, 0);
+    assertEq(userHoneyBalance, 0);
+    assertEq(userStakedLocksBalance, 100e18);
   }
 
-function testBorrowLimitRevert() public dealandStake100Locks dealGammMaxHoney {
+  function testNotAdmin() public dealandStake100Locks dealGammMaxHoney {
+    vm.expectRevert(NotAdminSelector);
+    vm.prank(address(0x01));
+    borrow.setPorridgeAddress(address(0x02));
+  }
+
+  function testBorrowLimit() public dealandStake100Locks dealGammMaxHoney {
     vm.expectRevert(InsufficientBorrowLimitSelector);
-    borrow.borrow(280e20 + 1);
+    borrow.borrow(borrowAmount + 1);
   }
 
-//   function testRepay() public {
-
-//     borrow.borrow(borrowAmount);
-//     borrow.repay(borrowAmount);
-//     assertEq(borrow.getLocked(address(this)), 0);
-//     assertEq(borrow.getBorrowed(address(this)), 0);
-//   }
-
-//   function testOverRepay() public {
-//     porridge.stake(50e18);
-//     uint256 floorPrice = gamm.floorPrice();
-//     uint256 borrowAmount = (50e18 * floorPrice) / 1e18;
-//     borrow.borrow(borrowAmount);
-//     vm.expectRevert(bytes("repaying too much"));
-//     borrow.repay(borrowAmount + 1e18);
-//   }
-
-//   function testCustomAllow() public {
-//     uint256 beforeAllowance = honey.allowance(address(gamm), address(borrow));
-//     console.log(beforeAllowance);
-//     vm.prank(address(gamm));
-//     honey.approve(address(borrow), 69);
-//     uint256 afterAllowance = honey.allowance(address(gamm), address(borrow));
-//     console.log(afterAllowance);
-//     vm.prank(address(borrow));
-//     honey.transferFrom(address(gamm), address(this), 10);
-//   }
+  function testExcessiveRepay() public dealandStake100Locks dealGammMaxHoney {
+    borrow.borrow(borrowAmount);
+    vm.expectRevert(ExcessiveRepaySelector);
+    borrow.repay(borrowAmount + 1);
+  }
 
 }

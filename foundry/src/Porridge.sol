@@ -45,7 +45,6 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
   address public gammAddress;
   address public borrowAddress;
   address public honeyAddress;
-  address public adminAddress;
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -57,12 +56,10 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
   /// @param _gammAddress Address of the GAMM
   /// @param _borrowAddress Address of the Borrow contract
   /// @param _honeyAddress Address of the HONEY contract
-  /// @param _adminAddress Address of the GoldilocksDAO multisig
-  constructor(address _gammAddress, address _borrowAddress, address _honeyAddress, address _adminAddress) {
+  constructor(address _gammAddress, address _borrowAddress, address _honeyAddress) {
     gammAddress = _gammAddress;
     borrowAddress = _borrowAddress;
     honeyAddress = _honeyAddress;
-    adminAddress = _adminAddress;
   }
 
 
@@ -71,7 +68,6 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  error NotAdmin();
   error NoClaimablePRG();
   error InvalidUnstake();
   error LocksBorrowedAgainst();
@@ -93,11 +89,7 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  /// @notice Ensures msg.sender is the admin address
-  modifier onlyAdmin() {
-    if(msg.sender != adminAddress) revert NotAdmin();
-    _;
-  }
+
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -120,7 +112,8 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
   /// @notice View the claimable yield of an address
   /// @param user Address to view claimable yield
   function getClaimable(address user) external view returns (uint256) {
-    return _calculateClaimable(user);
+    uint256 stakedAmount = staked[msg.sender];
+    return _calculateClaimable(user, stakedAmount);
   }
 
 
@@ -133,7 +126,8 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
   /// @param amount Amount of $LOCKS to stake
   function stake(uint256 amount) external {
     if(staked[msg.sender] > 0) {
-      _claim(msg.sender);
+    uint256 stakedAmount = staked[msg.sender];
+      _claim(msg.sender, stakedAmount);
     }
     stakeStartTime[msg.sender] = block.timestamp;
     staked[msg.sender] += amount;
@@ -146,8 +140,9 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
   function unstake(uint256 amount) external {
     if(amount > staked[msg.sender]) revert InvalidUnstake();
     if(amount > staked[msg.sender] - IBorrow(borrowAddress).getLocked(msg.sender)) revert LocksBorrowedAgainst();
-    _claim(msg.sender);
+    uint256 stakedAmount = staked[msg.sender];
     staked[msg.sender] -= amount;
+    _claim(msg.sender, stakedAmount);
     SafeTransferLib.safeTransfer(gammAddress, msg.sender, amount);
     emit Unstaked(msg.sender, amount);
   }
@@ -163,7 +158,8 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
 
   /// @notice Claim $PRG rewards
   function claim() external {
-    _claim(msg.sender);
+    uint256 stakedAmount = staked[msg.sender];
+    _claim(msg.sender, stakedAmount);
   }
 
 
@@ -174,8 +170,9 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
 
   /// @notice Calculates and distributes yield
   /// @param user Address of staker to calculate and distribute yield
-  function _claim(address user) internal {
-    uint256 claimable = _calculateClaimable(user);
+  /// @param stakedAmount Amount of $LOCKS the user has staked in the contract
+  function _claim(address user, uint256 stakedAmount) internal {
+    uint256 claimable = _calculateClaimable(user, stakedAmount);
     if(claimable == 0) revert NoClaimablePRG();
     stakeStartTime[user] = block.timestamp;
     _mint(user, claimable);
@@ -184,10 +181,11 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
 
   /// @notice Calculates claimable yield
   /// @param user Address of staker to calculate yield
+  /// @param stakedAmount Amount of $LOCKS the user has staked in the contract
   /// @return yield Amount of $PRG earned by staker
-  function _calculateClaimable(address user) internal view returns (uint256 yield) {
+  function _calculateClaimable(address user, uint256 stakedAmount) internal view returns (uint256 yield) {
     uint256 timeStaked = _timeStaked(user);
-    uint256 yieldPortion = staked[user] / DAILY_EMISSISION_RATE;
+    uint256 yieldPortion = stakedAmount / DAILY_EMISSISION_RATE;
     yield = yieldPortion * (timeStaked / DAYS_SECONDS);
   }
 
