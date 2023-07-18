@@ -85,8 +85,9 @@ export const BorrowProvider = (props: PropsWithChildren<{}>) => {
         refreshBorrowInfo
       }}
     >
-
+      { children }
     </BorrowContext.Provider>
   )
-
 }
+
+export const useBorrowing = () => useContext(BorrowContext)

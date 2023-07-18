@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   description: "testing yo"
 }
 
-export default function Borrow() {
+export default function Borrowing() {
 
   return (
     <NotificationProvider>
