@@ -1,21 +1,18 @@
 import random
+from eth_abi import encode_single
 #assuming 2 million dollar presale and 1000 initial supply
-fsl = 95.1
-supply = 1000
-psl = 4.9
+fsl = 1400000
+supply = 5000
+psl = 400000
 floor_price = fsl/supply
 market_price = floor_price + ((psl/supply)*((psl+fsl)/fsl)**5)
 #target ratio
-target = 0.26
+target = 0.36
 #invested tracks the net amount of capital that has been deposited into the protocol
 #it subtracts the amount withdrawn on sales
 invested = 0
-#tracks amount in treasury and amount to be added to treasury on buys
-treasury= 0
-treasury_share = 0.18
-high_ratio_treasury_share = 0.25
 #prints initial market price
-print("Price:", market_price, "Floor price:", floor_price)
+# print(market_price)
 
 def redeem(_amount):
   global supply
@@ -64,46 +61,26 @@ def buy(amount):
   global floor_price
   global market_price
   global target
-  global treasury
-  global treasury_share
-  global high_ratio_treasury_share
-  floor_price = fsl/supply
-  market_price = floor_price + ((psl/supply)*((psl+fsl)/fsl)**5)
   purchase_price = 0
-  while amount >=1:
-    amount -= 1
+  for i in range(0, amount):
     supply += 1
     purchase_price += market_price
-    #if psl/fsl >= 0.36, all deposited capital goes to fsl/treasury
-    if psl/fsl >= 0.36:
-      fsl += market_price*(1 - high_ratio_treasury_share)
-      treasury += market_price*high_ratio_treasury_share
+    # if psl/fsl >= 0.36: all deposited capital goes to fsl
+    if psl/fsl >= 0.5:
+      fsl += market_price
       floor_price = fsl/supply
-      market_price = floor_price + ((psl/max(supply, 1))*((psl+fsl)/max(fsl, 1))**5)
-      #print("too high")
     else:
       fsl += floor_price
-      psl += (market_price - floor_price)*(1 - treasury_share)
-      treasury += (market_price - floor_price)*treasury_share
-      market_price = floor_price + ((psl/max(supply, 1))*((psl+fsl)/max(fsl, 1))**5)  
-  supply += amount
-  purchase_price += market_price*amount
-  if psl/fsl >= 0.36:
-    fsl += market_price*amount*(1 - high_ratio_treasury_share)
-    treasury += market_price*amount*high_ratio_treasury_share
-    floor_price = fsl/supply
-  else:
-    fsl += floor_price*amount
-    psl += (market_price - floor_price)*amount*(1 - treasury_share)
-    treasury += (market_price - floor_price)*amount*treasury_share
+      psl += (market_price - floor_price)
+      ratio = psl/fsl
+    market_price = floor_price + ((psl/max(supply, 1))*((psl+fsl)/max(fsl, 1))**5)  
+    invested += market_price
+    #print("Price:", market_price, "Floor price:", floor_price)
   tax = purchase_price*0.003
   fsl += tax
+  invested += tax
   floor_price = fsl/supply
   market_price = floor_price + ((psl/max(supply, 1))*((psl+fsl)/max(fsl, 1))**5)
-  invested += purchase_price
-  if treasury >= 500000:
-    treasury_share = 0
-    high_ratio_treasury_share = 0
   #print("Price:", market_price, "Floor price:", floor_price)
   return market_price
 
@@ -128,10 +105,14 @@ def floor_raise():
     #print("Floor raise! Ratio:", psl/fsl)
   return 'raise'
 
-#tracks what happens when 400 tokens are redeemed continuously in chunks of 10 with no trades (assumes higher supply)
-redeemed = 0
-while(redeemed < 400):
-  redeem(10)
+#tracks what happens when 400 tokens are bought continuously in chunks of 10 with no sells
+bought = 0
+while(bought < 400):
+  buy(10)
   floor_raise()
-  redeemed += 10
-  print("Price:", market_price, "Floor price:", floor_price)
+  bought += 10
+  # print("Price:", market_price, "Floor price:", floor_price)
+
+market_price *= (10 ** 18)
+enc = encode_single('uint256', int(market_price))
+print("0x" + enc.hex())

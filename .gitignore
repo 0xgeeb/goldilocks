@@ -2,18 +2,13 @@
 foundry/cache/
 foundry/out/
 
-# Ignores development broadcast logs
-foundry/!/broadcast
-foundry/broadcast/*
-foundry/broadcast/*/31337/
 foundry/broadcast
+foundry/.vscode
+
 
 # Dotenv file
 frontend/.env
 foundry/.env
 
-node_modules/
-
-foundry/lib/
-.next
-.vscode
+frontend/node_modules/
+frontend/.next

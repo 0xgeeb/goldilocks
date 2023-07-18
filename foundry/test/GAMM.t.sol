@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 import "../lib/forge-std/src/Test.sol";
-import { Honey } from "../src/test/Honey.sol";
+import { Honey } from "../src/Honey.sol";
 import { GAMM } from "../src/GAMM.sol";
 import { Borrow } from "../src/Borrow.sol";
 import { Porridge } from "../src/Porridge.sol";
@@ -21,10 +21,8 @@ contract GAMMTest is Test {
     porridge = new Porridge(address(gamm), address(borrow), address(honey));
 
     gamm.setPorridgeAddress(address(porridge));
+    gamm.setBorrowAddress(address(borrow));
     borrow.setPorridgeAddress(address(porridge));
-
-    deal(address(honey), address(gamm), 1800000e18, true);
-    deal(address(gamm), address(this), 5000e18, true);
   }
 
   function testMarketPrice() public {

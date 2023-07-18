@@ -2,46 +2,36 @@
 pragma solidity ^0.8.19;
 
 import "../lib/forge-std/src/Test.sol";
-import { Honey } from "../src/test/Honey.sol";
+import { Honey } from "../src/Honey.sol";
 import { GAMM } from "../src/GAMM.sol";
+import { Borrow } from "../src/Borrow.sol";
+import { Porridge } from "../src/Porridge.sol";
 
 contract GAMMPriceTest is Test {
 
-  GAMM gamm;
   Honey honey;
+  GAMM gamm;
+  Borrow borrow;
+  Porridge porridge;
 
   function setUp() public {
     honey = new Honey();
     gamm = new GAMM(address(honey), address(this));
-    
-    deal(address(honey), address(this), 10000000000000000e18, true);
+    borrow = new Borrow(address(gamm), address(honey), address(this));
+    porridge = new Porridge(address(gamm), address(borrow), address(honey));
+
+    gamm.setPorridgeAddress(address(porridge));
+    gamm.setBorrowAddress(address(borrow));
+    borrow.setPorridgeAddress(address(porridge));
+  }
+
+  modifier dealandApproveMaxHoney() {
+    deal(address(honey), address(this), type(uint256).max);
     honey.approve(address(gamm), type(uint256).max);
+    _;
   }
 
-  function testStress() public {
-    // locks.transferToAMM(1600000e18, 400000e18);
-    // vm.store(address(gamm), bytes32(uint256(5)), bytes32(uint256(1000e18)));
-
-    // (uint256 market0, uint256 floor0) = gamm.buy(1e18, type(uint256).max);
-
-    // (uint256 market, uint256 floor) = gamm.buy(12e18, type(uint256).max);
-    // console.log('market: ', market, 'floor: ', floor);
-    // (uint256 market1, uint256 floor1) = gamm.buy(12e18, type(uint256).max);
-    // console.log('market: ', market1, 'floor: ', floor1);
-    // (uint256 market5, uint256 floor5) = gamm.buy(50e18, type(uint256).max);
-    // console.log('market: ', market5, 'floor: ', floor5);
-    // (uint256 market2, uint256 floor2) = gamm.buy(100e18, type(uint256).max);
-    // console.log('market: ', market2, 'floor: ', floor2);
-    // (uint256 market3, uint256 floor3) = gamm.buy(500e18, type(uint256).max);
-    // console.log('market: ', market3, 'floor: ', floor3);
-    // (uint256 market4, uint256 floor4) = gamm.buy(1000e18, type(uint256).max);
-    // console.log('market: ', market4, 'floor: ', floor4);
-      
-  }
-
-  function testPurchase1() public {
-    // locks.transferToAMM(1600000e18, 400000e18);
-    vm.store(address(gamm), bytes32(uint256(5)), bytes32(uint256(1000e18)));
+  function testPurchase1() public dealandApproveMaxHoney {
     uint256 bought;
     while (bought < 400) {
       gamm.buy(10e18, type(uint256).max);
@@ -50,7 +40,7 @@ contract GAMMPriceTest is Test {
     uint256 solidityMarketPrice = gamm.marketPrice();
     string[] memory inputs = new string[](2);
     inputs[0] = "python3";
-    inputs[1] = "../testing/amp_tests/purchase_tests/purchase_test1.py";
+    inputs[1] = "../price_tests/purchase_tests/purchase_test1.py";
     bytes memory result = vm.ffi(inputs);
     uint256 pythonMarketPrice = abi.decode(result, (uint256));
     uint256 variance = pythonMarketPrice / 1000;

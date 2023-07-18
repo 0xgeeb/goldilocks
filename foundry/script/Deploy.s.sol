@@ -5,9 +5,9 @@ import { Script } from "../lib/forge-std/src/Script.sol";
 import { Porridge } from "../src/Porridge.sol";
 import { GAMM } from  "../src/GAMM.sol";
 import { Borrow } from "../src/Borrow.sol";
-import { Honey } from "../src/test/Honey.sol";
+import { Honey } from "../src/Honey.sol";
 
-contract Deploy01Script is Script {
+contract DeployScript is Script {
 
   Porridge porridge;
   GAMM gamm;

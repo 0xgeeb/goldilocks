@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 import "../lib/forge-std/src/Test.sol";
-import { Honey } from "../src/test/Honey.sol";
+import { Honey } from "../src/Honey.sol";
 import { GAMM } from "../src/GAMM.sol";
 import { Borrow } from "../src/Borrow.sol";
 import { Porridge } from "../src/Porridge.sol";
