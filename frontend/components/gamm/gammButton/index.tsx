@@ -3,7 +3,6 @@ import {
   useWallet,
   useNotification
 } from "../../../providers"
-import { contracts } from "../../../utils/addressi"
 
 export const GammButton = () => {
 

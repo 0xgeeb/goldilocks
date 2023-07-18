@@ -1,17 +1,31 @@
 "use client"
 
 import { useEffect } from "react"
-import { BorrowButton } from "../../borrowing"
+import { BorrowButton } from "../../borrow"
 import { useWallet, useBorrowing } from "../../../providers"
 
 export const BorrowBox = () => {
 
-  // const {
-  //   activeToggle
-  // } = useWallet()
+  const {
+    activeToggle,
+    handlePercentageButtons,
+    renderLabel,
+    handleChange,
+    handleInput,
+    handleBalance
+  } = useBorrowing()
+  const {
+    isConnected,
+    refreshBalances
+  } = useWallet()
+
+  useEffect(() => {
+    refreshBalances()
+  }, [isConnected])
+
   return (
     <div className="flex flex-col h-[100%] w-[55%]">
-      {/* <div className="bg-white border-2 border-black rounded-xl h-[60%] relative">
+      <div className="bg-white border-2 border-black rounded-xl h-[60%] relative">
         <div className="flex flex-row justify-between items-center ml-10 mt-16">
           <h1 className="font-acme text-[40px]">{renderLabel()}</h1>
           <div className="flex flex-row items-center mr-3">
@@ -46,8 +60,8 @@ export const BorrowBox = () => {
             className="border-none focus:outline-none font-acme rounded-xl text-[40px] pl-12 w-[80%]" 
             placeholder="0.00"
             type="number"
-            value={handleTopInput()} 
-            onChange={(e) => handleTopChange(e.target.value)} 
+            value={handleInput()} 
+            onChange={(e) => handleChange(e.target.value)} 
             id="number-input" 
             autoFocus 
           />
@@ -60,9 +74,7 @@ export const BorrowBox = () => {
           </h1>
         </div>
       </div>
-      <div className="h-[15%] w-[80%] mx-auto mt-6">
-        <button className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[30px]" id="amm-button" onClick={() => handleButtonClick()} >{renderButton()}</button>
-      </div> */}
+      <BorrowButton />
     </div>
   )
 }

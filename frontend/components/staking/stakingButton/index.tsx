@@ -3,7 +3,6 @@ import {
   useWallet,
   useNotification
 } from "../../../providers"
-import { contracts } from "../../../utils/addressi"
 
 export const StakingButton = () => {
 
@@ -27,7 +26,6 @@ export const StakingButton = () => {
   const {
     isConnected,
     network,
-    wallet,
     refreshBalances
   } = useWallet()
   const { openNotification } = useNotification()
@@ -80,7 +78,7 @@ export const StakingButton = () => {
         const unstakeTx = await sendUnstakeTx(unstake)
         unstakeTx && openNotification({
           title: 'Successfully Unstaked $LOCKS!',
-          hash: unstakeTx.hash,
+          hash: unstakeTx,
           direction: 'unstaked',
           amount: unstake,
           price: 0,
@@ -102,7 +100,7 @@ export const StakingButton = () => {
           const realizeTx = await sendRealizeTx(realize)
           realizeTx && openNotification({
             title: 'Successfully Stirred $LOCKS!',
-            hash: realizeTx.hash,
+            hash: realizeTx,
             direction: 'stirred',
             amount: realize,
             price: 0,

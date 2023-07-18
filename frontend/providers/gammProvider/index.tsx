@@ -34,14 +34,14 @@ const INITIAL_STATE = {
   sellingLocks: 0,
   redeemingLocks: 0,
 
-  setHoneyBuy: (honeyBuy: number) => {},
-  setBuyingLocks: (buyingLocks: number) => {},
-  setSellingLocks: (sellingLocks: number) => {},
-  setGettingHoney: (gettingHoney: number) => {},
-  setRedeemingHoney: (redeemingHoney: number) => {},
-  setRedeemingLocks: (redeemingLocks: number) => {},
-  setDisplayString: (displayString: string) => {},
-  setBottomDisplayString: (bottomDisplayString: string) => {},
+  setHoneyBuy: (_honeyBuy: number) => {},
+  setBuyingLocks: (_buyingLocks: number) => {},
+  setSellingLocks: (_sellingLocks: number) => {},
+  setGettingHoney: (_gettingHoney: number) => {},
+  setRedeemingHoney: (_redeemingHoney: number) => {},
+  setRedeemingLocks: (_redeemingLocks: number) => {},
+  setDisplayString: (_displayString: string) => {},
+  setBottomDisplayString: (_bottomDisplayString: string) => {},
 
   buyingLocks: 0,
   gettingHoney: 0,
@@ -49,49 +49,49 @@ const INITIAL_STATE = {
 
   topInputFlag: false,
   bottomInputFlag: false,
-  setTopInputFlag: (bool: boolean) => {},
-  setBottomInputFlag: (bool: boolean) => {},
+  setTopInputFlag: (_bool: boolean) => {},
+  setBottomInputFlag: (_bool: boolean) => {},
 
-  changeSlippage: (amount: number, displayString: string) => {},
-  changeSlippageToggle: (toggle: boolean) => {},
+  changeSlippage: (_amount: number, _displayString: string) => {},
+  changeSlippageToggle: (_toggle: boolean) => {},
 
   activeToggle: 'buy',
-  changeActiveToggle: (toggle: string) => {},
+  changeActiveToggle: (_toggle: string) => {},
 
   displayString: '',
   bottomDisplayString: '',
 
-  changeNewInfo: (fsl: number, psl: number, floor: number, market: number, supply: number) => {},
+  changeNewInfo: (_fsl: number, _psl: number, _floor: number, _market: number, _supply: number) => {},
 
-  simulateBuy: (amt: number) => {},
-  simulateSell: (amt: number) => {},
-  simulateRedeem: (amt: number) => {},
+  simulateBuy: (_amt: number) => {},
+  simulateSell: (_amt: number) => {},
+  simulateRedeem: (_amt: number) => {},
 
-  handlePercentageButtons: (action: number) => {},
+  handlePercentageButtons: (_action: number) => {},
 
   flipTokens: () => {},
 
   handleTopInput: (): string => '',
-  handleTopChange: (input: string) => {},
+  handleTopChange: (_input: string) => {},
   handleTopBalance: (): string => "0.00",
 
   handleBottomInput: (): string => '',
-  handleBottomChange: (input: string) => {},
+  handleBottomChange: (_input: string) => {},
   handleBottomBalance: (): string => "0.00",
 
   debouncedHoneyBuy: 0,
   debouncedGettingHoney: 0,
 
-  findLocksBuyAmount: (debouncedValue: number) => 0,
-  findLocksSellAmount: (debouncedValue: number) => 0,
+  findLocksBuyAmount: (_debouncedValue: number) => 0,
+  findLocksSellAmount: (_debouncedValue: number) => 0,
 
   //todo: could maybe put the below in a hook instead
   refreshGammInfo: async () => {},
-  checkAllowance: async (amt: number): Promise<void | boolean> => {},
-  sendApproveTx: async (amt: number) => {},
-  sendBuyTx: async (buyAmt: number, maxCost: number): Promise<any> => {},
-  sendSellTx: async (sellAmt: number, minReceive: number): Promise<any> => {},
-  sendRedeemTx: async (redeemAmt: number): Promise<any> => {}
+  checkAllowance: async (_amt: number): Promise<void | boolean> => {},
+  sendApproveTx: async (_amt: number) => {},
+  sendBuyTx: async (_buyAmt: number, _maxCost: number): Promise<any> => {},
+  sendSellTx: async (_sellAmt: number, _minReceive: number): Promise<any> => {},
+  sendRedeemTx: async (_redeemAmt: number): Promise<any> => {}
 }
 
 const GammContext = createContext(INITIAL_STATE)

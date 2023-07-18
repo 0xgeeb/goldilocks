@@ -21,29 +21,28 @@ const INITIAL_STATE = {
   unstake: 0,
   realize: 0,
 
-  setStake: (stake: number) => {},
-  setUnstake: (unstake: number) => {},
-  setRealize: (realize: number) => {},
+  setStake: (_stake: number) => {},
+  setUnstake: (_unstake: number) => {},
+  setRealize: (_realize: number) => {},
 
   displayString: '',
-  setDisplayString: (displayString: string) => {},
+  setDisplayString: (_displayString: string) => {},
 
   activeToggle: 'stake',
-  changeActiveToggle: (toggle: string) => {},
+  changeActiveToggle: (_toggle: string) => {},
 
   renderLabel: () => '',
   handleBalance: () => '',
-  handlePercentageButtons: (action: number) => {},
-  handleChange: (input: string) => {},
+  handlePercentageButtons: (_action: number) => {},
+  handleChange: (_input: string) => {},
   handleInput: () => '',
 
-
   refreshStakingInfo: async () =>  {},
-  checkAllowance: async (amt: number, token: string): Promise<void | boolean> => {},
-  sendApproveTx: async (amt: number, token: string) => {},
-  sendStakeTx: async (stakeAmt: number): Promise<any> => {},
-  sendUnstakeTx: async (unstakeAmt: number): Promise<any> => {},
-  sendRealizeTx: async (realizeAmt: number): Promise<any> => {},
+  checkAllowance: async (_amt: number, _token: string): Promise<void | boolean> => {},
+  sendApproveTx: async (_amt: number, _token: string) => {},
+  sendStakeTx: async (_stakeAmt: number): Promise<any> => {},
+  sendUnstakeTx: async (_unstakeAmt: number): Promise<any> => {},
+  sendRealizeTx: async (_realizeAmt: number): Promise<any> => {},
   sendClaimTx: async (): Promise<any> => {}
 }
 
@@ -169,7 +168,7 @@ export const StakingProvider = (props: PropsWithChildren<{}>) => {
       return 'unstake'
     }
     if(activeToggleState === 'realize') {
-      return 'sir'
+      return 'stir'
     }
 
     return ''
