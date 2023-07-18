@@ -26,8 +26,18 @@ contract GAMMPriceTest is Test {
   }
 
   modifier dealandApproveMaxHoney() {
-    deal(address(honey), address(this), type(uint256).max);
+    deal(address(honey), address(this), 1000000000000000000000000000000000000e18);
     honey.approve(address(gamm), type(uint256).max);
+    _;
+  }
+
+  modifier dealUserLocks() {
+    deal(address(gamm), address(this), 1000e18);
+    _;
+  }
+
+  modifier dealGammHoney() {
+    deal(address(honey), address(gamm), 1000000000000000000000000000000000000e18);
     _;
   }
 
@@ -40,7 +50,7 @@ contract GAMMPriceTest is Test {
     uint256 solidityMarketPrice = gamm.marketPrice();
     string[] memory inputs = new string[](2);
     inputs[0] = "python3";
-    inputs[1] = "../price_tests/purchase_tests/purchase_test1.py";
+    inputs[1] = "price_tests/purchase_tests/purchase_test1.py";
     bytes memory result = vm.ffi(inputs);
     uint256 pythonMarketPrice = abi.decode(result, (uint256));
     uint256 variance = pythonMarketPrice / 1000;
@@ -48,9 +58,7 @@ contract GAMMPriceTest is Test {
     assert(pythonMarketPrice - variance < solidityMarketPrice);
   }
 
-  function testPurchase2() public {
-    // locks.transferToAMM(1600000e18, 400000e18);
-    vm.store(address(gamm), bytes32(uint256(5)), bytes32(uint256(1000e18)));
+  function testPurchase2() public dealandApproveMaxHoney {
     uint256 bought;
     while(bought < 55e18) {
       gamm.buy(25e17, type(uint256).max);
@@ -59,7 +67,7 @@ contract GAMMPriceTest is Test {
     uint256 solidityMarketPrice = gamm.marketPrice();
     string[] memory inputs = new string[](2);
     inputs[0] = "python3";
-    inputs[1] = "../testing/amp_tests/purchase_tests/purchase_test2.py";
+    inputs[1] = "price_tests/purchase_tests/purchase_test2.py";
     bytes memory result = vm.ffi(inputs);
     uint256 pythonMarketPrice = abi.decode(result, (uint256));
     uint256 variance = pythonMarketPrice / 1000;
@@ -67,9 +75,7 @@ contract GAMMPriceTest is Test {
     assert(pythonMarketPrice - variance < solidityMarketPrice);
   }
 
-  function testPurchase3() public {
-    // locks.transferToAMM(1600000e18, 400000e18);
-    vm.store(address(gamm), bytes32(uint256(5)), bytes32(uint256(1000e18)));
+  function testPurchase3() public dealandApproveMaxHoney {
     uint256 bought;
     while(bought < 8000) {
       gamm.buy(40e18, type(uint256).max);
@@ -78,7 +84,7 @@ contract GAMMPriceTest is Test {
     uint256 solidityMarketPrice = gamm.marketPrice();
     string[] memory inputs = new string[](2);
     inputs[0] = "python3";
-    inputs[1] = "../testing/amp_tests/purchase_tests/purchase_test3.py";
+    inputs[1] = "price_tests/purchase_tests/purchase_test3.py";
     bytes memory result = vm.ffi(inputs);
     uint256 pythonMarketPrice = abi.decode(result, (uint256));
     uint256 variance = pythonMarketPrice / 1000;
@@ -86,9 +92,10 @@ contract GAMMPriceTest is Test {
     assert(pythonMarketPrice - variance < solidityMarketPrice);
   }
 
-  function testPurchase4() public {
-    // locks.transferToAMM(8700000e18, 1900000e18);
-    vm.store(address(gamm), bytes32(uint256(5)), bytes32(uint256(2364e18)));
+  function testPurchase4() public dealandApproveMaxHoney {
+    vm.store(address(gamm), bytes32(uint256(5)), bytes32(uint256(8700000e18)));
+    vm.store(address(gamm), bytes32(uint256(6)), bytes32(uint256(1900000e18)));
+    vm.store(address(gamm), bytes32(uint256(7)), bytes32(uint256(2364e18)));
     uint256 bought;
     while(bought < 8000) {
       gamm.buy(40e18, type(uint256).max);
@@ -97,17 +104,16 @@ contract GAMMPriceTest is Test {
     uint256 solidityMarketPrice = gamm.marketPrice();
     string[] memory inputs = new string[](2);
     inputs[0] = "python3";
-    inputs[1] = "../testing/amp_tests/purchase_tests/purchase_test4.py";
+    inputs[1] = "price_tests/purchase_tests/purchase_test4.py";
     bytes memory result = vm.ffi(inputs);
     uint256 pythonMarketPrice = abi.decode(result, (uint256));
     uint256 variance = pythonMarketPrice / 1000;
     assert(pythonMarketPrice + variance > solidityMarketPrice);
     assert(pythonMarketPrice - variance < solidityMarketPrice);
   }
-  
-  function testMixed1() public {
-    // locks.transferToAMM(1600000e18, 400000e18);
-    vm.store(address(gamm), bytes32(uint256(5)), bytes32(uint256(1000e18)));
+
+  function testMixed1() public dealandApproveMaxHoney dealUserLocks dealGammHoney {
+    console.log(gamm.totalSupply());
     gamm.buy(38e18, type(uint256).max);
     gamm.sell(45e18, 0);
     gamm.sell(30e18, 0);
@@ -120,6 +126,10 @@ contract GAMMPriceTest is Test {
     gamm.buy(45e18, type(uint256).max);
     gamm.buy(8e18, type(uint256).max);
     gamm.sell(8e18, 0);
+    console.log(gamm.totalSupply());
+    //todo: totalsupply fucking up
+    vm.store(address(gamm), bytes32(uint256(2)), bytes32(uint256(6)));
+    console.log(gamm.totalSupply());
     gamm.buy(45e18, type(uint256).max);
     gamm.buy(45e18, type(uint256).max);
     gamm.buy(45e18, type(uint256).max);
@@ -131,7 +141,7 @@ contract GAMMPriceTest is Test {
     uint256 solidityMarketPrice = gamm.marketPrice();
     string[] memory inputs = new string[](2);
     inputs[0] = "python3";
-    inputs[1] = "../testing/amp_tests/mixed_tests/mixed_test1.py";
+    inputs[1] = "price_tests/mixed_tests/mixed_test1.py";
     bytes memory result = vm.ffi(inputs);
     uint256 pythonMarketPrice = abi.decode(result, (uint256));
     uint256 variance = pythonMarketPrice / 1000;

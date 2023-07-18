@@ -1,8 +1,8 @@
 import random
 from eth_abi import encode_single
 #assuming 2 million dollar presale and 1000 initial supply
-fsl = 1600000
-supply = 1000
+fsl = 1400000
+supply = 5000
 psl = 400000
 floor_price = fsl/supply
 market_price = floor_price + ((psl/supply)*((psl+fsl)/fsl)**5)
