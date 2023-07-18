@@ -17,6 +17,15 @@ const INITIAL_STATE = {
     honeyBorrowAllowance: 0
   },
 
+  borrow: 0,
+  repay: 0,
+
+  displayString: '',
+
+  activeToggle: 'borrow',
+  changeActiveToggle: (toggle: string) => {},
+
+
   refreshBorrowInfo: async () => {},
 }
 
@@ -30,6 +39,13 @@ export const BorrowProvider = (props: PropsWithChildren<{}>) => {
 
   //todo: type
   const [borrowInfoState, setBorrowInfoState] = useState(INITIAL_STATE.borrowInfo)
+  const [activeToggleState, setActiveToggleState] = useState<string>(INITIAL_STATE.activeToggle)
+
+  const [displayStringState, setDisplayStringState] = useState(INITIAL_STATE.displayString)
+
+  const [borrowState, setBorrowState] = useState<number>(INITIAL_STATE.borrow)
+  const [repayState, setRepayState] = useState<number>(INITIAL_STATE.repay)
+
 
   const porridgeContract = getContract({
     address: contracts.porridge.address as `0x${string}`,
@@ -51,6 +67,13 @@ export const BorrowProvider = (props: PropsWithChildren<{}>) => {
     abi: contracts.borrow.abi
   })
 
+  const changeActiveToggle = (toggle: string) => {
+    setDisplayStringState('')
+    setBorrowState(0)
+    setRepayState(0)
+    setActiveToggleState(toggle)
+  }
+
   const refreshBorrowInfo = async () => {
     let staked
     let borrowed
@@ -67,12 +90,12 @@ export const BorrowProvider = (props: PropsWithChildren<{}>) => {
     }
 
     const response = {
-      staked: parseFloat(formatEther(staked as unknown as bigint)),
-      borrowed: parseFloat(formatEther(borrowed as unknown as bigint)),
-      locked: parseFloat(formatEther(locked as unknown as bigint)),
+      staked: wallet ? parseFloat(formatEther(staked as unknown as bigint)) : 0,
+      borrowed: wallet ? parseFloat(formatEther(borrowed as unknown as bigint)) : 0,
+      locked: wallet ? parseFloat(formatEther(locked as unknown as bigint)) : 0,
       fsl: parseFloat(formatEther(fsl as unknown as bigint)),
       supply: parseFloat(formatEther(supply as unknown as bigint)),
-      honeyBorrowAllowance:parseFloat(formatEther(honeyBorrowAllowance as unknown as bigint)),
+      honeyBorrowAllowance: wallet ? parseFloat(formatEther(honeyBorrowAllowance as unknown as bigint)) : 0,
     }
 
     setBorrowInfoState(response)
@@ -82,7 +105,12 @@ export const BorrowProvider = (props: PropsWithChildren<{}>) => {
     <BorrowContext.Provider
       value={{
         borrowInfo: borrowInfoState,
-        refreshBorrowInfo
+        activeToggle: activeToggleState,
+        displayString: displayStringState,
+        borrow: borrowState,
+        repay: repayState,
+        refreshBorrowInfo,
+        changeActiveToggle
       }}
     >
       { children }
