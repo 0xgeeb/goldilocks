@@ -14,6 +14,10 @@ contract GAMMGasTest is Test {
   Borrow borrow;
   Porridge porridge;
 
+  uint256 txAmount = 10e18;
+  uint256 mediumTxAmount = 100e18;
+  uint256 largeTxAmount = 1000e18;
+
   function setUp() public {
     honey = new Honey();
     gamm = new GAMM(address(honey), address(this));
@@ -41,36 +45,26 @@ contract GAMMGasTest is Test {
     _;
   }
 
-  function test1Buy() public {
-    gamm.buy(1e18, type(uint256).max);
+  function test10Buy() public dealandApproveUserHoney {
+    gamm.buy(txAmount, type(uint256).max);
   }
-  
-  function test5Buy() public {
-    gamm.buy(5e18, type(uint256).max);
+
+  function test100Buy() public dealandApproveUserHoney {
+    gamm.buy(mediumTxAmount, type(uint256).max);
   }
-  
-  function test10Buy() public {
-    gamm.buy(10e18, type(uint256).max);
+
+  function test1000Buy() public dealandApproveUserHoney {
+    gamm.buy(largeTxAmount, type(uint256).max);
   }
-  
-  function test25Buy() public {
-    gamm.buy(25e18, type(uint256).max);
-  }
-  
-  function test50Buy() public {
-    gamm.buy(50e18, type(uint256).max);
-  }
-  
-  function test100Buy() public {
-    gamm.buy(100e18, type(uint256).max);
-  }
-  
-  function test500Buy() public {
-    gamm.buy(500e18, type(uint256).max);
-  }
-  
-  function test1000Buy() public {
-    gamm.buy(1000e18, type(uint256).max);
-  }
+
+  // 10buy -    114349   | cost - 5641049601535046139648
+
+  // 100buy -   297769   | cost - 57852097809804339185412
+
+  // 1000buy -  2120343  | cost - 935738532191833460868212
+
+  // 7   / 5641   = 0.001240915
+  // 18  / 57852  = 0.000311139
+  // 132 / 935738 = 0.000141065
 
 }

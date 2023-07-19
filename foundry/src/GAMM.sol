@@ -17,7 +17,6 @@ pragma solidity ^0.8.19;
 // ==============================================================================================
 
 
-// todo: maybe export this lib to a goldilockslibrary
 import { FixedPointMathLib } from "../lib/solady/src/utils/FixedPointMathLib.sol";
 import { SafeTransferLib } from "../lib/solady/src/utils/SafeTransferLib.sol";
 import { ERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
@@ -135,19 +134,102 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
 
 
   /// @notice Purchases $LOCKS tokens with $HONEY tokens
-  /// @param _amount Amount of $LOCKS to buy
-  /// @param _maxAmount Maximum amount of $HONEY to spend
+  /// @param amount Amount of $LOCKS to buy
+  /// @param maxAmount Maximum amount of $HONEY to spend
   //todo: compartenalize this big function
-  function buy(uint256 _amount, uint256 _maxAmount) external {
+  function buy(uint256 amount, uint256 maxAmount) external {
     uint256 _supply = supply;
-    uint256 _leftover = _amount;
     uint256 _fsl = fsl;
     uint256 _psl = psl;
+    (
+      uint256 __psl, 
+      uint256 __fsl, 
+      uint256 __supply, 
+      uint256 __purchasePrice
+    ) = _buyLoop(_psl, _fsl, _supply, amount);
+    uint256 tax = (__purchasePrice / 1000) * 3;
+    fsl = __fsl + tax;
+    psl = __psl;
+    supply = __supply;
+    if(__purchasePrice + tax > maxAmount) revert ExcessiveSlippage();
+    _floorRaise();
+    SafeTransferLib.safeTransferFrom(honeyAddress, msg.sender, address(this), __purchasePrice + tax);
+    _mint(msg.sender, amount);
+    emit Buy(msg.sender, amount);
+  }
+
+  /// @notice Sells $LOCKS tokens for $HONEY tokens
+  /// @param amount Amount of $LOCKS to sell
+  /// @param minAmount Minimum amount of $HONEY to receive
+  function sell(uint256 amount, uint256 minAmount) external {
+    uint256 _supply = supply;
+    uint256 _fsl = fsl;
+    uint256 _psl = psl;
+    (
+      uint256 __psl,
+      uint256 __fsl,
+      uint256 __supply,
+      uint256 __saleAmount
+    ) = _sellLoop(_psl, _fsl, _supply, amount);
+
+    uint256 tax = (__saleAmount / 1000) * 53;
+    fsl = __fsl + tax;
+    psl = __psl;
+    supply = __supply;
+    if(__saleAmount - tax < minAmount) revert ExcessiveSlippage();
+    _floorReduce();
+    _burn(msg.sender, amount);
+    SafeTransferLib.safeTransfer(honeyAddress, msg.sender, __saleAmount - tax);
+    emit Sale(msg.sender, amount);
+  }
+
+  /// @notice Redeems $LOCKS tokens for floor value
+  /// @param amount Amount of $LOCKS to redeem
+  function redeem(uint256 amount) public {
+    uint256 _rawTotal = FixedPointMathLib.mulWad(amount, _floorPrice(fsl, supply));
+    supply -= amount;
+    fsl -= _rawTotal;
+    _floorRaise();
+    _burn(msg.sender, amount);
+    SafeTransferLib.safeTransfer(honeyAddress, msg.sender, _rawTotal);
+    emit Redeem(msg.sender, amount);
+  }
+
+
+  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+  /*                      INTERNAL FUNCTIONS                    */
+  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+
+  /// @notice Calculates floor price of $LOCKS
+  /// @param _fsl Current fsl
+  /// @param _supply Current supply
+  /// @return floor $LOCKS floor price
+  function _floorPrice(uint256 _fsl, uint256 _supply) internal pure returns (uint256 floor) {
+    floor = FixedPointMathLib.divWad(_fsl, _supply);
+  }
+  
+  /// @notice Calculates market price of $LOCKS
+  /// @param _fsl Current fsl
+  /// @param _psl Current psl
+  /// @param _supply Current supply
+  /// @return market $LOCKS market price
+  function _marketPrice(uint256 _fsl, uint256 _psl, uint256 _supply) internal pure returns (uint256 market) {
+    market = FixedPointMathLib.divWad(_fsl, _supply) + FixedPointMathLib.mulWad(FixedPointMathLib.divWad(_psl, _supply), _pow(FixedPointMathLib.divWad(_psl + _fsl, _fsl), 5));
+  }
+
+  /// @notice Loops through the amount of $LOCKS tokens to purchase and calculates purchase price
+  /// @param _psl Temporary variable for PSL
+  /// @param _fsl Temporary variable for FSL
+  /// @param _supply Temporary variable for Supply
+  /// @param _leftover Temporary variable for amount of $LOCKS tokens to purchase
+  /// @return (PSL, FSL, supply and purchase price)
+  function _buyLoop(uint256 _psl, uint256 _fsl, uint256 _supply, uint256 _leftover) internal pure returns (uint256, uint256, uint256, uint256) {
     uint256 _market;
     uint256 _floor;
     uint256 _purchasePrice;
     while(_leftover >= 1e18) {
-      _market = soladyMarketPrice(_fsl, _psl, _supply);
+      _market = _marketPrice(_fsl, _psl, _supply);
       _floor = _floorPrice(_fsl, _supply);
       _purchasePrice += _market;
       _supply += 1e18;
@@ -161,7 +243,7 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
       _leftover -= 1e18;
     }
     if (_leftover > 0) {
-      _market = soladyMarketPrice(_fsl, _psl, _supply);
+      _market = _marketPrice(_fsl, _psl, _supply);
       _floor = _floorPrice(_fsl, _supply);
       _purchasePrice += FixedPointMathLib.mulWad(_market, _leftover);
       _supply += _leftover;
@@ -173,30 +255,21 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
         _fsl += FixedPointMathLib.mulWad(_floor, _leftover);
       }
     }
-    uint256 _tax = (_purchasePrice / 1000) * 3;
-    fsl = _fsl + _tax;
-    psl = _psl;
-    supply = _supply;
-    if(_purchasePrice + _tax > _maxAmount) revert ExcessiveSlippage();
-    _floorRaise();
-    SafeTransferLib.safeTransferFrom(honeyAddress, msg.sender, address(this), _purchasePrice + _tax);
-    _mint(msg.sender, _amount);
-    emit Buy(msg.sender, _amount);
+    return (_psl, _fsl, _supply, _purchasePrice);
   }
 
-  /// @notice Sells $LOCKS tokens for $HONEY tokens
-  /// @param _amount Amount of $LOCKS to sell
-  /// @param _minAmount Minimum amount of $HONEY to receive
-  function sell(uint256 _amount, uint256 _minAmount) external {
-    uint256 _supply = supply;
-    uint256 _leftover = _amount;
-    uint256 _fsl = fsl;
-    uint256 _psl = psl;
-    uint256 _saleAmount;
+  /// @notice Loops through the amount of $LOCKS tokens to sell and calculates sale amount
+  /// @param _psl Temporary variable for PSL
+  /// @param _fsl Temporary variable for FSL
+  /// @param _supply Temporary variable for Supply
+  /// @param _leftover Temporary variable for amount of $LOCKS tokens to sell
+  /// @return (PSL, FSL, supply and sale amount)
+  function _sellLoop(uint256 _psl, uint256 _fsl, uint256 _supply, uint256 _leftover) internal pure returns (uint256, uint256, uint256, uint256) {
     uint256 _market;
     uint256 _floor;
+    uint256 _saleAmount;
     while(_leftover >= 1e18) {
-      _market = soladyMarketPrice(_fsl, _psl, _supply);
+      _market = _marketPrice(_fsl, _psl, _supply);
       _floor = _floorPrice(_fsl, _supply);
       _saleAmount += _market;
       _psl -= _market - _floor;
@@ -205,72 +278,34 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
       _leftover -= 1e18;
     }
     if (_leftover > 0) {
-      _market = soladyMarketPrice(_fsl, _psl, _supply);
+      _market = _marketPrice(_fsl, _psl, _supply);
       _floor = _floorPrice(_fsl, _supply);
       _saleAmount += FixedPointMathLib.mulWad(_market, _leftover);
       _psl -= FixedPointMathLib.mulWad((_market - _floor), _leftover);
       _fsl -= FixedPointMathLib.mulWad(_floor, _leftover); 
       _supply -= _leftover;
     }
-    uint256 _tax = (_saleAmount / 1000) * 53;
-    fsl = _fsl + _tax;
-    psl = _psl;
-    supply = _supply;
-    if(_saleAmount - _tax < _minAmount) revert ExcessiveSlippage();
-    _floorReduce();
-    _burn(msg.sender, _amount);
-    SafeTransferLib.safeTransfer(honeyAddress, msg.sender, _saleAmount - _tax);
-    emit Sale(msg.sender, _amount);
+    return (_psl, _fsl, _supply, _saleAmount);
   }
 
-  /// @notice Redeems $LOCKS tokens for floor value
-  /// @param _amount Amount of $LOCKS to redeem
-  function redeem(uint256 _amount) public {
-    uint256 _rawTotal = FixedPointMathLib.mulWad(_amount, _floorPrice(fsl, supply));
-    supply -= _amount;
-    fsl -= _rawTotal;
-    _floorRaise();
-    _burn(msg.sender, _amount);
-    SafeTransferLib.safeTransfer(honeyAddress, msg.sender, _rawTotal);
-    emit Redeem(msg.sender, _amount);
-  }
-
-
-  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-  /*                      INTERNAL FUNCTIONS                    */
-  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
-
-
-  /// @notice calculates floor price of $LOCKS
-  /// @param _fsl Current fsl
-  /// @param _supply Current supply
-  /// @return $LOCKS floor price
-  function _floorPrice(uint256 _fsl, uint256 _supply) internal pure returns (uint256) {
-    return FixedPointMathLib.divWad(_fsl, _supply);
-  }
-  
-  /// @notice calculates market price of $LOCKS
-  /// @param _fsl Current fsl
-  /// @param _psl Current psl
-  /// @param _supply Current supply
-  /// @return $LOCKS market price
-  function _marketPrice(uint256 _fsl, uint256 _psl, uint256 _supply) internal pure returns (uint256) {
-   uint256 factor1 = _psl * 1e10 / _supply;
-   uint256 factor2 = ((_psl + _fsl) * 1e5) / _fsl;
-   uint256 exponential = factor2**5;
-   uint256 _floorPriceVariable = _fsl * 1e18 /_supply;
-   return _floorPriceVariable + ((factor1 * exponential) / (1e17));
-  }
-
-  function soladyMarketPrice(uint256 _fsl, uint256 _psl, uint256 _supply) public pure returns (uint256) {
-    uint256 allTogether = FixedPointMathLib.divWad(_fsl, _supply) + FixedPointMathLib.mulWad(FixedPointMathLib.divWad(_psl, _supply), pow(FixedPointMathLib.divWad(_psl + _fsl, _fsl), 5));
-    return allTogether;
+  /// @notice Raises x to the power of y, from PRBMath
+  /// @param x Base number
+  /// @param y Exponent
+  /// @return result Calculated value
+  function _pow(uint256 x, uint256 y) internal pure returns (uint256 result) {
+    result = y & 1 > 0 ? x : 1e18;
+    for (y >>= 1; y > 0; y >>= 1) {
+      x = FixedPointMathLib.mulWad(x, x);
+      if (y & 1 > 0) {
+        result = FixedPointMathLib.mulWad(result, x);
+      }
+    }
   }
 
   /// @notice If necessary, raises the target ratio 
   function _floorRaise() internal {
-    if((psl * (1e18)) / fsl >= targetRatio) {
-      uint256 _raiseAmount = (((psl * 1e18) / fsl) * (psl / 32)) / (1e18);
+    if(FixedPointMathLib.divWad(psl, fsl) >= targetRatio) {
+      uint256 _raiseAmount = FixedPointMathLib.mulWad(FixedPointMathLib.divWad(psl, fsl), psl / 32);
       psl -= _raiseAmount;
       fsl += _raiseAmount;
       targetRatio += targetRatio / 50;
@@ -321,16 +356,6 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
   /// @param _borrowAddress Address of Borrow contract
   function setBorrowAddress(address _borrowAddress) external onlyAdmin {
     borrowAddress = _borrowAddress;
-  }
-
-  function pow(uint256 x, uint256 y) internal pure returns (uint256 result) {
-    result = y & 1 > 0 ? x : 1e18;
-    for (y >>= 1; y > 0; y >>= 1) {
-      x = FixedPointMathLib.mulWad(x, x);
-      if (y & 1 > 0) {
-        result = FixedPointMathLib.mulWad(result, x);
-      }
-    }
   }
 
 }
