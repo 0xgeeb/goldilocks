@@ -41,6 +41,7 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
   uint256 public supply = 5000e18;
   
   uint256 public targetRatio = 360e15;
+  uint256 public immutable DAYS_SECONDS = 86400;
 
   uint256 public lastFloorRaise;
   uint256 public lastFloorDecrease;
@@ -216,6 +217,7 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
     psl = _psl;
     supply = _supply;
     if(_saleAmount - _tax < _minAmount) revert ExcessiveSlippage();
+    _floorReduce();
     _burn(msg.sender, _amount);
     SafeTransferLib.safeTransfer(honeyAddress, msg.sender, _saleAmount - _tax);
     emit Sale(msg.sender, _amount);
@@ -224,7 +226,7 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
   /// @notice Redeems $LOCKS tokens for floor value
   /// @param _amount Amount of $LOCKS to redeem
   function redeem(uint256 _amount) public {
-    uint256 _rawTotal = (_amount * ((fsl * 1e18) / supply)) / 1e18;
+    uint256 _rawTotal = FixedPointMathLib.mulWad(_amount, _floorPrice(fsl, supply));
     supply -= _amount;
     fsl -= _rawTotal;
     _floorRaise();
@@ -280,8 +282,8 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
   function _floorReduce() internal {
     uint256 _elapsedRaise = block.timestamp - lastFloorRaise;
     uint256 _elapsedDrop = block.timestamp - lastFloorDecrease;
-    if (_elapsedRaise >= 86400 && _elapsedDrop >= 86400) {
-      uint256 _decreaseFactor = _elapsedRaise / 86400;
+    if (_elapsedRaise >= DAYS_SECONDS && _elapsedDrop >= DAYS_SECONDS) {
+      uint256 _decreaseFactor = _elapsedRaise / DAYS_SECONDS;
       targetRatio -= (targetRatio * _decreaseFactor);
       lastFloorDecrease = block.timestamp;
     }

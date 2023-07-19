@@ -14,6 +14,15 @@ contract GAMMTest is Test {
   Borrow borrow;
   Porridge porridge;
 
+  uint256 txAmount = 10e18;
+  uint256 costOf10Locks = 5641049601535046139648;
+  uint256 proceedsof10Locks = 5300673535135953225736;
+
+  bytes4 NotAdminSelector = 0x7bfa4b9f;
+  bytes4 NotPorridgeSelector = 0x0da7dbfb;
+  bytes4 NotBorrowSelector = 0x5a2d193d;
+  bytes4 ExcessiveSlippageSelector = 0x97c7f537;
+
   function setUp() public {
     honey = new Honey();
     gamm = new GAMM(address(honey), address(this));
@@ -25,59 +34,126 @@ contract GAMMTest is Test {
     borrow.setPorridgeAddress(address(porridge));
   }
 
-  function testMarketPrice() public {
-    vm.store(address(gamm), bytes32(uint256(2)), bytes32(uint256(243457e18)));
-    vm.store(address(gamm), bytes32(uint256(3)), bytes32(uint256(4645e18)));
-    vm.store(address(gamm), bytes32(uint256(5)), bytes32(uint256(668e18)));
-    uint256 regularResult = gamm.marketPrice();
-    uint256 soladyResult = gamm.soladyMarketPrice(243457e18, 4645e18, 668e18);
-    console.log(regularResult);
-    console.log(soladyResult);
+  modifier dealandApproveUserHoney() {
+    deal(address(honey), address(this), type(uint256).max / 2);
+    honey.approve(address(gamm), type(uint256).max);
+    _;
   }
 
-  function testBuy1() public {
-    gamm.buy(1e18, type(uint256).max);
+  modifier dealUserLocks() {
+    deal(address(gamm), address(this), txAmount);
+    _;
   }
-  
-  function testBuy5() public {
-    gamm.buy(5e18, type(uint256).max);
+
+  modifier dealGammHoney() {
+    deal(address(honey), address(gamm), type(uint256).max);
+    _;
   }
-  
-  function testBuy10() public {
-    gamm.buy(10e18, type(uint256).max);
+
+  function testFloorPrice() public {
+    uint256 floorPrice = gamm.floorPrice();
+    string[] memory inputs = new string[](2);
+    inputs[0] = "python3";
+    inputs[1] = "price_tests/floor_test/test.py";
+    bytes memory result = vm.ffi(inputs);
+    uint256 pythonFloorPrice = abi.decode(result, (uint256));
+    uint256 variance = pythonFloorPrice / 1000;
+    assert(pythonFloorPrice + variance > floorPrice);
+    assert(pythonFloorPrice - variance < floorPrice);
   }
-  
-  function testBuy25() public {
-    gamm.buy(25e18, type(uint256).max);
+
+  function testRandomFloorPrice() public {
+    vm.store(address(gamm), bytes32(uint256(5)), bytes32(uint256(23457745e18)));
+    vm.store(address(gamm), bytes32(uint256(6)), bytes32(uint256(8340957e18)));
+    vm.store(address(gamm), bytes32(uint256(7)), bytes32(uint256(4374e18)));
+    uint256 floorPrice = gamm.floorPrice();
+    string[] memory inputs = new string[](2);
+    inputs[0] = "python3";
+    inputs[1] = "price_tests/floor_test/random_test.py";
+    bytes memory result = vm.ffi(inputs);
+    uint256 pythonFloorPrice = abi.decode(result, (uint256));
+    uint256 variance = pythonFloorPrice / 1000;
+    assert(pythonFloorPrice + variance > floorPrice);
+    assert(pythonFloorPrice - variance < floorPrice);
   }
-  
-  function testBuy50() public {
-    gamm.buy(50e18, type(uint256).max);
+
+  function testMarketPrice() public {
+    uint256 marketPrice = gamm.marketPrice();
+    string[] memory inputs = new string[](2);
+    inputs[0] = "python3";
+    inputs[1] = "price_tests/market_test/test.py";
+    bytes memory result = vm.ffi(inputs);
+    uint256 pythonMarketPrice = abi.decode(result, (uint256));
+    uint256 variance = pythonMarketPrice / 1000;
+    assert(pythonMarketPrice + variance > marketPrice);
+    assert(pythonMarketPrice - variance < marketPrice);
   }
-  
-  function testBuy100() public {
-    gamm.buy(100e18, type(uint256).max);
+
+  function testRandomMarketPrice() public {
+    vm.store(address(gamm), bytes32(uint256(5)), bytes32(uint256(23457745e18)));
+    vm.store(address(gamm), bytes32(uint256(6)), bytes32(uint256(8340957e18)));
+    vm.store(address(gamm), bytes32(uint256(7)), bytes32(uint256(4374e18)));
+    uint256 marketPrice = gamm.marketPrice();
+    string[] memory inputs = new string[](2);
+    inputs[0] = "python3";
+    inputs[1] = "price_tests/market_test/random_test.py";
+    bytes memory result = vm.ffi(inputs);
+    uint256 pythonMarketPrice = abi.decode(result, (uint256));
+    uint256 variance = pythonMarketPrice / 1000;
+    assert(pythonMarketPrice + variance > marketPrice);
+    assert(pythonMarketPrice - variance < marketPrice);
   }
-  
-  function testBuy500() public {
-    gamm.buy(500e18, type(uint256).max);
+
+  function testBuy() public dealandApproveUserHoney {
+    gamm.buy(txAmount, type(uint256).max);
+
+    uint256 userLocksBalance = gamm.balanceOf(address(this));
+    uint256 userHoneyBalance = honey.balanceOf(address(this));
+
+    assertEq(userLocksBalance, txAmount);
+    assertEq(userHoneyBalance, (type(uint256).max / 2) - costOf10Locks);
   }
-  
-  function testBuy1000() public {
-    gamm.buy(1000e18, type(uint256).max);
+
+  function testSell() public dealUserLocks dealGammHoney {
+    gamm.sell(txAmount, 0);
+
+    uint256 userLocksBalance = gamm.balanceOf(address(this));
+    uint256 userHoneyBalance = honey.balanceOf(address(this));
+
+    assertEq(userLocksBalance, 0);
+    assertEq(userHoneyBalance, proceedsof10Locks);
   }
-  
-  function testFlashLoanExploit() public {
-    address blackhat = vm.addr(1);
-    uint256 flashLoanAmount = 10000000e18;
-    deal(address(honey), blackhat, flashLoanAmount);
-    vm.prank(blackhat);
-    honey.approve(address(gamm), type(uint256).max);
-    vm.prank(blackhat);
-    gamm.buy(1000e18, type(uint256).max);
-    vm.prank(blackhat);
-    gamm.sell(1000e18, 0);
-    assert(honey.balanceOf(blackhat) < flashLoanAmount);
+
+  function testRedeemed() public dealUserLocks dealGammHoney{
+    gamm.redeem(txAmount);
+
+    uint256 userLocksBalance = gamm.balanceOf(address(this));
+    uint256 userHoneyBalance = honey.balanceOf(address(this));
+    uint256 floorPriceof10Locks = gamm.floorPrice() * 10;
+
+    assertEq(userLocksBalance, 0);
+    assertEq(userHoneyBalance, floorPriceof10Locks);
+  }
+
+  function testNotAdmin() public {
+    vm.prank(address(0x01));
+    vm.expectRevert(NotAdminSelector);
+    gamm.setBorrowAddress(address(0x01));
+  }
+
+  function testNotPorridge() public {
+    vm.expectRevert(NotPorridgeSelector);
+    gamm.porridgeMint(address(0x01), 69e18);
+  }
+
+  function testNotBorrow() public {
+    vm.expectRevert(NotBorrowSelector);
+    gamm.borrowTransfer(address(0x01), 69e18, 69e18);
+  }
+
+  function testExcessiveSlippage() public {
+    vm.expectRevert(ExcessiveSlippageSelector);
+    gamm.buy(1e18, 0);
   }
 
 }
