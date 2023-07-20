@@ -17,13 +17,13 @@ import {
 export const TradeBox = () => {
 
   const [balancesLoading, setBalancesLoading] = useState<boolean>(false)
+  
   const {
     gammInfo,
     simulateBuy,
     simulateSell,
     simulateRedeem,
     slippage,
-    displayString,
     debouncedHoneyBuy,
     debouncedGettingHoney,
     honeyBuy,
@@ -56,11 +56,13 @@ export const TradeBox = () => {
     findLocksBuyAmount,
     findLocksSellAmount
   } = useGamm()
+
   const { 
     isConnected, 
     balance, 
     refreshBalances 
   } = useWallet()
+
   const { 
     floorPrice,
     marketPrice,

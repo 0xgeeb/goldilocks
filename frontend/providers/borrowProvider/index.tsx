@@ -1,13 +1,13 @@
 "use client"
 
 import { createContext, PropsWithChildren, useContext, useState } from "react"
-import { parseEther, formatEther } from "viem"
-import { getContract, writeContract, waitForTransaction } from "@wagmi/core"
+import { formatEther } from "viem"
+import { getContract } from "@wagmi/core"
 import { useWallet } from ".."
 import { contracts } from "../../utils/addressi"
+import { BorrowingInitialState, BorrowInfo } from "../../utils/interfaces"
 
-//todo: type
-const INITIAL_STATE = {
+const INITIAL_STATE: BorrowingInitialState = {
   borrowInfo: {
     staked: 0,
     borrowed: 0,
@@ -34,12 +34,7 @@ const INITIAL_STATE = {
   handleChange: (_input: string) => {},
   handleBalance: () => '',
 
-  refreshBorrowInfo: async () => {},
-
-  checkAllowance: async (_amt: number): Promise<void | boolean> => {},
-  sendApproveTx: async (_amt: number) => {},
-  sendBorrowTx: async (_borrowAmt: number): Promise<any> => {},
-  sendRepayTx: async (_repayAmt: number): Promise<any> => {}
+  refreshBorrowInfo: async () => {}
 }
 
 const BorrowContext = createContext(INITIAL_STATE)
@@ -48,33 +43,31 @@ export const BorrowProvider = (props: PropsWithChildren<{}>) => {
 
   const { children } = props
 
-  const { balance, wallet } = useWallet()
+  const { wallet } = useWallet()
 
-  //todo: type
-  const [borrowInfoState, setBorrowInfoState] = useState(INITIAL_STATE.borrowInfo)
+  const [borrowInfoState, setBorrowInfoState] = useState<BorrowInfo>(INITIAL_STATE.borrowInfo)
   const [activeToggleState, setActiveToggleState] = useState<string>(INITIAL_STATE.activeToggle)
 
-  const [displayStringState, setDisplayStringState] = useState(INITIAL_STATE.displayString)
+  const [displayStringState, setDisplayStringState] = useState<string>(INITIAL_STATE.displayString)
 
   const [borrowState, setBorrowState] = useState<number>(INITIAL_STATE.borrow)
   const [repayState, setRepayState] = useState<number>(INITIAL_STATE.repay)
-
-
-  const porridgeContract = getContract({
-    address: contracts.porridge.address as `0x${string}`,
-    abi: contracts.porridge.abi
-  })
-
-  const gammContract = getContract({
-    address: contracts.amm.address as `0x${string}`,
-    abi: contracts.amm.abi
-  })
 
   const honeyContract = getContract({
     address: contracts.honey.address as `0x${string}`,
     abi: contracts.honey.abi
   })
-
+  
+  const gammContract = getContract({
+    address: contracts.amm.address as `0x${string}`,
+    abi: contracts.amm.abi
+  })
+  
+  const porridgeContract = getContract({
+    address: contracts.porridge.address as `0x${string}`,
+    abi: contracts.porridge.abi
+  })
+  
   const borrowContract = getContract({
     address: contracts.borrow.address as `0x${string}`,
     abi: contracts.borrow.abi
@@ -212,73 +205,6 @@ export const BorrowProvider = (props: PropsWithChildren<{}>) => {
     setBorrowInfoState(response)
   }
 
-  const checkAllowance = async (amt: number): Promise<boolean> => {
-    const allowance = await honeyContract.read.allowance([wallet, contracts.borrow.address])
-    const allowanceNum = parseFloat(formatEther(allowance as unknown as bigint))
-
-    console.log('allowanceNum: ', allowanceNum)
-    console.log('amount: ', amt)
-    
-    if(amt > allowanceNum) {
-      return false
-    }
-    else {
-      return true
-    }
-  }
-
-  const sendApproveTx = async (amt: number) => {
-    try {
-      await writeContract({
-        address: contracts.honey.address as `0x${string}`,
-        abi: contracts.honey.abi,
-        functionName: 'approve',
-        args: [contracts.borrow.address, parseEther(`${amt}`)]
-      })
-    }
-    catch (e) {
-      console.log('user denied tx')
-      console.log('or: ', e)
-    }
-  }
-
-  const sendBorrowTx = async (borrowAmt: number): Promise<string> => {
-    try {
-      const { hash } = await writeContract({
-        address: contracts.borrow.address as `0x${string}`,
-        abi: contracts.borrow.abi,
-        functionName: 'borrow',
-        args: [parseEther(`${borrowAmt}`)]
-      })
-      const data = await waitForTransaction({ hash })
-      return data.transactionHash
-    }
-    catch (e) {
-      console.log('user denied tx')
-      console.log('or: ', e)
-    }
-
-    return ''
-  }
-
-  const sendRepayTx = async (repayAmt: number): Promise<string> => {
-    try {
-      const { hash } = await writeContract({
-        address: contracts.borrow.address as `0x${string}`,
-        abi: contracts.borrow.abi,
-        functionName: 'stake',
-        args: [parseEther(`${repayAmt}`)]
-      })
-      const data = await waitForTransaction({ hash })
-      return data.transactionHash
-    }
-    catch (e) {
-      console.log('user denied tx')
-      console.log('or: ', e)
-    }
-
-    return ''
-  }
 
   return (
     <BorrowContext.Provider
@@ -297,11 +223,7 @@ export const BorrowProvider = (props: PropsWithChildren<{}>) => {
         renderLabel,
         handleInput,
         handleChange,
-        handleBalance,
-        checkAllowance,
-        sendApproveTx,
-        sendBorrowTx,
-        sendRepayTx
+        handleBalance
       }}
     >
       { children }

@@ -1,13 +1,13 @@
 "use client"
 
 import { createContext, PropsWithChildren, useContext, useState } from "react"
-import { parseEther, formatEther } from "viem"
-import { getContract, writeContract, waitForTransaction } from "@wagmi/core"
+import { formatEther } from "viem"
+import { getContract } from "@wagmi/core"
 import { useWallet } from ".."
 import { contracts } from "../../utils/addressi"
+import { StakingInitialState, StakingInfo } from "../../utils/interfaces"
 
-//todo: type
-const INITIAL_STATE = {
+const INITIAL_STATE: StakingInitialState = {
   stakingInfo: {
     fsl: 0,
     supply: 0,
@@ -37,13 +37,7 @@ const INITIAL_STATE = {
   handleChange: (_input: string) => {},
   handleInput: () => '',
 
-  refreshStakingInfo: async () =>  {},
-  checkAllowance: async (_amt: number, _token: string): Promise<void | boolean> => {},
-  sendApproveTx: async (_amt: number, _token: string) => {},
-  sendStakeTx: async (_stakeAmt: number): Promise<any> => {},
-  sendUnstakeTx: async (_unstakeAmt: number): Promise<any> => {},
-  sendRealizeTx: async (_realizeAmt: number): Promise<any> => {},
-  sendClaimTx: async (): Promise<any> => {}
+  refreshStakingInfo: async () =>  {}
 }
 
 const StakingContext = createContext(INITIAL_STATE)
@@ -54,29 +48,28 @@ export const StakingProvider = (props: PropsWithChildren<{}>) => {
 
   const { balance, wallet } = useWallet()
 
-  //todo: type
-  const [stakingInfoState, setStakingInfoState] = useState(INITIAL_STATE.stakingInfo)
+  const [stakingInfoState, setStakingInfoState] = useState<StakingInfo>(INITIAL_STATE.stakingInfo)
   const [activeToggleState, setActiveToggleState] = useState<string>(INITIAL_STATE.activeToggle)
 
-  const [displayStringState, setDisplayStringState] = useState(INITIAL_STATE.displayString)
+  const [displayStringState, setDisplayStringState] = useState<string>(INITIAL_STATE.displayString)
 
   const [stakeState, setStakeState] = useState<number>(INITIAL_STATE.stake)
   const [unstakeState, setUnstakeState] = useState<number>(INITIAL_STATE.unstake)
   const [realizeState, setRealizeState] = useState<number>(INITIAL_STATE.realize)
 
-  const porridgeContract = getContract({
-    address: contracts.porridge.address as `0x${string}`,
-    abi: contracts.porridge.abi
+  const honeyContract = getContract({
+    address: contracts.honey.address as `0x${string}`,
+    abi: contracts.honey.abi
   })
-
+  
   const gammContract = getContract({
     address: contracts.amm.address as `0x${string}`,
     abi: contracts.amm.abi
   })
-
-  const honeyContract = getContract({
-    address: contracts.honey.address as `0x${string}`,
-    abi: contracts.honey.abi
+  
+  const porridgeContract = getContract({
+    address: contracts.porridge.address as `0x${string}`,
+    abi: contracts.porridge.abi
   })
 
   const changeActiveToggle = (toggle: string) => {
@@ -231,138 +224,6 @@ export const StakingProvider = (props: PropsWithChildren<{}>) => {
     setStakingInfoState(response)
   }
 
-  const checkAllowance = async (amt: number, token: string): Promise<boolean> => {
-    let allowance
-    let allowanceNum
-
-    if(token === 'locks') {
-      allowance = await gammContract.read.allowance([wallet, contracts.porridge.address])
-      allowanceNum = parseFloat(formatEther(allowance as unknown as bigint))
-    }
-    else {
-      allowance = await honeyContract.read.allowance([wallet, contracts.porridge.address])
-      allowanceNum = parseFloat(formatEther(allowance as unknown as bigint))
-    }
-
-    console.log('allowanceNum: ', allowanceNum)
-    console.log('amount: ', amt)
-    
-    if(amt > allowanceNum) {
-      return false
-    }
-    else {
-      return true
-    }
-  }
-
-  const sendApproveTx = async (amt: number, token: string) => {
-    if(token === 'locks') {
-      try {
-        await writeContract({
-          address: contracts.amm.address as `0x${string}`,
-          abi: contracts.amm.abi,
-          functionName: 'approve',
-          args: [contracts.porridge.address, parseEther(`${amt}`)]
-        })
-      }
-      catch (e) {
-        console.log('user denied tx')
-        console.log('or: ', e)
-      }
-    }
-    else {
-      try {
-        await writeContract({
-          address: contracts.honey.address as `0x${string}`,
-          abi: contracts.honey.abi,
-          functionName: 'approve',
-          args: [contracts.porridge.address, parseEther(`${amt}`)]
-        })
-      }
-      catch (e) {
-        console.log('user denied tx')
-        console.log('or: ', e)
-      }
-
-    }
-  }
-
-  const sendStakeTx = async (stakeAmt: number): Promise<string> => {
-    try {
-      const { hash } = await writeContract({
-        address: contracts.porridge.address as `0x${string}`,
-        abi: contracts.porridge.abi,
-        functionName: 'stake',
-        args: [parseEther(`${stakeAmt}`)]
-      })
-      const data = await waitForTransaction({ hash })
-      return data.transactionHash
-    }
-    catch (e) {
-      console.log('user denied tx')
-      console.log('or: ', e)
-    }
-
-    return ''
-  }
-
-  const sendUnstakeTx = async (unstakeAmt: number): Promise<string> => {
-    try {
-      const { hash } = await writeContract({
-        address: contracts.porridge.address as `0x${string}`,
-        abi: contracts.porridge.abi,
-        functionName: 'unstake',
-        args: [parseEther(`${unstakeAmt}`)]
-      })
-      const data = await waitForTransaction({ hash })
-      return data.transactionHash
-    }
-    catch (e) {
-      console.log('user denied tx')
-      console.log('or: ', e)
-    }
-
-    return ''
-  }
-
-  const sendRealizeTx = async (realizeAmt: number): Promise<string> => {
-    try {
-      const { hash } = await writeContract({
-        address: contracts.porridge.address as `0x${string}`,
-        abi: contracts.porridge.abi,
-        functionName: 'realize',
-        args: [parseEther(`${realizeAmt}`)]
-      })
-      const data = await waitForTransaction({ hash })
-      return data.transactionHash
-    }
-    catch (e) {
-      console.log('user denied tx')
-      console.log('or: ', e)
-    }
-
-    return ''
-  }
-
-  const sendClaimTx = async (): Promise<string> => {
-    try {
-      const { hash } = await writeContract({
-        address: contracts.porridge.address as `0x${string}`,
-        abi: contracts.porridge.abi,
-        functionName: 'claim',
-        args: []
-      })
-      const data = await waitForTransaction({ hash })
-      return data.transactionHash
-    }
-    catch (e) {
-      console.log('user denied tx')
-      console.log('or: ', e)
-    }
-
-    return ''
-  }
-
   return (
     <StakingContext.Provider
       value={{
@@ -382,13 +243,7 @@ export const StakingProvider = (props: PropsWithChildren<{}>) => {
         handlePercentageButtons,
         handleChange,
         handleInput,
-        refreshStakingInfo,
-        checkAllowance,
-        sendApproveTx,
-        sendStakeTx,
-        sendUnstakeTx,
-        sendRealizeTx,
-        sendClaimTx
+        refreshStakingInfo
       }}
     >
       { children }

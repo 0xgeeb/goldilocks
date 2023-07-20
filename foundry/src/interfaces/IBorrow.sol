@@ -5,8 +5,9 @@ interface IBorrow {
 
   function getLocked(address user) external view returns (uint256);
   function getBorrowed(address user) external view returns (uint256);
+  function borrowLimit(address user) external view returns (uint256);
   
-  function borrow(uint256 amount) external returns (uint256);
+  function borrow(uint256 amount) external;
   function repay(uint256 amount) external;
   
 }

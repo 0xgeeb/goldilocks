@@ -3,6 +3,7 @@ import {
   useWallet,
   useNotification
 } from "../../../providers"
+import { useGammTx } from "../../../hooks/gamm"
 
 export const GammButton = () => {
 
@@ -24,18 +25,24 @@ export const GammButton = () => {
     setRedeemingHoney,
     setRedeemingLocks,
     setBottomDisplayString,
-    checkAllowance,
-    sendApproveTx,
-    sendBuyTx,
-    sendSellTx,
-    sendRedeemTx,
     refreshGammInfo
   } = useGamm()
+
   const { 
+    wallet,
     isConnected, 
     network,
     refreshBalances
   } = useWallet()
+
+  const { 
+    checkAllowance,
+    sendApproveTx,
+    sendBuyTx,
+    sendSellTx,
+    sendRedeemTx
+   } = useGammTx()
+
   const { openNotification } = useNotification()
 
   const handleButtonClick = async () => {
@@ -52,7 +59,7 @@ export const GammButton = () => {
         if(honeyBuy == 0) {
           return
         }
-        const sufficientAllowance: boolean | void = await checkAllowance(honeyBuy)
+        const sufficientAllowance: boolean | void = await checkAllowance(honeyBuy, wallet)
         if(sufficientAllowance) {
           button && (button.innerHTML = "buying...")
           const buyTx = await sendBuyTx(buyingLocks, honeyBuy)

@@ -34,7 +34,6 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  //todo: clean these up
   uint256 public fsl = 1400000e18;
   uint256 public psl = 400000e18;
   uint256 public supply = 5000e18;
@@ -136,7 +135,6 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
   /// @notice Purchases $LOCKS tokens with $HONEY tokens
   /// @param amount Amount of $LOCKS to buy
   /// @param maxAmount Maximum amount of $HONEY to spend
-  //todo: compartenalize this big function
   function buy(uint256 amount, uint256 maxAmount) external {
     uint256 _supply = supply;
     uint256 _fsl = fsl;

@@ -6,20 +6,24 @@ import {
   useWallet,
   useNotification
 } from "../../../providers"
+import { useStakingTx } from "../../../hooks/staking"
 
 export const StatsBox = () => {
 
   const { 
     stakingInfo,
-    refreshStakingInfo,
-    sendClaimTx
+    refreshStakingInfo
   } = useStaking()
+
   const { 
     isConnected,
     refreshBalances,
     balance,
     network
   } = useWallet()
+
+  const { sendClaimTx } = useStakingTx()
+
   const { openNotification } = useNotification()
 
   const fetchInfo = async () => {
@@ -49,7 +53,7 @@ export const StatsBox = () => {
       const claimTx = await sendClaimTx()
       claimTx && openNotification({
         title: 'Successfully Claimed $PRG!',
-        hash: claimTx.hash,
+        hash: claimTx,
         direction: 'claimed',
         amount: stakingInfo.yieldToClaim,
         price: 0,

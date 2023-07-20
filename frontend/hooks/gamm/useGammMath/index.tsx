@@ -1,14 +1,14 @@
-export function useGammMath() {
+export const useGammMath = () => {
 
-  function floorPrice(fsl: number, supply: number): number {
+  const floorPrice = (fsl: number, supply: number): number => {
     return fsl / supply
   }
   
-  function marketPrice(fsl: number, psl: number, supply: number): number {
+  const marketPrice = (fsl: number, psl: number, supply: number): number => {
     return floorPrice(fsl, supply) + ((psl / supply) * ((psl + fsl) / fsl)**5)
   }
 
-  function simulateBuyDry(locks: number, fsl: number, psl: number, supply: number): number {
+  const simulateBuyDry = (locks: number, fsl: number, psl: number, supply: number): number => {
     let _leftover = locks
     let _fsl = fsl
     let _psl = psl
@@ -48,7 +48,7 @@ export function useGammMath() {
     return _purchasePrice + _tax
   }
 
-  function simulateSellDry(locks: number, fsl: number, psl: number, supply: number): number {
+  const simulateSellDry = (locks: number, fsl: number, psl: number, supply: number): number => {
     let _leftover = locks
     let _fsl = fsl
     let _psl = psl

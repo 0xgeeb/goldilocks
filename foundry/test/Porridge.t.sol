@@ -100,7 +100,6 @@ contract PorridgeTest is Test {
     assertEq(userBalanceofLocks, 101e18);
     assertEq(userBalanceofHoney, 0);
     assertEq(gammBalanceofHoney, 280e18);
-  
   }
 
   function testClaim() public dealandStake100Locks {

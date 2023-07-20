@@ -1,14 +1,14 @@
 "use client"
 
 import { createContext, PropsWithChildren, useContext, useState } from "react"
-import { parseEther, formatEther } from "viem"
-import { getContract, writeContract, waitForTransaction } from "@wagmi/core"
+import { formatEther } from "viem"
 import { useWallet } from ".."
 import { useDebounce, useGammMath } from "../../hooks/gamm"
+import { getContract } from "@wagmi/core"
 import { contracts } from "../../utils/addressi"
+import { GammInitialState, GammInfo, NewInfo, Slippage } from "../../utils/interfaces"
 
-//todo: type
-const INITIAL_STATE = {
+const INITIAL_STATE: GammInitialState = {
   gammInfo: {
     fsl: 0,
     psl: 0,
@@ -85,13 +85,7 @@ const INITIAL_STATE = {
   findLocksBuyAmount: (_debouncedValue: number) => 0,
   findLocksSellAmount: (_debouncedValue: number) => 0,
 
-  //todo: could maybe put the below in a hook instead
   refreshGammInfo: async () => {},
-  checkAllowance: async (_amt: number): Promise<void | boolean> => {},
-  sendApproveTx: async (_amt: number) => {},
-  sendBuyTx: async (_buyAmt: number, _maxCost: number): Promise<any> => {},
-  sendSellTx: async (_sellAmt: number, _minReceive: number): Promise<any> => {},
-  sendRedeemTx: async (_redeemAmt: number): Promise<any> => {}
 }
 
 const GammContext = createContext(INITIAL_STATE)
@@ -103,10 +97,9 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
   const { balance, wallet, isConnected } = useWallet()
   const { simulateBuyDry, simulateSellDry, floorPrice, marketPrice } = useGammMath()
 
-  //todo: type
-  const [gammInfoState, setGammInfoState] = useState(INITIAL_STATE.gammInfo)
-  const [newInfoState, setNewInfoState] = useState(INITIAL_STATE.newInfo)
-  const [slippageState, setSlippageState] = useState(INITIAL_STATE.slippage)
+  const [gammInfoState, setGammInfoState] = useState<GammInfo>(INITIAL_STATE.gammInfo)
+  const [newInfoState, setNewInfoState] = useState<NewInfo>(INITIAL_STATE.newInfo)
+  const [slippageState, setSlippageState] = useState<Slippage>(INITIAL_STATE.slippage)
   const [activeToggleState, setActiveToggleState] = useState<string>(INITIAL_STATE.activeToggle)
 
   const [displayStringState, setDisplayStringState] = useState<string>(INITIAL_STATE.displayString)
@@ -129,7 +122,7 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
     address: contracts.honey.address as `0x${string}`,
     abi: contracts.honey.abi
   })
-
+  
   const gammContract = getContract({
     address: contracts.amm.address as `0x${string}`,
     abi: contracts.amm.abi
@@ -551,94 +544,6 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
     setNewInfoState(newResponse)
   }
 
-  const checkAllowance = async (amt: number): Promise<boolean> => {
-    const allowance = await honeyContract.read.allowance([wallet, contracts.amm.address])
-    const allowanceNum = parseFloat(formatEther(allowance as unknown as bigint))
-
-    console.log('allowanceNum: ', allowanceNum)
-    console.log('amount: ', amt)
-    
-    if(amt > allowanceNum) {
-      return false
-    }
-    else {
-      return true
-    }
-  }
-
-  const sendApproveTx = async (amt: number) => {
-    try {
-      await writeContract({
-        address: contracts.honey.address as `0x${string}`,
-        abi: contracts.honey.abi,
-        functionName: 'approve',
-        args: [contracts.amm.address, parseEther(`${amt + 0.01}`)]
-      })
-    }
-    catch (e) {
-      console.log('user denied tx')
-      console.log('or: ', e)
-    }
-  }
-
-  const sendBuyTx = async (buyAmt: number, maxCost: number): Promise<string> => {
-    try {
-      const { hash } = await writeContract({
-        address: contracts.amm.address as `0x${string}`,
-        abi: contracts.amm.abi,
-        functionName: 'buy',
-        args: [parseEther(`${buyAmt}`), parseEther(`${maxCost}`)]
-      })
-      const data = await waitForTransaction({ hash })
-      return data.transactionHash
-    }
-    catch (e) {
-      console.log('user denied tx')
-      console.log('or: ', e)
-    }
-
-    return ''
-  }
-
-  const sendSellTx = async (sellAmt: number, minReceive: number): Promise<string> => {
-    try {
-      const { hash } = await writeContract({
-        address: contracts.amm.address as `0x${string}`,
-        abi: contracts.amm.abi,
-        functionName: 'sell',
-        args: [parseEther(`${sellAmt}`), parseEther(`${minReceive}`)]
-      })
-      const data = await waitForTransaction({ hash })
-      return data.transactionHash
-    }
-    catch (e) {
-      console.log('user denied tx')
-      console.log('or: ', e)
-    }
-
-    return ''
-  }
-
-  const sendRedeemTx = async (redeemAmt: number): Promise<string> => {
-    try {
-      const { hash } = await writeContract({
-        address: contracts.amm.address as `0x${string}`,
-        abi: contracts.amm.abi,
-        functionName: 'redeem',
-        args: [parseEther(`${redeemAmt}`)]
-      })
-      const data = await waitForTransaction({ hash })
-      return data.transactionHash
-    }
-    catch (e) {
-      console.log('user denied tx')
-      console.log('or: ', e)
-    }
-
-    return ''
-  }
-  
-
   return (
     <GammContext.Provider
       value={{
@@ -685,12 +590,7 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
         changeActiveToggle,
         changeSlippage,
         changeSlippageToggle,
-        refreshGammInfo,
-        checkAllowance,
-        sendApproveTx,
-        sendBuyTx,
-        sendSellTx,
-        sendRedeemTx,
+        refreshGammInfo
       }}
     >
       { children }

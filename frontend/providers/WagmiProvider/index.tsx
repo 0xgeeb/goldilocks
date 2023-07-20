@@ -26,7 +26,6 @@ const { wallets } = getDefaultWallets({
   chains
 })
 
-//todo: organize wallets
 const connectors = connectorsForWallets([
   ...wallets,
   {

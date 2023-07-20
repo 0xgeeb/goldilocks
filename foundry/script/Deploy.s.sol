@@ -25,6 +25,7 @@ contract DeployScript is Script {
     porridge = new Porridge(address(gamm), address(borrow), address(honey));
 
     gamm.setPorridgeAddress(address(porridge));
+    gamm.setBorrowAddress(address(borrow));
     borrow.setPorridgeAddress(address(porridge));
     
     vm.stopBroadcast();

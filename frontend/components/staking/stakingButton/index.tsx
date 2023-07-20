@@ -3,6 +3,7 @@ import {
   useWallet,
   useNotification
 } from "../../../providers"
+import { useStakingTx } from "../../../hooks/staking"
 
 export const StakingButton = () => {
 
@@ -16,18 +17,24 @@ export const StakingButton = () => {
     setUnstake,
     setRealize,
     setDisplayString,
-    refreshStakingInfo,
-    checkAllowance,
-    sendApproveTx,
-    sendStakeTx,
-    sendUnstakeTx,
-    sendRealizeTx,
+    refreshStakingInfo
   } = useStaking()
+
   const {
+    wallet,
     isConnected,
     network,
     refreshBalances
   } = useWallet()
+
+  const {
+    checkAllowance,
+    sendApproveTx,
+    sendStakeTx,
+    sendUnstakeTx,
+    sendRealizeTx
+  } = useStakingTx()
+
   const { openNotification } = useNotification()
 
   const handleButtonClick = async () => {
@@ -44,13 +51,13 @@ export const StakingButton = () => {
         if(stake == 0) {
           return
         }
-        const sufficientAllowance: boolean | void = await checkAllowance(stake, 'locks')
+        const sufficientAllowance: boolean | void = await checkAllowance(stake, 'locks', wallet)
         if(sufficientAllowance) {
           button && (button.innerHTML = "staking...")
           const stakeTx = await sendStakeTx(stake)
           stakeTx && openNotification({
             title: 'Successfully Staked $LOCKS!',
-            hash: stakeTx.hash,
+            hash: stakeTx,
             direction: 'staked',
             amount: stake,
             price: 0,
@@ -94,7 +101,7 @@ export const StakingButton = () => {
         if(realize == 0) {
           return
         }
-        const sufficientAllowance: boolean | void = await checkAllowance(realize, 'honey')
+        const sufficientAllowance: boolean | void = await checkAllowance(realize, 'honey', wallet)
         if(sufficientAllowance) {
           button && (button.innerHTML = "stirring...")
           const realizeTx = await sendRealizeTx(realize)

@@ -3,6 +3,7 @@ import {
   useWallet,
   useNotification
 } from "../../../providers"
+import { useBorrowingTx } from "../../../hooks/borrowing"
 
 export const BorrowButton = () => {
 
@@ -14,17 +15,23 @@ export const BorrowButton = () => {
     setBorrow,
     setRepay,
     setDisplayString,
-    refreshBorrowInfo,
-    checkAllowance,
-    sendApproveTx,
-    sendBorrowTx,
-    sendRepayTx
+    refreshBorrowInfo
   } = useBorrowing()
+
   const {
+    wallet,
     isConnected,
     network,
     refreshBalances
   } = useWallet()
+
+  const {
+    checkAllowance,
+    sendApproveTx,
+    sendBorrowTx,
+    sendRepayTx
+  } = useBorrowingTx()
+  
   const { openNotification } = useNotification()
   
   const handleButtonClick = async () => {
@@ -61,7 +68,7 @@ export const BorrowButton = () => {
         if(repay == 0) {
           return
         }
-        const sufficientAllowance: boolean | void = await checkAllowance(repay)
+        const sufficientAllowance: boolean | void = await checkAllowance(repay, wallet)
         if(sufficientAllowance) {
           button && (button.innerHTML = "repaying...")
           const repayTx = await sendRepayTx(repay)
