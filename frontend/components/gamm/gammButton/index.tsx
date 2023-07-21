@@ -1,4 +1,4 @@
-import { 
+import {
   useGamm, 
   useWallet,
   useNotification
@@ -45,93 +45,17 @@ export const GammButton = () => {
 
   const { openNotification } = useNotification()
 
-  const handleButtonClick = async () => {
-    const button = document.getElementById('amm-button')
-
-    if(!isConnected) {
-      button && (button.innerHTML = "connect wallet")
-    }
-    else if(network !== "Avalanche Fuji C-Chain") {
-      button && (button.innerHTML = "switch to devnet plz")
-    }
-    else {
-      if(activeToggle === 'buy') {
-        if(honeyBuy == 0) {
-          return
-        }
-        const sufficientAllowance: boolean | void = await checkAllowance(honeyBuy, wallet)
-        if(sufficientAllowance) {
-          button && (button.innerHTML = "buying...")
-          const buyTx = await sendBuyTx(buyingLocks, honeyBuy)
-          buyTx && openNotification({
-            title: 'Successfully Purchased $LOCKS!',
-            hash: buyTx,
-            direction: 'bought',
-            amount: buyingLocks,
-            price: honeyBuy,
-            page: 'amm'
-          })
-          button && (button.innerHTML = "buy")
-          setHoneyBuy(0)
-          setDisplayString('')
-          setBuyingLocks(0)
-          setBottomDisplayString('')
-          refreshBalances()
-          refreshGammInfo()
-        }
-        else {
-          button && (button.innerHTML = "approving...")
-          await sendApproveTx(honeyBuy)
-          setTimeout(() => {
-            button && (button.innerHTML = "buy")
-          }, 10000)
-        }
-      }
-      if(activeToggle === 'sell') {
-        if(sellingLocks == 0) {
-          return
-        }
-        button && (button.innerHTML = "selling...")
-        const sellTx = await sendSellTx(sellingLocks, gettingHoney)
-        sellTx && openNotification({
-          title: 'Successfully Sold $LOCKS!',
-          hash: sellTx,
-          direction: 'sold',
-          amount: sellingLocks,
-          price: gettingHoney,
-          page: 'amm'
-        })
-        button && (button.innerHTML = "sell")
-        setSellingLocks(0)
-        setDisplayString('')
-        setGettingHoney(0)
-        setBottomDisplayString('')
-        refreshBalances()
-        refreshGammInfo
-      }
-      if(activeToggle === 'redeem') {
-        if(redeemingLocks == 0) {
-          return
-        }
-        button && (button.innerHTML = "redeeming...")
-        const redeemTx = await sendRedeemTx(redeemingLocks)
-        redeemTx && openNotification({
-          title: 'Successfully Redeemed $LOCKS!',
-          hash: redeemTx,
-          direction: 'redeemed',
-          amount: redeemingLocks,
-          price: redeemingHoney,
-          page: 'amm'
-        })
-        button && (button.innerHTML = "redeem")
-        setRedeemingLocks(0)
-        setRedeemingHoney(0)
-        setDisplayString('')
-        setBottomDisplayString('')
-        refreshBalances()
-        refreshGammInfo()
-      }
-    }
+  const refreshInfo = () => {
+    setDisplayString('')
+    setBottomDisplayString('')
+    setHoneyBuy(0)
+    setBuyingLocks(0)
+    setSellingLocks(0)  
+    setGettingHoney(0)
+    setRedeemingLocks(0)
+    setRedeemingHoney(0)
+    refreshBalances()
+    refreshGammInfo()
   }
 
   const renderButton = () => {
@@ -149,9 +73,103 @@ export const GammButton = () => {
     }
   }
 
+  const buyTxFlow = async (button: HTMLElement | null) => {
+    if(honeyBuy == 0) {
+      return
+    }
+    const sufficientAllowance: boolean | void = await checkAllowance(honeyBuy, wallet)
+    if(sufficientAllowance) {
+      button && (button.innerHTML = "buying...")
+      const buyTx = await sendBuyTx(buyingLocks, honeyBuy)
+      buyTx && openNotification({
+        title: 'Successfully Purchased $LOCKS!',
+        hash: buyTx,
+        direction: 'bought',
+        amount: buyingLocks,
+        price: honeyBuy,
+        page: 'amm'
+      })
+      button && (button.innerHTML = "buy")
+      refreshInfo()
+    }
+    else {
+      button && (button.innerHTML = "approving...")
+      await sendApproveTx(honeyBuy)
+      setTimeout(() => {
+        button && (button.innerHTML = "buy")
+      }, 10000)
+    }
+  }
+
+  const sellTxFlow = async (button: HTMLElement | null) => {
+    if(sellingLocks == 0) {
+      return
+    }
+    button && (button.innerHTML = "selling...")
+    const sellTx = await sendSellTx(sellingLocks, gettingHoney)
+    sellTx && openNotification({
+      title: 'Successfully Sold $LOCKS!',
+      hash: sellTx,
+      direction: 'sold',
+      amount: sellingLocks,
+      price: gettingHoney,
+      page: 'amm'
+    })
+    button && (button.innerHTML = "sell")
+    refreshInfo()
+  }
+
+  const redeemTxFlow = async (button: HTMLElement | null) => {
+    if(redeemingLocks == 0) {
+      return
+    }
+    button && (button.innerHTML = "redeeming...")
+    const redeemTx = await sendRedeemTx(redeemingLocks)
+    redeemTx && openNotification({
+      title: 'Successfully Redeemed $LOCKS!',
+      hash: redeemTx,
+      direction: 'redeemed',
+      amount: redeemingLocks,
+      price: redeemingHoney,
+      page: 'amm'
+    })
+    button && (button.innerHTML = "redeem")
+    refreshInfo()
+  }
+
+  const handleButtonClick = async () => {
+    const button = document.getElementById('amm-button')
+
+    console.log(typeof(button))
+
+    if(!isConnected) {
+      button && (button.innerHTML = "connect wallet")
+    }
+    else if(network !== "Avalanche Fuji C-Chain") {
+      button && (button.innerHTML = "switch to devnet plz")
+    }
+    else {
+      if(activeToggle === 'buy') {
+        buyTxFlow(button)
+      }
+      if(activeToggle === 'sell') {
+        sellTxFlow(button)
+      }
+      if(activeToggle === 'redeem') {
+        redeemTxFlow(button)
+      }
+    }
+  }
+
   return (
-    <div className="h-[33%] w-[100%] flex justify-center items-center">
-      <button className="h-[50%] w-[50%] bg-white rounded-xl py-3 px-6 border-2 border-black font-acme text-[30px]" id="amm-button" onClick={() => handleButtonClick()} >{renderButton()}</button>
+    <div className="h-[31%] flex justify-center items-center">
+      <button 
+        className="h-[55%] w-[50%] bg-white rounded-xl py-3 px-6 border-2 border-black font-acme text-[30px]" 
+        id="amm-button" 
+        onClick={() => handleButtonClick()} 
+      >
+        {renderButton()}
+      </button>
     </div>
   )
 }

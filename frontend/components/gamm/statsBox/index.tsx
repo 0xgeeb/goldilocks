@@ -1,28 +1,69 @@
 "use client"
 
-import { useEffect } from "react"
+import { useState, useEffect } from "react"
 import { useGammMath, useFormatDate } from "../../../hooks/gamm"
 import { useGamm } from "../../../providers"
 
-//todo: clean this up
 export const StatsBox = () => {
+
+  const [infoLoading, setInfoLoading] = useState<boolean>(true)
 
   const formatAsPercentage = Intl.NumberFormat('default', {
     style: 'percent',
     maximumFractionDigits: 2
   })
 
+  const formatAsString = (num: number): string => {
+    return num.toLocaleString('en-US', { maximumFractionDigits: 2 })
+  }
+
   const { floorPrice, marketPrice } = useGammMath()
   const { gammInfo, newInfo, refreshGammInfo } = useGamm()
 
-  //todo: could be place to put loading symbols
-  const fetchInfo = async () => {
-    await refreshGammInfo()
+  useEffect(() => {
+    refreshGammInfo()
+    setInfoLoading(false)
+  }, [])
+
+  const loadingElement = () => {
+    return <span className="loader-small ml-3"></span>
   }
 
-  useEffect(() => {
-    fetchInfo()
-  }, [])
+  const handleInfo = (num: number) => {
+    if(infoLoading) {
+      return loadingElement()
+    }
+    else if(num > 0) {
+      return formatAsString(num)
+    }
+    else {
+      return "-"
+    }
+  }
+
+  const handleRatioInfo = (num: number) => {
+    if(infoLoading) {
+      return loadingElement()
+    }
+    else if(num > 0) {
+      return formatAsPercentage.format(num)
+    }
+    else {
+      return "-"
+    }
+  }
+
+  const handleColors = (num1: number, num2: number): string => {
+    if(num1 > num2) {
+      return 'text-red-600'
+    }
+    else if(num1 == num2) {
+      return ''
+    }
+    else {
+      return 'text-green-600'
+    }
+  }
 
   return (
     <div className="flex flex-row justify-between">
@@ -34,16 +75,32 @@ export const StatsBox = () => {
           <h3>current psl:</h3>
         </div>
         <div className="flex flex-col items-end justify-between font-acme text-[20px]">
-          <p>${ floorPrice(gammInfo.fsl, gammInfo.supply) > 0 ? floorPrice(gammInfo.fsl, gammInfo.supply).toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
-          <p>${ marketPrice(gammInfo.fsl, gammInfo.psl, gammInfo.supply) > 0 ? marketPrice(gammInfo.fsl, gammInfo.psl, gammInfo.supply).toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-"}</p>
-          <p>{ gammInfo.fsl > 0 ? gammInfo.fsl.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-" }</p>
-          <p>{ gammInfo.psl > 0 ? gammInfo.psl.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-" }</p>
+          <p>${handleInfo(floorPrice(gammInfo.fsl, gammInfo.supply))}</p>
+          <p>${handleInfo(marketPrice(gammInfo.fsl, gammInfo.psl, gammInfo.supply))}</p>
+          <p>{handleInfo(gammInfo.fsl)}</p>
+          <p>{handleInfo(gammInfo.psl)}</p>
         </div>
-        <div className="flex flex-col items-end justify-between">
-          <p className={`${floorPrice(gammInfo.fsl, gammInfo.supply) > newInfo.floor ? "text-red-600" : floorPrice(gammInfo.fsl, gammInfo.supply) == newInfo.floor ? "" : "text-green-600"} font-acme text-[20px]`}>${ floorPrice(gammInfo.fsl, gammInfo.supply) == newInfo.floor ? "-" : newInfo.floor.toLocaleString('en-US', { maximumFractionDigits: 2 })}</p>
-          <p className={`${marketPrice(gammInfo.fsl, gammInfo.psl, gammInfo.supply) > newInfo.market ? "text-red-600" : marketPrice(gammInfo.fsl, gammInfo.psl, gammInfo.supply) == newInfo.market ? "" : "text-green-600"} font-acme text-[20px]`}>${ marketPrice(gammInfo.fsl, gammInfo.psl, gammInfo.supply) == newInfo.market ? "-" : newInfo.market.toLocaleString('en-US', { maximumFractionDigits: 2 })}</p>
-          <p className={`${gammInfo.fsl > newInfo.fsl ? "text-red-600" : gammInfo.fsl == newInfo.fsl ? "" : "text-green-600"} font-acme text-[20px]`}>{ gammInfo.fsl == newInfo.fsl ? "-" : newInfo.fsl.toLocaleString('en-US', { maximumFractionDigits: 2 }) }</p>
-          <p className={`${gammInfo.psl > newInfo.psl ? "text-red-600" : gammInfo.psl == newInfo.psl ? "" : "text-green-600"} font-acme text-[20px]`}>{ gammInfo.psl == newInfo.psl ? "-" : newInfo.psl.toLocaleString('en-US', { maximumFractionDigits: 2 })}</p>
+        <div className="flex flex-col items-end justify-between font-acme text-[20px]">
+          <p 
+            className={handleColors(floorPrice(gammInfo.fsl, gammInfo.supply), newInfo.floor)}
+          >
+            ${ floorPrice(gammInfo.fsl, gammInfo.supply) == newInfo.floor ? "-" : formatAsString(newInfo.floor)}
+          </p>
+          <p 
+            className={handleColors(marketPrice(gammInfo.fsl, gammInfo.psl, gammInfo.supply), newInfo.market)}
+          >
+            ${ marketPrice(gammInfo.fsl, gammInfo.psl, gammInfo.supply) == newInfo.market ? "-" : formatAsString(newInfo.market)}
+          </p>
+          <p 
+            className={handleColors(gammInfo.fsl, newInfo.fsl)}
+          >
+            {gammInfo.fsl == newInfo.fsl ? "-" : formatAsString(newInfo.fsl)}
+          </p>
+          <p 
+            className={handleColors(gammInfo.psl, newInfo.psl)}
+          >
+            {gammInfo.psl == newInfo.psl ? "-" : formatAsString(newInfo.psl)}
+          </p>
         </div>
       </div>
       <div className="flex flex-row w-[40%] px-3 justify-between mr-3 rounded-xl border-2 border-black mt-2 bg-white">
@@ -52,15 +109,21 @@ export const StatsBox = () => {
           <h3>target ratio:</h3>
           <h3>last floor raise:</h3>
         </div>
-        <div className="flex flex-col items-end justify-between w-[30%]">
-          <p className="font-acme text-[20px]">{ gammInfo.supply > 0 ? gammInfo.supply.toLocaleString('en-US', { maximumFractionDigits: 2 }) : "-" }</p>
-          <p className="font-acme text-[20px] text-white">1,044</p>
-          <p className="font-acme text-[20px] text-white">1,044</p>
+        <div className="flex flex-col items-end w-[30%] font-acme text-[20px]">
+          <p>{handleInfo(gammInfo.supply)}</p>
         </div>
-        <div className="flex flex-col items-end justify-between w-[30%]">
-          <p className={`${gammInfo.supply > newInfo.supply ? "text-red-600" : gammInfo.supply == newInfo.supply ? "" : "text-green-600"} font-acme text-[20px]`}>{ gammInfo.supply == newInfo.supply ? "-" : newInfo.supply.toLocaleString('en-US', { maximumFractionDigits: 2 }) }</p>
-          <p className="font-acme text-[20px]">{ gammInfo.targetRatio > 0 ? formatAsPercentage.format(gammInfo.targetRatio) : "-" }</p>
-          <p className="font-acme text-[20px] whitespace-nowrap">{useFormatDate(gammInfo.lastFloorRaise * Math.pow(10, 21))}</p>
+        <div className="flex flex-col items-end justify-between w-[30%] font-acme text-[20px]">
+          <p 
+            className={handleColors(gammInfo.supply, newInfo.supply)}
+          >
+            {gammInfo.supply == newInfo.supply ? "-" : formatAsString(newInfo.supply)}
+          </p>
+          <p>{handleRatioInfo(gammInfo.targetRatio)}</p>
+          <p 
+            className="whitespace-nowrap"
+          >
+            {infoLoading ? loadingElement() : useFormatDate(gammInfo.lastFloorRaise * Math.pow(10, 21))}
+          </p>
         </div>
       </div>
     </div>

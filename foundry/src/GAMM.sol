@@ -300,23 +300,23 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
     }
   }
 
-  /// @notice If necessary, raises the target ratio 
+  /// @notice If targetRatio is exceeded, raise the FSL 
   function _floorRaise() internal {
     if(FixedPointMathLib.divWad(psl, fsl) >= targetRatio) {
-      uint256 _raiseAmount = FixedPointMathLib.mulWad(FixedPointMathLib.divWad(psl, fsl), psl / 32);
-      psl -= _raiseAmount;
-      fsl += _raiseAmount;
+      uint256 raiseAmount = FixedPointMathLib.mulWad(FixedPointMathLib.divWad(psl, fsl), psl / 32);
+      psl -= raiseAmount;
+      fsl += raiseAmount;
       targetRatio += targetRatio / 50;
       lastFloorRaise = block.timestamp;
     }
   }
 
-  /// @notice If necessary, reduces the target ratio
+  /// @notice If a day has elapsed since , reduces the FSL
   function _floorReduce() internal {
-    uint256 _elapsedRaise = block.timestamp - lastFloorRaise;
-    uint256 _elapsedDrop = block.timestamp - lastFloorDecrease;
-    if (_elapsedRaise >= DAYS_SECONDS && _elapsedDrop >= DAYS_SECONDS) {
-      uint256 _decreaseFactor = _elapsedRaise / DAYS_SECONDS;
+    uint256 elapsedRaise = block.timestamp - lastFloorRaise;
+    uint256 elapsedDrop = block.timestamp - lastFloorDecrease;
+    if (elapsedRaise >= DAYS_SECONDS && elapsedDrop >= DAYS_SECONDS) {
+      uint256 _decreaseFactor = elapsedRaise / DAYS_SECONDS;
       targetRatio -= (targetRatio * _decreaseFactor);
       lastFloorDecrease = block.timestamp;
     }

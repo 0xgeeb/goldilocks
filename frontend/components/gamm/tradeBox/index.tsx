@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react"
 import { 
   SlippagePopup,
-  GammButton
+  GammButton,
+  PercentageButtons
 } from "../../gamm"
 import { 
   useLabel,
@@ -16,7 +17,7 @@ import {
 
 export const TradeBox = () => {
 
-  const [balancesLoading, setBalancesLoading] = useState<boolean>(false)
+  const [balancesLoading, setBalancesLoading] = useState<boolean>(true)
   
   const {
     gammInfo,
@@ -44,7 +45,6 @@ export const TradeBox = () => {
     activeToggle,
     topInputFlag,
     bottomInputFlag,
-    handlePercentageButtons, 
     handleTopBalance, 
     handleTopInput, 
     handleTopChange,
@@ -71,7 +71,6 @@ export const TradeBox = () => {
   } = useGammMath()
 
   useEffect(() => {
-    setBalancesLoading(true)
     refreshBalances()
     setBalancesLoading(false)
   }, [isConnected])
@@ -81,15 +80,25 @@ export const TradeBox = () => {
   }
 
   const resetInfo = () => {
-    changeNewInfo(gammInfo.fsl, gammInfo.psl, floorPrice(gammInfo.fsl, gammInfo.supply), marketPrice(gammInfo.fsl, gammInfo.psl, gammInfo.supply), gammInfo.supply)
+    changeNewInfo(
+      gammInfo.fsl, 
+      gammInfo.psl, 
+      floorPrice(gammInfo.fsl, gammInfo.supply), 
+      marketPrice(gammInfo.fsl, gammInfo.psl, gammInfo.supply), 
+      gammInfo.supply
+    )
     setDisplayString('')
     setBottomDisplayString('')
-    setBuyingLocks(0)
     setHoneyBuy(0)
+    setBuyingLocks(0)
+    setSellingLocks(0)
+    setGettingHoney(0)
+    setRedeemingLocks(0)
+    setRedeemingHoney(0)
   }
 
   const loadingElement = () => {
-    return <span className="loader"></span>
+    return <span className="loader ml-6"></span>
   }
 
   useEffect(() => {
@@ -191,34 +200,62 @@ export const TradeBox = () => {
 
   return (
     <div className="h-[75%] relative mt-4 flex flex-col" onClick={() => test()}>
-      <div className="h-[67%] px-6">
+      <div className="h-[69%] px-6">
         <SlippagePopup />
         <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
           <div className="h-[50%] flex flex-row items-center justify-between">
-            <div className="rounded-[50px] m-6 p-2 flex flex-row bg-slate-100 border-2 border-black items-center">{useLabel(activeToggle, "topToken")}</div>
-            <div className="flex flex-row items-center mr-10">
-              <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(1)}>25%</button>
-              <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(2)}>50%</button>
-              <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(3)}>75%</button>
-              <button className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" onClick={() => handlePercentageButtons(4)}>MAX</button>
+            <div 
+              className="rounded-[50px] m-6 p-2 flex flex-row bg-slate-100 border-2 border-black items-center"
+            >
+              {useLabel(activeToggle, "topToken")}
             </div>
+            <PercentageButtons />
           </div>
           <div className="h-[50%] pl-10 flex flex-row items-center justify-between">
-            <input className="border-none focus:outline-none bg-transparent font-acme rounded-xl text-[40px]" placeholder="0.00" value={handleTopInput()} onChange={(e) => handleTopChange(e.target.value)} type="number" id="number-input" autoFocus />
-            {/* todo: hide this and bottom one if not connected, have to debug hydration errors */}
-            <h1 className="mr-10 mt-4 text-[23px] font-acme text-[#878d97]">balance: {balancesLoading ? loadingElement() : handleTopBalance()}</h1>
+            <input 
+              className="border-none focus:outline-none bg-transparent font-acme rounded-xl text-[40px]" 
+              type="number" 
+              id="number-input" 
+              placeholder="0.00" 
+              value={handleTopInput()} 
+              onChange={(e) => handleTopChange(e.target.value)} 
+              autoFocus 
+            />
+            <h1 
+              className="mr-10 mt-4 text-[23px] font-acme text-[#878d97]"
+            >
+              balance: {balancesLoading ? loadingElement() : handleTopBalance()}
+            </h1>
           </div>
         </div>
-        <div className="absolute top-[31%] left-[50%] h-10 w-10 bg-[#ffff00] border-2 border-black rounded-3xl flex justify-center items-center" onClick={() => flipTokens()}>
+        <div 
+          className="absolute top-[32%] left-[50%] h-10 w-10 bg-[#ffff00] border-2 border-black rounded-3xl flex justify-center items-center" 
+          onClick={() => flipTokens()}
+        >
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0D111C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
         </div>
         <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
           <div className="h-[50%] flex flex-row items-center">
-            <div className="rounded-[50px] m-6 p-2 flex flex-row bg-slate-100 border-2 border-black items-center">{useLabel(activeToggle, "bottomToken")}</div>
+            <div 
+              className="rounded-[50px] m-6 p-2 flex flex-row bg-slate-100 border-2 border-black items-center"
+            >
+              {useLabel(activeToggle, "bottomToken")}
+            </div>
           </div>
           <div className="h-[50%] pl-10 flex flex-row items-center justify-between">
-            <input className="border-none focus:outline-none bg-transparent font-acme rounded-xl text-[40px]" placeholder="0.00" value={handleBottomInput()} onChange={(e) => handleBottomChange(e.target.value)} type="number" id="number-input" />
-            <h1 className="mr-10 mt-4 text-[23px] font-acme text-[#878d97]">balance: {handleBottomBalance()}</h1>
+            <input 
+              className="border-none focus:outline-none bg-transparent font-acme rounded-xl text-[40px]" 
+              type="number" 
+              id="number-input" 
+              placeholder="0.00" 
+              value={handleBottomInput()} 
+              onChange={(e) => handleBottomChange(e.target.value)} 
+            />
+            <h1 
+              className="mr-10 mt-4 text-[23px] font-acme text-[#878d97]"
+            >
+              balance: {balancesLoading ? loadingElement() : handleBottomBalance()}
+            </h1>
           </div>
         </div> 
       </div>
