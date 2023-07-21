@@ -124,8 +124,8 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
   })
   
   const gammContract = getContract({
-    address: contracts.amm.address as `0x${string}`,
-    abi: contracts.amm.abi
+    address: contracts.gamm.address as `0x${string}`,
+    abi: contracts.gamm.abi
   })
 
   const changeSlippage = (amount: number, displayString: string) => {
@@ -520,7 +520,7 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
     const lastFloorRaise = await gammContract.read.lastFloorRaise([])
     let honeyAmmAllowance
     if(wallet) {
-      honeyAmmAllowance = await honeyContract.read.allowance([wallet, contracts.amm.address])
+      honeyAmmAllowance = await honeyContract.read.allowance([wallet, contracts.gamm.address])
     }
 
     const response = {

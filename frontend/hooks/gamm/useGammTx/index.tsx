@@ -10,7 +10,7 @@ export const useGammTx = () => {
   })
 
   const checkAllowance = async (amt: number, wallet: string): Promise<boolean> => {
-    const allowance = await honeyContract.read.allowance([wallet, contracts.amm.address])
+    const allowance = await honeyContract.read.allowance([wallet, contracts.gamm.address])
     const allowanceNum = parseFloat(formatEther(allowance as unknown as bigint))
 
     console.log('allowanceNum: ', allowanceNum)
@@ -30,7 +30,7 @@ export const useGammTx = () => {
         address: contracts.honey.address as `0x${string}`,
         abi: contracts.honey.abi,
         functionName: 'approve',
-        args: [contracts.amm.address, parseEther(`${amt + 0.01}`)]
+        args: [contracts.gamm.address, parseEther(`${amt + 0.01}`)]
       })
     }
     catch (e) {
@@ -42,8 +42,8 @@ export const useGammTx = () => {
   const sendBuyTx = async (buyAmt: number, maxCost: number): Promise<string> => {
     try {
       const { hash } = await writeContract({
-        address: contracts.amm.address as `0x${string}`,
-        abi: contracts.amm.abi,
+        address: contracts.gamm.address as `0x${string}`,
+        abi: contracts.gamm.abi,
         functionName: 'buy',
         args: [parseEther(`${buyAmt}`), parseEther(`${maxCost}`)]
       })
@@ -61,8 +61,8 @@ export const useGammTx = () => {
   const sendSellTx = async (sellAmt: number, minReceive: number): Promise<string> => {
     try {
       const { hash } = await writeContract({
-        address: contracts.amm.address as `0x${string}`,
-        abi: contracts.amm.abi,
+        address: contracts.gamm.address as `0x${string}`,
+        abi: contracts.gamm.abi,
         functionName: 'sell',
         args: [parseEther(`${sellAmt}`), parseEther(`${minReceive}`)]
       })
@@ -80,8 +80,8 @@ export const useGammTx = () => {
   const sendRedeemTx = async (redeemAmt: number): Promise<string> => {
     try {
       const { hash } = await writeContract({
-        address: contracts.amm.address as `0x${string}`,
-        abi: contracts.amm.abi,
+        address: contracts.gamm.address as `0x${string}`,
+        abi: contracts.gamm.abi,
         functionName: 'redeem',
         args: [parseEther(`${redeemAmt}`)]
       })

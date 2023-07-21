@@ -59,8 +59,8 @@ export const BorrowProvider = (props: PropsWithChildren<{}>) => {
   })
   
   const gammContract = getContract({
-    address: contracts.amm.address as `0x${string}`,
-    abi: contracts.amm.abi
+    address: contracts.gamm.address as `0x${string}`,
+    abi: contracts.gamm.abi
   })
   
   const porridgeContract = getContract({

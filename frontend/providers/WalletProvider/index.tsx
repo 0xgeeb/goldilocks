@@ -33,9 +33,9 @@ export const WalletProvider = (props: PropsWithChildren<{}>) => {
 
   const [balanceState, setBalanceState] = useState<BalanceState>(INITIAL_STATE.balance)
 
-  const locksContract = getContract({
-    address: contracts.locks.address as `0x${string}`,
-    abi: contracts.locks.abi
+  const gammContract = getContract({
+    address: contracts.gamm.address as `0x${string}`,
+    abi: contracts.gamm.abi
   })
 
   const porridgeContract = getContract({
@@ -50,7 +50,7 @@ export const WalletProvider = (props: PropsWithChildren<{}>) => {
 
   const refreshBalances = async () => {
     if(address) {
-      const locksBalance = await locksContract.read.balanceOf([address])
+      const locksBalance = await gammContract.read.balanceOf([address])
       const porridgeBalance = await porridgeContract.read.balanceOf([address])
       const honeyBalance = await honeyContract.read.balanceOf([address])
 

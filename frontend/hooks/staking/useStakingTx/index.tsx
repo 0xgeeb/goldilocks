@@ -10,8 +10,8 @@ export const useStakingTx = () => {
   })
 
   const gammContract = getContract({
-    address: contracts.amm.address as `0x${string}`,
-    abi: contracts.amm.abi
+    address: contracts.gamm.address as `0x${string}`,
+    abi: contracts.gamm.abi
   })
 
   const checkAllowance = async (amt: number, token: string, wallet: string): Promise<boolean> => {
@@ -42,8 +42,8 @@ export const useStakingTx = () => {
     if(token === 'locks') {
       try {
         await writeContract({
-          address: contracts.amm.address as `0x${string}`,
-          abi: contracts.amm.abi,
+          address: contracts.gamm.address as `0x${string}`,
+          abi: contracts.gamm.abi,
           functionName: 'approve',
           args: [contracts.porridge.address, parseEther(`${amt}`)]
         })

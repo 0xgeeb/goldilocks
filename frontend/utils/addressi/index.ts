@@ -1,29 +1,24 @@
 import { Contracts } from "../interfaces"
 import borrowABI from "../abi/Borrow.json"
-import locksABI from "../abi/Locks.json"
 import porridgeABI from "../abi/Porridge.json"
 import honeyABI from "../abi/Honey.json"
-import ammABI from "../abi/AMM.json"
+import gammABI from "../abi/GAMM.json"
 
 export const contracts: Contracts = {
-  amm: {
-    address: '0x1b5F6509B8b4Dd5c9637C8fa6a120579bE33666F',
-    abi: ammABI.abi
+  gamm: {
+    address: '0x5FA09df51e5A7a843899C84AAC6504e50e49964c',
+    abi: gammABI.abi
   },
-  locks: {
-    address: '0x461B8AdEDe13Aa786b3f14b05496B93c5148Ad51',
-    abi: locksABI.abi
-  } ,
   porridge: {
-    address: '0x69B228b9247dF2c1F194f92fC19A340A9F2803f7',
+    address: '0xba8fcCBBFAE7722583468986b76D622E9D8c305a',
     abi: porridgeABI.abi
   } ,
   honey: {
-    address: '0x29b9439E09d1D581892686D9e00E3481DCDD5f78',
+    address: '0x3F70b36AF93945acc87D4fD4b1c5dE3A382Bb349',
     abi: honeyABI.abi
   } ,
   borrow: {
-    address: '0x1b408d277D9f168A8893b1728d3B6cb75929a67d',
+    address: '0x7514d69F17674F552bf7405598210092d15d7A28',
     abi: borrowABI.abi
   } 
 }

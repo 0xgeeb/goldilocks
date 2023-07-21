@@ -63,8 +63,8 @@ export const StakingProvider = (props: PropsWithChildren<{}>) => {
   })
   
   const gammContract = getContract({
-    address: contracts.amm.address as `0x${string}`,
-    abi: contracts.amm.abi
+    address: contracts.gamm.address as `0x${string}`,
+    abi: contracts.gamm.abi
   })
   
   const porridgeContract = getContract({
@@ -201,11 +201,10 @@ export const StakingProvider = (props: PropsWithChildren<{}>) => {
     let yieldToClaim
     let locksPrgAllowance
     let honeyPrgAllowance
-    //todo: update abi
     if(wallet) {
       staked = await porridgeContract.read.getStaked([wallet])
-      // yieldToClaim = await porridgeContract.read.getClaimable([wallet])
-      // locksPrgAllowance = await gammContract.read.allowance([wallet, contracts.porridge.address])
+      yieldToClaim = await porridgeContract.read.getClaimable([wallet])
+      locksPrgAllowance = await gammContract.read.allowance([wallet, contracts.porridge.address])
       honeyPrgAllowance = await honeyContract.read.allowance([wallet, contracts.porridge.address])
     } 
 
@@ -214,10 +213,8 @@ export const StakingProvider = (props: PropsWithChildren<{}>) => {
       fsl: parseFloat(formatEther(fsl as unknown as bigint)),
       supply: parseFloat(formatEther(supply as unknown as bigint)),
       staked: wallet ? parseFloat(formatEther(staked as unknown as bigint)) : 0, 
-      // yieldToClaim: wallet ? parseFloat(formatEther(yieldToClaim as unknown as bigint)) : 0, 
-      // locksPrgAllowance: wallet ? parseFloat(formatEther(locksPrgAllowance as unknown as bigint)) : 0, 
-      yieldToClaim: 0,
-      locksPrgAllowance: 0,
+      yieldToClaim: wallet ? parseFloat(formatEther(yieldToClaim as unknown as bigint)) : 0, 
+      locksPrgAllowance: wallet ? parseFloat(formatEther(locksPrgAllowance as unknown as bigint)) : 0, 
       honeyPrgAllowance: wallet ? parseFloat(formatEther(honeyPrgAllowance as unknown as bigint)) : 0, 
     }
 

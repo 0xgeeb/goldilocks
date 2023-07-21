@@ -28,6 +28,10 @@ export const NavBar = () => {
     }
   }
 
+  const loadingElement = () => {
+    return <span className="loader"></span>
+  }
+
   return (
     <div className="w-[100%] flex flex-row items-center justify-between px-24 py-8">
       <a href="/"><div className="flex flex-row items-center hover:opacity-25">
@@ -91,7 +95,7 @@ export const NavBar = () => {
                 >
                     { 
                     !mounted ? 
-                      'connect' 
+                      loadingElement()
                     : !account ? 
                       'connect' 
                     : 
