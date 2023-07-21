@@ -26,7 +26,7 @@ export default function Gamm() {
           <GammProvider>
             <div className="w-screen h-screen" id="page-div">
               <NavBar />
-              <div className="h-[80%] flex flex-row">
+              <div className="h-[80%]">
                 <GammBox />
                 <RotatingImages />
               </div>

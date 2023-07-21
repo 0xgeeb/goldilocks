@@ -26,10 +26,8 @@ export default function Staking() {
           <StakingProvider>
             <div className="w-screen h-screen" id="page-div">
               <NavBar />
-              <div className="h-[80%] flex flex-row">
-                <StakingMainBox />
-                <RotatingImages />
-              </div>
+              <StakingMainBox />
+              <RotatingImages />
             </div>
             <NotificationManager />
           </StakingProvider>

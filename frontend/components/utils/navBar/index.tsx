@@ -32,8 +32,7 @@ export const NavBar = () => {
     <div className="w-[100%] flex flex-row items-center justify-between px-24 py-8">
       <a href="/"><div className="flex flex-row items-center hover:opacity-25">
         <Image className="" src="/yellow_transparent_logo.png" alt="logo" width="96" height="96" />
-        <h1 className="text-[45px] ml-5 font-acme">Goldilocks v0.3</h1>
-        <h3 className="text-[25px] ml-3 font-acme">(live on devnet)</h3>
+        <h1 className="text-[45px] ml-5 font-acme">Goldilocks Alpha</h1>
       </div></a>
       <div className="flex flex-row justify-between w-[50%]">
         <div className="flex flex-row">
