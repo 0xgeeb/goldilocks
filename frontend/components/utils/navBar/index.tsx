@@ -38,7 +38,7 @@ export const NavBar = () => {
         <Image className="" src="/yellow_transparent_logo.png" alt="logo" width="96" height="96" />
         <h1 className="text-[45px] ml-5 font-acme">Goldilocks Alpha</h1>
       </div></a>
-      <div className="flex flex-row justify-between w-[50%]">
+      <div className="flex-row justify-between w-[50%] hidden lg:flex">
         <div className="flex flex-row">
           <button 
             className={`w-36 py-2 text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme`} 

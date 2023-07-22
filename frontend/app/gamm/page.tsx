@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { GammBox } from "../../components/gamm"
+import { GammMainBox } from "../../components/gamm"
 import {
   NotificationProvider,
   WagmiProvider,
@@ -27,7 +27,7 @@ export default function Gamm() {
             <div className="w-screen h-screen" id="page-div">
               <NavBar />
               <div className="h-[80%]">
-                <GammBox />
+                <GammMainBox />
                 <RotatingImages />
               </div>
             </div>

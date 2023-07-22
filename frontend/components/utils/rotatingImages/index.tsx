@@ -24,19 +24,19 @@ export const RotatingImages = () => {
   const pics: Pic[] = [
     {
       name: "dancing",
-      imageElement: <Image className={`absolute right-0 bottom-0 ${index == 0 ? "opacity-100 transition duration-1000 ease-in" : "opacity-0 transition duration-1000 ease-in"}`} src="/dancing.png" alt="dancing" width="700" height="700"></Image>
+      imageElement: <Image className={`hidden lg:block absolute right-0 bottom-0 ${index == 0 ? "opacity-100 transition duration-1000 ease-in" : "opacity-0 transition duration-1000 ease-in"}`} src="/dancing.png" alt="dancing" width="700" height="700"></Image>
     },
     {
       name: "astronaut",
-      imageElement: <Image className={`absolute right-0 bottom-0 ${index == 1 ? "opacity-100 transition duration-1000 ease-in" : "opacity-0 transition duration-1000 ease-in"}`} src="/astronaut.png" alt="astronaut" width="800" height="800"></Image>
+      imageElement: <Image className={`hidden lg:block absolute right-0 bottom-0 ${index == 1 ? "opacity-100 transition duration-1000 ease-in" : "opacity-0 transition duration-1000 ease-in"}`} src="/astronaut.png" alt="astronaut" width="800" height="800"></Image>
     },
     {
       name: "with_bear",
-      imageElement: <Image className={`absolute right-0 bottom-0 ${index == 2 ? "opacity-100 transition duration-1000 ease-in" : "opacity-0 transition duration-1000 ease-in"}`} src="/cool_with_bear.png" alt="with bear" width="700" height="700"></Image>
+      imageElement: <Image className={`hidden lg:block absolute right-0 bottom-0 ${index == 2 ? "opacity-100 transition duration-1000 ease-in" : "opacity-0 transition duration-1000 ease-in"}`} src="/cool_with_bear.png" alt="with bear" width="700" height="700"></Image>
     },
     {
       name: "real",
-      imageElement: <Image className={`absolute right-0 bottom-0 ${index == 3 ? "opacity-100 transition duration-1000 ease-in" : "opacity-0 transition duration-1000 ease-in"}`} src="/real.png" alt="real" width="800" height="800"></Image>
+      imageElement: <Image className={`hidden lg:block absolute right-0 bottom-0 ${index == 3 ? "opacity-100 transition duration-1000 ease-in" : "opacity-0 transition duration-1000 ease-in"}`} src="/real.png" alt="real" width="800" height="800"></Image>
     }
   ]
 
