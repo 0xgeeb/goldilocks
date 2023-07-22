@@ -4,7 +4,7 @@ import Link from "next/link"
 export const HomeTitle = () => {
 
   return (
-    <div className="absolute top-[30%] left-[15%] py-4 font-acme">
+    <div className="absolute top-[30%] left-[11%] py-4 font-acme">
       <h1 className="text-[4rem]">cooking up porridge for beras</h1>
       <h3 className="text-[1.5rem]">DAO governed defi infrastructure for Berachain</h3>
       <div className="mt-5 flex flex-row items-center">

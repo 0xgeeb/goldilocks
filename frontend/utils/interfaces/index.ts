@@ -30,6 +30,7 @@ export interface NotificationProviderState {
 }
 
 export interface Pic {
+  key: string;
   name: string;
   imageElement: ReactElement;
 }

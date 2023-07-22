@@ -23,29 +23,26 @@ export const HomeImages = () => {
 
   const pics: Pic[] = [
     {
+      key: "dancing",
       name: "dancing",
-      imageElement: <Image className={`absolute right-0 bottom-0 ${index == 0 ? "opacity-100 transition duration-1000 ease-in" : "opacity-0 transition duration-1000 ease-in"}`} src="/dancing.png" alt="dancing" width="700" height="700"></Image>
+      imageElement: <img className={`h-[60%] w-[50%] absolute right-0 bottom-0 ${index == 0 ? "opacity-100 transition duration-1000 ease-in" : "opacity-0 transition duration-1000 ease-in"}`} src="/dancing.png" alt="dancing" ></img>
     },
     {
+      key: "astronaut",
       name: "astronaut",
-      imageElement: <Image className={`absolute right-0 bottom-0 ${index == 1 ? "opacity-100 transition duration-1000 ease-in" : "opacity-0 transition duration-1000 ease-in"}`} src="/astronaut.png" alt="astronaut" width="800" height="800"></Image>
+      imageElement: <img className={`h-[60%] w-[50%] absolute right-0 bottom-0 ${index == 1 ? "opacity-100 transition duration-1000 ease-in" : "opacity-0 transition duration-1000 ease-in"}`} src="/astronaut.png" alt="astronaut"></img>
     },
     {
+      key: "with_bear",
       name: "with_bear",
-      imageElement: <Image className={`absolute right-0 bottom-0 ${index == 2 ? "opacity-100 transition duration-1000 ease-in" : "opacity-0 transition duration-1000 ease-in"}`} src="/cool_with_bear.png" alt="with bear" width="700" height="700"></Image>
+      imageElement: <img className={`h-[60%] w-[50%] absolute right-0 bottom-0 ${index == 2 ? "opacity-100 transition duration-1000 ease-in" : "opacity-0 transition duration-1000 ease-in"}`} src="/cool_with_bear.png" alt="with bear"></img>
     },
     {
+      key: "real",
       name: "real",
-      imageElement: <Image className={`absolute right-0 bottom-0 ${index == 3 ? "opacity-100 transition duration-1000 ease-in" : "opacity-0 transition duration-1000 ease-in"}`} src="/real.png" alt="real" width="800" height="800"></Image>
+      imageElement: <img className={`h-[60%] w-[50%] absolute right-0 bottom-0 ${index == 3 ? "opacity-100 transition duration-1000 ease-in" : "opacity-0 transition duration-1000 ease-in"}`} src="/real.png" alt="real"></img>
     }
   ]
 
-  return (
-    <>
-      { pics[0].imageElement }
-      { pics[1].imageElement }
-      { pics[2].imageElement }
-      { pics[3].imageElement }
-    </>
-  )
+  return <>{pics.map((pic) => pic.imageElement)}</>
 }
