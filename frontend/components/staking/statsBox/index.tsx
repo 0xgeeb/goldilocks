@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useState, useEffect } from "react"
 import { 
   useStaking, 
   useWallet,
@@ -9,6 +9,8 @@ import {
 import { useStakingTx } from "../../../hooks/staking"
 
 export const StatsBox = () => {
+
+  const [infoLoading, setInfoLoading] = useState<boolean>(true)
 
   const { 
     stakingInfo,
@@ -26,13 +28,18 @@ export const StatsBox = () => {
 
   const { openNotification } = useNotification()
 
-  const fetchInfo = async () => {
-    await refreshStakingInfo()
+  useEffect(() => {
+    refreshStakingInfo()
+    setInfoLoading(false)
+  }, [])
+
+  const loadingElement = () => {
+    return <span className="loader-small ml-3"></span>
   }
 
-  useEffect(() => {
-    fetchInfo()
-  }, [])
+  const formatAsString = (num: number): string => {
+    return num.toLocaleString('en-US', { maximumFractionDigits: 2 })
+  }
 
   const test = () => {
     console.log(stakingInfo)
@@ -64,33 +71,45 @@ export const StatsBox = () => {
       refreshStakingInfo()
     }
   }
+
+  const handleInfo = (num: number) => {
+    if(infoLoading) {
+      return loadingElement()
+    }
+    else if(num > 0) {
+      return formatAsString(num)
+    }
+    else {
+      return "-"
+    }
+  }
   
   return (
     <div className="flex flex-col w-[40%] h-[100%] mt-4 ml-4" onClick={() => test()}>
       <div className="w-[100%] h-[70%] flex p-6 flex-col bg-white rounded-xl border-2 border-black">
-        <div className="flex flex-row justify-between items-center mt-3">
-          <h1 className="font-acme text-[24px]">$LOCKS floor price:</h1>
-          <p className="font-acme text-[20px]">${(stakingInfo.fsl / stakingInfo.supply) > 0 ? (stakingInfo.fsl / stakingInfo.supply).toLocaleString('en-US', { maximumFractionDigits: 2 }) : '0'}</p>
+        <div className="flex flex-row justify-between items-center mt-3 font-acme">
+          <h1 className="text-[24px]">$LOCKS balance:</h1>
+          <p className="text-[20px]">{handleInfo(balance.locks)}</p>
         </div>
-        <div className="flex flex-row justify-between items-center mt-3">
-          <h1 className="font-acme text-[24px]">$LOCKS balance:</h1>
-          <p className="font-acme text-[20px]">{balance.locks > 0 ? balance.locks.toLocaleString('en-US', { maximumFractionDigits: 2 }) : '0'}</p>
+        <div className="flex flex-row justify-between items-center mt-3 font-acme">
+          <h1 className="text-[24px]">$PRG balance:</h1>
+          <p className="text-[20px]">{handleInfo(balance.prg)}</p>
         </div>
-        <div className="flex flex-row justify-between items-center mt-3">
-          <h1 className="font-acme text-[24px]">$HONEY balance:</h1>
-          <p className="font-acme text-[20px]">{balance.honey > 0 ? balance.honey.toLocaleString('en-US', { maximumFractionDigits: 2 }) : '0'}</p>
+        <div className="flex flex-row justify-between items-center mt-3 font-acme">
+          <h1 className="text-[24px]">$HONEY balance:</h1>
+          <p className="text-[20px]">{handleInfo(balance.honey)}</p>
         </div>
-        <div className="flex flex-row justify-between items-center mt-3">
-          <h1 className="font-acme text-[24px]">staked $LOCKS:</h1>
-          <p className="font-acme text-[20px]">{stakingInfo.staked > 0 ? stakingInfo.staked.toLocaleString('en-US', { maximumFractionDigits: 2 }) : '0'}</p>
+        <div className="flex flex-row justify-between items-center mt-3 font-acme">
+          <h1 className="text-[24px]">staked $LOCKS:</h1>
+          <p className="text-[20px]">{handleInfo(stakingInfo.staked)}</p>
         </div>
-        <div className="flex flex-row justify-between items-center mt-3">
-          <h1 className="font-acme text-[24px]">$PRG balance:</h1>
-          <p className="font-acme text-[20px]">{balance.prg > 0 ? balance.prg.toLocaleString('en-US', { maximumFractionDigits: 2 }) : '0'}</p>
+        <div className="flex flex-row justify-between items-center mt-3 font-acme">
+          <h1 className="text-[24px]">$LOCKS floor price:</h1>
+          <p className="text-[20px]">${handleInfo(stakingInfo.fsl / stakingInfo.supply)}</p>
         </div>
-        <div className="flex flex-row justify-between items-center mt-3">
-          <h1 className="font-acme text-[24px]">$PRG available to claim:</h1>
-          <p className="font-acme text-[20px]">{stakingInfo.yieldToClaim > 0 ? stakingInfo.yieldToClaim.toLocaleString('en-US', { maximumFractionDigits: 2 }) : '0'}</p>
+        <div className="flex flex-row justify-between items-center mt-3 font-acme">
+          <h1 className="text-[24px]">$PRG available to claim:</h1>
+          <p className="text-[20px]">{handleInfo(stakingInfo.yieldToClaim)}</p>
         </div>
       </div>
       <div className="h-[10%] w-[70%] mx-auto mt-4">

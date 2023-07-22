@@ -28,7 +28,6 @@ export const TitleBar = () => {
           >
             borrow
           </div>
-          {/* //todo: image is getting in the way of this button */}
           <div 
             className={`font-acme w-20 py-2 ${activeToggle === 'repay' ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] text-center rounded-r-2xl cursor-pointer`} 
             onClick={() => changeActiveToggle('repay')}

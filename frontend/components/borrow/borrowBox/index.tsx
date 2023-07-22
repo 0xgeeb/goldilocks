@@ -1,26 +1,33 @@
 "use client"
 
-import { useEffect } from "react"
-import { BorrowButton } from "../../borrow"
+import { useState, useEffect } from "react"
+import { BorrowButton, PercentageButtons } from "../../borrow"
 import { useWallet, useBorrowing } from "../../../providers"
 
 export const BorrowBox = () => {
 
+  const [balanceLoading, setBalanceLoading] = useState<boolean>(true)
+
   const {
     activeToggle,
-    handlePercentageButtons,
     renderLabel,
     handleChange,
     handleInput,
     handleBalance
   } = useBorrowing()
+  
   const {
     isConnected,
     refreshBalances
   } = useWallet()
 
+  const loadingElement = () => {
+    return <span className="loader ml-6"></span>
+  }
+
   useEffect(() => {
     refreshBalances()
+    setBalanceLoading(false)
   }, [isConnected])
 
   return (
@@ -28,32 +35,7 @@ export const BorrowBox = () => {
       <div className="bg-white border-2 border-black rounded-xl h-[60%] relative">
         <div className="flex flex-row justify-between items-center ml-10 mt-16">
           <h1 className="font-acme text-[40px]">{renderLabel()}</h1>
-          <div className="flex flex-row items-center mr-3">
-            <button 
-              className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" 
-              onClick={() => handlePercentageButtons(1)}
-            >
-              25%
-            </button>
-            <button 
-              className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" 
-              onClick={() => handlePercentageButtons(2)}
-            >
-              50%
-            </button>
-            <button 
-              className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" 
-              onClick={() => handlePercentageButtons(3)}
-            >
-              75%
-            </button>
-            <button 
-              className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" 
-              onClick={() => handlePercentageButtons(4)}
-            >
-              MAX
-            </button>
-          </div>
+          <PercentageButtons />
         </div>
         <div className="w-[100%] flex">
           <input 
@@ -70,7 +52,7 @@ export const BorrowBox = () => {
           <h1 
             className="text-[23px] mr-3 font-acme text-[#878d97]"
           >
-            {activeToggle === 'borrow' ? 'borrow limit: ' : 'borrowed $honey: '} {handleBalance()}
+            {activeToggle === 'borrow' ? 'borrow limit: ' : 'borrowed $honey: '} {balanceLoading ? loadingElement() : handleBalance()}
           </h1>
         </div>
       </div>

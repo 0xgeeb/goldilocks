@@ -26,10 +26,8 @@ export default function Borrowing() {
           <BorrowProvider>
             <div className="w-screen h-screen" id="page-div">
               <NavBar />
-              <div className="h-[80%] flex flex-row">
-                <BorrowMainBox />
-                <RotatingImages />
-              </div>
+              <BorrowMainBox />
+              <RotatingImages />
             </div>
             <NotificationManager />
           </BorrowProvider>

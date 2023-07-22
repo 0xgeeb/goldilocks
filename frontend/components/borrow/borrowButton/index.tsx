@@ -33,6 +33,60 @@ export const BorrowButton = () => {
   } = useBorrowingTx()
   
   const { openNotification } = useNotification()
+
+  const refreshInfo = () => {
+    setBorrow(0)
+    setRepay(0)
+    setDisplayString('')
+    refreshBalances()
+    refreshBorrowInfo()
+  }
+
+  const borrowTxFlow = async (button: HTMLElement | null) => {
+    if(borrow == 0) {
+      return
+    }
+    button && (button.innerHTML = "borrowing...")
+    const borrowTx = await sendBorrowTx(borrow)
+    borrowTx && openNotification({
+      title: 'Successfully Borrowed $HONEY!',
+      hash: borrowTx,
+      direction: 'borrowed',
+      amount: borrow,
+      price: 0,
+      page: 'borrow'
+    })
+    button && (button.innerHTML = "borrow")
+    refreshInfo()
+  }
+
+  const repayTxFlow = async (button: HTMLElement | null) => {
+    if(repay == 0) {
+      return
+    }
+    const sufficientAllowance: boolean | void = await checkAllowance(repay, wallet)
+    if(sufficientAllowance) {
+      button && (button.innerHTML = "repaying...")
+      const repayTx = await sendRepayTx(repay)
+      repayTx && openNotification({
+        title: 'Successfully Repaid $HONEY!',
+        hash: repayTx,
+        direction: 'repaid',
+        amount: repay,
+        price: 0,
+        page: 'borrow'
+      })
+      button && (button.innerHTML = "repay")
+      refreshInfo()
+    }
+    else {
+      button && (button.innerHTML = "approving...")
+      await sendApproveTx(repay)
+      setTimeout(() => {
+        button && (button.innerHTML = "repay")
+      }, 10000)
+    }
+  }
   
   const handleButtonClick = async () => {
     const button = document.getElementById('amm-button')
@@ -45,54 +99,10 @@ export const BorrowButton = () => {
     }
     else {
       if(activeToggle === 'borrow') {
-        if(borrow == 0) {
-          return
-        }
-        button && (button.innerHTML = "borrowing...")
-        const borrowTx = await sendBorrowTx(borrow)
-        borrowTx && openNotification({
-          title: 'Successfully Borrowed $HONEY!',
-          hash: borrowTx,
-          direction: 'borrowed',
-          amount: borrow,
-          price: 0,
-          page: 'borrow'
-        })
-        button && (button.innerHTML = "borrow")
-        setBorrow(0)
-        setDisplayString('')
-        refreshBalances()
-        refreshBorrowInfo()
+        borrowTxFlow(button)
       }
       if(activeToggle === 'repay') {
-        if(repay == 0) {
-          return
-        }
-        const sufficientAllowance: boolean | void = await checkAllowance(repay, wallet)
-        if(sufficientAllowance) {
-          button && (button.innerHTML = "repaying...")
-          const repayTx = await sendRepayTx(repay)
-          repayTx && openNotification({
-            title: 'Successfully Repaid $HONEY!',
-            hash: repayTx,
-            direction: 'repaid',
-            amount: repay,
-            price: 0,
-            page: 'borrow'
-          })
-          button && (button.innerHTML = "repay")
-          setRepay(0)
-          setDisplayString('')
-          refreshBalances()
-          refreshBorrowInfo()
-        }
-        else {
-          button && (button.innerHTML = "approving...")
-          await sendApproveTx(repay)
-          setTimeout(() => {
-            button && (button.innerHTML = "repay")
-          }, 10000)
-        }
+        repayTxFlow(button)
       }
     }
   }

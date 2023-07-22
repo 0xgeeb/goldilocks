@@ -1,25 +1,32 @@
 "use client"
 
-import { useEffect } from "react"
-import { StakingButton } from "../../staking"
+import { useState, useEffect } from "react"
+import { StakingButton, PercentageButtons } from "../../staking"
 import { useWallet, useStaking } from "../../../providers"
 
 export const StakeBox = () => {
 
+  const [balanceLoading, setBalanceLoading] = useState<boolean>(true)
+
   const {
     renderLabel,
     handleBalance,
-    handlePercentageButtons,
     handleChange,
     handleInput
   } = useStaking()
+
   const {
     isConnected,
     refreshBalances
   } = useWallet()
 
+  const loadingElement = () => {
+    return <span className="loader ml-6"></span>
+  }
+
   useEffect(() => {
     refreshBalances()
+    setBalanceLoading(false)
   }, [isConnected])
 
   return (
@@ -27,32 +34,7 @@ export const StakeBox = () => {
       <div className="rounded-3xl border-2 border-black w-[100%] h-[60%] bg-white flex flex-col relative">
         <div className="flex flex-row items-center justify-between ml-10 mt-16">
           <h1 className="font-acme text-[40px]">{renderLabel()}</h1>
-          <div className="flex flex-row items-center mr-6">
-            <button 
-              className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" 
-              onClick={() => handlePercentageButtons(1)}
-            >
-              25
-            %</button>
-            <button 
-              className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" 
-              onClick={() => handlePercentageButtons(2)}
-            >
-              50
-            %</button>
-            <button 
-              className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" 
-              onClick={() => handlePercentageButtons(3)}
-            >
-              75
-            %</button>
-            <button 
-              className="ml-2 w-10 font-acme rounded-xl bg-slate-100 hover:bg-[#ffff00] border-2 border-black" 
-              onClick={() => handlePercentageButtons(4)}
-            >
-              MAX
-            </button>
-          </div>
+          <PercentageButtons />
         </div>
         <div className="absolute top-[45%]">
           <input 
@@ -69,7 +51,7 @@ export const StakeBox = () => {
           <h1 
             className="text-[23px] mr-6 font-acme text-[#878d97]"
           >
-            balance: {handleBalance()}
+            balance: {balanceLoading ? loadingElement() : handleBalance()}
           </h1>
         </div>
       </div>
