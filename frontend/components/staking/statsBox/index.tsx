@@ -53,7 +53,7 @@ export const StatsBox = () => {
     }
 
     if(network !== "Avalanche Fuji C-Chain") {
-      button && (button.innerHTML = "switch to devnet plz")
+      button && (button.innerHTML = "switch to fuji plz")
     }
     else {
       button && (button.innerHTML = "claiming...")

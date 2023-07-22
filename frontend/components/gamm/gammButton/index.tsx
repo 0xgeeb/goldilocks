@@ -146,7 +146,7 @@ export const GammButton = () => {
       button && (button.innerHTML = "connect wallet")
     }
     else if(network !== "Avalanche Fuji C-Chain") {
-      button && (button.innerHTML = "switch to devnet plz")
+      button && (button.innerHTML = "switch to fuji plz")
     }
     else {
       if(activeToggle === 'buy') {
