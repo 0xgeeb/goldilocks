@@ -1,16 +1,12 @@
 import type { Metadata } from 'next'
-import { GammMainBox } from "../../components/gamm"
+import { GammMainBox, GammSideBox } from "../../components/gamm"
+import { NavBar, NotificationManager } from "../../components/utils"
 import {
   NotificationProvider,
   WagmiProvider,
   WalletProvider,
   GammProvider
 } from "../../providers"
-import { 
-  NavBar,
-  NotificationManager,
-  RotatingImages
-} from "../../components/utils"
 
 export const metadata: Metadata = {
   title: "mf gamm",
@@ -28,7 +24,7 @@ export default function Gamm() {
               <NavBar />
               <div className="h-[80%]">
                 <GammMainBox />
-                <RotatingImages />
+                <GammSideBox />
               </div>
             </div>
             <NotificationManager />

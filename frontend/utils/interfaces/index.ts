@@ -1,4 +1,4 @@
-import React, { ReactElement } from "../../node_modules/@types/react"
+import React, { MouseEventHandler, ReactElement } from "../../node_modules/@types/react"
 import { WalletClient } from "viem"
 
 export interface LayoutProps {
@@ -30,7 +30,6 @@ export interface NotificationProviderState {
 }
 
 export interface Pic {
-  key: string;
   name: string;
   imageElement: ReactElement;
 }
@@ -180,4 +179,9 @@ export interface BorrowingInitialState {
   handleChange: (_input: string) => void;
   handleBalance: () => string;
   refreshBorrowInfo: () =>  void;
+}
+
+export interface SideToggleProps {
+  showChart: boolean;
+  toggleChart: MouseEventHandler<HTMLDivElement>; 
 }

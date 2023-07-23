@@ -1,6 +1,5 @@
 "use client"
 
-import Image from "next/image"
 import { useState, useEffect } from "react"
 import { Pic } from "../../../utils/interfaces"
 
@@ -23,24 +22,52 @@ export const RotatingImages = () => {
 
   const pics: Pic[] = [
     {
-      key: "dancing",
       name: "dancing",
-      imageElement: <img className={`hidden lg:block h-[70%] w-[40%] absolute right-0 bottom-0 ${index == 0 ? "opacity-100 transition duration-1000 ease-in" : "opacity-0 transition duration-1000 ease-in"}`} src="/dancing.png" alt="dancing"></img>
+      imageElement: (
+        <img 
+          className={`hidden lg:block h-[70%] w-[40%] absolute right-0 bottom-0 ${index == 0 ? "opacity-100 transition duration-1000 ease-in" : "opacity-0 transition duration-1000 ease-in"}`} 
+          src="/dancing.png" 
+          alt="dancing"
+          key="dancing"
+        >
+        </img>
+      )
     },
     {
-      key: "astronaut",
       name: "astronaut",
-      imageElement: <img className={`hidden lg:block h-[70%] w-[40%] absolute right-0 bottom-0 ${index == 1 ? "opacity-100 transition duration-1000 ease-in" : "opacity-0 transition duration-1000 ease-in"}`} src="/astronaut.png" alt="astronaut"></img>
+      imageElement: (
+        <img 
+        className={`hidden lg:block h-[70%] w-[40%] absolute right-0 bottom-0 ${index == 1 ? "opacity-100 transition duration-1000 ease-in" : "opacity-0 transition duration-1000 ease-in"}`} 
+        src="/astronaut.png" 
+        alt="astronaut"
+        key="astronaut"
+      >
+      </img>
+      )
     },
     {
-      key: "with_bear",
       name: "with_bear",
-      imageElement: <img className={`hidden lg:block h-[70%] w-[40%] absolute right-0 bottom-0 ${index == 2 ? "opacity-100 transition duration-1000 ease-in" : "opacity-0 transition duration-1000 ease-in"}`} src="/cool_with_bear.png" alt="with bear"></img>
+      imageElement: (
+      <img 
+        className={`hidden lg:block h-[70%] w-[40%] absolute right-0 bottom-0 ${index == 2 ? "opacity-100 transition duration-1000 ease-in" : "opacity-0 transition duration-1000 ease-in"}`}
+        src="/cool_with_bear.png" 
+        alt="with bear"
+        key="with_bear"
+      >
+      </img>
+      )
     },
     {
-      key: "real",
       name: "real",
-      imageElement: <img className={`hidden lg:block h-[70%] w-[40%] absolute right-0 bottom-0 ${index == 3 ? "opacity-100 transition duration-1000 ease-in" : "opacity-0 transition duration-1000 ease-in"}`} src="/real.png" alt="real"></img>
+      imageElement: (
+      <img 
+        className={`hidden lg:block h-[70%] w-[40%] absolute right-0 bottom-0 ${index == 3 ? "opacity-100 transition duration-1000 ease-in" : "opacity-0 transition duration-1000 ease-in"}`}
+        src="/real.png" 
+        alt="real"
+        key="real"
+      >
+      </img>
+      )
     }
   ]
 
