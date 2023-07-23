@@ -183,5 +183,5 @@ export interface BorrowingInitialState {
 
 export interface SideToggleProps {
   showChart: boolean;
-  toggleChart: MouseEventHandler<HTMLDivElement>; 
+  toggleChart: MouseEventHandler<HTMLButtonElement>; 
 }

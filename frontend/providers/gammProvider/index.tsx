@@ -544,6 +544,10 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
     setNewInfoState(newResponse)
   }
 
+  const refreshChartInfo = async () => {
+    
+  }
+
   return (
     <GammContext.Provider
       value={{

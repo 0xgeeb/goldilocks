@@ -5,7 +5,7 @@ import { Pic } from "../../../utils/interfaces"
 
 export const RotatingImages = () => {
 
-  const [index, setIndex] = useState<number>(0)
+  const [index, setIndex] = useState<number>(Math.floor(Math.random() * 4))
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -18,7 +18,7 @@ export const RotatingImages = () => {
     }, 9000)
 
     return () => clearInterval(interval)
-  })
+  }, [])
 
   const pics: Pic[] = [
     {
