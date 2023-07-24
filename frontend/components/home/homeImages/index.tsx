@@ -9,12 +9,7 @@ export const HomeImages = () => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      if(index == 3) {
-        setIndex(0)
-      }
-      else {
-        setIndex(prev => prev + 1)
-      }
+      setIndex((prevIndex) => (prevIndex >= 3 ? 0 : prevIndex + 1))
     }, 3000)
 
     return () => clearInterval(interval)

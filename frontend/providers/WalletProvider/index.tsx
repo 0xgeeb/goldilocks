@@ -18,7 +18,7 @@ const INITIAL_STATE: WalletInitialState = {
   signer: null as WalletClient | null,
   network: '',
   refreshBalances: async () => {},
-  sendMintTx: async () => {}
+  sendMintTx: async () => ''
 }
 
 const WalletContext = createContext(INITIAL_STATE)
@@ -64,7 +64,7 @@ export const WalletProvider = (props: PropsWithChildren<{}>) => {
     }
   }
 
-  const sendMintTx = async () => {
+  const sendMintTx = async (): Promise<string> => {
     try {
       const { hash } = await writeContract({
         address: contracts.honey.address as`0x${string}`,
@@ -72,12 +72,15 @@ export const WalletProvider = (props: PropsWithChildren<{}>) => {
         functionName: 'mint',
         args: [address, parseEther(`${1000000}`)]
       })
-      await waitForTransaction({ hash })
+      const data = await waitForTransaction({ hash })
+      return data.transactionHash
     }
     catch (e) {
       console.log('user denied tx')
       console.log('or: ', e)
     }
+
+    return ''
   }
 
   return (

@@ -29,7 +29,9 @@ const Notification = ({ hash, title, direction, amount, price, page }: Notificat
             `you claimed ${amount.toLocaleString('en-US', { maximumFractionDigits: 4 })} $PRG` :
           page === 'borrow' ?
             `you ${direction} ${amount.toLocaleString('en-US', { maximumFractionDigits: 4 })} $HONEY` :
-            ''
+          page === 'nav' ? 
+            `you ${direction} ${amount.toLocaleString('en-US', { maximumFractionDigits: 4 })} $HONEY` :
+          ''
         }</h1>
         <Link href={`https://testnet.snowtrace.io/tx/${hash}`} target="_blank"><h1 className="hover:underline">link to tx</h1></Link>
     </div>

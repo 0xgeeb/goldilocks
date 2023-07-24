@@ -2,10 +2,11 @@
 
 import Image from "next/image"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
-import { useWallet } from "../../../providers"
+import { useWallet, useNotification } from "../../../providers"
 
 export const NavBar = () => {
 
+  const { openNotification } = useNotification()
   const { isConnected, network, refreshBalances, sendMintTx } = useWallet()
 
   const handleButtonClick = async () => {
@@ -19,9 +20,17 @@ export const NavBar = () => {
     }
     else {
       button && (button.innerHTML = "loading...")
-      await sendMintTx()
+      const mintTx = await sendMintTx()
+      mintTx && openNotification({
+        title: 'Successfully Minted $HONEY!',
+        hash: mintTx,
+        direction: 'minted',
+        amount: 1000000,
+        price: 0,
+        page: 'nav'
+      })
       button && (button.innerHTML = "u got $honey")
-      await refreshBalances()
+      refreshBalances()
       setTimeout(() => {
         button && (button.innerHTML = "$honey")
       }, 5000)
@@ -33,7 +42,7 @@ export const NavBar = () => {
   }
 
   return (
-    <div className="w-[100%] flex flex-row items-center justify-between px-24 py-8">
+    <div className="w-[100%] flex flex-row items-center justify-between px-10 py-4 2xl:px-24 2xl:py-8">
       <a href="/"><div className="flex flex-row items-center hover:opacity-25">
         <Image className="" src="/yellow_transparent_logo.png" alt="logo" width="96" height="96" />
         <h1 className="text-[45px] ml-5 font-acme">Goldilocks Alpha</h1>

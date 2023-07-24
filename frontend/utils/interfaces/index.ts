@@ -52,7 +52,7 @@ export interface WalletInitialState {
   signer: WalletClient | null;
   network: string;
   refreshBalances: () => void;
-  sendMintTx: () => void;
+  sendMintTx: () => Promise<string>;
 }
 
 export interface GammInfo {
@@ -123,6 +123,7 @@ export interface GammInitialState {
   findLocksBuyAmount: (_debouncedValue: number) => number;
   findLocksSellAmount: (_debouncedValue: number) => number;
   refreshGammInfo: () => void;
+  refreshChartInfo: () => void;
 }
 
 export interface StakingInfo {

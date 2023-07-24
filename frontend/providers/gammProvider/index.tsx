@@ -4,7 +4,7 @@ import { createContext, PropsWithChildren, useContext, useState } from "react"
 import { formatEther } from "viem"
 import { useWallet } from ".."
 import { useDebounce, useGammMath } from "../../hooks/gamm"
-import { getContract } from "@wagmi/core"
+import { getContract, getPublicClient } from "@wagmi/core"
 import { contracts } from "../../utils/addressi"
 import { GammInitialState, GammInfo, NewInfo, Slippage } from "../../utils/interfaces"
 
@@ -86,6 +86,7 @@ const INITIAL_STATE: GammInitialState = {
   findLocksSellAmount: (_debouncedValue: number) => 0,
 
   refreshGammInfo: async () => {},
+  refreshChartInfo: async () => {},
 }
 
 const GammContext = createContext(INITIAL_STATE)
@@ -117,6 +118,8 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
 
   const [topInputFlagState, setTopInputFlagState] = useState<boolean>(INITIAL_STATE.topInputFlag)
   const [bottomInputFlagState, setBottomInputFlagState] = useState<boolean>(INITIAL_STATE.bottomInputFlag)
+
+  const publicClient = getPublicClient()
 
   const honeyContract = getContract({
     address: contracts.honey.address as `0x${string}`,
@@ -545,7 +548,15 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
   }
 
   const refreshChartInfo = async () => {
-    
+    const data = publicClient.readContract({
+      address: contracts.gamm.address as `0x${string}`,
+      abi: contracts.gamm.abi,
+      functionName: 'floorPrice',
+      args: [],
+      // blockNumber: 24389463 as unknown as bigint
+    })
+
+    console.log(data)
   }
 
   return (
@@ -594,7 +605,8 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
         changeActiveToggle,
         changeSlippage,
         changeSlippageToggle,
-        refreshGammInfo
+        refreshGammInfo,
+        refreshChartInfo
       }}
     >
       { children }

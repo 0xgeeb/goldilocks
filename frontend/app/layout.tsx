@@ -5,6 +5,7 @@ import './globals.css'
 
 const acme = Acme({
   subsets: ['latin'],
+  preload: false,
   display: 'swap',
   weight: '400',
   variable: '--font-acme',

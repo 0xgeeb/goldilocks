@@ -7,12 +7,13 @@ import { useGamm } from "../../../providers"
 export const TitleBar = () => {
 
   const [popupToggle, setPopupToggle] = useState<boolean>(false)
-  const { changeSlippageToggle, activeToggle, changeActiveToggle } = useGamm()
+  const { changeSlippageToggle, activeToggle, changeActiveToggle, refreshChartInfo } = useGamm()
 
   const test = () => {
     // navigator.geolocation.getCurrentPosition(position => {
     //   console.log(position)
     // })
+    refreshChartInfo()
   }
 
   return (
