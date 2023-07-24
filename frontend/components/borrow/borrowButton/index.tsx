@@ -120,9 +120,9 @@ export const BorrowButton = () => {
   }
 
   return (
-    <div className="h-[15%] w-[80%] mx-auto mt-6">
+    <div className="h-[13%] 2xl:h-[15%] w-[75%] 2xl:w-[80%] mx-auto mt-6">
       <button 
-        className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[30px]" 
+        className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[25px] 2xl:text-[30px]" 
         id="amm-button" 
         onClick={() => handleButtonClick()}
       >

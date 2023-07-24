@@ -43,34 +43,34 @@ export const StatsBox = () => {
   }
 
   return (
-    <div className="w-[40%] h-[75%] bg-white border-2 border-black rounded-xl flex flex-col p-6">
-      <div className="flex flex-row justify-between items-center font-acme">
-        <h1 className="text-[24px]">$LOCKS balance:</h1>
-        <p className="text-[20px]">{handleInfo(balance.locks)}</p>
+    <div className="w-[40%] h-[75%] bg-white border-2 border-black rounded-xl flex flex-col p-3 2xl:p-6">
+      <div className="flex flex-row justify-between items-center mt-4 2xl:mt-0 font-acme">
+        <h1 className="text-[20px] 2xl:text-[24px]">$LOCKS floor price:</h1>
+        <p className="text-[18px] 2xl:text-[20px]">{handleInfo(borrowInfo.fsl / borrowInfo.supply)}</p>
       </div>
-      <div className="flex flex-row justify-between items-center mt-6 font-acme">
-        <h1 className="text-[24px]">$HONEY balance:</h1>
-        <p className="text-[20px]">{handleInfo(balance.honey)}</p>
+      <div className="flex flex-row justify-between items-center mt-4 2xl:mt-6 font-acme">
+        <h1 className="text-[20px] 2xl:text-[24px]">borrow limit:</h1>
+        <p className="text-[18px] 2xl:text-[20px]">${handleInfo((borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply))}</p>
       </div>
-      <div className="flex flex-row justify-between items-center mt-6 font-acme">
-        <h1 className="text-[24px]">borrow limit:</h1>
-        <p className="text-[20px]">${handleInfo((borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply))}</p>
+      <div className="flex flex-row justify-between items-center font-acme mt-4 2xl:mt-6">
+        <h1 className="text-[20px] 2xl:text-[24px]">$LOCKS balance:</h1>
+        <p className="text-[18px] 2xl:text-[20px]">{handleInfo(balance.locks)}</p>
       </div>
-      <div className="flex flex-row justify-between items-center mt-6 font-acme">
-        <h1 className="text-[24px]">$LOCKS floor price:</h1>
-        <p className="text-[20px]">{handleInfo(borrowInfo.fsl / borrowInfo.supply)}</p>
+      <div className="flex flex-row justify-between items-center mt-4 2xl:mt-6 font-acme">
+        <h1 className="text-[20px] 2xl:text-[24px]">$HONEY balance:</h1>
+        <p className="text-[18px] 2xl:text-[20px]">{handleInfo(balance.honey)}</p>
       </div>
-      <div className="flex flex-row justify-between items-center mt-6 font-acme">
-        <h1 className="text-[24px]">staked $LOCKS:</h1>
-        <p className="text-[20px]">{handleInfo(borrowInfo.staked)}</p>
+      <div className="flex flex-row justify-between items-center mt-4 2xl:mt-6 font-acme">
+        <h1 className="text-[20px] 2xl:text-[24px]">borrowed $HONEY:</h1>
+        <p className="text-[18px] 2xl:text-[20px]">{handleInfo(borrowInfo.borrowed)}</p>
       </div>
-      <div className="flex flex-row justify-between items-center mt-6 font-acme">
-        <h1 className="text-[24px]">locked $LOCKS:</h1>
-        <p className="text-[20px]">{handleInfo(borrowInfo.locked)}</p>
+      <div className="flex flex-row justify-between items-center mt-4 2xl:mt-6 font-acme">
+        <h1 className="text-[20px] 2xl:text-[24px]">staked $LOCKS:</h1>
+        <p className="text-[18px] 2xl:text-[20px]">{handleInfo(borrowInfo.staked)}</p>
       </div>
-      <div className="flex flex-row justify-between items-center mt-6 font-acme">
-        <h1 className="text-[24px]">borrowed $HONEY:</h1>
-        <p className="text-[20px]">{handleInfo(borrowInfo.borrowed)}</p>
+      <div className="flex flex-row justify-between items-center mt-4 2xl:mt-6 font-acme">
+        <h1 className="text-[20px] 2xl:text-[24px]">locked $LOCKS:</h1>
+        <p className="text-[18px] 2xl:text-[20px]">{handleInfo(borrowInfo.locked)}</p>
       </div>
     </div>
   )
