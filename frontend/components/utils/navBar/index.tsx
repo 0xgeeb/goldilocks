@@ -1,6 +1,5 @@
 "use client"
 
-import Image from "next/image"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
 import { useWallet, useNotification } from "../../../providers"
 
@@ -44,13 +43,13 @@ export const NavBar = () => {
   return (
     <div className="w-[100%] flex flex-row items-center justify-between px-10 py-4 2xl:px-24 2xl:py-8">
       <a href="/"><div className="flex flex-row items-center hover:opacity-25">
-        <Image className="" src="/yellow_transparent_logo.png" alt="logo" width="96" height="96" />
-        <h1 className="text-[45px] ml-5 font-acme">Goldilocks Alpha</h1>
+        <img className="h-[72px] w-[72px] 2xl:w-[96px] 2xl:h-[96px]" src="/yellow_transparent_logo.png" alt="logo"></img>
+        <h1 className="text-[35px] 2xl:text-[45px] ml-5 font-acme">Goldilocks Alpha</h1>
       </div></a>
-      <div className="flex-row justify-between w-[50%] hidden lg:flex">
+      <div className="flex-row justify-between w-[55%] 2xl:w-[50%] hidden lg:flex">
         <div className="flex flex-row">
           <button 
-            className={`w-36 py-2 text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme`} 
+            className={`w-36 py-2 text-[16px] 2xl:text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme`} 
             id="honey-button" 
             onClick={() => handleButtonClick()}
           >
@@ -58,7 +57,7 @@ export const NavBar = () => {
           </button>
           <a href="https://core.app/tools/testnet-faucet" target="_blank">
             <button 
-              className="w-24 py-2 text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl font-acme" 
+              className="w-20 2xl:w-24 py-2 text-[16px] 2xl:text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl font-acme" 
               id="home-button"
             >
               faucet
@@ -68,7 +67,7 @@ export const NavBar = () => {
         <div className="flex flex-row">
           <a href="/gamm">
             <button 
-              className="w-24 py-2 text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme" 
+              className="w-20 2xl:w-24 py-2 text-[16px] 2xl:text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme" 
               id="home-button"
             >
               gamm
@@ -76,7 +75,7 @@ export const NavBar = () => {
           </a>
           <a href="/staking">
             <button 
-              className="w-24 py-2 text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme" 
+              className="w-20 2xl:w-24 py-2 text-[16px] 2xl:text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme" 
               id="home-button"
             >
               stake
@@ -84,7 +83,7 @@ export const NavBar = () => {
           </a>
           <a href="/borrowing">
             <button 
-              className="w-24 py-2 text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme" 
+              className="w-20 2xl:w-24 py-2 text-[16px] 2xl:text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme" 
               id="home-button"
             >
               borrow
@@ -98,7 +97,7 @@ export const NavBar = () => {
             }) => {
               return (
                 <button 
-                  className="w-24 py-2 text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme" 
+                  className="w-20 2xl:w-24 py-2 text-[16px] 2xl:text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme" 
                   id="home-button"
                   onClick={openConnectModal}
                 >

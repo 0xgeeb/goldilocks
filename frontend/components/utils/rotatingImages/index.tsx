@@ -15,10 +15,6 @@ export const RotatingImages = () => {
     return () => clearInterval(interval)
   }, [])
 
-  const test = () => {
-    console.log(index)
-  }
-
   const pics: Pic[] = [
     {
       name: "dancing",
@@ -28,7 +24,6 @@ export const RotatingImages = () => {
           src="/dancing.png" 
           alt="dancing"
           key="dancing"
-          onClick={() => test()}
         >
         </img>
       )
@@ -41,7 +36,6 @@ export const RotatingImages = () => {
         src="/astronaut.png" 
         alt="astronaut"
         key="astronaut"
-        onClick={() => test()}
       >
       </img>
       )
@@ -54,7 +48,6 @@ export const RotatingImages = () => {
         src="/cool_with_bear.png" 
         alt="with bear"
         key="with_bear"
-        onClick={() => test()}
       >
       </img>
       )
@@ -67,7 +60,6 @@ export const RotatingImages = () => {
         src="/real.png" 
         alt="real"
         key="real"
-        onClick={() => test()}
       >
       </img>
       )

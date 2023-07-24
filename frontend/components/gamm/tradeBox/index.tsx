@@ -1,19 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { 
-  SlippagePopup,
-  GammButton,
-  PercentageButtons
-} from "../../gamm"
-import { 
-  useLabel,
-  useGammMath
-} from "../../../hooks/gamm"
-import { 
-  useGamm, 
-  useWallet 
-} from "../../../providers"
+import { useGammMath } from "../../../hooks/gamm"
+import { useGamm, useWallet } from "../../../providers"
+import { SlippagePopup, GammButton, PercentageButtons } from "../../gamm"
 
 export const TradeBox = () => {
 
@@ -198,6 +188,60 @@ export const TradeBox = () => {
     }
   }, [redeemingHoney])
 
+  const renderTokenImage = (token: string): string => {
+    if(activeToggle === "buy") {
+      if(token === "top") {
+        return "/honey_logo.png"
+      }
+      else {
+        return "/locks_logo.png"
+      }
+    }
+    else if(activeToggle === "sell") {
+      if(token === "top") {
+        return "/locks_logo.png"
+      }
+      else {
+        return "/honey_logo.png"
+      }
+    }
+    else {
+      if(token === "top") {
+        return "/locks_logo.png"
+      }
+      else {
+        return "/honey_logo.png"
+      }
+    }
+  }
+
+  const renderTokenLabel = (token: string): string => {
+    if(activeToggle === "buy") {
+      if(token === "top") {
+        return "$honey"
+      }
+      else {
+        return "$locks"
+      }
+    }
+    else if(activeToggle === "sell") {
+      if(token === "top") {
+        return "$locks"
+      }
+      else {
+        return "$honey"
+      }
+    }
+    else {
+      if(token === "top") {
+        return "$locks"
+      }
+      else {
+        return "$honey"
+      }
+    }
+  }
+
   return (
     <div className="h-[75%] relative mt-4 flex flex-col" onClick={() => test()}>
       <div className="h-[69%] px-6">
@@ -205,15 +249,16 @@ export const TradeBox = () => {
         <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
           <div className="h-[50%] flex flex-row items-center justify-between">
             <div 
-              className="rounded-[50px] m-6 p-2 flex flex-row bg-slate-100 border-2 border-black items-center"
+              className="rounded-[50px] m-3 2xl:m-6 p-2 flex flex-row bg-slate-100 border-2 border-black items-center"
             >
-              {useLabel(activeToggle, "topToken")}
+              <img className="w-[20px] h-[20px] 2xl:w-[36px] 2xl:h-[36px]" src={renderTokenImage("top")} alt="lost" ></img>
+              <span className="font-acme text-[18px] 2xl:text-[25px] ml-2 2xl:ml-4">{renderTokenLabel("top")}</span>
             </div>
             <PercentageButtons />
           </div>
-          <div className="h-[50%] pl-10 flex flex-row items-center justify-between">
+          <div className="h-[50%] pl-8 2xl:pl-10 flex flex-row items-center justify-between">
             <input 
-              className="border-none focus:outline-none bg-transparent font-acme rounded-xl text-[40px]" 
+              className="border-none focus:outline-none bg-transparent font-acme rounded-xl text-[30px] 2xl:text-[40px]" 
               type="number" 
               id="number-input" 
               placeholder="0.00" 
@@ -222,7 +267,7 @@ export const TradeBox = () => {
               autoFocus 
             />
             <h1 
-              className="mr-10 mt-4 text-[23px] font-acme text-[#878d97]"
+              className="mr-10 mt-4 text-[18px] 2xl:text-[23px] font-acme text-[#878d97]"
             >
               balance: {balancesLoading ? loadingElement() : handleTopBalance()}
             </h1>
@@ -237,14 +282,15 @@ export const TradeBox = () => {
         <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
           <div className="h-[50%] flex flex-row items-center">
             <div 
-              className="rounded-[50px] m-6 p-2 flex flex-row bg-slate-100 border-2 border-black items-center"
+              className="rounded-[50px] m-3 2xl:m-6 p-2 flex flex-row bg-slate-100 border-2 border-black items-center"
             >
-              {useLabel(activeToggle, "bottomToken")}
+              <img className="w-[20px] h-[20px] 2xl:w-[36px] 2xl:h-[36px]" src={renderTokenImage("bottom")} alt="lost" ></img>
+              <span className="font-acme text-[18px] 2xl:text-[25px] ml-2 2xl:ml-4">{renderTokenLabel("bottom")}</span>
             </div>
           </div>
-          <div className="h-[50%] pl-10 flex flex-row items-center justify-between">
+          <div className="h-[50%] pl-8 2xl:pl-10 flex flex-row items-center justify-between">
             <input 
-              className="border-none focus:outline-none bg-transparent font-acme rounded-xl text-[40px]" 
+              className="border-none focus:outline-none bg-transparent font-acme rounded-xl text-[30px] 2xl:text-[40px]" 
               type="number" 
               id="number-input" 
               placeholder="0.00" 
@@ -252,7 +298,7 @@ export const TradeBox = () => {
               onChange={(e) => handleBottomChange(e.target.value)} 
             />
             <h1 
-              className="mr-10 mt-4 text-[23px] font-acme text-[#878d97]"
+              className="mr-10 mt-4 text-[18px] 2xl:text-[23px] font-acme text-[#878d97]"
             >
               balance: {balancesLoading ? loadingElement() : handleBottomBalance()}
             </h1>

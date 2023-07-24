@@ -11,6 +11,10 @@ export default {
     './app/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
+    screens: {
+      'lg': '1000px',
+      '2xl': '1700px',
+    },
     extend: {
       fontFamily: {
         acme: ['var(--font-acme)']
