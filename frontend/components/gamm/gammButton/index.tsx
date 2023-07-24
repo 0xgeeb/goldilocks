@@ -164,7 +164,7 @@ export const GammButton = () => {
   return (
     <div className="h-[31%] flex justify-center items-center">
       <button 
-        className="h-[55%] w-[50%] bg-white rounded-xl py-3 px-6 border-2 border-black font-acme text-[30px]" 
+        className="h-[55%] w-[50%] bg-white rounded-xl py-1 2xl:py-3 px-4 2xl:px-6 border-2 border-black font-acme text-[25px] 2xl:text-[30px]" 
         id="amm-button" 
         onClick={() => handleButtonClick()} 
       >

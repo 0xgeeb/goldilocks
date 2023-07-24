@@ -9,7 +9,7 @@ export const RotatingImages = () => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setIndex((prevIndex) => (prevIndex >= 3 ? 0 : prevIndex + 1))
+      setIndex((prevIndex) => (prevIndex == 3 ? 0 : prevIndex + 1))
     }, 9000)
 
     return () => clearInterval(interval)

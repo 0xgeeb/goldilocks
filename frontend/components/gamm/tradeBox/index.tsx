@@ -243,7 +243,7 @@ export const TradeBox = () => {
   }
 
   return (
-    <div className="h-[75%] relative mt-4 flex flex-col" onClick={() => test()}>
+    <div className="h-[75%] relative mt-2 2xl:mt-4 flex flex-col" onClick={() => test()}>
       <div className="h-[69%] px-6">
         <SlippagePopup />
         <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">

@@ -67,20 +67,20 @@ export const StatsBox = () => {
 
   return (
     <div className="flex flex-row justify-between">
-      <div className="flex flex-row w-[55%] px-3 ml-3 justify-between rounded-xl border-2 border-black mt-2 bg-white">
-        <div className="flex flex-col items-start justify-between font-acme text-[24px]">
+      <div className="flex flex-row w-[55%] px-3 ml-1 2xl:ml-3 justify-between rounded-xl border-2 border-black mt-1 2xl:mt-2 bg-white">
+        <div className="flex flex-col items-start justify-between font-acme text-[18px] 2xl:text-[24px]">
           <h3>$LOCKS floor price:</h3>
           <h3>$LOCKS market price:</h3>
           <h3>current fsl:</h3>
           <h3>current psl:</h3>
         </div>
-        <div className="flex flex-col items-end justify-between font-acme text-[20px]">
+        <div className="flex flex-col items-end justify-between font-acme text-[16px] 2xl:text-[20px]">
           <p>${handleInfo(floorPrice(gammInfo.fsl, gammInfo.supply))}</p>
           <p>${handleInfo(marketPrice(gammInfo.fsl, gammInfo.psl, gammInfo.supply))}</p>
           <p>{handleInfo(gammInfo.fsl)}</p>
           <p>{handleInfo(gammInfo.psl)}</p>
         </div>
-        <div className="flex flex-col items-end justify-between font-acme text-[20px]">
+        <div className="flex flex-col items-end justify-between font-acme text-[16px] 2xl:text-[20px]">
           <p 
             className={handleColors(floorPrice(gammInfo.fsl, gammInfo.supply), newInfo.floor)}
           >
@@ -103,16 +103,16 @@ export const StatsBox = () => {
           </p>
         </div>
       </div>
-      <div className="flex flex-row w-[40%] px-3 justify-between mr-3 rounded-xl border-2 border-black mt-2 bg-white">
-        <div className="flex flex-col items-start justify-between w-[40%] font-acme text-[20px]">
+      <div className="flex flex-row w-[40%] px-3 justify-between mr-1 2xl:mr-3 rounded-xl border-2 border-black mt-1 2xl:mt-2 bg-white">
+        <div className="flex flex-col items-start justify-between w-[40%] font-acme text-[16px] 2xl:text-[20px]">
           <h3>$LOCKS supply:</h3>
           <h3>target ratio:</h3>
           <h3>last floor raise:</h3>
         </div>
-        <div className="flex flex-col items-end w-[30%] font-acme text-[20px]">
+        <div className="flex flex-col items-end w-[30%] font-acme text-[16px] 2xl:text-[20px]">
           <p>{handleInfo(gammInfo.supply)}</p>
         </div>
-        <div className="flex flex-col items-end justify-between w-[30%] font-acme text-[20px]">
+        <div className="flex flex-col items-end justify-between w-[30%] font-acme text-[16px] 2xl:text-[20px]">
           <p 
             className={handleColors(gammInfo.supply, newInfo.supply)}
           >

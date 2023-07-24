@@ -8,7 +8,7 @@ export const SideToggle = ({ showChart, toggleChart}: SideToggleProps) => {
       onClick={toggleChart}
     >
       <div className="h-[100%] flex items-center justify-center rounded-xl">
-        <p className="font-acme text-[1.2rem] user-select-none">
+        <p className="font-acme text-[15px] 2xl:text-[19px] user-select-none">
           {!showChart ? "show chart" : "hide chart"}
         </p>
       </div>
