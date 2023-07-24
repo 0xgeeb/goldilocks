@@ -86,35 +86,35 @@ export const StatsBox = () => {
   
   return (
     <div className="flex flex-col w-[40%] h-[100%] mt-4 ml-4" onClick={() => test()}>
-      <div className="w-[100%] h-[70%] flex p-6 flex-col bg-white rounded-xl border-2 border-black">
+      <div className="w-[100%] h-[70%] flex p-3 2xl:p-6 flex-col bg-white rounded-xl border-2 border-black">
         <div className="flex flex-row justify-between items-center mt-3 font-acme">
-          <h1 className="text-[24px]">$LOCKS balance:</h1>
-          <p className="text-[20px]">{handleInfo(balance.locks)}</p>
+          <h1 className="text-[20px] 2xl:text-[24px]">$LOCKS floor price:</h1>
+          <p className="text-[18px] 2xl:text-[20px]">${handleInfo(stakingInfo.fsl / stakingInfo.supply)}</p>
         </div>
         <div className="flex flex-row justify-between items-center mt-3 font-acme">
-          <h1 className="text-[24px]">$PRG balance:</h1>
-          <p className="text-[20px]">{handleInfo(balance.prg)}</p>
+          <h1 className="text-[20px] 2xl:text-[24px]">$LOCKS balance:</h1>
+          <p className="text-[18px] 2xl:text-[20px]">{handleInfo(balance.locks)}</p>
         </div>
         <div className="flex flex-row justify-between items-center mt-3 font-acme">
-          <h1 className="text-[24px]">$HONEY balance:</h1>
-          <p className="text-[20px]">{handleInfo(balance.honey)}</p>
+          <h1 className="text-[20px] 2xl:text-[24px]">$HONEY balance:</h1>
+          <p className="text-[18px] 2xl:text-[20px]">{handleInfo(balance.honey)}</p>
         </div>
         <div className="flex flex-row justify-between items-center mt-3 font-acme">
-          <h1 className="text-[24px]">staked $LOCKS:</h1>
-          <p className="text-[20px]">{handleInfo(stakingInfo.staked)}</p>
+          <h1 className="text-[20px] 2xl:text-[24px]">$PRG balance:</h1>
+          <p className="text-[18px] 2xl:text-[20px]">{handleInfo(balance.prg)}</p>
         </div>
         <div className="flex flex-row justify-between items-center mt-3 font-acme">
-          <h1 className="text-[24px]">$LOCKS floor price:</h1>
-          <p className="text-[20px]">${handleInfo(stakingInfo.fsl / stakingInfo.supply)}</p>
+          <h1 className="text-[20px] 2xl:text-[24px]">staked $LOCKS:</h1>
+          <p className="text-[18px] 2xl:text-[20px]">{handleInfo(stakingInfo.staked)}</p>
         </div>
         <div className="flex flex-row justify-between items-center mt-3 font-acme">
-          <h1 className="text-[24px]">$PRG available to claim:</h1>
-          <p className="text-[20px]">{handleInfo(stakingInfo.yieldToClaim)}</p>
+          <h1 className="text-[20px] 2xl:text-[24px]">$PRG available to claim:</h1>
+          <p className="text-[18px] 2xl:text-[20px]">{handleInfo(stakingInfo.yieldToClaim)}</p>
         </div>
       </div>
-      <div className="h-[10%] w-[70%] mx-auto mt-4">
+      <div className="h-[10%] w-[65%] 2xl:w-[70%] mx-auto mt-4">
         <button 
-          className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[25px]" 
+          className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[20px] 2xl:text-[25px]" 
           id="claim-button" 
           onClick={() => handleClaimClick()}
         >

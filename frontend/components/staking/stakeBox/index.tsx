@@ -32,13 +32,13 @@ export const StakeBox = () => {
   return (
     <div className="w-[60%] flex flex-col">
       <div className="rounded-3xl border-2 border-black w-[100%] h-[60%] bg-white flex flex-col relative">
-        <div className="flex flex-row items-center justify-between ml-10 mt-16">
-          <h1 className="font-acme text-[40px]">{renderLabel()}</h1>
+        <div className="flex flex-row items-center justify-between ml-8 2xl:ml-10 mt-10 2xl:mt-16">
+          <h1 className="font-acme text-[34px] 2xl:text-[40px]">{renderLabel()}</h1>
           <PercentageButtons />
         </div>
         <div className="absolute top-[45%]">
           <input 
-          className="border-none focus:outline-none font-acme rounded-xl text-[40px] pl-10" 
+          className="border-none focus:outline-none font-acme rounded-xl text-[34px] 2xl:text-[40px] pl-8 2xl:pl-10" 
           placeholder="0.00" 
           type="number" 
           value={handleInput()} 
@@ -49,7 +49,7 @@ export const StakeBox = () => {
         </div>
         <div className="absolute right-0 bottom-[35%]">
           <h1 
-            className="text-[23px] mr-6 font-acme text-[#878d97]"
+            className="text-[18px] 2xl:text-[23px] mr-4 2xl:mr-6 font-acme text-[#878d97]"
           >
             balance: {balanceLoading ? loadingElement() : handleBalance()}
           </h1>
