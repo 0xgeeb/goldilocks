@@ -36,7 +36,6 @@ contract PorridgeTest is Test {
     deal(address(gamm), address(this), 100e18);
     gamm.approve(address(porridge), 100e18);
     porridge.stake(100e18);
-
     _;
   }
 
@@ -69,6 +68,12 @@ contract PorridgeTest is Test {
     assertEq(userBalanceofLocks, 0);
     assertEq(contractBalance, 100e18);
     assertEq(getStakedUserBalance, 100e18);
+  }
+
+  function testDoubleStake() public dealandStake100Locks {
+    deal(address(gamm), address(this), 100e18);
+    gamm.approve(address(porridge), 100e18);
+    porridge.stake(100e18);
   }
 
   function testUnstake() public dealandStake100Locks {

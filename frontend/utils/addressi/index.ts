@@ -6,19 +6,19 @@ import gammABI from "../abi/GAMM.json"
 
 export const contracts: Contracts = {
   gamm: {
-    address: '0x5FA09df51e5A7a843899C84AAC6504e50e49964c',
+    address: '0x114D8AfF1E94Fe896E260052A3BE641556aDc3e8',
     abi: gammABI.abi
   },
   porridge: {
-    address: '0xba8fcCBBFAE7722583468986b76D622E9D8c305a',
+    address: '0x9e6bDAb278E5cA66fFf5639A29A22962Fff40D32',
     abi: porridgeABI.abi
   } ,
   honey: {
-    address: '0x3F70b36AF93945acc87D4fD4b1c5dE3A382Bb349',
+    address: '0x83C098CFa401D0360Bd6291f3120073c9937F03D',
     abi: honeyABI.abi
   } ,
   borrow: {
-    address: '0x7514d69F17674F552bf7405598210092d15d7A28',
+    address: '0xD9EA8484063971ec56c7E6c606E4D065F36Ec6ea',
     abi: borrowABI.abi
   } 
 }

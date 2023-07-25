@@ -18,6 +18,7 @@ pragma solidity ^0.8.19;
 
 
 import { ERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import { ReentrancyGuard } from "../lib/openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
 import { SafeTransferLib } from "../lib/solady/src/utils/SafeTransferLib.sol";
 import { FixedPointMathLib } from "../lib/solady/src/utils/FixedPointMathLib.sol";
 import { IBorrow } from "./interfaces/IBorrow.sol";
@@ -28,7 +29,7 @@ import { IGAMM } from "./interfaces/IGAMM.sol";
 /// @notice Staking of the $LOCKS token to earn $PRG
 /// @author geeb
 /// @author ampnoob
-contract Porridge is ERC20("Porridge Token", "PRG") {
+contract Porridge is ERC20("Porridge Token", "PRG"), ReentrancyGuard {
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -124,10 +125,9 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
 
   /// @notice stakes $LOCKS to begin earning $PRG
   /// @param amount Amount of $LOCKS to stake
-  function stake(uint256 amount) external {
+  function stake(uint256 amount) external nonReentrant {
     if(staked[msg.sender] > 0) {
-    uint256 stakedAmount = staked[msg.sender];
-      _claim(msg.sender, stakedAmount);
+      _stakeClaim();
     }
     stakeStartTime[msg.sender] = block.timestamp;
     staked[msg.sender] += amount;
@@ -137,19 +137,19 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
 
   /// @notice unstakes $LOCKS and claims $PRG rewards
   /// @param amount Amount of $LOCKS to unstake
-  function unstake(uint256 amount) external {
+  function unstake(uint256 amount) external nonReentrant {
     if(amount > staked[msg.sender]) revert InvalidUnstake();
     if(amount > staked[msg.sender] - IBorrow(borrowAddress).getLocked(msg.sender)) revert LocksBorrowedAgainst();
     uint256 stakedAmount = staked[msg.sender];
     staked[msg.sender] -= amount;
-    _claim(msg.sender, stakedAmount);
+    _claim(stakedAmount);
     SafeTransferLib.safeTransfer(gammAddress, msg.sender, amount);
     emit Unstaked(msg.sender, amount);
   }
 
   /// @notice Burns $PRG to buy $LOCKS at floor price
   /// @param amount Amount of $PRG to burn
-  function realize(uint256 amount) external {
+  function realize(uint256 amount) external nonReentrant {
     _burn(msg.sender, amount);
     SafeTransferLib.safeTransferFrom(honeyAddress, msg.sender, gammAddress, FixedPointMathLib.mulWad(amount, IGAMM(gammAddress).floorPrice()));
     IGAMM(gammAddress).porridgeMint(msg.sender, amount);
@@ -157,9 +157,9 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
   }
 
   /// @notice Claim $PRG rewards
-  function claim() external {
+  function claim() external nonReentrant {
     uint256 stakedAmount = staked[msg.sender];
-    _claim(msg.sender, stakedAmount);
+    _claim(stakedAmount);
   }
 
 
@@ -169,14 +169,21 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
 
 
   /// @notice Calculates and distributes yield
-  /// @param user Address of staker to calculate and distribute yield
   /// @param stakedAmount Amount of $LOCKS the user has staked in the contract
-  function _claim(address user, uint256 stakedAmount) internal {
-    uint256 claimable = _calculateClaimable(user, stakedAmount);
+  function _claim(uint256 stakedAmount) internal {
+    uint256 claimable = _calculateClaimable(msg.sender, stakedAmount);
     if(claimable == 0) revert NoClaimablePRG();
-    stakeStartTime[user] = block.timestamp;
-    _mint(user, claimable);
-    emit Claimed(user, claimable);
+    stakeStartTime[msg.sender] = block.timestamp;
+    _mint(msg.sender, claimable);
+    emit Claimed(msg.sender, claimable);
+  }
+
+  /// @notice Calculates and distributes yield from stake function
+  function _stakeClaim() internal {
+    uint256 stakedAmount = staked[msg.sender];
+    uint256 claimable = _calculateClaimable(msg.sender, stakedAmount);
+    _mint(msg.sender, claimable);
+    emit Claimed(msg.sender, claimable);
   }
 
   /// @notice Calculates claimable yield
