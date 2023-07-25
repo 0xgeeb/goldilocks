@@ -103,7 +103,7 @@ export const StatsBox = () => {
           </p>
         </div>
       </div>
-      <div className="flex flex-row w-[40%] px-3 justify-between mr-1 2xl:mr-3 rounded-xl border-2 border-black mt-1 2xl:mt-2 bg-white">
+      <div className="flex flex-row w-[43%] 2xl:w-[40%] px-3 justify-between 2xl:mr-3 rounded-xl border-2 border-black mt-1 2xl:mt-2 bg-white">
         <div className="flex flex-col items-start justify-between w-[40%] font-acme text-[16px] 2xl:text-[20px]">
           <h3>$LOCKS supply:</h3>
           <h3>target ratio:</h3>
