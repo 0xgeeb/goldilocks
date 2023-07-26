@@ -157,7 +157,7 @@ contract Borrow {
   /// @param amount Amount of $HONEY user is repaying with
   /// @return repaidLocks Amount of $LOCKS that is returned to user
   function _calcRepayingLocks(uint256 amount) internal view returns (uint256 repaidLocks) {
-    repaidLocks = (amount / borrowedHoney[msg.sender]) * lockedLocks[msg.sender];
+    repaidLocks = FixedPointMathLib.mulWad(FixedPointMathLib.divWad(amount, borrowedHoney[msg.sender]), lockedLocks[msg.sender]);
   }
 
   /// @notice Checks if the user has enough borrowing power

@@ -91,6 +91,16 @@ contract PorridgeTest is Test {
     assertEq(prgBalance, OneDayofYield);
   }
 
+  function testStakeUnstake() public dealandStake100Locks {
+    porridge.unstake(100e18);
+
+    uint256 userBalanceofLocks = gamm.balanceOf(address(this));
+    uint256 getStakedUserBalance = porridge.getStaked(address(this));
+
+    assertEq(userBalanceofLocks, 100e18);
+    assertEq(getStakedUserBalance, 0);
+  }
+
   function testRealize() public dealandStake100Locks dealUser280Honey {
     vm.warp(block.timestamp + (2 * porridge.DAYS_SECONDS()));
     porridge.unstake(100e18);
@@ -116,11 +126,6 @@ contract PorridgeTest is Test {
 
     assertEq(userBalanceofPrg, OneDayofYield);
     assertEq(userStakedLocks, 100e18);
-  }
-
-  function testNoClaimablePRG() public dealandStake100Locks {
-    vm.expectRevert(NoClaimablePRGSelector);
-    porridge.claim();
   }
 
   function testInvalidUnstake() public dealandStake100Locks {

@@ -69,7 +69,6 @@ contract Porridge is ERC20("Porridge Token", "PRG"), ReentrancyGuard {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  error NoClaimablePRG();
   error InvalidUnstake();
   error LocksBorrowedAgainst();
 
@@ -83,14 +82,6 @@ contract Porridge is ERC20("Porridge Token", "PRG"), ReentrancyGuard {
   event Unstaked(address indexed user, uint256 amount);
   event Realized(address indexed user, uint256 amount);
   event Claimed(address indexed user, uint256 amount);
-
-
-  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-  /*                         MODIFIERS                          */
-  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
-
-
-
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -172,18 +163,21 @@ contract Porridge is ERC20("Porridge Token", "PRG"), ReentrancyGuard {
   /// @param stakedAmount Amount of $LOCKS the user has staked in the contract
   function _claim(uint256 stakedAmount) internal {
     uint256 claimable = _calculateClaimable(msg.sender, stakedAmount);
-    if(claimable == 0) revert NoClaimablePRG();
-    stakeStartTime[msg.sender] = block.timestamp;
-    _mint(msg.sender, claimable);
-    emit Claimed(msg.sender, claimable);
+    if(claimable > 0) {
+      stakeStartTime[msg.sender] = block.timestamp;
+      _mint(msg.sender, claimable);
+      emit Claimed(msg.sender, claimable);
+    }
   }
 
   /// @notice Calculates and distributes yield from stake function
   function _stakeClaim() internal {
     uint256 stakedAmount = staked[msg.sender];
     uint256 claimable = _calculateClaimable(msg.sender, stakedAmount);
-    _mint(msg.sender, claimable);
-    emit Claimed(msg.sender, claimable);
+    if(claimable > 0) {
+      _mint(msg.sender, claimable);
+      emit Claimed(msg.sender, claimable);
+    }
   }
 
   /// @notice Calculates claimable yield
@@ -202,12 +196,4 @@ contract Porridge is ERC20("Porridge Token", "PRG"), ReentrancyGuard {
   function _timeStaked(address user) internal view returns (uint256 timeStaked) {
     timeStaked = block.timestamp - stakeStartTime[user];
   }
-
-
-  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-  /*                       ADMIN FUNCTIONS                      */
-  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
-
-
-
 }

@@ -8,6 +8,8 @@ import { SlippagePopup, GammButton, PercentageButtons } from "../../gamm"
 export const TradeBox = () => {
 
   const [balancesLoading, setBalancesLoading] = useState<boolean>(true)
+  const [topAmountLoading, setTopAmountLoading] = useState<boolean>(false)
+  const [bottomAmountLoading, setBottomAmountLoading] = useState<boolean>(false)
   
   const {
     gammInfo,
@@ -66,7 +68,7 @@ export const TradeBox = () => {
   }, [isConnected])
 
   const test = () => {
-
+    
   }
 
   const resetInfo = () => {
@@ -85,16 +87,28 @@ export const TradeBox = () => {
     setGettingHoney(0)
     setRedeemingLocks(0)
     setRedeemingHoney(0)
+    setTopAmountLoading(false)
+    setBottomAmountLoading(false)
   }
 
   const loadingElement = () => {
     return <span className="loader ml-6"></span>
   }
 
+  const loadedLocks = async (dhb: number) => {
+    setBottomAmountLoading(true)
+    setTimeout(() => {
+      const locksAmount: number = findLocksBuyAmount(dhb)
+      simulateBuy(locksAmount)
+      setBottomAmountLoading(false)
+    }, 500)
+  }
+
   useEffect(() => {
     if(activeToggle === 'buy') {
-      const locksAmount: number = findLocksBuyAmount(debouncedHoneyBuy)
-      simulateBuy(locksAmount)
+      if(debouncedHoneyBuy > 0) {
+        loadedLocks(debouncedHoneyBuy)
+      }
     }
     else if(activeToggle === 'sell') {
       setGettingHoney(simulateSellDry(sellingLocks, gammInfo.fsl, gammInfo.psl, gammInfo.supply) * (1 - (slippage.amount / 100)))
@@ -109,8 +123,7 @@ export const TradeBox = () => {
       }
       else {
         setTopInputFlag(true)
-        const locksAmount: number = findLocksBuyAmount(debouncedHoneyBuy)
-        simulateBuy(locksAmount)
+        loadedLocks(debouncedHoneyBuy)
       }
     }
   }, [debouncedHoneyBuy])
@@ -146,16 +159,20 @@ export const TradeBox = () => {
 
   useEffect(() => {
     if(!topInputFlag) {
-      const locksAmountWithSlippage: number = findLocksSellAmount(debouncedGettingHoney) * (1 + (slippage.amount / 100))
-      if(!debouncedGettingHoney || (isConnected && locksAmountWithSlippage > balance.locks)) {
+      if(!debouncedGettingHoney) {
         resetInfo()
       }
       else {
         setBottomInputFlag(true)
-        const locksAmount: number = locksAmountWithSlippage
-        !slippage.toggle && setDisplayString(locksAmount.toFixed(4))
-        !slippage.toggle && setSellingLocks(locksAmount)
-        simulateSell(locksAmount)
+        setTopAmountLoading(true)
+        setTimeout(() => {
+          const locksAmountWithSlippage: number = findLocksSellAmount(debouncedGettingHoney) * (1 + (slippage.amount / 100))
+          const locksAmount: number = locksAmountWithSlippage
+          !slippage.toggle && setDisplayString(locksAmount.toFixed(4))
+          !slippage.toggle && setSellingLocks(locksAmount)
+          simulateSell(locksAmount)
+          setTopAmountLoading(false)
+        }, 500)
       }
     }
   }, [debouncedGettingHoney])
@@ -257,7 +274,7 @@ export const TradeBox = () => {
             <PercentageButtons />
           </div>
           <div className="h-[50%] pl-8 2xl:pl-10 flex flex-row items-center justify-between">
-            <input 
+            {topAmountLoading ? loadingElement() : <input 
               className="border-none focus:outline-none bg-transparent font-acme rounded-xl text-[30px] 2xl:text-[40px]" 
               type="number" 
               id="number-input" 
@@ -265,7 +282,7 @@ export const TradeBox = () => {
               value={handleTopInput()} 
               onChange={(e) => handleTopChange(e.target.value)} 
               autoFocus 
-            />
+            />}
             <h1 
               className="mr-10 mt-4 text-[18px] 2xl:text-[23px] font-acme text-[#878d97]"
             >
@@ -289,14 +306,14 @@ export const TradeBox = () => {
             </div>
           </div>
           <div className="h-[50%] pl-8 2xl:pl-10 flex flex-row items-center justify-between">
-            <input 
+            {bottomAmountLoading ? loadingElement() : <input
               className="border-none focus:outline-none bg-transparent font-acme rounded-xl text-[30px] 2xl:text-[40px]" 
               type="number" 
               id="number-input" 
               placeholder="0.00" 
               value={handleBottomInput()} 
               onChange={(e) => handleBottomChange(e.target.value)} 
-            />
+            />}
             <h1 
               className="mr-10 mt-4 text-[18px] 2xl:text-[23px] font-acme text-[#878d97]"
             >

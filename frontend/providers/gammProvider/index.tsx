@@ -243,7 +243,7 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
     }
   }
 
-  const findLocksBuyAmount = (debouncedValue: number): number => {
+  const findLocksBuyAmount = (debouncedValue: number) => {
     const honey: number = debouncedValue
     let locks: number = honey / marketPrice(gammInfoState.fsl, gammInfoState.psl, gammInfoState.supply)
     let temp: number = 0
