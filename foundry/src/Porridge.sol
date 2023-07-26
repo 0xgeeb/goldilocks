@@ -113,7 +113,7 @@ contract Porridge is ERC20("Porridge Token", "PRG"), ReentrancyGuard {
   /// @notice View the claimable yield of an address
   /// @param user Address to view claimable yield
   function getClaimable(address user) external view returns (uint256) {
-    uint256 stakedAmount = staked[msg.sender];
+    uint256 stakedAmount = staked[user];
     return _calculateClaimable(user, stakedAmount);
   }
 

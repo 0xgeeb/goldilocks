@@ -92,7 +92,7 @@ export const BorrowButton = () => {
     const button = document.getElementById('amm-button')
 
     if(!isConnected) {
-      button && (button.innerHTML = "connect wallet")
+      button && (button.innerHTML = "where wallet")
     }
     else if(network !== "Avalanche Fuji C-Chain") {
       button && (button.innerHTML = "switch to fuji plz")

@@ -37,7 +37,7 @@ export const NavBar = () => {
   }
 
   const loadingElement = () => {
-    return <span className="loader"></span>
+    return <span className="loader-small"></span>
   }
 
   return (
@@ -93,23 +93,32 @@ export const NavBar = () => {
             {({
               account,
               mounted,
-              openConnectModal
+              openConnectModal,
+              openAccountModal
             }) => {
               return (
-                <button 
-                  className="w-20 2xl:w-24 py-2 text-[16px] 2xl:text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme" 
-                  id="home-button"
-                  onClick={openConnectModal}
-                >
-                    { 
-                    !mounted ? 
-                      loadingElement()
-                    : !account ? 
-                      'connect' 
-                    : 
-                      `${account.address.slice(0, 4)}...${account?.address.slice(-3)}` 
-                    }
-                </button>
+                !mounted ?
+                  <button 
+                    className={`w-20 2xl:w-24 py-2 text-[16px] 2xl:text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme`}
+                    id="home-button"
+                  >
+                    {loadingElement()}
+                  </button> :
+                !account ?
+                  <button 
+                    className={`w-20 2xl:w-24 py-2 text-[16px] 2xl:text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme`}
+                    id="home-button"
+                    onClick={openConnectModal}
+                  >
+                    'connect'
+                  </button> :
+                  <button 
+                    className={`w-20 2xl:w-24 py-2 text-[16px] 2xl:text-[18px] bg-green-400 hover:scale-[120%] rounded-xl mr-4 font-acme`}
+                    id="home-button"
+                    onClick={openAccountModal}
+                  >
+                    {`${account.address.slice(0, 4)}...${account?.address.slice(-3)}`}
+                  </button>
               )
             }}
           </ConnectButton.Custom>

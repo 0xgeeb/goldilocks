@@ -63,7 +63,7 @@ export const useBorrowingTx = () => {
       const { hash } = await writeContract({
         address: contracts.borrow.address as `0x${string}`,
         abi: contracts.borrow.abi,
-        functionName: 'stake',
+        functionName: 'repay',
         args: [parseEther(`${repayAmt}`)]
       })
       const data = await waitForTransaction({ hash })

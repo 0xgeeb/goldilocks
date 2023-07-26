@@ -143,7 +143,7 @@ export const GammButton = () => {
     console.log(typeof(button))
 
     if(!isConnected) {
-      button && (button.innerHTML = "connect wallet")
+      button && (button.innerHTML = "where wallet")
     }
     else if(network !== "Avalanche Fuji C-Chain") {
       button && (button.innerHTML = "switch to fuji plz")

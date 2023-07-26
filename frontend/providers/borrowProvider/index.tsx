@@ -115,7 +115,7 @@ export const BorrowProvider = (props: PropsWithChildren<{}>) => {
     if(action == 4) {
       if(activeToggleState === 'borrow') {
         setDisplayStringState(borrowTemp.toFixed(2))
-        setBorrowState(borrowTemp)
+        setBorrowState(borrowTemp - 0.0000009)
       }
       if(activeToggleState === 'repay') {
         setDisplayStringState(borrowInfoState.borrowed.toFixed(2))

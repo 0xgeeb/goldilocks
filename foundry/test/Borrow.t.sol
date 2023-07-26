@@ -79,6 +79,19 @@ contract BorrowTest is Test {
     assertEq(userStakedLocksBalance, 100e18);
   }
 
+  function testLockedAfterRepay() public dealGammMaxHoney {
+    deal(address(gamm), address(this), 696969e18);
+    gamm.approve(address(porridge), 696969e18);
+    porridge.stake(696969e18);
+    borrow.borrow(696969e18);
+    honey.approve(address(borrow), type(uint256).max);
+    borrow.repay(696969e18);
+
+    uint256 locked = borrow.getLocked(address(this));
+
+    assertEq(locked, 0);
+  }
+
   function testNotAdmin() public dealandStake100Locks dealGammMaxHoney {
     vm.expectRevert(NotAdminSelector);
     vm.prank(address(0x01));
