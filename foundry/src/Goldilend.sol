@@ -138,6 +138,8 @@ contract Goldilend {
 
   error ShortExpiration();
   error ArrayMismatch();
+  error InvalidBoost();
+  error BoostNotExpired();
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -159,38 +161,44 @@ contract Goldilend {
   /*                      EXTERNAL FUNCTIONS                    */
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
+
   /// @notice Locks partner NFTs to receive boost on staking yield and discounted borrowing rates
+  /// @param partnerNFTs Array of NFT addresses to transfer to this contract
+  /// @param partnerNFTIDs Array of token IDs for NFTs to be transferred
+  /// @param expiry Expiration date of the boost
   function boost(address[] memory partnerNFTs, uint256[] memory partnerNFTIDs, uint256 expiry) external {
     if(expiry < block.timestamp + MONTH_DAYS) revert ShortExpiration();
     if(partnerNFTs.length != partnerNFTIDs.length) revert ArrayMismatch();
-
-    //todo: add boostmagnitude loop
-
+    uint256 magnitude;
+    for(uint8 i; i < partnerNFTs.length; i++) {
+      IERC721(partnerNFTs[i]).safeTransferFrom(msg.sender, address(this), partnerNFTIDs[i]);
+      magnitude += partnerNFTBoosts[partnerNFTs[i]];
+    }
     Boost memory userBoost = Boost({
       partnerNFTs: partnerNFTs,
       partnerNFTIDs: partnerNFTIDs,
       expiry: expiry,
-      boostMagnitude: 0
+      boostMagnitude: magnitude
     });
-
     boosts[msg.sender] = userBoost;
   }
 
   /// @notice Extends the duration of an existing boost
-  function extendBoost(uint256 _expirationDate) external {
-    // require(boosted[msg.sender] == true, "no boost to extend");
-    boostLookup[msg.sender].expiry = _expirationDate;
+  /// @param newExpiry New expiration of the boost
+  function extendBoost(uint256 newExpiry) external {
+    if(boosts[msg.sender].expiry == 0) revert InvalidBoost();
+    boosts[msg.sender].expiry = newExpiry;
   }
 
   /// @notice Claims tokens from expired boosts
-  function withdrawBoost() external view {
-    // require(boosted[msg.sender] == true, "no boost to withdraw");
-    // _boost = boostLookup[msg.sender];
-    // require(_boost.expiry < block.timestamp, "boost not expired");
-    // for (uint256 i=0; i < _boost.boostTokens.length; i++){
-    //   _boost.boostTokens[i].transfer(address(this), msg.sender);
-    // }
-    // bosted[msg.sender] = false;
+  function withdrawBoost() external {
+    Boost memory userBoost = boosts[msg.sender];
+    if(userBoost.expiry == 0) revert InvalidBoost();
+    if(userBoost.expiry > block.timestamp) revert BoostNotExpired();
+    for(uint8 i; i < userBoost.partnerNFTs.length; i++) {
+      IERC721(userBoost.partnerNFTs[i]).safeTransferFrom(address(this), msg.sender, userBoost.partnerNFTIDs[i]);
+    }
+    boosts[msg.sender].boostMagnitude = 0;
   }
   
   /// @notice Locks $BERA and mints $gBERA
