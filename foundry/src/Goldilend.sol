@@ -68,8 +68,7 @@ contract Goldilend {
 
   struct StakedPosition {
     uint256 lastClaim;
-    uint256 stakedBalance;
-    address stakeAddress;
+    uint256 stakedBalance;    
   }
 
 
@@ -87,7 +86,7 @@ contract Goldilend {
   address treasuryAddress;
 
   mapping (uint256 => Loan) public loanLookup;
-  mapping (address => StakedPosition) public stakeLookup;
+  mapping (address => StakedPosition) public stakes;
   mapping (address => Boost) public boosts;
 
   mapping (bytes32 => uint) public fairValue;
@@ -140,6 +139,7 @@ contract Goldilend {
   error ArrayMismatch();
   error InvalidBoost();
   error BoostNotExpired();
+  error NotTreasury();
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -154,7 +154,10 @@ contract Goldilend {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  
+  modifier onlyTreasury() {
+    if(msg.sender != treasuryAddress) revert NotTreasury();
+    _;
+  }
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -201,47 +204,45 @@ contract Goldilend {
     boosts[msg.sender].boostMagnitude = 0;
   }
   
+  //todo: add code to stake bera in consensus vault, add existing consensus vault rewards to pool and update gbera ratio
   /// @notice Locks $BERA and mints $gBERA
   /// @param lockAmount Amount of $BERA to lock
   function lock(uint256 lockAmount) external {
-    require(lockAmount > 0, "can't lock zero tokens");
-    require (IERC20(bera).balanceOf(msg.sender) >= lockAmount, "insufficient balance");
     IERC20(bera).transferFrom(msg.sender, address(this), lockAmount);
-    IgBERA(gbera).mint(msg.sender, gberaRatio*lockAmount/10**18);
+    IgBERA(gbera).mint(msg.sender, lockAmount * gberaRatio);
     poolSize += lockAmount;
   }
 
   /// @notice Stakes $gBERA
   /// @param stakeAmount Amount of $gBERA to stake
   function stake(uint256 stakeAmount) external {
-    require(stakeAmount > 0, "can't stake zero tokens");
     // require (IgBERA(gbera).balanceOf(msg.sender) >= stakeAmount, "insufficient balance");
-    if(!staked[msg.sender]) {
-      StakedPosition memory _stake = StakedPosition({
-        lastClaim: block.timestamp,
-        stakedBalance: stakeAmount,
-        stakeAddress: msg.sender
-      });
-      staked[msg.sender] = true;
-      stakeLookup[msg.sender] = _stake;
-    }
-    else{
-      stakeLookup[msg.sender].stakedBalance += stakeAmount;
-      claim();
-    }
+    // if(!staked[msg.sender]) {
+    //   StakedPosition memory _stake = StakedPosition({
+    //     lastClaim: block.timestamp,
+    //     stakedBalance: stakeAmount,
+    //     stakeAddress: msg.sender
+    //   });
+    //   staked[msg.sender] = true;
+    //   stakeLookup[msg.sender] = _stake;
+    // }
+    // else{
+    //   stakeLookup[msg.sender].stakedBalance += stakeAmount;
+    //   claim();
+    // }
     // totalStaked += stakeAmount;
   }
 
   function unstake(uint256 unstakeAmount) external {
-    require(staked[msg.sender] == true, "you're not staked!"); 
-    uint256 _balance = stakeLookup[msg.sender].stakedBalance;
-    require(unstakeAmount > 0, "can't unstake zero tokens");
-    require (_balance >= unstakeAmount, "insufficient staked balance");
-    stakeLookup[msg.sender].stakedBalance -= unstakeAmount;
-    claim();
-    if(_balance - unstakeAmount == 0){
-      staked[msg.sender] = false;
-    }
+    // require(staked[msg.sender] == true, "you're not staked!"); 
+    // uint256 _balance = stakeLookup[msg.sender].stakedBalance;
+    // require(unstakeAmount > 0, "can't unstake zero tokens");
+    // require (_balance >= unstakeAmount, "insufficient staked balance");
+    // stakeLookup[msg.sender].stakedBalance -= unstakeAmount;
+    // claim();
+    // if(_balance - unstakeAmount == 0){
+    //   staked[msg.sender] = false;
+    // }
   }
 
   function claim() public view {
@@ -349,10 +350,9 @@ contract Goldilend {
   }
 
   //function for the DAO to adjust the valuation of the NFT's and the interest rate
-  function setValue(uint256 _value, uint256 _rate) public {
-    require(msg.sender == treasuryAddress, "only treasury can set valuation");
-    totalValuation = _value;
-    interestRate = _rate;
+  function setValue(uint256 value, uint256 rate) external onlyTreasury {
+    totalValuation = value;
+    interestRate = rate;
   } 
 
 
