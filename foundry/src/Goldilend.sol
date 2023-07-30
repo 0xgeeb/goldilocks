@@ -66,7 +66,7 @@ contract Goldilend {
     bool claimed;
   }
 
-  struct StakedPosition {
+  struct Stake {
     uint256 lastClaim;
     uint256 stakedBalance;    
   }
@@ -85,15 +85,14 @@ contract Goldilend {
   address gbera;
   address treasuryAddress;
 
-  mapping (uint256 => Loan) public loanLookup;
-  mapping (address => StakedPosition) public stakes;
   mapping (address => Boost) public boosts;
+  mapping (address => Stake) public stakes;
+  mapping (uint256 => Loan) public loanLookup;
 
   mapping (bytes32 => uint) public fairValue;
   mapping (bytes32 => uint) public boostSizes;
 
   mapping (uint256 => bool) public liquidated;
-  mapping (address => bool) public staked;
   mapping (address => uint8) public partnerNFTBoosts;
 
   Loan[] public loans;
@@ -140,6 +139,8 @@ contract Goldilend {
   error InvalidBoost();
   error BoostNotExpired();
   error NotTreasury();
+  error InvalidStake();
+  error EmissionsEnded();
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -169,7 +170,7 @@ contract Goldilend {
   /// @param partnerNFTs Array of NFT addresses to transfer to this contract
   /// @param partnerNFTIDs Array of token IDs for NFTs to be transferred
   /// @param expiry Expiration date of the boost
-  function boost(address[] memory partnerNFTs, uint256[] memory partnerNFTIDs, uint256 expiry) external {
+  function boost(address[] calldata partnerNFTs, uint256[] calldata partnerNFTIDs, uint256 expiry) external {
     if(expiry < block.timestamp + MONTH_DAYS) revert ShortExpiration();
     if(partnerNFTs.length != partnerNFTIDs.length) revert ArrayMismatch();
     uint256 magnitude;
@@ -208,60 +209,60 @@ contract Goldilend {
   /// @notice Locks $BERA and mints $gBERA
   /// @param lockAmount Amount of $BERA to lock
   function lock(uint256 lockAmount) external {
+    poolSize += lockAmount;
     IERC20(bera).transferFrom(msg.sender, address(this), lockAmount);
     IgBERA(gbera).mint(msg.sender, lockAmount * gberaRatio);
-    poolSize += lockAmount;
   }
 
   /// @notice Stakes $gBERA
   /// @param stakeAmount Amount of $gBERA to stake
   function stake(uint256 stakeAmount) external {
-    // require (IgBERA(gbera).balanceOf(msg.sender) >= stakeAmount, "insufficient balance");
-    // if(!staked[msg.sender]) {
-    //   StakedPosition memory _stake = StakedPosition({
-    //     lastClaim: block.timestamp,
-    //     stakedBalance: stakeAmount,
-    //     stakeAddress: msg.sender
-    //   });
-    //   staked[msg.sender] = true;
-    //   stakeLookup[msg.sender] = _stake;
-    // }
-    // else{
-    //   stakeLookup[msg.sender].stakedBalance += stakeAmount;
-    //   claim();
-    // }
-    // totalStaked += stakeAmount;
+    if(stakes[msg.sender].lastClaim > 0) {
+      _claim();
+    }
+    Stake memory userStake = Stake({
+      lastClaim: block.timestamp,
+      stakedBalance: stakes[msg.sender].stakedBalance + stakeAmount
+    });
+    stakes[msg.sender] = userStake;
+    IERC20(gbera).transferFrom(msg.sender, address(this), stakeAmount);
   }
 
+  //todo: use solady safetranfser instead here
+  /// @notice Unstakes $gBERA
+  /// @param unstakeAmount Amount of $gBERA to unstake
   function unstake(uint256 unstakeAmount) external {
-    // require(staked[msg.sender] == true, "you're not staked!"); 
-    // uint256 _balance = stakeLookup[msg.sender].stakedBalance;
-    // require(unstakeAmount > 0, "can't unstake zero tokens");
-    // require (_balance >= unstakeAmount, "insufficient staked balance");
-    // stakeLookup[msg.sender].stakedBalance -= unstakeAmount;
-    // claim();
-    // if(_balance - unstakeAmount == 0){
-    //   staked[msg.sender] = false;
-    // }
+    uint256 stakedBalance = stakes[msg.sender].stakedBalance;
+    if(stakedBalance < unstakeAmount) revert InvalidStake();
+    Stake memory userStake = Stake({
+      lastClaim: block.timestamp,
+      stakedBalance: stakedBalance - unstakeAmount
+    });
+    _claim();
+    stakes[msg.sender] = userStake;
+    IERC20(gbera).transfer(msg.sender, unstakeAmount);
   }
 
-  function claim() public view {
-    require(staked[msg.sender] == true, "you're not staked!");
-    // StakedPosition memory _stake = stakeLookup[msg.sender];
-    // if(block.timestamp < emissionsStart + sixMonths) {
-    //   uint256 _timestaked = block.timestamp - _stake.lastClaim;
-    //   uint256 _average = ((block.timestamp - emissionsStart) + (_stake.lastClaim - emissionsStart))/2;
-    //   uint256 _rate = porridgeMultiple - (porridgeMultiple*_average/sixMonths);
-    //   uint256 _porridgeEarned = (_timestaked * _rate * _stake.stakedBalance)/100;
-    //   if (boosted[msg.sender] == true){
-    //     _boost = boostLookup[msg.sender];
-    //     if (_boost.expiry > block.timestamp) {
-    //       _porridgeEarned = (_porridgeEarned*(100+_boost.boostMagnitude))/100;
-    //     }
-    //   }
-    //   porridge.mint(msg.sender, _porridgeEarned);
-    // }
-    // stakeLookup[msg.sender].lastClaim = block.timestamp;
+  //todo: add function to mint porridge
+  /// @notice Claims $gBERA staking rewards
+  function claim() external {
+    
+
+  //   if (boosted[msg.sender] == true){
+  //     _boost = boostLookup[msg.sender];
+  //     if (_boost.expiry > block.timestamp) {
+  //       _porridgeEarned = (_porridgeEarned*(100+_boost.boostMagnitude))/100;
+  //     }
+  //   }
+    
+
+    if(emissionsStart + SIX_MONTHS > block.timestamp) revert EmissionsEnded();
+    Stake memory userStake = stakes[msg.sender];
+    uint256 claimed = _calculateClaim(userStake);
+
+
+    stakes[msg.sender].lastClaim = block.timestamp;
+    // IPorridge(porridge).mint(msg.sender, _porridgeEarned);
   }
 
   function borrow(uint256 _borrowAmount, ERC721[] memory _collateral, uint256 _duration, bytes32[] memory _collectionIDs) external {
@@ -361,6 +362,16 @@ contract Goldilend {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
+  function _claim() internal {
+
+  }
+
+  function _calculateClaim(Stake memory userStake) internal returns (uint256) {
+    uint256 _timestaked = block.timestamp - _stake.lastClaim;
+    uint256 _average = ((block.timestamp - emissionsStart) + (_stake.lastClaim - emissionsStart))/2;
+    uint256 _rate = porridgeMultiple - (porridgeMultiple*_average/sixMonths);
+    uint256 _porridgeEarned = (_timestaked * _rate * _stake.stakedBalance)/100;
+  }
 }
 
 //TODO: think about function security (all public right now), implement honeycomb/beradrome nft utility, integrate porridge token contract
