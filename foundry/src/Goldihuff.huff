@@ -1,0 +1,23 @@
+#define function floorPrice(uint256,uint256) view returns (uint256)
+#define function marketPrice(uint256,uint256,uint256) view returns (uint256)
+
+#define macro FLOOR_PRICE() takes (0) returns (0) {
+
+}
+
+#define macro MARKET_PRICE() takes (0) returns (0) {
+
+}
+
+#define macro MAIN() = takes (0) returns (0) {
+  0x00 calldataload 0xE0 shr
+  dup1 __FUNC_SIG(floorPrice) eq floor jumpi
+  dup1 __FUNC_SIG(marketPrice) eq market jumpi
+
+  0x00 0x00 revert
+
+  floor:
+    FLOOR_PRICE()
+  market:
+    MARKET_PRICE()
+}
