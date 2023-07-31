@@ -247,13 +247,6 @@ contract Goldilend {
   /// @notice Claims $gBERA staking rewards
   function claim() external {
     
-
-  //   if (boosted[msg.sender] == true){
-  //     _boost = boostLookup[msg.sender];
-  //     if (_boost.expiry > block.timestamp) {
-  //       _porridgeEarned = (_porridgeEarned*(100+_boost.boostMagnitude))/100;
-  //     }
-  //   }
     
 
     if(emissionsStart + SIX_MONTHS > block.timestamp) revert EmissionsEnded();
@@ -367,10 +360,16 @@ contract Goldilend {
   }
 
   function _calculateClaim(Stake memory userStake) internal returns (uint256) {
-    uint256 _timestaked = block.timestamp - _stake.lastClaim;
-    uint256 _average = ((block.timestamp - emissionsStart) + (_stake.lastClaim - emissionsStart))/2;
-    uint256 _rate = porridgeMultiple - (porridgeMultiple*_average/sixMonths);
-    uint256 _porridgeEarned = (_timestaked * _rate * _stake.stakedBalance)/100;
+    // uint256 _timestaked = block.timestamp - _stake.lastClaim;
+    // uint256 _average = ((block.timestamp - emissionsStart) + (_stake.lastClaim - emissionsStart))/2;
+    // uint256 _rate = porridgeMultiple - (porridgeMultiple*_average/sixMonths);
+    // uint256 _porridgeEarned = (_timestaked * _rate * _stake.stakedBalance)/100;
+      //   if (boosted[msg.sender] == true){
+  //     _boost = boostLookup[msg.sender];
+  //     if (_boost.expiry > block.timestamp) {
+  //       _porridgeEarned = (_porridgeEarned*(100+_boost.boostMagnitude))/100;
+  //     }
+  //   }
   }
 }
 
