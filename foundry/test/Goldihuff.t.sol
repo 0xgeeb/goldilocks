@@ -12,6 +12,28 @@ contract GoldihuffTest is Test {
     goldihuff = Goldihuff(HuffDeployer.deploy("Goldihuff"));
   }
 
+  function testHuffDivide() public {
+    uint256 result = goldihuff.floorPrice(15, 5);
+    console.log(result);
+  }
+
+  function testNormalDivide() public {
+    uint256 result = divide(15, 5);
+    console.log(result);
+  }
+
+  function testHuffDivideGas() public {
+    goldihuff.floorPrice(10, 5);
+  }
+
+  function testNormalDivideGas() public {
+    divide(10, 5);
+  }
+
+  function divide(uint256 a, uint256 b) public returns (uint256) {
+    return a / b;
+  }
+
 }
 
 interface Goldihuff {
