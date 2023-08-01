@@ -38,19 +38,19 @@ export const TitleBar = () => {
           </h1>
           <div className="flex flex-row bg-white rounded-2xl border-2 border-black">
             <div 
-              className={`font-acme text-[13px] 2xl:text-[16px] w-[66px] 2xl:w-24 py-1 2xl:py-2 ${activeToggle === 'buy' ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-l-2xl text-center border-r-2 border-black cursor-pointer`} 
+              className={`font-acme text-[13px] 2xl:text-[16px] w-[66px] 2xl:w-24 py-2 ${activeToggle === 'buy' ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-l-2xl text-center border-r-2 border-black cursor-pointer`} 
               onClick={() => changeActiveToggle('buy')}
             >
               buy
             </div>
             <div 
-              className={`font-acme text-[13px] 2xl:text-[16px] w-[66px] 2xl:w-24 py-1 2xl:py-2 ${activeToggle === 'sell' ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] text-center border-r-2 border-black cursor-pointer`} 
+              className={`font-acme text-[13px] 2xl:text-[16px] w-[66px] 2xl:w-24 py-2 ${activeToggle === 'sell' ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] text-center border-r-2 border-black cursor-pointer`} 
               onClick={() => changeActiveToggle('sell')}
             >
               sell
             </div>
             <div 
-              className={`font-acme text-[13px] 2xl:text-[16px] w-[76px] 2xl:w-24 py-1 2xl:py-2 ${activeToggle === 'redeem' ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-r-2xl text-center cursor-pointer`} 
+              className={`font-acme text-[13px] 2xl:text-[16px] w-[76px] 2xl:w-24 py-2 ${activeToggle === 'redeem' ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-r-2xl text-center cursor-pointer`} 
               onClick={() => changeActiveToggle('redeem')}
             >
               redeem
