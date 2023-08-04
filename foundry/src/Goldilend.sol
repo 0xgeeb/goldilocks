@@ -23,6 +23,7 @@ import { IERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC
 import { ERC721 } from "../lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
 import { IERC721 } from "../lib/openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
 import { IgBERA } from "./interfaces/IgBERA.sol";
+import { IPorridge } from "./interfaces/IPorridge.sol";
 
 
 /// @title Goldilend
@@ -81,9 +82,11 @@ contract Goldilend {
   uint32 public constant MONTH_DAYS = DAYS_SECONDS * 30;
   uint32 public constant SIX_MONTHS = MONTH_DAYS * 6;
 
-  address bera;
-  address gbera;
-  address treasuryAddress;
+  address public beraAddress;
+  address public gberaAddress;
+  address public porridgeAddress;
+  address public adminAddress;
+  address public treasuryAddress;
 
   mapping (address => Boost) public boosts;
   mapping (address => Stake) public stakes;
@@ -116,12 +119,24 @@ contract Goldilend {
   /// @param _startingSize Starting size of the lending pool
   /// @param _beraAddress Address of $BERA
   /// @param _gberaAddress Address of $gBERA
+  /// @param _porridgeAddress Address of $PRG
+  /// @param _adminAddress Address of the Goldilocks DAO multisig
   /// @param _partnerNFTs Partnership NFTs
   /// @param _partnerNFTBoosts Partnership NFTs Boosts
-  constructor(uint256 _startingSize, address _beraAddress, address _gberaAddress, address[] memory _partnerNFTs, uint8[] memory _partnerNFTBoosts) {
+  constructor(
+    uint256 _startingSize, 
+    address _beraAddress, 
+    address _gberaAddress, 
+    address _porridgeAddress,
+    address _adminAddress,
+    address[] memory _partnerNFTs, 
+    uint8[] memory _partnerNFTBoosts
+  ) {
     poolSize = _startingSize;
-    bera = _beraAddress;
-    gbera = _gberaAddress;
+    beraAddress = _beraAddress;
+    gberaAddress = _gberaAddress;
+    porridgeAddress = _porridgeAddress;
+    adminAddress = _adminAddress;
     emissionsStart = block.timestamp;
     for(uint8 i; i < _partnerNFTs.length; i++) {
       partnerNFTBoosts[_partnerNFTs[i]] = _partnerNFTBoosts[i];
@@ -139,6 +154,7 @@ contract Goldilend {
   error InvalidBoost();
   error BoostNotExpired();
   error NotTreasury();
+  error NotAdmin();
   error InvalidStake();
   error EmissionsEnded();
 
@@ -155,8 +171,15 @@ contract Goldilend {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
+  /// @notice Ensures msg.sender is the treasury address
   modifier onlyTreasury() {
     if(msg.sender != treasuryAddress) revert NotTreasury();
+    _;
+  }
+
+  /// @notice Ensures msg.sender is the admin address
+  modifier onlyAdmin() {
+    if(msg.sender != adminAddress) revert NotAdmin();
     _;
   }
 
@@ -210,8 +233,8 @@ contract Goldilend {
   /// @param lockAmount Amount of $BERA to lock
   function lock(uint256 lockAmount) external {
     poolSize += lockAmount;
-    IERC20(bera).transferFrom(msg.sender, address(this), lockAmount);
-    IgBERA(gbera).mint(msg.sender, lockAmount * gberaRatio);
+    IERC20(beraAddress).transferFrom(msg.sender, address(this), lockAmount);
+    IgBERA(gberaAddress).mint(msg.sender, lockAmount * gberaRatio);
   }
 
   /// @notice Stakes $gBERA
@@ -225,7 +248,7 @@ contract Goldilend {
       stakedBalance: stakes[msg.sender].stakedBalance + stakeAmount
     });
     stakes[msg.sender] = userStake;
-    IERC20(gbera).transferFrom(msg.sender, address(this), stakeAmount);
+    IERC20(gberaAddress).transferFrom(msg.sender, address(this), stakeAmount);
   }
 
   //todo: use solady safetranfser instead here
@@ -240,22 +263,14 @@ contract Goldilend {
     });
     _claim();
     stakes[msg.sender] = userStake;
-    IERC20(gbera).transfer(msg.sender, unstakeAmount);
+    IERC20(gberaAddress).transfer(msg.sender, unstakeAmount);
   }
 
   //todo: add function to mint porridge
   /// @notice Claims $gBERA staking rewards
   function claim() external {
-    
-    
-
     if(emissionsStart + SIX_MONTHS > block.timestamp) revert EmissionsEnded();
-    Stake memory userStake = stakes[msg.sender];
-    uint256 claimed = _calculateClaim(userStake);
-
-
-    stakes[msg.sender].lastClaim = block.timestamp;
-    // IPorridge(porridge).mint(msg.sender, _porridgeEarned);
+    _claim();
   }
 
   function borrow(uint256 _borrowAmount, ERC721[] memory _collateral, uint256 _duration, bytes32[] memory _collectionIDs) external {
@@ -300,7 +315,7 @@ contract Goldilend {
     // });
     // loans.push(_loan);
     // liquidated[_loan.loanId] = false;
-    IERC20(bera).transferFrom(address(this), msg.sender, _borrowAmount);
+    IERC20(beraAddress).transferFrom(address(this), msg.sender, _borrowAmount);
   }
 
   function repay(uint256 _repayAmount, uint256 _loanId) external {
@@ -343,7 +358,7 @@ contract Goldilend {
     // }
   }
 
-  //function for the DAO to adjust the valuation of the NFT's and the interest rate
+  /// @notice Allows the DAO to adjust the valuation of the NFT's and the interest rate
   function setValue(uint256 value, uint256 rate) external onlyTreasury {
     totalValuation = value;
     interestRate = rate;
@@ -355,21 +370,25 @@ contract Goldilend {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
+  /// @notice Calculates and distributes claiming rewards
   function _claim() internal {
-
+    Stake memory userStake = stakes[msg.sender];
+    uint256 claimed = _calculateClaim(userStake);
+    stakes[msg.sender].lastClaim = block.timestamp;
+    IPorridge(porridgeAddress).goldilendMint(msg.sender, claimed);
   }
 
-  function _calculateClaim(Stake memory userStake) internal returns (uint256) {
-    // uint256 _timestaked = block.timestamp - _stake.lastClaim;
-    // uint256 _average = ((block.timestamp - emissionsStart) + (_stake.lastClaim - emissionsStart))/2;
-    // uint256 _rate = porridgeMultiple - (porridgeMultiple*_average/sixMonths);
-    // uint256 _porridgeEarned = (_timestaked * _rate * _stake.stakedBalance)/100;
-      //   if (boosted[msg.sender] == true){
-  //     _boost = boostLookup[msg.sender];
-  //     if (_boost.expiry > block.timestamp) {
-  //       _porridgeEarned = (_porridgeEarned*(100+_boost.boostMagnitude))/100;
-  //     }
-  //   }
+  /// @notice Calculates claiming rewards
+  /// @param userStake Struct of the user's current stake information
+  function _calculateClaim(Stake memory userStake) internal view returns (uint256 porridgeEarned) {
+    uint256 timeStaked = block.timestamp - userStake.lastClaim;
+    uint256 average = ((block.timestamp - emissionsStart) + (userStake.lastClaim - emissionsStart)) / 2;
+    uint256 rate = porridgeMultiple - (porridgeMultiple * average / SIX_MONTHS);
+    porridgeEarned = (timeStaked * rate * userStake.stakedBalance) / 100;
+    Boost memory userBoost = boosts[msg.sender];
+    if (userBoost.expiry > block.timestamp) {
+      porridgeEarned = (porridgeEarned * (100 + userBoost.boostMagnitude)) / 100;
+    }
   }
 }
 

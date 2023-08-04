@@ -46,6 +46,7 @@ contract Porridge is ERC20("Porridge Token", "PRG"), ReentrancyGuard {
   address public gammAddress;
   address public borrowAddress;
   address public honeyAddress;
+  address public goldilendAddress;
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -69,6 +70,7 @@ contract Porridge is ERC20("Porridge Token", "PRG"), ReentrancyGuard {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
+  error NotGoldilend();
   error InvalidUnstake();
   error LocksBorrowedAgainst();
 
@@ -82,6 +84,18 @@ contract Porridge is ERC20("Porridge Token", "PRG"), ReentrancyGuard {
   event Unstaked(address indexed user, uint256 amount);
   event Realized(address indexed user, uint256 amount);
   event Claimed(address indexed user, uint256 amount);
+
+
+  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+  /*                         MODIFIERS                          */
+  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+
+  /// @notice Ensures msg.sender is the goldilend address
+  modifier onlyGoldilend() {
+    if(msg.sender != goldilendAddress) revert NotGoldilend();
+    _;
+  }
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -195,5 +209,18 @@ contract Porridge is ERC20("Porridge Token", "PRG"), ReentrancyGuard {
   /// @return timeStaked staked of an address
   function _timeStaked(address user) internal view returns (uint256 timeStaked) {
     timeStaked = block.timestamp - stakeStartTime[user];
+  }
+
+
+  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+  /*                  PERMISSIONED FUNCTIONS                    */
+  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+
+  /// @notice Goldilend contract will call this function when users claim $PRG tokens
+  /// @param to Recipient of minted $PRG tokens
+  /// @param amount Amount of minted $PRG tokens
+  function goldilendMint(address to, uint256 amount) external onlyGoldilend {
+    _mint(to, amount);
   }
 }

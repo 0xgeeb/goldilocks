@@ -337,11 +337,11 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
     SafeTransferLib.safeTransfer(honeyAddress, adminAddress, fee);
   }
 
-  /// @notice Porridge Contract will call this function when users realize $PRG tokens
-  /// @param _to Recipient of minted $LOCKS tokens
-  /// @param _amount Amount of minted $LOCKS tokens
-  function porridgeMint(address _to, uint256 _amount) external onlyPorridge {
-    _mint(_to, _amount);
+  /// @notice Porridge contract will call this function when users realize $PRG tokens
+  /// @param to Recipient of minted $LOCKS tokens
+  /// @param amount Amount of minted $LOCKS tokens
+  function porridgeMint(address to, uint256 amount) external onlyPorridge {
+    _mint(to, amount);
   }
 
   /// @notice Set address of Porridge contract

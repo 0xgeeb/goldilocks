@@ -12,4 +12,5 @@ interface IPorridge {
   function realize(uint256 amount) external;
   function claim() external;
 
+  function goldilendMint(address to, uint256 amount) external;
 }

@@ -11,6 +11,5 @@ interface IGAMM {
   function redeem(uint256 amount) external;
 
   function borrowTransfer(address to, uint256 amount, uint256 fee) external;
-  function porridgeMint(address _to, uint256 _amount) external;
-
+  function porridgeMint(address to, uint256 amount) external;
 }
