@@ -110,7 +110,7 @@ export const NavBar = () => {
                     id="home-button"
                     onClick={openConnectModal}
                   >
-                    'connect'
+                    connect
                   </button> :
                   <button 
                     className={`w-20 2xl:w-24 py-2 text-[16px] 2xl:text-[18px] bg-green-400 hover:scale-[120%] rounded-xl mr-4 font-acme`}

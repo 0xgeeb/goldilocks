@@ -3,6 +3,7 @@ import {
   useWallet,
   useNotification
 } from "../../../providers"
+import { ConnectButton } from "@rainbow-me/rainbowkit"
 import { useStakingTx } from "../../../hooks/staking"
 
 export const StakingButton = () => {
@@ -22,8 +23,6 @@ export const StakingButton = () => {
 
   const {
     wallet,
-    isConnected,
-    network,
     refreshBalances
   } = useWallet()
 
@@ -48,6 +47,7 @@ export const StakingButton = () => {
 
   const stakeTxFlow = async (button: HTMLElement | null) => {
     if(stake == 0) {
+      button && (button.innerHTML = "stake")
       return
     }
     const sufficientAllowance: boolean | void = await checkAllowance(stake, 'locks', wallet)
@@ -76,6 +76,7 @@ export const StakingButton = () => {
 
   const unstakeTxFlow = async (button: HTMLElement | null) => {
     if(unstake == 0) {
+      button && (button.innerHTML = "unstake")
       return
     }
     button && (button.innerHTML = "unstaking...")
@@ -94,6 +95,7 @@ export const StakingButton = () => {
 
   const realizeTxFlow = async (button: HTMLElement | null) => {
     if(realize == 0) {
+      button && (button.innerHTML = "realize")
       return
     }
     const sufficientAllowance: boolean | void = await checkAllowance(realize, 'honey', wallet)
@@ -122,23 +124,14 @@ export const StakingButton = () => {
 
   const handleButtonClick = async () => {
     const button = document.getElementById('amm-button')
-
-    if(!isConnected) {
-      button && (button.innerHTML = "where wallet")
+    if(activeToggle === 'stake') {
+      stakeTxFlow(button)
     }
-    else if(network !== "Avalanche Fuji C-Chain") {
-      button && (button.innerHTML = "switch to fuji plz")
+    if(activeToggle === 'unstake') {
+      unstakeTxFlow(button)
     }
-    else {
-      if(activeToggle === 'stake') {
-        stakeTxFlow(button)
-      }
-      if(activeToggle === 'unstake') {
-        unstakeTxFlow(button)
-      }
-      if(activeToggle === 'realize') {
-        realizeTxFlow(button)
-      }
+    if(activeToggle === 'realize') {
+      realizeTxFlow(button)
     }
   }
 
@@ -162,13 +155,46 @@ export const StakingButton = () => {
 
   return (
     <div className="h-[13%] 2xl:h-[15%] w-[75%] 2xl:w-[80%] mx-auto mt-6">
-      <button 
-        className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[25px] 2xl:text-[30px]" 
-        id="amm-button" 
-        onClick={() => handleButtonClick()}
-      >
-        {renderButton()}
-      </button>
+      <ConnectButton.Custom>
+        {({
+          account,
+          chain,
+          openConnectModal,
+          openChainModal
+        }) => {
+          return (
+            <button 
+              className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[25px] 2xl:text-[30px]" 
+              id="amm-button" 
+              onClick={() => {
+                const button = document.getElementById('amm-button')
+
+                if(!account) {
+                  if(button && button.innerHTML === "connect wallet") {
+                    openConnectModal()
+                  }
+                  else {
+                    button && (button.innerHTML = "connect wallet")
+                  }
+                }
+                else if(chain?.name !== "Avalanche Fuji C-Chain") {
+                  if(button && button.innerHTML === "switch to fuji plz") {
+                    openChainModal()
+                  }
+                  else {
+                    button && (button.innerHTML = "switch to fuji plz")
+                  }
+                }
+                else {
+                  handleButtonClick()
+                }
+              }}
+            >
+              {renderButton()}
+            </button>
+          )
+        }}
+      </ConnectButton.Custom>
     </div>
   )
 }

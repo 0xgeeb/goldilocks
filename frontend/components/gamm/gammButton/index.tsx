@@ -3,6 +3,7 @@ import {
   useWallet,
   useNotification
 } from "../../../providers"
+import { ConnectButton } from "@rainbow-me/rainbowkit"
 import { useGammTx } from "../../../hooks/gamm"
 
 export const GammButton = () => {
@@ -31,7 +32,6 @@ export const GammButton = () => {
   const { 
     wallet,
     isConnected, 
-    network,
     refreshBalances
   } = useWallet()
 
@@ -75,6 +75,7 @@ export const GammButton = () => {
 
   const buyTxFlow = async (button: HTMLElement | null) => {
     if(honeyBuy == 0) {
+      button && (button.innerHTML = "buy")
       return
     }
     const sufficientAllowance: boolean | void = await checkAllowance(honeyBuy, wallet)
@@ -103,6 +104,7 @@ export const GammButton = () => {
 
   const sellTxFlow = async (button: HTMLElement | null) => {
     if(sellingLocks == 0) {
+      button && (button.innerHTML = "sell")
       return
     }
     button && (button.innerHTML = "selling...")
@@ -121,6 +123,7 @@ export const GammButton = () => {
 
   const redeemTxFlow = async (button: HTMLElement | null) => {
     if(redeemingLocks == 0) {
+      button && (button.innerHTML = "redeem")
       return
     }
     button && (button.innerHTML = "redeeming...")
@@ -137,39 +140,61 @@ export const GammButton = () => {
     refreshInfo()
   }
 
-  const handleButtonClick = async () => {
+  const handleButtonClick = () => {
     const button = document.getElementById('amm-button')
-
-    console.log(typeof(button))
-
-    if(!isConnected) {
-      button && (button.innerHTML = "where wallet")
+    if(activeToggle === 'buy') {
+      buyTxFlow(button)
     }
-    else if(network !== "Avalanche Fuji C-Chain") {
-      button && (button.innerHTML = "switch to fuji plz")
+    if(activeToggle === 'sell') {
+      sellTxFlow(button)
     }
-    else {
-      if(activeToggle === 'buy') {
-        buyTxFlow(button)
-      }
-      if(activeToggle === 'sell') {
-        sellTxFlow(button)
-      }
-      if(activeToggle === 'redeem') {
-        redeemTxFlow(button)
-      }
+    if(activeToggle === 'redeem') {
+      redeemTxFlow(button)
     }
   }
-
+  
   return (
     <div className="h-[31%] flex justify-center items-center">
-      <button 
-        className="h-[55%] w-[50%] bg-white rounded-xl py-1 2xl:py-3 px-4 2xl:px-6 border-2 border-black font-acme text-[25px] 2xl:text-[30px]" 
-        id="amm-button" 
-        onClick={() => handleButtonClick()} 
-      >
-        {renderButton()}
-      </button>
+      <ConnectButton.Custom>
+        {({
+          account,
+          chain,
+          openConnectModal,
+          openChainModal
+        }) => {
+          return (
+            <button
+              className="h-[55%] w-[50%] bg-white rounded-xl py-1 2xl:py-3 px-4 2xl:px-6 border-2 border-black font-acme text-[25px] 2xl:text-[30px]" 
+              id="amm-button" 
+              onClick={() => {
+                const button = document.getElementById('amm-button')
+
+                if(!account) {
+                  if(button && button.innerHTML === "connect wallet") {
+                    openConnectModal()
+                  }
+                  else {
+                    button && (button.innerHTML = "connect wallet")
+                  }
+                }
+                else if(chain?.name !== "Avalanche Fuji C-Chain") {
+                  if(button && button.innerHTML === "switch to fuji plz") {
+                    openChainModal()
+                  }
+                  else {
+                    button && (button.innerHTML = "switch to fuji plz")
+                  }
+                }
+                else {
+                  handleButtonClick()
+                }
+              }}
+            >
+              {renderButton()}
+            </button>
+          )
+        }}
+      </ConnectButton.Custom>
     </div>
   )
 }

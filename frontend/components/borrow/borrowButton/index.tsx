@@ -3,6 +3,7 @@ import {
   useWallet,
   useNotification
 } from "../../../providers"
+import { ConnectButton } from "@rainbow-me/rainbowkit"
 import { useBorrowingTx } from "../../../hooks/borrowing"
 
 export const BorrowButton = () => {
@@ -20,8 +21,6 @@ export const BorrowButton = () => {
 
   const {
     wallet,
-    isConnected,
-    network,
     refreshBalances
   } = useWallet()
 
@@ -44,6 +43,7 @@ export const BorrowButton = () => {
 
   const borrowTxFlow = async (button: HTMLElement | null) => {
     if(borrow == 0) {
+      button && (button.innerHTML = "borrow")
       return
     }
     button && (button.innerHTML = "borrowing...")
@@ -62,6 +62,7 @@ export const BorrowButton = () => {
 
   const repayTxFlow = async (button: HTMLElement | null) => {
     if(repay == 0) {
+      button && (button.innerHTML = "repay")
       return
     }
     const sufficientAllowance: boolean | void = await checkAllowance(repay, wallet)
@@ -90,20 +91,11 @@ export const BorrowButton = () => {
   
   const handleButtonClick = async () => {
     const button = document.getElementById('amm-button')
-
-    if(!isConnected) {
-      button && (button.innerHTML = "where wallet")
+    if(activeToggle === 'borrow') {
+      borrowTxFlow(button)
     }
-    else if(network !== "Avalanche Fuji C-Chain") {
-      button && (button.innerHTML = "switch to fuji plz")
-    }
-    else {
-      if(activeToggle === 'borrow') {
-        borrowTxFlow(button)
-      }
-      if(activeToggle === 'repay') {
-        repayTxFlow(button)
-      }
+    if(activeToggle === 'repay') {
+      repayTxFlow(button)
     }
   }
   
@@ -121,13 +113,46 @@ export const BorrowButton = () => {
 
   return (
     <div className="h-[13%] 2xl:h-[15%] w-[75%] 2xl:w-[80%] mx-auto mt-6">
-      <button 
-        className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[25px] 2xl:text-[30px]" 
-        id="amm-button" 
-        onClick={() => handleButtonClick()}
-      >
-        {renderButton()}
-      </button>
+      <ConnectButton.Custom>
+        {({
+          account,
+          chain,
+          openConnectModal,
+          openChainModal
+        }) => {
+          return (
+            <button 
+              className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[25px] 2xl:text-[30px]" 
+              id="amm-button" 
+              onClick={() => {
+                const button = document.getElementById('amm-button')
+
+                if(!account) {
+                  if(button && button.innerHTML === "connect wallet") {
+                    openConnectModal()
+                  }
+                  else {
+                    button && (button.innerHTML = "connect wallet")
+                  }
+                }
+                else if(chain?.name !== "Avalanche Fuji C-Chain") {
+                  if(button && button.innerHTML === "switch to fuji plz") {
+                    openChainModal()
+                  }
+                  else {
+                    button && (button.innerHTML = "switch to fuji plz")
+                  }
+                }
+                else {
+                  handleButtonClick()
+                }
+              }}
+            >
+              {renderButton()}
+            </button>
+          )
+        }}
+      </ConnectButton.Custom>
     </div>
   )
 }

@@ -6,6 +6,7 @@ import {
   useWallet,
   useNotification
 } from "../../../providers"
+import { ConnectButton } from "@rainbow-me/rainbowkit"
 import { useStakingTx } from "../../../hooks/staking"
 
 export const StatsBox = () => {
@@ -18,10 +19,8 @@ export const StatsBox = () => {
   } = useStaking()
 
   const { 
-    isConnected,
     refreshBalances,
-    balance,
-    network
+    balance
   } = useWallet()
 
   const { sendClaimTx } = useStakingTx()
@@ -41,35 +40,29 @@ export const StatsBox = () => {
     return num.toLocaleString('en-US', { maximumFractionDigits: 2 })
   }
 
-  const test = () => {
-    console.log(stakingInfo)
+  const claimTxFlow = async (button: HTMLElement | null) => {
+    if(stakingInfo.yieldToClaim == 0) {
+      button && (button.innerHTML = "claim yield")
+      return
+    }
+    button && (button.innerHTML = "claiming...")
+    const claimTx = await sendClaimTx()
+    claimTx && openNotification({
+      title: 'Successfully Claimed $PRG!',
+      hash: claimTx,
+      direction: 'claimed',
+      amount: stakingInfo.yieldToClaim,
+      price: 0,
+      page: 'claim'
+    })
+    button && (button.innerHTML = "claim yield")
+    refreshBalances()
+    refreshStakingInfo()
   }
 
   const handleClaimClick = async () => {
     const button = document.getElementById('claim-button')
-
-    if(!isConnected) {
-      return
-    }
-
-    if(network !== "Avalanche Fuji C-Chain") {
-      button && (button.innerHTML = "switch to fuji plz")
-    }
-    else {
-      button && (button.innerHTML = "claiming...")
-      const claimTx = await sendClaimTx()
-      claimTx && openNotification({
-        title: 'Successfully Claimed $PRG!',
-        hash: claimTx,
-        direction: 'claimed',
-        amount: stakingInfo.yieldToClaim,
-        price: 0,
-        page: 'claim'
-      })
-      button && (button.innerHTML = "claim yield")
-      refreshBalances()
-      refreshStakingInfo()
-    }
+    claimTxFlow(button)
   }
 
   const handleInfo = (num: number) => {
@@ -85,41 +78,74 @@ export const StatsBox = () => {
   }
   
   return (
-    <div className="flex flex-col w-[40%] h-[100%] mt-4 ml-4" onClick={() => test()}>
-      <div className="w-[100%] h-[70%] flex p-3 2xl:p-6 flex-col bg-white rounded-xl border-2 border-black">
-        <div className="flex flex-row justify-between items-center mt-3 font-acme">
+    <div className="flex flex-col w-[40%] h-[100%] mt-4 ml-4">
+      <div className="w-[100%] h-[70%] flex p-3 2xl:p-6 flex-col gap-3 bg-white rounded-xl border-2 border-black">
+        <div className="flex flex-row justify-between items-center font-acme">
           <h1 className="text-[20px] 2xl:text-[24px]">$LOCKS floor price:</h1>
           <p className="text-[18px] 2xl:text-[20px]">${handleInfo(stakingInfo.fsl / stakingInfo.supply)}</p>
         </div>
-        <div className="flex flex-row justify-between items-center mt-3 font-acme">
+        <div className="flex flex-row justify-between items-center font-acme">
           <h1 className="text-[20px] 2xl:text-[24px]">$LOCKS balance:</h1>
           <p className="text-[18px] 2xl:text-[20px]">{handleInfo(balance.locks)}</p>
         </div>
-        <div className="flex flex-row justify-between items-center mt-3 font-acme">
+        <div className="flex flex-row justify-between items-center font-acme">
           <h1 className="text-[20px] 2xl:text-[24px]">$HONEY balance:</h1>
           <p className="text-[18px] 2xl:text-[20px]">{handleInfo(balance.honey)}</p>
         </div>
-        <div className="flex flex-row justify-between items-center mt-3 font-acme">
+        <div className="flex flex-row justify-between items-center font-acme">
           <h1 className="text-[20px] 2xl:text-[24px]">$PRG balance:</h1>
           <p className="text-[18px] 2xl:text-[20px]">{handleInfo(balance.prg)}</p>
         </div>
-        <div className="flex flex-row justify-between items-center mt-3 font-acme">
+        <div className="flex flex-row justify-between items-center font-acme">
           <h1 className="text-[20px] 2xl:text-[24px]">staked $LOCKS:</h1>
           <p className="text-[18px] 2xl:text-[20px]">{handleInfo(stakingInfo.staked)}</p>
         </div>
-        <div className="flex flex-row justify-between items-center mt-3 font-acme">
+        <div className="flex flex-row justify-between items-center font-acme">
           <h1 className="text-[20px] 2xl:text-[24px]">$PRG available to claim:</h1>
           <p className="text-[18px] 2xl:text-[20px]">{handleInfo(stakingInfo.yieldToClaim)}</p>
         </div>
       </div>
       <div className="h-[10%] w-[65%] 2xl:w-[70%] mx-auto mt-4">
-        <button 
-          className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[20px] 2xl:text-[25px]" 
-          id="claim-button" 
-          onClick={() => handleClaimClick()}
-        >
-          claim yield
-        </button>
+        <ConnectButton.Custom>
+          {({
+            account,
+            chain,
+            openConnectModal,
+            openChainModal
+          }) => {
+            return (
+              <button 
+                className="h-[100%] w-[100%] bg-white rounded-xl border-2 border-black font-acme text-[20px] 2xl:text-[25px]" 
+                id="claim-button" 
+                onClick={() => {
+                  const button = document.getElementById('claim-button')
+  
+                  if(!account) {
+                    if(button && button.innerHTML === "connect wallet") {
+                      openConnectModal()
+                    }
+                    else {
+                      button && (button.innerHTML = "connect wallet")
+                    }
+                  }
+                  else if(chain?.name !== "Avalanche Fuji C-Chain") {
+                    if(button && button.innerHTML === "switch to fuji plz") {
+                      openChainModal()
+                    }
+                    else {
+                      button && (button.innerHTML = "switch to fuji plz")
+                    }
+                  }
+                  else {
+                    handleClaimClick()
+                  }
+                }}
+              >
+                claim yield
+              </button>
+            )
+          }}
+        </ConnectButton.Custom>
       </div>
     </div>
   )
