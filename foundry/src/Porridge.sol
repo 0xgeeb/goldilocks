@@ -54,6 +54,7 @@ contract Porridge is ERC20("Porridge Token", "PRG"), ReentrancyGuard {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
+  //todo: add goldilend addy here
   /// @notice Constructor of this contract
   /// @param _gammAddress Address of the GAMM
   /// @param _borrowAddress Address of the Borrow contract

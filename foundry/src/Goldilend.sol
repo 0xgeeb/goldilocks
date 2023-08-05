@@ -79,8 +79,10 @@ contract Goldilend {
     
 
   uint32 public constant DAYS_SECONDS = 86400;
+  uint32 public constant FORTNITE = DAYS_SECONDS * 14;
   uint32 public constant MONTH_DAYS = DAYS_SECONDS * 30;
   uint32 public constant SIX_MONTHS = MONTH_DAYS * 6;
+  uint32 public constant ONE_YEAR = MONTH_DAYS * 12;
 
   address public beraAddress;
   address public gberaAddress;
@@ -157,6 +159,9 @@ contract Goldilend {
   error NotAdmin();
   error InvalidStake();
   error EmissionsEnded();
+  error InvalidLoanDuration();
+  error InvalidLoanAmount();
+  error InvalidCollateral();
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -193,7 +198,11 @@ contract Goldilend {
   /// @param partnerNFTs Array of NFT addresses to transfer to this contract
   /// @param partnerNFTIDs Array of token IDs for NFTs to be transferred
   /// @param expiry Expiration date of the boost
-  function boost(address[] calldata partnerNFTs, uint256[] calldata partnerNFTIDs, uint256 expiry) external {
+  function boost(
+    address[] calldata partnerNFTs, 
+    uint256[] calldata partnerNFTIDs, 
+    uint256 expiry
+  ) external {
     if(expiry < block.timestamp + MONTH_DAYS) revert ShortExpiration();
     if(partnerNFTs.length != partnerNFTIDs.length) revert ArrayMismatch();
     uint256 magnitude;
@@ -266,30 +275,52 @@ contract Goldilend {
     IERC20(gberaAddress).transfer(msg.sender, unstakeAmount);
   }
 
-  //todo: add function to mint porridge
   /// @notice Claims $gBERA staking rewards
   function claim() external {
     if(emissionsStart + SIX_MONTHS > block.timestamp) revert EmissionsEnded();
     _claim();
   }
 
-  function borrow(uint256 _borrowAmount, ERC721[] memory _collateral, uint256 _duration, bytes32[] memory _collectionIDs) external {
-    require(_borrowAmount >= 0, "can't borrow zero");
-    require(_duration >= 14 && _duration <= 365, "invalid loan duration");
-    require(_borrowAmount <= poolSize/10);
-    // uint256 preciseDuration = _duration * 1 days;
-    // uint256 _availableCapital = poolSize - debt;
-    // uint256 _borrowed = debt + _borrowamount;
-    // uint256 _fairValue;
-    // for(uint256 i; i < _collateral.length; i++) {
-    //   require(isBear(_collateral[i], _collectionIds[i]) == true && ownerOf(_collateral[i]) == msg.sender, "insufficiently dank collateral");
-    //   _fairValue += (fairValue[_collectionIDs[i]]*totalValuation)/100;
-    // }
-    // require(_borrowAmount <= _fairValue && _borrowamount <= _availableCapital, "borrow limit exceeded");
+  //todo: add similar implementation as other borrow
+  /// @notice Borrows $BERA against value of NFT
+  /// @param borrowAmount Amount of $HONEY to borrow
+  /// @param duration Duration of loan
+  /// @param collateralNFT NFT collection to use as collateral
+  /// @param collateralNFTID Token IDs of NFT to use as collateral
+  function borrow(
+    uint256 borrowAmount,
+    uint256 duration,
+    address collateralNFT,
+    uint256 collateralNFTID
+  ) external {}
+
+
+  /// @notice Borrows $BERA against value of NFTs
+  /// @param borrowAmount Amount of $HONEY to borrow
+  /// @param duration Duration of loan
+  /// @param collateralNFTs NFT collections to use as collateral
+  /// @param collateralNFTIDs Token IDs of NFTs to use as collateral
+  function borrow(
+    uint256 borrowAmount, 
+    uint256 duration, 
+    address[] calldata collateralNFTs, 
+    uint256[] calldata collateralNFTIDs
+  ) external {
+    if(duration < FORTNITE || duration > ONE_YEAR) revert InvalidLoanDuration();
+    if(borrowAmount > poolSize / 10) revert InvalidLoanAmount();
+    if(collateralNFTs.length != collateralNFTIDs.length) revert ArrayMismatch();
+    // uint256 fairValue;
+    for(uint256 i; i < collateralNFTs.length; i++) {
+      // require(isBear(_collateral[i], _collectionIds[i]) == true && ownerOf(_collateral[i]) == msg.sender, "insufficiently dank collateral");
+      // fairValue += (fairValue[_collectionIDs[i]]*totalValuation)/100;
+    }
+
+    // require(_borrowAmount <= _fairValue && _borrowamount <= poolSize - debt, "borrow limit exceeded");
     // for(uint256 i; i < _collateral.length; i++) {
     //   collateral[i].transfer(msg.sender, address(this));
     // } 
-    // uint256 _ratio = ((2*10**18*_borrowed)/poolsize + 1)/2;
+
+    // uint256 _ratio = ((2*10**18*debt + borrowAmount)/poolsize + 1)/2;
     // uint256 _interestRate = (interestRate*10**18) + (10*interestRate*_duration*ratio/365);
     // uint256 _interest = (_interestRate*borrowedAmount*_duration)/(365*10**20);
     // if (boosted[msg.sender] == true){
@@ -302,8 +333,10 @@ contract Goldilend {
     //     _interest = (discount*_interest)/100;
     //   }
     // }
-    loanIdTracker += 1;
-    // debt = _borrowed;
+
+    // loanIdTracker += 1;
+    // debt = debt _ borrowAmount;
+
     // Loan memory _loan = Loan({
     //   collateralTokens: _collateral,
     //   borrowedAmount: _borrowAmount + _interest,
@@ -313,9 +346,11 @@ contract Goldilend {
     //   duration: preciseDuration,
     //   loanId: loanIdTracker
     // });
+
     // loans.push(_loan);
     // liquidated[_loan.loanId] = false;
-    IERC20(beraAddress).transferFrom(address(this), msg.sender, _borrowAmount);
+
+    // IERC20(beraAddress).transferFrom(address(this), msg.sender, borrowAmount);
   }
 
   function repay(uint256 _repayAmount, uint256 _loanId) external {
@@ -391,5 +426,3 @@ contract Goldilend {
     }
   }
 }
-
-//TODO: think about function security (all public right now), implement honeycomb/beradrome nft utility, integrate porridge token contract
