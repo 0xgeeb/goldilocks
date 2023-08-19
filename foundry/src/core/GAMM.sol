@@ -17,9 +17,9 @@ pragma solidity ^0.8.19;
 // ==============================================================================================
 
 
-import { FixedPointMathLib } from "../lib/solady/src/utils/FixedPointMathLib.sol";
-import { SafeTransferLib } from "../lib/solady/src/utils/SafeTransferLib.sol";
-import { ERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import { FixedPointMathLib } from "../../lib/solady/src/utils/FixedPointMathLib.sol";
+import { SafeTransferLib } from "../../lib/solady/src/utils/SafeTransferLib.sol";
+import { ERC20 } from "../../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 
 
 /// @title Goldilocks AMM (GAMM)
@@ -311,7 +311,7 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
     }
   }
 
-  /// @notice If a day has elapsed since , reduces the FSL
+  /// @notice If a day has elapsed since, reduces the FSL
   function _floorReduce() internal {
     uint256 elapsedRaise = block.timestamp - lastFloorRaise;
     uint256 elapsedDrop = block.timestamp - lastFloorDecrease;

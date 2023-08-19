@@ -2,10 +2,10 @@
 pragma solidity ^0.8.19;
 
 import "../lib/forge-std/src/Test.sol";
-import { Honey } from "../src/Honey.sol";
-import { GAMM } from "../src/GAMM.sol";
-import { Borrow } from "../src/Borrow.sol";
-import { Porridge } from "../src/Porridge.sol";
+import { Honey } from "../src/mock/Honey.sol";
+import { GAMM } from "../src/core/GAMM.sol";
+import { Borrow } from "../src/core/Borrow.sol";
+import { Porridge } from "../src/core/Porridge.sol";
 
 contract BorrowTest is Test {
 
@@ -107,6 +107,11 @@ contract BorrowTest is Test {
     borrow.borrow(borrowAmount);
     vm.expectRevert(ExcessiveRepaySelector);
     borrow.repay(borrowAmount + 1);
+  }
+
+  function testPorridgeAddress() public {
+    borrow.setPorridgeAddress(address(0x01));
+    assertEq(address(0x01), borrow.porridgeAddress());
   }
 
 }

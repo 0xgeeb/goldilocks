@@ -17,12 +17,12 @@ pragma solidity ^0.8.19;
 // ==============================================================================================
 
 
-import { ERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
-import { ReentrancyGuard } from "../lib/openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
-import { SafeTransferLib } from "../lib/solady/src/utils/SafeTransferLib.sol";
-import { FixedPointMathLib } from "../lib/solady/src/utils/FixedPointMathLib.sol";
-import { IBorrow } from "./interfaces/IBorrow.sol";
-import { IGAMM } from "./interfaces/IGAMM.sol";
+import { ERC20 } from "../../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import { ReentrancyGuard } from "../../lib/openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
+import { SafeTransferLib } from "../../lib/solady/src/utils/SafeTransferLib.sol";
+import { FixedPointMathLib } from "../../lib/solady/src/utils/FixedPointMathLib.sol";
+import { IBorrow } from "../interfaces/IBorrow.sol";
+import { IGAMM } from "../interfaces/IGAMM.sol";
 
 
 /// @title Porridge

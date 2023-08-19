@@ -2,10 +2,10 @@
 pragma solidity ^0.8.19;
 
 import { Script } from "../lib/forge-std/src/Script.sol";
-import { Porridge } from "../src/Porridge.sol";
-import { GAMM } from  "../src/GAMM.sol";
-import { Borrow } from "../src/Borrow.sol";
-import { Honey } from "../src/Honey.sol";
+import { Porridge } from "../src/core/Porridge.sol";
+import { GAMM } from  "../src/core/GAMM.sol";
+import { Borrow } from "../src/core/Borrow.sol";
+import { Honey } from "../src/mock/Honey.sol";
 
 contract DeployScript is Script {
 

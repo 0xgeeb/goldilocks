@@ -17,20 +17,20 @@ pragma solidity ^0.8.19;
 // ==============================================================================================
 
 
-import { FixedPointMathLib } from "../lib/solady/src/utils/FixedPointMathLib.sol";
-import { ERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
-import { IERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import { ERC721 } from "../lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
-import { IERC721 } from "../lib/openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
-import { IgBERA } from "./interfaces/IgBERA.sol";
-import { IPorridge } from "./interfaces/IPorridge.sol";
+import { FixedPointMathLib } from "../../lib/solady/src/utils/FixedPointMathLib.sol";
+import { SafeTransferLib } from "../../lib/solady/src/utils/SafeTransferLib.sol";
+import { ERC20 } from "../../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import { IERC20 } from "../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import { ERC721 } from "../../lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
+import { IERC721 } from "../../lib/openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
+import { IPorridge } from "../interfaces/IPorridge.sol";
 
 
 /// @title Goldilend
 /// @notice Berachain NFT Lending
 /// @author ampnoob
 /// @author geeb
-contract Goldilend {
+contract Goldilend is ERC20("gBERA Token", "gBERA") {
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -85,28 +85,24 @@ contract Goldilend {
   uint32 public constant ONE_YEAR = MONTH_DAYS * 12;
 
   address public beraAddress;
-  address public gberaAddress;
   address public porridgeAddress;
   address public adminAddress;
   address public treasuryAddress;
 
   mapping (address => Boost) public boosts;
   mapping (address => Stake) public stakes;
-  mapping (uint256 => Loan) public loanLookup;
+  mapping (address => Loan) public loans;
 
-  mapping (bytes32 => uint) public fairValue;
-  mapping (bytes32 => uint) public boostSizes;
-
-  mapping (uint256 => bool) public liquidated;
   mapping (address => uint8) public partnerNFTBoosts;
-
-  Loan[] public loans;
+  mapping (address => uint256) public nftFairValues;
+  
+  mapping (uint256 => bool) public liquidated;
 
   uint256 totalValuation;
   uint256 poolSize;
   uint256 gberaRatio;
-  uint256 loanIdTracker = 0;
-  uint256 debt = 0;
+  uint256 loanIdTracker;
+  uint256 debt;
   uint256 interestRate = 15;
   uint256 porridgeMultiple;
   uint256 emissionsStart;
@@ -120,7 +116,6 @@ contract Goldilend {
   /// @notice Constructor of this contract
   /// @param _startingSize Starting size of the lending pool
   /// @param _beraAddress Address of $BERA
-  /// @param _gberaAddress Address of $gBERA
   /// @param _porridgeAddress Address of $PRG
   /// @param _adminAddress Address of the Goldilocks DAO multisig
   /// @param _partnerNFTs Partnership NFTs
@@ -128,7 +123,6 @@ contract Goldilend {
   constructor(
     uint256 _startingSize, 
     address _beraAddress, 
-    address _gberaAddress, 
     address _porridgeAddress,
     address _adminAddress,
     address[] memory _partnerNFTs, 
@@ -136,7 +130,6 @@ contract Goldilend {
   ) {
     poolSize = _startingSize;
     beraAddress = _beraAddress;
-    gberaAddress = _gberaAddress;
     porridgeAddress = _porridgeAddress;
     adminAddress = _adminAddress;
     emissionsStart = block.timestamp;
@@ -162,6 +155,7 @@ contract Goldilend {
   error InvalidLoanDuration();
   error InvalidLoanAmount();
   error InvalidCollateral();
+  error BorrowLimitExceeded();
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -235,6 +229,7 @@ contract Goldilend {
       IERC721(userBoost.partnerNFTs[i]).safeTransferFrom(address(this), msg.sender, userBoost.partnerNFTIDs[i]);
     }
     boosts[msg.sender].boostMagnitude = 0;
+    boosts[msg.sender].expiry = 0;
   }
   
   //todo: add code to stake bera in consensus vault, add existing consensus vault rewards to pool and update gbera ratio
@@ -242,8 +237,8 @@ contract Goldilend {
   /// @param lockAmount Amount of $BERA to lock
   function lock(uint256 lockAmount) external {
     poolSize += lockAmount;
-    IERC20(beraAddress).transferFrom(msg.sender, address(this), lockAmount);
-    IgBERA(gberaAddress).mint(msg.sender, lockAmount * gberaRatio);
+    SafeTransferLib.safeTransferFrom(beraAddress, msg.sender, address(this), lockAmount);
+    _mint(msg.sender, lockAmount * gberaRatio);
   }
 
   /// @notice Stakes $gBERA
@@ -257,10 +252,9 @@ contract Goldilend {
       stakedBalance: stakes[msg.sender].stakedBalance + stakeAmount
     });
     stakes[msg.sender] = userStake;
-    IERC20(gberaAddress).transferFrom(msg.sender, address(this), stakeAmount);
+    SafeTransferLib.safeTransferFrom(address(this), msg.sender, address(this), stakeAmount);
   }
 
-  //todo: use solady safetranfser instead here
   /// @notice Unstakes $gBERA
   /// @param unstakeAmount Amount of $gBERA to unstake
   function unstake(uint256 unstakeAmount) external {
@@ -272,7 +266,7 @@ contract Goldilend {
     });
     _claim();
     stakes[msg.sender] = userStake;
-    IERC20(gberaAddress).transfer(msg.sender, unstakeAmount);
+    SafeTransferLib.safeTransfer(address(this), msg.sender, unstakeAmount);
   }
 
   /// @notice Claims $gBERA staking rewards
@@ -309,30 +303,18 @@ contract Goldilend {
     if(duration < FORTNITE || duration > ONE_YEAR) revert InvalidLoanDuration();
     if(borrowAmount > poolSize / 10) revert InvalidLoanAmount();
     if(collateralNFTs.length != collateralNFTIDs.length) revert ArrayMismatch();
-    // uint256 fairValue;
-    for(uint256 i; i < collateralNFTs.length; i++) {
-      // require(isBear(_collateral[i], _collectionIds[i]) == true && ownerOf(_collateral[i]) == msg.sender, "insufficiently dank collateral");
-      // fairValue += (fairValue[_collectionIDs[i]]*totalValuation)/100;
+    uint256 fairValue = _calculateFairValue(collateralNFTs);
+    uint256 _debt = debt;
+    if(borrowAmount > fairValue || borrowAmount > poolSize - _debt) revert BorrowLimitExceeded();
+    uint256 interest = _calculateInterest(borrowAmount, _debt);
+    Boost memory userBoost = boosts[msg.sender];
+    if(userBoost.expiry > block.timestamp + duration) {
+      uint256 discount = 50;
+      if(userBoost.boostMagnitude < discount) {
+        discount = 100 - userBoost.boostMagnitude;
+      }
+      interest = interest * discount / 100;
     }
-
-    // require(_borrowAmount <= _fairValue && _borrowamount <= poolSize - debt, "borrow limit exceeded");
-    // for(uint256 i; i < _collateral.length; i++) {
-    //   collateral[i].transfer(msg.sender, address(this));
-    // } 
-
-    // uint256 _ratio = ((2*10**18*debt + borrowAmount)/poolsize + 1)/2;
-    // uint256 _interestRate = (interestRate*10**18) + (10*interestRate*_duration*ratio/365);
-    // uint256 _interest = (_interestRate*borrowedAmount*_duration)/(365*10**20);
-    // if (boosted[msg.sender] == true){
-    //   _boost = boostLookup[msg.sender];
-    //   if (_boost.expiry > block.timestamp + preciseDuration){
-    //     uint256 _discount = 50;
-    //     if _boost.boostMagnitude < 50 {
-    //       _discount = 100 - _boost.boostMagnitude;
-    //     }
-    //     _interest = (discount*_interest)/100;
-    //   }
-    // }
 
     // loanIdTracker += 1;
     // debt = debt _ borrowAmount;
@@ -347,9 +329,11 @@ contract Goldilend {
     //   loanId: loanIdTracker
     // });
 
-    // loans.push(_loan);
     // liquidated[_loan.loanId] = false;
 
+    // for(uint256 i; i < _collateral.length; i++) {
+    //   collateral[i].transfer(msg.sender, address(this));
+    // } 
     // IERC20(beraAddress).transferFrom(address(this), msg.sender, borrowAmount);
   }
 
@@ -424,5 +408,26 @@ contract Goldilend {
     if (userBoost.expiry > block.timestamp) {
       porridgeEarned = (porridgeEarned * (100 + userBoost.boostMagnitude)) / 100;
     }
+  }
+
+  //todo: check with amp about this calculation
+  /// @notice Calculates the fair value of NFTs being borrowed against
+  /// @param collateralNFTs NFT collections to find value of
+  /// @return fairValue Fair value of NFTs
+  function _calculateFairValue(address[] calldata collateralNFTs) internal view returns (uint256 fairValue) {
+    uint256 _totalValuation = totalValuation;
+    for(uint256 i; i < collateralNFTs.length; i++) {
+      fairValue += (nftFairValues[collateralNFTs[i]] * _totalValuation) / 100;
+    }
+  }
+
+  /// @notice Caluclates the total interest due at repayment
+  /// @param borrowAmount Amount to be borrowed
+  /// @param _debt Current amount of outstanding debt
+  /// @return interest Total interest due at repayment
+  function _calculateInterest(uint256 borrowAmount, uint256 _debt) internal view returns (uint256 interest) {
+    // uint256 _ratio = ((2*10**18*debt + borrowAmount)/poolsize + 1)/2;
+    // uint256 _interestRate = (interestRate*10**18) + (10*interestRate*_duration*ratio/365);
+    // interest = (_interestRate*borrowedAmount*_duration)/(365*10**20);
   }
 }
