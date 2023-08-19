@@ -89,6 +89,14 @@ export const NavBar = () => {
               borrow
             </button>
           </a>
+          <a href="/goldilend">
+            <button 
+              className="w-20 2xl:w-24 py-2 text-[16px] 2xl:text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme" 
+              id="home-button"
+            >
+              goldilend
+            </button>
+          </a>
           <ConnectButton.Custom>
             {({
               account,

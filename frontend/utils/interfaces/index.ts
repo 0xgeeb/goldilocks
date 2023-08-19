@@ -182,6 +182,10 @@ export interface BorrowingInitialState {
   refreshBorrowInfo: () =>  void;
 }
 
+export interface GoldilendInitialState {
+  
+}
+
 export interface SideToggleProps {
   showChart: boolean;
   toggleChart: MouseEventHandler<HTMLButtonElement>; 
