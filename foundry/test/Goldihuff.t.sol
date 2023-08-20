@@ -9,7 +9,7 @@ contract GoldihuffTest is Test {
   Goldihuff goldihuff;
 
   function setUp() public {
-    goldihuff = Goldihuff(HuffDeployer.deploy("Goldihuff"));
+    goldihuff = Goldihuff(HuffDeployer.deploy("mock/Goldihuff"));
   }
 
   function testHuffDivide() public {

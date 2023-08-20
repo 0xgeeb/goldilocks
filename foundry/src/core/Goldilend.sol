@@ -17,11 +17,10 @@ pragma solidity ^0.8.19;
 // ==============================================================================================
 
 
+//todo: implement this lib on all e18 number math
 import { FixedPointMathLib } from "../../lib/solady/src/utils/FixedPointMathLib.sol";
 import { SafeTransferLib } from "../../lib/solady/src/utils/SafeTransferLib.sol";
 import { ERC20 } from "../../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
-import { IERC20 } from "../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import { ERC721 } from "../../lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
 import { IERC721 } from "../../lib/openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
 import { IPorridge } from "../interfaces/IPorridge.sol";
 
@@ -39,18 +38,19 @@ contract Goldilend is ERC20("gBERA Token", "gBERA") {
 
 
   struct Loan {
-    ERC721[] collateralTokens;
+    address[] collateralNFTs;
+    uint256[] collateralNFTIds;
     uint256 borrowedAmount;
     uint256 interest;
     uint256 startDate;
-    address userAddress;
     uint256 duration;
     uint256 loanId;
+    bool liquidated;
   }
 
   struct Boost {
     address[] partnerNFTs;
-    uint256[] partnerNFTIDs;
+    uint256[] partnerNFTIds;
     uint256 expiry;
     uint256 boostMagnitude;
   }
@@ -58,7 +58,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA") {
   struct Auction {
     uint256 startDate;
     uint256 endDate;
-    ERC721[] tokens;
+    address[] tokens;
     uint256 startPrice;
     uint256 auctionId;
     uint256 highestBid;
@@ -89,23 +89,20 @@ contract Goldilend is ERC20("gBERA Token", "gBERA") {
   address public adminAddress;
   address public treasuryAddress;
 
-  mapping (address => Boost) public boosts;
-  mapping (address => Stake) public stakes;
-  mapping (address => Loan) public loans;
+  mapping(address => Boost) public boosts;
+  mapping(address => Stake) public stakes;
+  mapping(address => Loan[]) public loans;
 
-  mapping (address => uint8) public partnerNFTBoosts;
-  mapping (address => uint256) public nftFairValues;
-  
-  mapping (uint256 => bool) public liquidated;
+  mapping(address => uint8) public partnerNFTBoosts;
+  mapping(address => uint256) public nftFairValues;
 
+  uint256 emissionsStart;
   uint256 totalValuation;
+  uint256 protocolInterestRate = 15;
+  uint256 outstandingDebt;
   uint256 poolSize;
   uint256 gberaRatio;
-  uint256 loanIdTracker;
-  uint256 debt;
-  uint256 interestRate = 15;
   uint256 porridgeMultiple;
-  uint256 emissionsStart;
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -156,6 +153,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA") {
   error InvalidLoanAmount();
   error InvalidCollateral();
   error BorrowLimitExceeded();
+  error ExcessiveRepay();
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -163,6 +161,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA") {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
+  //todo: add deez
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -184,29 +183,38 @@ contract Goldilend is ERC20("gBERA Token", "gBERA") {
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+  /*                       VIEW FUNCTIONS                       */
+  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+
+  //todo: add deez
+
+
+  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
   /*                      EXTERNAL FUNCTIONS                    */
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
+  //todo: bug here where if user boosts twice the first boost NFTs would be stuck in contract
   /// @notice Locks partner NFTs to receive boost on staking yield and discounted borrowing rates
   /// @param partnerNFTs Array of NFT addresses to transfer to this contract
-  /// @param partnerNFTIDs Array of token IDs for NFTs to be transferred
+  /// @param partnerNFTIds Array of token IDs for NFTs to be transferred
   /// @param expiry Expiration date of the boost
   function boost(
     address[] calldata partnerNFTs, 
-    uint256[] calldata partnerNFTIDs, 
+    uint256[] calldata partnerNFTIds, 
     uint256 expiry
   ) external {
     if(expiry < block.timestamp + MONTH_DAYS) revert ShortExpiration();
-    if(partnerNFTs.length != partnerNFTIDs.length) revert ArrayMismatch();
+    if(partnerNFTs.length != partnerNFTIds.length) revert ArrayMismatch();
     uint256 magnitude;
     for(uint8 i; i < partnerNFTs.length; i++) {
-      IERC721(partnerNFTs[i]).safeTransferFrom(msg.sender, address(this), partnerNFTIDs[i]);
+      IERC721(partnerNFTs[i]).safeTransferFrom(msg.sender, address(this), partnerNFTIds[i]);
       magnitude += partnerNFTBoosts[partnerNFTs[i]];
     }
     Boost memory userBoost = Boost({
       partnerNFTs: partnerNFTs,
-      partnerNFTIDs: partnerNFTIDs,
+      partnerNFTIds: partnerNFTIds,
       expiry: expiry,
       boostMagnitude: magnitude
     });
@@ -226,7 +234,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA") {
     if(userBoost.expiry == 0) revert InvalidBoost();
     if(userBoost.expiry > block.timestamp) revert BoostNotExpired();
     for(uint8 i; i < userBoost.partnerNFTs.length; i++) {
-      IERC721(userBoost.partnerNFTs[i]).safeTransferFrom(address(this), msg.sender, userBoost.partnerNFTIDs[i]);
+      IERC721(userBoost.partnerNFTs[i]).safeTransferFrom(address(this), msg.sender, userBoost.partnerNFTIds[i]);
     }
     boosts[msg.sender].boostMagnitude = 0;
     boosts[msg.sender].expiry = 0;
@@ -275,38 +283,23 @@ contract Goldilend is ERC20("gBERA Token", "gBERA") {
     _claim();
   }
 
-  //todo: add similar implementation as other borrow
   /// @notice Borrows $BERA against value of NFT
-  /// @param borrowAmount Amount of $HONEY to borrow
+  /// @param borrowAmount Amount of $BERA to borrow
   /// @param duration Duration of loan
   /// @param collateralNFT NFT collection to use as collateral
-  /// @param collateralNFTID Token IDs of NFT to use as collateral
+  /// @param collateralNFTId Token Id of NFT to use as collateral
   function borrow(
     uint256 borrowAmount,
     uint256 duration,
     address collateralNFT,
-    uint256 collateralNFTID
-  ) external {}
-
-
-  /// @notice Borrows $BERA against value of NFTs
-  /// @param borrowAmount Amount of $HONEY to borrow
-  /// @param duration Duration of loan
-  /// @param collateralNFTs NFT collections to use as collateral
-  /// @param collateralNFTIDs Token IDs of NFTs to use as collateral
-  function borrow(
-    uint256 borrowAmount, 
-    uint256 duration, 
-    address[] calldata collateralNFTs, 
-    uint256[] calldata collateralNFTIDs
+    uint256 collateralNFTId
   ) external {
     if(duration < FORTNITE || duration > ONE_YEAR) revert InvalidLoanDuration();
     if(borrowAmount > poolSize / 10) revert InvalidLoanAmount();
-    if(collateralNFTs.length != collateralNFTIDs.length) revert ArrayMismatch();
-    uint256 fairValue = _calculateFairValue(collateralNFTs);
-    uint256 _debt = debt;
-    if(borrowAmount > fairValue || borrowAmount > poolSize - _debt) revert BorrowLimitExceeded();
-    uint256 interest = _calculateInterest(borrowAmount, _debt);
+    uint256 fairValue = nftFairValues[collateralNFT] * totalValuation / 100;
+    uint256 debt = outstandingDebt;
+    if(borrowAmount > fairValue || borrowAmount > poolSize - debt) revert BorrowLimitExceeded();
+    uint256 interest = _calculateInterest(borrowAmount, debt, duration);
     Boost memory userBoost = boosts[msg.sender];
     if(userBoost.expiry > block.timestamp + duration) {
       uint256 discount = 50;
@@ -315,73 +308,115 @@ contract Goldilend is ERC20("gBERA Token", "gBERA") {
       }
       interest = interest * discount / 100;
     }
-
-    // loanIdTracker += 1;
-    // debt = debt _ borrowAmount;
-
-    // Loan memory _loan = Loan({
-    //   collateralTokens: _collateral,
-    //   borrowedAmount: _borrowAmount + _interest,
-    //   interest: _interest,
-    //   startDate: block.timestamp,
-    //   userAddress: msg.sender,
-    //   duration: preciseDuration,
-    //   loanId: loanIdTracker
-    // });
-
-    // liquidated[_loan.loanId] = false;
-
-    // for(uint256 i; i < _collateral.length; i++) {
-    //   collateral[i].transfer(msg.sender, address(this));
-    // } 
-    // IERC20(beraAddress).transferFrom(address(this), msg.sender, borrowAmount);
+    outstandingDebt = debt + borrowAmount;
+    address[] memory collateralNFTs = new address[](1);
+    collateralNFTs[0] = collateralNFT;
+    uint256[] memory collateralNFTIds = new uint256[](1);
+    collateralNFTIds[0] = collateralNFTId;
+    Loan memory loan = Loan({
+      collateralNFTs: collateralNFTs,
+      collateralNFTIds: collateralNFTIds,
+      borrowedAmount: borrowAmount + interest,
+      interest: interest,
+      startDate: block.timestamp,
+      duration: duration,
+      loanId: loans[msg.sender].length,
+      liquidated: false
+    });
+    loans[msg.sender].push(loan);
+    IERC721(collateralNFT).safeTransferFrom(msg.sender, address(this), collateralNFTId);
+    SafeTransferLib.safeTransfer(beraAddress, msg.sender, borrowAmount);
   }
 
-  function repay(uint256 _repayAmount, uint256 _loanId) external {
-    // Loan _loan = loans[_loanId];
-    // require(block.timestamp <= _loan.startDate + _loan.duration);
-    // require(_repayAmount >= 0, "can't repay zero");
-    // require(_loan.borrowedAmount >= _repayAmount, "repaying too much");
-    // bera.transferFrom(msg.sender, address(this), _repayAmount);
-    // uint256 _ratio = loan.interest*10**18/loan.borrowedAmount;
-    // uint256 _interest = (_repayAmount*_ratio)/10**18;
-    // // debt -= (_repayAmount - _interest);
-    // _loan.borrowedAmount -= _repayAmount;
-    // _loan.interest -= _interest;
-    // loans[_loanId] = _loan;
-    // if(_loan.borrowedAmount == 0) {
-    //   for(uint256 i=0; i < loan.collateral.length; i++){
-    //     loan.collateral[i].transfer(address(this), msg.sender);
-    //   }
-    // }
-    // poolsize += _interest*95/100; 
-    // bera.transferFrom(address(this), treasuryAddress, _interest*5/100);
-    // gberaRatio =  gbera.supply()*10**18/poolSize;
+  /// @notice Borrows $BERA against value of NFTs
+  /// @param borrowAmount Amount of $BERA to borrow
+  /// @param duration Duration of loan
+  /// @param collateralNFTs NFT collections to use as collateral
+  /// @param collateralNFTIds Token IDs of NFTs to use as collateral
+  function borrow(
+    uint256 borrowAmount, 
+    uint256 duration, 
+    address[] calldata collateralNFTs, 
+    uint256[] calldata collateralNFTIds
+  ) external {
+    if(duration < FORTNITE || duration > ONE_YEAR) revert InvalidLoanDuration();
+    if(borrowAmount > poolSize / 10) revert InvalidLoanAmount();
+    if(collateralNFTs.length != collateralNFTIds.length) revert ArrayMismatch();
+    uint256 fairValue = _calculateFairValue(collateralNFTs);
+    uint256 debt = outstandingDebt;
+    if(borrowAmount > fairValue || borrowAmount > poolSize - debt) revert BorrowLimitExceeded();
+    uint256 interest = _calculateInterest(borrowAmount, debt, duration);
+    Boost memory userBoost = boosts[msg.sender];
+    if(userBoost.expiry > block.timestamp + duration) {
+      uint256 discount = 50;
+      if(userBoost.boostMagnitude < discount) {
+        discount = 100 - userBoost.boostMagnitude;
+      }
+      interest = interest * discount / 100;
+    }
+    outstandingDebt = debt + borrowAmount;
+    Loan memory loan = Loan({
+      collateralNFTs: collateralNFTs,
+      collateralNFTIds: collateralNFTIds,
+      borrowedAmount: borrowAmount + interest,
+      interest: interest,
+      startDate: block.timestamp,
+      duration: duration,
+      loanId: loans[msg.sender].length,
+      liquidated: false
+    });
+    loans[msg.sender].push(loan);
+    for(uint256 i; i < collateralNFTs.length; i++) {
+      IERC721(collateralNFTs[i]).safeTransferFrom(msg.sender, address(this), collateralNFTIds[i]);
+    } 
+    SafeTransferLib.safeTransfer(beraAddress, msg.sender, borrowAmount);
   }
 
+  //todo: add code to stake bera in consensus vault, add existing consensus vault rewards to pool and update gbera ratio
+  //todo: test loanid lookup method and if someone can access someone elses
+  //todo: ask amp about interest math
+  //todo: update loan data
+  /// @notice Repays loan of $BERA
+  /// @param repayAmount Amount of $BERA to repay
+  /// @param userLoanId ID of loan to repay
+  function repay(uint256 repayAmount, uint256 userLoanId) external {
+    Loan memory userLoan = _lookupLoan(userLoanId);
+    if(userLoan.borrowedAmount < repayAmount) revert ExcessiveRepay();
+    // require(block.timestamp <= userLoan.startDate + userLoan.duration);
+    uint256 interestLoanRatio = userLoan.interest / userLoan.borrowedAmount;
+    uint256 interest = repayAmount * interestLoanRatio;
+    outstandingDebt -= repayAmount - interest;
+    userLoan.borrowedAmount -= repayAmount;
+    userLoan.interest -= interest;
+    // loans[userLoanId] = userLoan;
+    if(userLoan.borrowedAmount == 0) {
+      for(uint256 i; i < userLoan.collateralNFTs.length; i++){
+      IERC721(userLoan.collateralNFTs[i]).safeTransferFrom(address(this), msg.sender, userLoan.collateralNFTIds[i]);
+      }
+    }
+    poolSize += interest * 95 / 100; 
+    // gberaRatio =  _totalSupply / poolSize;
+    SafeTransferLib.safeTransfer(beraAddress, treasuryAddress, interest * 5 / 100);
+    SafeTransferLib.safeTransferFrom(beraAddress, msg.sender, address(this), repayAmount);
+  }
 
-  //function to liquidate overdue loans and pay bera to purchase collateral
-  function liquidate(uint256 _loanId) external {
-    // Loan _loan = loans[_loanId];
-    // require(block.timestamp > _loan.startDate + _loan.duration && _loan.borrowedAmount > 0, "borrower has not defaulted");
-    // require(bera.balanceOf(msg.sender) >= _loan.borrowedAmount);
-    // bera.transferFrom(msg.sender, address(this), _loan.borrowedAmount);
-    // poolsize += _loan.interest*95/100;
+  /// @notice Liquidates overdue loans by paying $BERA to purchase collateral
+  /// @param loanId Loan to be liquidated
+  function liquidate(uint256 loanId) external {
+    // Loan userLoan = loans[userLoanId];
+    // require(block.timestamp > userLoan.startDate + userLoan.duration && userLoan.borrowedAmount > 0, "borrower has not defaulted");
+    // require(bera.balanceOf(msg.sender) >= userLoan.borrowedAmount);
+    // bera.transferFrom(msg.sender, address(this), userLoan.borrowedAmount);
+    // poolsize += userLoan.interest*95/100;
     // bera.transferFrom(address(this), treasuryAddress, _interest*5/100);
-    // liquidated[_loanId] = true;
+    // liquidated[userLoanId] = true;
     // gberaRatio = gbera.supply()*10**18/poolsize;
-    // debt -= (_loan.borrowedAmount - _loan.interest);
-    // loans[_loanId].borrowedAmount = 0;
-    // for(uint256 i; i < _loan.collateralTokens.length; i++) {
-    //   _loan.collateralTokens[i].transfer(address(this), msg.sender);
+    // debt -= (userLoan.borrowedAmount - userLoan.interest);
+    // loans[userLoanId].borrowedAmount = 0;
+    // for(uint256 i; i < userLoan.collateralTokens.length; i++) {
+    //   userLoan.collateralTokens[i].transfer(address(this), msg.sender);
     // }
   }
-
-  /// @notice Allows the DAO to adjust the valuation of the NFT's and the interest rate
-  function setValue(uint256 value, uint256 rate) external onlyTreasury {
-    totalValuation = value;
-    interestRate = rate;
-  } 
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -415,19 +450,43 @@ contract Goldilend is ERC20("gBERA Token", "gBERA") {
   /// @param collateralNFTs NFT collections to find value of
   /// @return fairValue Fair value of NFTs
   function _calculateFairValue(address[] calldata collateralNFTs) internal view returns (uint256 fairValue) {
-    uint256 _totalValuation = totalValuation;
     for(uint256 i; i < collateralNFTs.length; i++) {
-      fairValue += (nftFairValues[collateralNFTs[i]] * _totalValuation) / 100;
+      fairValue += (nftFairValues[collateralNFTs[i]] * totalValuation) / 100;
     }
   }
 
   /// @notice Caluclates the total interest due at repayment
   /// @param borrowAmount Amount to be borrowed
-  /// @param _debt Current amount of outstanding debt
+  /// @param debt Current amount of outstanding debt
   /// @return interest Total interest due at repayment
-  function _calculateInterest(uint256 borrowAmount, uint256 _debt) internal view returns (uint256 interest) {
-    // uint256 _ratio = ((2*10**18*debt + borrowAmount)/poolsize + 1)/2;
-    // uint256 _interestRate = (interestRate*10**18) + (10*interestRate*_duration*ratio/365);
-    // interest = (_interestRate*borrowedAmount*_duration)/(365*10**20);
+  function _calculateInterest(
+    uint256 borrowAmount, 
+    uint256 debt,
+    uint256 duration
+  ) internal view returns (uint256 interest) {
+    uint256 rate = protocolInterestRate;
+    uint256 ratio = ((2 * (debt + borrowAmount)) / poolSize + 1) / 2;
+    uint256 interestRate = rate + (10 * rate * duration * ratio / 365);
+    interest = (interestRate * borrowAmount * duration) / 365;
   }
+
+  //todo: implement this
+  /// @notice Finds the loan by userId
+  /// @param userLoanId Id of loan to be found
+  function _lookupLoan(uint256 userLoanId) internal view returns (Loan memory userLoan) {
+    return loans[msg.sender][userLoanId];
+  }
+
+
+  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+  /*                    PERMISSIONED FUNCTION                   */
+  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+
+  /// @notice Allows the DAO to adjust the valuation of the NFT's and the interest rate
+  function setValue(uint256 value, uint256 rate) external onlyTreasury {
+    totalValuation = value;
+    protocolInterestRate = rate;
+  } 
+
 }
