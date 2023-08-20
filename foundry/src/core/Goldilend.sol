@@ -42,8 +42,8 @@ contract Goldilend is ERC20("gBERA Token", "gBERA") {
     uint256[] collateralNFTIds;
     uint256 borrowedAmount;
     uint256 interest;
-    uint256 startDate;
     uint256 duration;
+    uint256 endDate;
     uint256 loanId;
     bool liquidated;
   }
@@ -53,18 +53,6 @@ contract Goldilend is ERC20("gBERA Token", "gBERA") {
     uint256[] partnerNFTIds;
     uint256 expiry;
     uint256 boostMagnitude;
-  }
-
-  struct Auction {
-    uint256 startDate;
-    uint256 endDate;
-    address[] tokens;
-    uint256 startPrice;
-    uint256 auctionId;
-    uint256 highestBid;
-    address highestBidder;
-    address interest;
-    bool claimed;
   }
 
   struct Stake {
@@ -156,6 +144,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA") {
   error ExcessiveRepay();
   error LoanNotFound();
   error LoanExpired();
+  error UnLiquidatable();
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -325,8 +314,8 @@ contract Goldilend is ERC20("gBERA Token", "gBERA") {
       collateralNFTIds: collateralNFTIds,
       borrowedAmount: borrowAmount + interest,
       interest: interest,
-      startDate: block.timestamp,
       duration: duration,
+      endDate: block.timestamp + duration,
       loanId: loans[msg.sender].length,
       liquidated: false
     });
@@ -367,8 +356,8 @@ contract Goldilend is ERC20("gBERA Token", "gBERA") {
       collateralNFTIds: collateralNFTIds,
       borrowedAmount: borrowAmount + interest,
       interest: interest,
-      startDate: block.timestamp,
       duration: duration,
+      endDate: block.timestamp + duration,
       loanId: loans[msg.sender].length + 1,
       liquidated: false
     });
@@ -382,14 +371,13 @@ contract Goldilend is ERC20("gBERA Token", "gBERA") {
   //todo: add code to stake bera in consensus vault, add existing consensus vault rewards to pool and update gbera ratio
   //todo: test loanid lookup method and if someone can access someone elses
   //todo: ask amp about interest math
-  //todo: if user doesnt repay before expiration, nfts would be stuck in contract
   /// @notice Repays loan of $BERA
   /// @param repayAmount Amount of $BERA to repay
   /// @param userLoanId ID of loan to repay
   function repay(uint256 repayAmount, uint256 userLoanId) external {
     (Loan memory userLoan, uint256 index) = _lookupLoan(msg.sender, userLoanId);
     if(userLoan.borrowedAmount < repayAmount) revert ExcessiveRepay();
-    if(block.timestamp > userLoan.startDate + userLoan.duration) revert LoanExpired();
+    if(block.timestamp > userLoan.endDate) revert LoanExpired();
     uint256 interestLoanRatio = userLoan.interest / userLoan.borrowedAmount;
     uint256 interest = repayAmount * interestLoanRatio;
     outstandingDebt -= repayAmount - interest;
@@ -406,22 +394,23 @@ contract Goldilend is ERC20("gBERA Token", "gBERA") {
     SafeTransferLib.safeTransferFrom(beraAddress, msg.sender, address(this), repayAmount);
   }
 
+  //todo: check with amp about expirations
   /// @notice Liquidates overdue loans by paying $BERA to purchase collateral
-  /// @param loanId Loan to be liquidated
-  function liquidate(uint256 loanId) external {
-    // Loan userLoan = loans[userLoanId];
-    // require(block.timestamp > userLoan.startDate + userLoan.duration && userLoan.borrowedAmount > 0, "borrower has not defaulted");
-    // require(bera.balanceOf(msg.sender) >= userLoan.borrowedAmount);
-    // bera.transferFrom(msg.sender, address(this), userLoan.borrowedAmount);
-    // poolsize += userLoan.interest*95/100;
-    // bera.transferFrom(address(this), treasuryAddress, _interest*5/100);
-    // liquidated[userLoanId] = true;
-    // gberaRatio = gbera.supply()*10**18/poolsize;
-    // debt -= (userLoan.borrowedAmount - userLoan.interest);
-    // loans[userLoanId].borrowedAmount = 0;
-    // for(uint256 i; i < userLoan.collateralTokens.length; i++) {
-    //   userLoan.collateralTokens[i].transfer(address(this), msg.sender);
-    // }
+  /// @param user Owner of loan to be liquidated
+  /// @param userLoanId Loan to be liquidated
+  function liquidate(address user, uint256 userLoanId) external {
+    (Loan memory userLoan, uint256 index) = _lookupLoan(user, userLoanId);
+    if(block.timestamp < userLoan.endDate || userLoan.liquidated) revert UnLiquidatable();
+    loans[user][index].liquidated = true;
+    loans[user][index].borrowedAmount = 0;
+    poolSize += userLoan.interest * 95 / 100;
+    outstandingDebt -= userLoan.borrowedAmount - userLoan.interest;
+    gberaRatio = FixedPointMathLib.divWad(totalSupply(), poolSize);
+    for(uint256 i; i < userLoan.collateralNFTs.length; i++) {
+      IERC721(userLoan.collateralNFTs[i]).safeTransferFrom(address(this), msg.sender, userLoan.collateralNFTIds[i]);
+    }
+    SafeTransferLib.safeTransfer(beraAddress, treasuryAddress, userLoan.interest * 5 / 100);
+    SafeTransferLib.safeTransferFrom(beraAddress, msg.sender, address(this), userLoan.borrowedAmount);
   }
 
 
