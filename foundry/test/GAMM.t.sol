@@ -156,4 +156,18 @@ contract GAMMTest is Test {
     gamm.buy(1e18, 0);
   }
 
+  function testSuccessfulTransfer() public dealUserLocks {
+    address user = address(0x01);
+    console.log("user balance before: ", gamm.balanceOf(user));
+    console.log("this balance before: ", gamm.balanceOf(address(this)));
+
+    // bytes4(keccak256(bytes('transfer(address,uint256)')));
+    (bool success, bytes memory data) = address(gamm).call(abi.encodeWithSelector(0xa9059cbb, address(0x01), 5e18));
+    require(data.length == 0 || abi.decode(data, (bool)), 'transfer failed');
+    assertEq(true, success);
+
+    console.log("user balance after: ", gamm.balanceOf(user));
+    console.log("this balance after: ", gamm.balanceOf(address(this)));
+  }
+
 }

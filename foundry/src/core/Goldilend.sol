@@ -17,6 +17,7 @@ pragma solidity ^0.8.19;
 // ==============================================================================================
 
 
+//todo: validate bear nfts on boost and borrow and borrow functions
 //todo: implement this lib on all e18 number math
 import { FixedPointMathLib } from "../../lib/solady/src/utils/FixedPointMathLib.sol";
 import { SafeTransferLib } from "../../lib/solady/src/utils/SafeTransferLib.sol";
@@ -86,7 +87,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA") {
 
   uint256 emissionsStart;
   uint256 totalValuation;
-  uint256 protocolInterestRate = 15;
+  uint256 protocolInterestRate;
   uint256 outstandingDebt;
   uint256 poolSize;
   uint256 gberaRatio;
@@ -100,22 +101,28 @@ contract Goldilend is ERC20("gBERA Token", "gBERA") {
 
   /// @notice Constructor of this contract
   /// @param _startingPoolSize Starting size of the lending pool
+  /// @param _protocolInterestRate Interest rate of the protocol
   /// @param _beraAddress Address of $BERA
   /// @param _porridgeAddress Address of $PRG
   /// @param _adminAddress Address of the Goldilocks DAO multisig
+  /// @param _treasuryAddress Address of the Goldilocks Treasury
   /// @param _partnerNFTs Partnership NFTs
   /// @param _partnerNFTBoosts Partnership NFTs Boosts
   constructor(
-    uint256 _startingPoolSize, 
+    uint256 _startingPoolSize,
+    uint256 _protocolInterestRate,
     address _beraAddress, 
     address _porridgeAddress,
+    address _treasuryAddress,
     address _adminAddress,
     address[] memory _partnerNFTs, 
     uint8[] memory _partnerNFTBoosts
   ) {
     poolSize = _startingPoolSize;
+    protocolInterestRate = _protocolInterestRate;
     beraAddress = _beraAddress;
     porridgeAddress = _porridgeAddress;
+    treasuryAddress = _treasuryAddress;
     adminAddress = _adminAddress;
     emissionsStart = block.timestamp;
     for(uint8 i; i < _partnerNFTs.length; i++) {
@@ -236,13 +243,13 @@ contract Goldilend is ERC20("gBERA Token", "gBERA") {
     boosts[msg.sender].expiry = 0;
   }
   
-  //todo: add code to stake bera in consensus vault, add existing consensus vault rewards to pool and update gbera ratio
   /// @notice Locks $BERA and mints $gBERA
   /// @param lockAmount Amount of $BERA to lock
   function lock(uint256 lockAmount) external {
     poolSize += lockAmount;
     SafeTransferLib.safeTransferFrom(beraAddress, msg.sender, address(this), lockAmount);
     _mint(msg.sender, lockAmount * gberaRatio);
+    _refreshBera(lockAmount);
   }
 
   /// @notice Stakes $gBERA
@@ -368,7 +375,6 @@ contract Goldilend is ERC20("gBERA Token", "gBERA") {
     SafeTransferLib.safeTransfer(beraAddress, msg.sender, borrowAmount);
   }
 
-  //todo: add code to stake bera in consensus vault, add existing consensus vault rewards to pool and update gbera ratio
   //todo: test loanid lookup method and if someone can access someone elses
   //todo: ask amp about interest math
   /// @notice Repays loan of $BERA
@@ -383,7 +389,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA") {
     outstandingDebt -= repayAmount - interest;
     loans[msg.sender][index].borrowedAmount -= repayAmount;
     loans[msg.sender][index].interest -= interest;
-    poolSize += interest * 95 / 100; 
+    poolSize += interest * 95 / 100;
     gberaRatio = FixedPointMathLib.divWad(totalSupply(), poolSize);
     if(userLoan.borrowedAmount - repayAmount == 0) {
       for(uint256 i; i < userLoan.collateralNFTs.length; i++){
@@ -392,6 +398,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA") {
     }
     SafeTransferLib.safeTransfer(beraAddress, treasuryAddress, interest * 5 / 100);
     SafeTransferLib.safeTransferFrom(beraAddress, msg.sender, address(this), repayAmount);
+    _refreshBera(repayAmount);
   }
 
   //todo: check with amp about expirations
@@ -466,11 +473,22 @@ contract Goldilend is ERC20("gBERA Token", "gBERA") {
 
   /// @notice Finds the loan by userId
   /// @param userLoanId Id of loan to be found
-  function _lookupLoan(address user, uint256 userLoanId) internal view returns (Loan memory userLoan, uint256 index) {
+  function _lookupLoan(
+    address user, 
+    uint256 userLoanId
+  ) internal view returns (Loan memory userLoan, uint256 index) {
     for(uint256 i; i < loans[user].length; i++) {
       if(loans[user][i].loanId == userLoanId) return (loans[user][i], i);
     }
     revert LoanNotFound();
+  }
+
+  //todo: implement this
+  /// @notice Stakes $BERA in Berachain Consensus Vault, 
+  /// claims existing vault rewards, and updates $gBERA ratio
+  /// @param beraAmount Amount of $BERA to stake
+  function _refreshBera(uint256 beraAmount) internal {
+
   }
 
 
