@@ -102,6 +102,7 @@ export interface GammInitialState {
   setBottomInputFlag: (_bool: boolean) => void;
   changeSlippage: (_amount: number, _displayString: string) => void;
   changeSlippageToggle: (_toggle: boolean) => void;
+  checkSlippageAmount: () => void;
   activeToggle: string;
   changeActiveToggle: (_toggle: string) => void;
   displayString: string;

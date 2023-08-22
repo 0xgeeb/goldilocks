@@ -54,6 +54,7 @@ const INITIAL_STATE: GammInitialState = {
 
   changeSlippage: (_amount: number, _displayString: string) => {},
   changeSlippageToggle: (_toggle: boolean) => {},
+  checkSlippageAmount: () => {},
 
   activeToggle: 'buy',
   changeActiveToggle: (_toggle: string) => {},
@@ -136,6 +137,7 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
     updatedState.amount = amount
     updatedState.displayString = displayString
     setSlippageState(updatedState)
+    localStorage.setItem('slippageAmount', amount.toString())
   }
 
   const changeSlippageToggle = (toggle: boolean) => {
@@ -366,7 +368,6 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
     }
 
     setNewInfoState(response)
-
     simulateFloorRaise(_fsl + _tax, _psl, _supply)
   }
 
@@ -421,7 +422,6 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
     }
 
     setNewInfoState(response)
-
     simulateFloorRaise(gammInfoState.fsl - rawTotal, gammInfoState.psl, gammInfoState.supply - redeemingLocksState)
   }
 
@@ -547,6 +547,13 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
     setNewInfoState(newResponse)
   }
 
+  const checkSlippageAmount = () => {
+    const storedSlippageAmount = localStorage.getItem('slippageAmount')
+    if(storedSlippageAmount !== null) {
+      changeSlippage(parseFloat(storedSlippageAmount), storedSlippageAmount)
+    }
+  }
+
   const refreshChartInfo = async () => {
     const data = publicClient.readContract({
       address: contracts.gamm.address as `0x${string}`,
@@ -604,6 +611,7 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
         handleBottomInput,
         changeActiveToggle,
         changeSlippage,
+        checkSlippageAmount,
         changeSlippageToggle,
         refreshGammInfo,
         refreshChartInfo

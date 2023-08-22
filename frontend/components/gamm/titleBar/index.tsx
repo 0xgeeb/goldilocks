@@ -1,21 +1,38 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { RedeemPopup } from "../../gamm"
 import { useGamm } from "../../../providers"
 
 export const TitleBar = () => {
 
   const [popupToggle, setPopupToggle] = useState<boolean>(false)
-  const { changeSlippageToggle, activeToggle, changeActiveToggle, refreshChartInfo } = useGamm()
+  const [infoLoading, setInfoLoading] = useState<boolean>(true)
+
+  const { 
+    slippage, 
+    changeSlippageToggle, 
+    activeToggle, 
+    changeActiveToggle, 
+    refreshChartInfo,
+    checkSlippageAmount
+  } = useGamm()
+
+  const loadingElement = () => {
+    return <span className="loader-small ml-3"></span>
+  }
 
   const test = () => {
     // navigator.geolocation.getCurrentPosition(position => {
     //   console.log(position)
     // })
     // refreshChartInfo()
-    console.log(Math.floor(Math.random() * 4))
   }
+
+  useEffect(() => {
+    checkSlippageAmount()
+    setInfoLoading(false)
+  }, [])
 
   return (
     <>
@@ -29,13 +46,18 @@ export const TitleBar = () => {
       </h1>
       <div className="flex flex-row ml-2 items-center justify-between">
         <h3 className="font-acme text-[18px] 2xl:text-[24px] ml-2">trading between $honey & $locks</h3>
-        <div className="flex flex-row items-center">
-          <h1 
-            className="mr-4 text-[20px] 2xl:text-[28px] hover:opacity-25 hover:cursor-pointer" 
-            onClick={() => changeSlippageToggle(true)}
-          >
-            ⚙️
-          </h1>
+        <div className="flex flex-row items-center justify-between">
+          <div className="flex flex-row items-center mr-[5%]">
+            <p className="font-acme text-[13px] 2xl:text-[16px]">
+              { infoLoading ? loadingElement() : `${slippage.amount}%` }
+            </p>
+            <h1 
+              className="text-[28px] 2xl:text-[36px] hover:opacity-25 hover:cursor-pointer" 
+              onClick={() => changeSlippageToggle(true)}
+            >
+              ⚙️
+            </h1>
+          </div>
           <div className="flex flex-row bg-white rounded-2xl border-2 border-black">
             <div 
               className={`font-acme text-[13px] 2xl:text-[16px] w-[66px] 2xl:w-24 py-2 ${activeToggle === 'buy' ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-l-2xl text-center border-r-2 border-black cursor-pointer`} 
