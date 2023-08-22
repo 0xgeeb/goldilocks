@@ -23,6 +23,7 @@ import { FixedPointMathLib } from "../../lib/solady/src/utils/FixedPointMathLib.
 import { SafeTransferLib } from "../../lib/solady/src/utils/SafeTransferLib.sol";
 import { ERC20 } from "../../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import { IERC721 } from "../../lib/openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
+import { IERC721Receiver } from "../../lib/openzeppelin-contracts/contracts/token/ERC721/IERC721Receiver.sol";
 import { IPorridge } from "../interfaces/IPorridge.sol";
 
 
@@ -30,7 +31,7 @@ import { IPorridge } from "../interfaces/IPorridge.sol";
 /// @notice Berachain NFT Lending
 /// @author ampnoob
 /// @author geeb
-contract Goldilend is ERC20("gBERA Token", "gBERA") {
+contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -509,5 +510,20 @@ contract Goldilend is ERC20("gBERA Token", "gBERA") {
     totalValuation = value;
     protocolInterestRate = rate;
   } 
+
+
+  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+  /*                   IMPLEMENTATION FUNCTIONS                 */
+  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+
+  function onERC721Received(
+    address,
+    address,
+    uint256,
+    bytes calldata
+  ) external virtual returns (bytes4) {
+    return IERC721Receiver.onERC721Received.selector;
+  }
 
 }

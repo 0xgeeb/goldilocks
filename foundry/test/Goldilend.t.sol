@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import "../lib/forge-std/src/Test.sol";
+import { IERC721 } from "../lib/openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
 import { IERC721Receiver } from "../lib/openzeppelin-contracts/contracts/token/ERC721/IERC721Receiver.sol";
 import { INFT } from "../src/mock/INFT.sol";
 import { Goldilend } from "../src/core/Goldilend.sol";
@@ -68,6 +69,16 @@ contract GoldilendTest is Test, IERC721Receiver {
     INFT(address(bondbear)).mint();
     INFT(address(bandbear)).mint();
     _;
+  }
+
+  function testTransferBeras() public dealUserBeras {
+    IERC721(address(bondbear)).safeTransferFrom(address(this), address(goldilend), 1);
+    IERC721(address(bandbear)).safeTransferFrom(address(this), address(goldilend), 1);
+
+    uint256 goldilendBondBalance = IERC721(address(bondbear)).balanceOf(address(goldilend));
+    uint256 goldilendBandBalance = IERC721(address(bandbear)).balanceOf(address(goldilend));
+
+    assertEq(goldilendBondBalance + goldilendBandBalance, 2);
   }
 
   function testBorrow() public dealUserBeras {
