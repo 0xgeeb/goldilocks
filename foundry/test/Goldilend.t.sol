@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import "../lib/forge-std/src/Test.sol";
+import { IERC721Receiver } from "../lib/openzeppelin-contracts/contracts/token/ERC721/IERC721Receiver.sol";
 import { INFT } from "../src/mock/INFT.sol";
 import { Goldilend } from "../src/core/Goldilend.sol";
 import { Porridge } from "../src/core/Porridge.sol";
@@ -15,7 +16,7 @@ import { Beradrome } from "../src/mock/Beradrome.sol";
 import { BondBear } from "../src/mock/BondBear.sol";
 import { BandBear } from "../src/mock/BandBear.sol";
 
-contract GoldilendTest is Test {
+contract GoldilendTest is Test, IERC721Receiver {
 
   Goldilend goldilend;
   GAMM gamm;
@@ -42,6 +43,8 @@ contract GoldilendTest is Test {
     borrow = new Borrow(address(gamm), address(honey), address(this));
     porridge = new Porridge(address(gamm), address(borrow), address(honey));
 
+    uint256 startingPoolSize = 69;
+    uint256 protocolInterestRate = 15;
     address[] memory nfts = new address[](2);
     nfts[0] = address(honeycomb);
     nfts[1] = address(beradrome);
@@ -50,8 +53,8 @@ contract GoldilendTest is Test {
     boosts[1] = 9;
     
     goldilend = new Goldilend(
-      69,
-      15,
+      startingPoolSize,
+      protocolInterestRate,
       address(bera),
       address(porridge),
       address(this),
@@ -70,5 +73,27 @@ contract GoldilendTest is Test {
   function testBorrow() public dealUserBeras {
 
   }
+
+  function testCalculateClaim() public {
+    deal(address(goldilend), address(this), 100e18);
+    goldilend.approve(address(goldilend), 100e18);
+    goldilend.stake(100e18);
+    vm.warp(block.timestamp + (30 * porridge.DAYS_SECONDS()));
+
+    uint256 userClaimable = goldilend.getClaimable(address(this));
+
+    assertEq(userClaimable, 0);
+  }
+
+  function onERC721Received(
+    address,
+    address,
+    uint256,
+    bytes calldata
+  ) external virtual returns (bytes4) {
+    return IERC721Receiver.onERC721Received.selector;
+  }
+
+
 
 }

@@ -214,7 +214,7 @@ contract Porridge is ERC20("Porridge Token", "PRG"), ReentrancyGuard {
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-  /*                  PERMISSIONED FUNCTIONS                    */
+  /*                   PERMISSIONED FUNCTION                    */
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 

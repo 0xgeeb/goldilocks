@@ -192,6 +192,12 @@ contract Goldilend is ERC20("gBERA Token", "gBERA") {
     (loan, ) = _lookupLoan(user, userLoanId);
   }
 
+  /// @notice View the claimable $PRG of $gBERA staker
+  /// @param user $gBERA staker
+  function getClaimable(address user) external view returns (uint256) {
+    return _calculateClaim(stakes[user]);
+  }
+
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
   /*                      EXTERNAL FUNCTIONS                    */
@@ -434,6 +440,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA") {
     IPorridge(porridgeAddress).goldilendMint(msg.sender, claimed);
   }
 
+  //todo: what should porridgeMultiple be
   /// @notice Calculates claiming rewards
   /// @param userStake Struct of the user's current stake information
   function _calculateClaim(Stake memory userStake) internal view returns (uint256 porridgeEarned) {
