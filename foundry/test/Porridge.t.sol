@@ -6,6 +6,14 @@ import { Honey } from "../src/mock/Honey.sol";
 import { GAMM } from "../src/core/GAMM.sol";
 import { Borrow } from "../src/core/Borrow.sol";
 import { Porridge } from "../src/core/Porridge.sol";
+import { Goldilend } from "../src/core/Goldilend.sol";
+import { ConsensusVault } from "../src/mock/ConsensusVault.sol";
+import { Bera } from "../src/mock/Bera.sol";
+import { HoneyComb } from "../src/mock/HoneyComb.sol";
+import { Beradrome } from "../src/mock/Beradrome.sol";
+import { BondBear } from "../src/mock/BondBear.sol";
+import { BandBear } from "../src/mock/BandBear.sol";
+
 
 contract PorridgeTest is Test {
 
@@ -13,6 +21,14 @@ contract PorridgeTest is Test {
   GAMM gamm;
   Borrow borrow;
   Porridge porridge;
+
+  Goldilend goldilend;
+  Bera bera;
+  ConsensusVault consensusvault;
+  HoneyComb honeycomb;
+  Beradrome beradrome;
+  BondBear bondbear;
+  BandBear bandbear;
 
   uint256 OneDayofYield = 5e17;
   uint256 borrowAmount = 280e20;
@@ -30,6 +46,31 @@ contract PorridgeTest is Test {
     gamm.setPorridgeAddress(address(porridge));
     gamm.setBorrowAddress(address(borrow));
     borrow.setPorridgeAddress(address(porridge));
+
+    bera = new Bera();
+    honeycomb = new HoneyComb();
+    beradrome = new Beradrome();
+    bondbear = new BondBear();
+    bandbear = new BandBear();
+    consensusvault = new ConsensusVault(address(bera));
+
+    address[] memory nfts = new address[](2);
+    nfts[0] = address(honeycomb);
+    nfts[1] = address(beradrome);
+    uint8[] memory boosts = new uint8[](2);
+    boosts[0] = 6;
+    boosts[1] = 9;
+    
+    goldilend = new Goldilend(
+      69,
+      15,
+      address(bera),
+      address(porridge),
+      address(this),
+      address(this),
+      nfts,
+      boosts
+    );
   }
 
   modifier dealandStake100Locks() {
@@ -128,6 +169,17 @@ contract PorridgeTest is Test {
     assertEq(userStakedLocks, 100e18);
   }
 
+  function testStakeClaim() public dealandStake100Locks {
+    vm.warp(block.timestamp + porridge.DAYS_SECONDS());
+    deal(address(gamm), address(this), 1e18);
+    gamm.approve(address(porridge), 1e18);
+    porridge.stake(1e18);
+
+    uint256 userBalanceofPrg = porridge.balanceOf(address(this));
+
+    assertEq(userBalanceofPrg, OneDayofYield);
+  }
+
   function testInvalidUnstake() public dealandStake100Locks {
     vm.expectRevert(InvalidUnstakeSelector);
     porridge.unstake(100e18 + 1);
@@ -137,6 +189,43 @@ contract PorridgeTest is Test {
     borrow.borrow(borrowAmount);
     vm.expectRevert(LocksBorrowedAgainstSelector);
     porridge.unstake(1);
+  }
+
+  function testGetStaked() public dealandStake100Locks{
+    uint256 userStakedLocks = porridge.getStaked(address(this));
+
+    assertEq(userStakedLocks, 100e18);
+  }
+
+  function testGetStakeStartTime() public {
+    vm.warp(69);
+    deal(address(gamm), address(this), 100e18);
+    gamm.approve(address(porridge), 100e18);
+    porridge.stake(100e18);
+
+    uint256 timestamp = porridge.getStakeStartTime(address(this));
+
+    assertEq(timestamp, 69);
+  }
+
+  function testGetClaimable() public dealandStake100Locks {
+    vm.warp(block.timestamp + porridge.DAYS_SECONDS());
+
+    uint256 claimable = porridge.getClaimable(address(this));
+
+    assertEq(claimable, OneDayofYield);
+  }
+
+  function testGoldilendMint() public {
+    console.log(block.timestamp);
+    deal(address(goldilend), address(this), 100e18);
+    goldilend.approve(address(goldilend), 100e18);
+    goldilend.stake(100e18);
+    vm.warp(block.timestamp + (30 * porridge.DAYS_SECONDS()));
+
+    uint256 userBalanceofPrg = porridge.balanceOf(address(this));
+
+    assertEq(userBalanceofPrg, 0);
   }
 
 }

@@ -30,8 +30,8 @@ contract GoldilendTest is Test {
   BandBear bandbear;
 
   function setUp() public {
-    bera = new Bera();
     honey = new Honey();
+    bera = new Bera();
     honeycomb = new HoneyComb();
     beradrome = new Beradrome();
     bondbear = new BondBear();
