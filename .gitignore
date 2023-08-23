@@ -4,6 +4,7 @@ foundry/out/
 
 foundry/broadcast
 foundry/.vscode
+foundry/coverage
 
 
 # Dotenv file

@@ -7,7 +7,7 @@ import { GAMM } from  "../src/core/GAMM.sol";
 import { Borrow } from "../src/core/Borrow.sol";
 import { Honey } from "../src/mock/Honey.sol";
 
-contract DeployScript is Script {
+contract DeployAlphaScript is Script {
 
   Porridge porridge;
   GAMM gamm;
