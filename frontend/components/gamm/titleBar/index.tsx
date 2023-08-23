@@ -52,7 +52,7 @@ export const TitleBar = () => {
               { infoLoading ? loadingElement() : `${slippage.amount}%` }
             </p>
             <h1 
-              className="text-[28px] 2xl:text-[36px] hover:opacity-25 hover:cursor-pointer" 
+              className="text-[28px] 2xl:text-[36px] hover:opacity-25 hover:cursor-pointer ml-2" 
               onClick={() => changeSlippageToggle(true)}
             >
               ⚙️

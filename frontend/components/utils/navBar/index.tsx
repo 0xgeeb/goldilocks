@@ -107,15 +107,15 @@ export const NavBar = () => {
               return (
                 !mounted ?
                   <button 
-                    className={`w-20 2xl:w-24 py-2 text-[16px] 2xl:text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme`}
-                    id="home-button"
+                    className={`w-20 2xl:w-24 py-2 text-[16px] 2xl:text-[18px] bg-[#ffff00] hover:scale-[120%] rounded-xl mr-4 font-acme`}
+                    id="connect-button"
                   >
                     {loadingElement()}
                   </button> :
                 !account ?
                   <button 
-                    className={`w-20 2xl:w-24 py-2 text-[16px] 2xl:text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme`}
-                    id="home-button"
+                    className={`w-20 2xl:w-24 py-2 text-[16px] 2xl:text-[18px] bg-[#ffff00] hover:scale-[120%] rounded-xl mr-4 font-acme`}
+                    id="connect-button"
                     onClick={openConnectModal}
                   >
                     connect
