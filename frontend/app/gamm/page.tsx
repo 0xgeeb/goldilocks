@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
-import { GammMainBox, GammSideBox } from "../../components/gamm"
-import { NavBar, NotificationManager } from "../../components/utils"
+import { GammPage } from "../../components/gamm"
+import { NotificationManager } from "../../components/utils"
 import {
   NotificationProvider,
   WagmiProvider,
@@ -20,13 +20,7 @@ export default function Gamm() {
       <WagmiProvider>
         <WalletProvider>
           <GammProvider>
-            <div className="w-screen h-screen" id="page-div">
-              <NavBar />
-              <div className="h-[80%]">
-                <GammMainBox />
-                <GammSideBox />
-              </div>
-            </div>
+            <GammPage />
             <NotificationManager />
           </GammProvider>
         </WalletProvider>

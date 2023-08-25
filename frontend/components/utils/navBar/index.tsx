@@ -1,9 +1,11 @@
-"use client"
-
 import { ConnectButton } from "@rainbow-me/rainbowkit"
 import { useWallet, useNotification } from "../../../providers"
 
-export const NavBar = () => {
+type PopupProp = {
+  setPopupToggle: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export const NavBar = ({ setPopupToggle }: PopupProp) => {
 
   const { openNotification } = useNotification()
   const { isConnected, network, refreshBalances, sendMintTx } = useWallet()
@@ -101,8 +103,7 @@ export const NavBar = () => {
             {({
               account,
               mounted,
-              openConnectModal,
-              openAccountModal
+              openConnectModal
             }) => {
               return (
                 !mounted ?
@@ -123,7 +124,7 @@ export const NavBar = () => {
                   <button 
                     className={`w-20 2xl:w-24 py-2 text-[16px] 2xl:text-[18px] bg-green-400 hover:scale-[120%] rounded-xl mr-4 font-acme`}
                     id="home-button"
-                    onClick={openAccountModal}
+                    onClick={() =>setPopupToggle(true)}
                   >
                     {`${account.address.slice(0, 4)}...${account?.address.slice(-3)}`}
                   </button>
