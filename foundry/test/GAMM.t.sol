@@ -157,17 +157,37 @@ contract GAMMTest is Test {
   }
 
   function testSuccessfulTransfer() public dealUserLocks {
-    address user = address(0x01);
-    console.log("user balance before: ", gamm.balanceOf(user));
-    console.log("this balance before: ", gamm.balanceOf(address(this)));
-
     // bytes4(keccak256(bytes('transfer(address,uint256)')));
     (bool success, bytes memory data) = address(gamm).call(abi.encodeWithSelector(0xa9059cbb, address(0x01), 5e18));
     require(data.length == 0 || abi.decode(data, (bool)), 'transfer failed');
     assertEq(true, success);
+    assertEq(gamm.balanceOf(address(0x01)), 5e18);
+  }
 
-    console.log("user balance after: ", gamm.balanceOf(user));
-    console.log("this balance after: ", gamm.balanceOf(address(this)));
+  function testSellArithmeticError() public {
+    vm.store(address(gamm), bytes32(uint256(5)), bytes32(uint256(12424533327755417665454800)));
+    vm.store(address(gamm), bytes32(uint256(6)), bytes32(uint256(6069210257394481945730874)));
+    vm.store(address(gamm), bytes32(uint256(7)), bytes32(uint256(8402860035123450385400)));
+
+    deal(address(honey), address(this), 1251210488977958997148919);
+    deal(address(gamm), address(this), 543082473864185130000);
+    deal(address(honey), address(gamm), 16442576931719627115185675);
+
+    vm.warp(1692836841);
+    gamm.sell(5000000000000000000, 9886383387107016000000);
+  }
+
+  function testFloorReduce() public {
+    vm.store(address(gamm), bytes32(uint256(5)), bytes32(uint256(12424533327755417665454800)));
+    vm.store(address(gamm), bytes32(uint256(6)), bytes32(uint256(6069210257394481945730874)));
+    vm.store(address(gamm), bytes32(uint256(7)), bytes32(uint256(8402860035123450385400)));
+    vm.store(address(gamm), bytes32(uint256(9)), bytes32(uint256(1692551675)));
+    deal(address(honey), address(this), 1251210488977958997148919);
+    deal(address(gamm), address(this), 543082473864185130000);
+    deal(address(honey), address(gamm), 16442576931719627115185675);
+    vm.warp(1692836841);
+
+    console.log(gamm._floorReduce());
   }
 
 }

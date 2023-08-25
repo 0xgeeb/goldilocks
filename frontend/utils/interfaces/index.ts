@@ -113,10 +113,8 @@ export interface GammInitialState {
   simulateRedeem: (_amt: number) => void;
   handlePercentageButtons: (_action: number) => void;
   flipTokens: () => void;
-  handleTopInput: () => string;
   handleTopChange: (_input: string) => void;
   handleTopBalance: () => string;
-  handleBottomInput: () => string;
   handleBottomChange: (_input: string) => void;
   handleBottomBalance: () => string;
   debouncedHoneyBuy: number;

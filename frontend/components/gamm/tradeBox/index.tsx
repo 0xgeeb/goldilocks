@@ -19,13 +19,14 @@ export const TradeBox = () => {
     slippage,
     debouncedHoneyBuy,
     debouncedGettingHoney,
-    honeyBuy,
     setHoneyBuy,
     redeemingLocks,
     redeemingHoney,
     setGettingHoney,
     setRedeemingHoney,
     setRedeemingLocks,
+    displayString,
+    bottomDisplayString,
     setDisplayString,
     setBottomDisplayString,
     buyingLocks,
@@ -38,22 +39,16 @@ export const TradeBox = () => {
     topInputFlag,
     bottomInputFlag,
     handleTopBalance, 
-    handleTopInput, 
     handleTopChange,
     flipTokens,
     handleBottomBalance,
     handleBottomChange,
-    handleBottomInput,
     changeNewInfo,
     findLocksBuyAmount,
     findLocksSellAmount
   } = useGamm()
 
-  const { 
-    isConnected, 
-    balance, 
-    refreshBalances 
-  } = useWallet()
+  const { isConnected, refreshBalances } = useWallet()
 
   const { 
     floorPrice,
@@ -118,7 +113,7 @@ export const TradeBox = () => {
 
   useEffect(() => {
     if(!bottomInputFlag) {
-      if(!debouncedHoneyBuy || (isConnected && honeyBuy > balance.honey)) {
+      if(!debouncedHoneyBuy) {
         resetInfo()
       }
       else {
@@ -131,7 +126,7 @@ export const TradeBox = () => {
   useEffect(() => {
     if(!topInputFlag) {
       const locksWithSlippage: number = buyingLocks * (1 + (slippage.amount / 100))
-      if(!buyingLocks || (isConnected && simulateBuyDry(locksWithSlippage, gammInfo.fsl, gammInfo.psl, gammInfo.supply) > balance.honey)) {
+      if(!buyingLocks) {
         resetInfo()
       }
       else {
@@ -145,7 +140,7 @@ export const TradeBox = () => {
 
   useEffect(() => {
     if(!bottomInputFlag) {
-      if(!sellingLocks || (isConnected && sellingLocks > balance.locks)) {
+      if(!sellingLocks) {
         resetInfo()
       }
       else {
@@ -179,7 +174,7 @@ export const TradeBox = () => {
 
   useEffect(() => {
     if(!bottomInputFlag) {
-      if(!redeemingLocks || (isConnected && redeemingLocks > balance.locks)) {
+      if(!redeemingLocks) {
         resetInfo()
       }
       else {
@@ -193,7 +188,7 @@ export const TradeBox = () => {
 
   useEffect(() => {
     if(!topInputFlag) {
-      if(!redeemingHoney || (isConnected && redeemingHoney / (gammInfo.fsl / gammInfo.supply) > balance.locks)) {
+      if(!redeemingHoney) {
         resetInfo()
       }
       else {
@@ -268,25 +263,37 @@ export const TradeBox = () => {
             <div 
               className="rounded-[50px] m-3 2xl:m-6 p-2 flex flex-row bg-slate-100 border-2 border-black items-center"
             >
-              <img className="w-[20px] h-[20px] 2xl:w-[36px] 2xl:h-[36px]" src={renderTokenImage("top")} alt="lost" ></img>
-              <span className="font-acme text-[18px] 2xl:text-[25px] ml-2 2xl:ml-4">{renderTokenLabel("top")}</span>
+              <img 
+                className="w-[20px] h-[20px] 2xl:w-[36px] 2xl:h-[36px]" 
+                src={renderTokenImage("top")} 
+                alt="lost"
+              />
+              <span 
+                className="font-acme text-[18px] 2xl:text-[25px] ml-2 2xl:ml-4"
+              >
+                {renderTokenLabel("top")}
+              </span>
             </div>
             <PercentageButtons />
           </div>
           <div className="h-[50%] pl-8 2xl:pl-10 flex flex-row items-center justify-between">
-            {topAmountLoading ? loadingElement() : <input 
-              className="border-none focus:outline-none bg-transparent font-acme rounded-xl text-[30px] 2xl:text-[40px]" 
-              type="number" 
-              id="number-input" 
-              placeholder="0.00" 
-              value={handleTopInput()} 
-              onChange={(e) => handleTopChange(e.target.value)} 
-              autoFocus 
-            />}
+            {
+              topAmountLoading ? 
+              loadingElement() : 
+              <input 
+                className="border-none focus:outline-none bg-transparent font-acme rounded-xl text-[30px] 2xl:text-[40px]" 
+                type="number" 
+                id="number-input" 
+                placeholder="0.00" 
+                value={displayString} 
+                onChange={(e) => handleTopChange(e.target.value)} 
+                autoFocus 
+              />
+            }
             <h1 
               className="mr-10 mt-4 text-[18px] 2xl:text-[23px] font-acme text-[#878d97]"
             >
-              balance: {balancesLoading ? loadingElement() : handleTopBalance()}
+              balance: { balancesLoading ? loadingElement() : handleTopBalance() }
             </h1>
           </div>
         </div>
@@ -298,25 +305,33 @@ export const TradeBox = () => {
         </div>
         <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
           <div className="h-[50%] flex flex-row items-center">
-            <div 
-              className="rounded-[50px] m-3 2xl:m-6 p-2 flex flex-row bg-slate-100 border-2 border-black items-center"
-            >
-              <img className="w-[20px] h-[20px] 2xl:w-[36px] 2xl:h-[36px]" src={renderTokenImage("bottom")} alt="lost" ></img>
-              <span className="font-acme text-[18px] 2xl:text-[25px] ml-2 2xl:ml-4">{renderTokenLabel("bottom")}</span>
+            <div className="rounded-[50px] m-3 2xl:m-6 p-2 flex flex-row bg-slate-100 border-2 border-black items-center">
+              <img 
+                className="w-[20px] h-[20px] 2xl:w-[36px] 2xl:h-[36px]" 
+                src={renderTokenImage("bottom")} 
+                alt="lost"
+              />
+              <span 
+                className="font-acme text-[18px] 2xl:text-[25px] ml-2 2xl:ml-4"
+              >
+                {renderTokenLabel("bottom")}
+              </span>
             </div>
           </div>
           <div className="h-[50%] pl-8 2xl:pl-10 flex flex-row items-center justify-between">
-            {bottomAmountLoading ? loadingElement() : <input
-              className="border-none focus:outline-none bg-transparent font-acme rounded-xl text-[30px] 2xl:text-[40px]" 
-              type="number" 
-              id="number-input" 
-              placeholder="0.00" 
-              value={handleBottomInput()} 
-              onChange={(e) => handleBottomChange(e.target.value)} 
-            />}
-            <h1 
-              className="mr-10 mt-4 text-[18px] 2xl:text-[23px] font-acme text-[#878d97]"
-            >
+            {
+              bottomAmountLoading ? 
+              loadingElement() : 
+              <input
+                className="border-none focus:outline-none bg-transparent font-acme rounded-xl text-[30px] 2xl:text-[40px]" 
+                type="number" 
+                id="number-input" 
+                placeholder="0.00" 
+                value={bottomDisplayString} 
+                onChange={(e) => handleBottomChange(e.target.value)} 
+              />
+            }
+            <h1 className="mr-10 mt-4 text-[18px] 2xl:text-[23px] font-acme text-[#878d97]">
               balance: {balancesLoading ? loadingElement() : handleBottomBalance()}
             </h1>
           </div>

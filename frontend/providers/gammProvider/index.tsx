@@ -72,11 +72,9 @@ const INITIAL_STATE: GammInitialState = {
 
   flipTokens: () => {},
 
-  handleTopInput: (): string => '',
   handleTopChange: (_input: string) => {},
   handleTopBalance: (): string => "0.00",
 
-  handleBottomInput: (): string => '',
   handleBottomChange: (_input: string) => {},
   handleBottomBalance: (): string => "0.00",
 
@@ -463,30 +461,6 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
     }
   }
 
-  const handleTopInput = (): string => {
-    if(activeToggleState === 'buy') {
-      return isConnected && honeyBuyState > balance.honey ? '' : displayStringState
-    }
-    else if(activeToggleState === 'sell') {
-      return sellingLocksState > balance.locks ? '' : displayStringState
-    }
-    else {
-      return redeemingLocksState > balance.locks ? '' : displayStringState
-    }
-  }
-
-  const handleBottomInput = (): string => {
-    if(activeToggleState === 'buy') {
-      return isConnected && simulateBuyDry(buyingLocksState, gammInfoState.fsl, gammInfoState.psl, gammInfoState.supply) > balance.honey ? '' : bottomDisplayStringState
-    }
-    else if(activeToggleState === 'sell') {
-      return bottomDisplayStringState
-    }
-    else {
-      return redeemingHoneyState / (gammInfoState.fsl / gammInfoState.supply) > balance.locks ? '' : bottomDisplayStringState
-    }
-  }
-
   const handleTopChange = (input: string) => {
     setDisplayStringState(input)
     setBottomInputFlagState(false)
@@ -604,11 +578,9 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
         findLocksSellAmount,
         handlePercentageButtons,
         handleTopBalance,
-        handleTopInput,
         handleTopChange,
         handleBottomBalance,
         handleBottomChange,
-        handleBottomInput,
         changeActiveToggle,
         changeSlippage,
         checkSlippageAmount,

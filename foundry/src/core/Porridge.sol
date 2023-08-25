@@ -195,6 +195,7 @@ contract Porridge is ERC20("Porridge Token", "PRG"), ReentrancyGuard {
     }
   }
 
+  //todo: test the second math further
   /// @notice Calculates claimable yield
   /// @param user Address of staker to calculate yield
   /// @param stakedAmount Amount of $LOCKS the user has staked in the contract

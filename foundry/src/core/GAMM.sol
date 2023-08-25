@@ -61,6 +61,7 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
     honeyAddress = _honeyAddress;
     adminAddress = _adminAddress;
     lastFloorRaise = block.timestamp;
+    lastFloorDecrease = block.timestamp;
   }
 
 
@@ -146,10 +147,10 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
       uint256 __purchasePrice
     ) = _buyLoop(_psl, _fsl, _supply, amount);
     uint256 tax = (__purchasePrice / 1000) * 3;
+    if(__purchasePrice + tax > maxAmount) revert ExcessiveSlippage();
     fsl = __fsl + tax;
     psl = __psl;
     supply = __supply;
-    if(__purchasePrice + tax > maxAmount) revert ExcessiveSlippage();
     _floorRaise();
     SafeTransferLib.safeTransferFrom(honeyAddress, msg.sender, address(this), __purchasePrice + tax);
     _mint(msg.sender, amount);
@@ -169,13 +170,12 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
       uint256 __supply,
       uint256 __saleAmount
     ) = _sellLoop(_psl, _fsl, _supply, amount);
-
     uint256 tax = (__saleAmount / 1000) * 53;
+    if(__saleAmount - tax < minAmount) revert ExcessiveSlippage();
     fsl = __fsl + tax;
     psl = __psl;
     supply = __supply;
-    if(__saleAmount - tax < minAmount) revert ExcessiveSlippage();
-    _floorReduce();
+    // _floorReduce();
     _burn(msg.sender, amount);
     SafeTransferLib.safeTransfer(honeyAddress, msg.sender, __saleAmount - tax);
     emit Sale(msg.sender, amount);
@@ -311,15 +311,17 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
     }
   }
 
+  //todo: fix the math here
   /// @notice If a day has elapsed since, reduces the FSL
-  function _floorReduce() internal {
+  function _floorReduce() external returns (uint256) {
     uint256 elapsedRaise = block.timestamp - lastFloorRaise;
     uint256 elapsedDrop = block.timestamp - lastFloorDecrease;
+      uint256 decreaseFactor = FixedPointMathLib.divWad(elapsedRaise*1e18, DAYS_SECONDS*1e18);
     if (elapsedRaise >= DAYS_SECONDS && elapsedDrop >= DAYS_SECONDS) {
-      uint256 _decreaseFactor = elapsedRaise / DAYS_SECONDS;
-      targetRatio -= (targetRatio * _decreaseFactor);
+      // targetRatio -= (targetRatio * decreaseFactor);
       lastFloorDecrease = block.timestamp;
     }
+    return FixedPointMathLib.mulWad(targetRatio / 100, 100e18 - decreaseFactor);
   }
 
 
