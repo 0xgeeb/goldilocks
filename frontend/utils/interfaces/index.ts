@@ -70,6 +70,8 @@ export interface NewInfo {
   floor: number;
   market: number;
   supply: number;
+  targetRatio: number;
+  lastFloorRaise: number;
 }
 
 export interface Slippage {
@@ -103,11 +105,13 @@ export interface GammInitialState {
   changeSlippage: (_amount: number, _displayString: string) => void;
   changeSlippageToggle: (_toggle: boolean) => void;
   checkSlippageAmount: () => void;
+  redeemPopupToggle: boolean;
+  setRedeemPopupToggle: (_bool: boolean) => void;
   activeToggle: string;
   changeActiveToggle: (_toggle: string) => void;
   displayString: string;
   bottomDisplayString: string;
-  changeNewInfo: (_fsl: number, _psl: number, _floor: number, _market: number, _supply: number) => void;
+  changeNewInfo: (_fsl: number, _psl: number, _floor: number, _market: number, _supply: number, _ratio: number, _raise: number) => void;
   simulateBuy: (_amt: number) => void;
   simulateSell: (_amt: number) => void;
   simulateRedeem: (_amt: number) => void;

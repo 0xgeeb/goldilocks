@@ -62,17 +62,15 @@ export const TradeBox = () => {
     setBalancesLoading(false)
   }, [isConnected])
 
-  const test = () => {
-    
-  }
-
   const resetInfo = () => {
     changeNewInfo(
       gammInfo.fsl, 
-      gammInfo.psl, 
+      gammInfo.psl,
       floorPrice(gammInfo.fsl, gammInfo.supply), 
       marketPrice(gammInfo.fsl, gammInfo.psl, gammInfo.supply), 
-      gammInfo.supply
+      gammInfo.supply,
+      gammInfo.targetRatio,
+      gammInfo.lastFloorRaise
     )
     setDisplayString('')
     setBottomDisplayString('')
@@ -255,22 +253,18 @@ export const TradeBox = () => {
   }
 
   return (
-    <div className="h-[75%] relative mt-2 2xl:mt-4 flex flex-col" onClick={() => test()}>
+    <div className="h-[65%] relative mt-2 2xl:mt-4 flex flex-col">
       <div className="h-[69%] px-6">
         <SlippagePopup />
         <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
           <div className="h-[50%] flex flex-row items-center justify-between">
-            <div 
-              className="rounded-[50px] m-3 2xl:m-6 p-2 flex flex-row bg-slate-100 border-2 border-black items-center"
-            >
+            <div className="rounded-[50px] m-3 2xl:m-6 p-2 flex flex-row bg-slate-100 border-2 border-black items-center">
               <img 
                 className="w-[20px] h-[20px] 2xl:w-[36px] 2xl:h-[36px]" 
                 src={renderTokenImage("top")} 
                 alt="lost"
               />
-              <span 
-                className="font-acme text-[18px] 2xl:text-[25px] ml-2 2xl:ml-4"
-              >
+              <span className="font-acme text-[18px] 2xl:text-[25px] ml-2 2xl:ml-4">
                 {renderTokenLabel("top")}
               </span>
             </div>
@@ -281,7 +275,7 @@ export const TradeBox = () => {
               topAmountLoading ? 
               loadingElement() : 
               <input 
-                className="border-none focus:outline-none bg-transparent font-acme rounded-xl text-[30px] 2xl:text-[40px]" 
+                className="border-none focus:outline-none bg-transparent font-acme rounded-xl text-[30px] 2xl:text-[40px]"
                 type="number" 
                 id="number-input" 
                 placeholder="0.00" 
@@ -290,9 +284,7 @@ export const TradeBox = () => {
                 autoFocus 
               />
             }
-            <h1 
-              className="mr-10 mt-4 text-[18px] 2xl:text-[23px] font-acme text-[#878d97]"
-            >
+            <h1 className="mr-10 mt-4 text-[18px] 2xl:text-[23px] font-acme text-[#878d97]">
               balance: { balancesLoading ? loadingElement() : handleTopBalance() }
             </h1>
           </div>
@@ -311,9 +303,7 @@ export const TradeBox = () => {
                 src={renderTokenImage("bottom")} 
                 alt="lost"
               />
-              <span 
-                className="font-acme text-[18px] 2xl:text-[25px] ml-2 2xl:ml-4"
-              >
+              <span className="font-acme text-[18px] 2xl:text-[25px] ml-2 2xl:ml-4">
                 {renderTokenLabel("bottom")}
               </span>
             </div>

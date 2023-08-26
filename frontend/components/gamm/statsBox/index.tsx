@@ -66,63 +66,63 @@ export const StatsBox = () => {
   }
 
   return (
-    <div className="flex flex-row justify-between">
-      <div className="flex flex-row w-[55%] px-3 ml-1 2xl:ml-3 justify-between rounded-xl border-2 border-black mt-1 2xl:mt-2 bg-white">
-        <div className="flex flex-col items-start justify-between font-acme text-[18px] 2xl:text-[24px]">
+    <div className="flex flex-row justify-between h-[20%]">
+      <div className="flex flex-row w-[55%] px-3 ml-1 2xl:ml-3 justify-between rounded-xl border-2 border-black mt-1 2xl:mt-2 bg-white" id="home-button">
+        <div className="flex flex-col items-start justify-between font-acme text-[16px] 2xl:text-[18px]">
+          <h3 className="text-white">fuckyou</h3>
           <h3>$LOCKS floor price:</h3>
           <h3>$LOCKS market price:</h3>
           <h3>current fsl:</h3>
           <h3>current psl:</h3>
         </div>
-        <div className="flex flex-col items-end justify-between font-acme text-[16px] 2xl:text-[20px]">
+        <div className="flex flex-col items-end justify-between font-acme text-[16px] 2xl:text-[18px]">
+          <p className="underline">current</p>
           <p>${handleInfo(floorPrice(gammInfo.fsl, gammInfo.supply))}</p>
           <p>${handleInfo(marketPrice(gammInfo.fsl, gammInfo.psl, gammInfo.supply))}</p>
           <p>{handleInfo(gammInfo.fsl)}</p>
           <p>{handleInfo(gammInfo.psl)}</p>
         </div>
-        <div className="flex flex-col items-end justify-between font-acme text-[16px] 2xl:text-[20px]">
-          <p 
-            className={handleColors(floorPrice(gammInfo.fsl, gammInfo.supply), newInfo.floor)}
-          >
+        <div className="flex flex-col items-end justify-between font-acme text-[16px] 2xl:text-[18px]">
+          <p className="underline">new</p>
+          <p className={handleColors(floorPrice(gammInfo.fsl, gammInfo.supply), newInfo.floor)}>
             ${ floorPrice(gammInfo.fsl, gammInfo.supply) == newInfo.floor ? "-" : formatAsString(newInfo.floor)}
           </p>
-          <p 
-            className={handleColors(marketPrice(gammInfo.fsl, gammInfo.psl, gammInfo.supply), newInfo.market)}
-          >
+          <p className={handleColors(marketPrice(gammInfo.fsl, gammInfo.psl, gammInfo.supply), newInfo.market)}>
             ${ marketPrice(gammInfo.fsl, gammInfo.psl, gammInfo.supply) == newInfo.market ? "-" : formatAsString(newInfo.market)}
           </p>
-          <p 
-            className={handleColors(gammInfo.fsl, newInfo.fsl)}
-          >
+          <p className={handleColors(gammInfo.fsl, newInfo.fsl)}>
             {gammInfo.fsl == newInfo.fsl ? "-" : formatAsString(newInfo.fsl)}
           </p>
-          <p 
-            className={handleColors(gammInfo.psl, newInfo.psl)}
-          >
+          <p className={handleColors(gammInfo.psl, newInfo.psl)}>
             {gammInfo.psl == newInfo.psl ? "-" : formatAsString(newInfo.psl)}
           </p>
         </div>
       </div>
-      <div className="flex flex-row w-[43%] 2xl:w-[40%] px-3 justify-between 2xl:mr-3 rounded-xl border-2 border-black mt-1 2xl:mt-2 bg-white">
-        <div className="flex flex-col items-start justify-between w-[40%] font-acme text-[16px] 2xl:text-[20px]">
+      <div className="flex flex-row w-[43%] 2xl:w-[40%] px-3 justify-between 2xl:mr-3 rounded-xl border-2 border-black mt-1 2xl:mt-2 bg-white" id="home-button">
+        <div className="flex flex-col items-start justify-between w-[40%] font-acme text-[16px] 2xl:text-[18px]">
+          <h3 className="text-white">fuckyou</h3>
           <h3>$LOCKS supply:</h3>
           <h3>target ratio:</h3>
           <h3>last floor raise:</h3>
         </div>
-        <div className="flex flex-col items-end w-[30%] font-acme text-[16px] 2xl:text-[20px]">
+        <div className="flex flex-col items-end justify-between w-[30%] font-acme text-[16px] 2xl:text-[18px]">
+          <p className="underline">current</p>
           <p>{handleInfo(gammInfo.supply)}</p>
+          <p>{handleRatioInfo(gammInfo.targetRatio)}</p>
+          <p className="whitespace-nowrap">
+            {infoLoading ? loadingElement() : useFormatDate(gammInfo.lastFloorRaise * Math.pow(10, 21))}
+          </p>
         </div>
-        <div className="flex flex-col items-end justify-between w-[30%] font-acme text-[16px] 2xl:text-[20px]">
-          <p 
-            className={handleColors(gammInfo.supply, newInfo.supply)}
-          >
+        <div className="flex flex-col items-end justify-between w-[30%] font-acme text-[16px] 2xl:text-[18px]">
+          <p className="underline">new</p>
+          <p className={handleColors(gammInfo.supply, newInfo.supply)}>
             {gammInfo.supply == newInfo.supply ? "-" : formatAsString(newInfo.supply)}
           </p>
-          <p>{handleRatioInfo(gammInfo.targetRatio)}</p>
-          <p 
-            className="whitespace-nowrap"
-          >
-            {infoLoading ? loadingElement() : useFormatDate(gammInfo.lastFloorRaise * Math.pow(10, 21))}
+          <p className={handleColors(gammInfo.targetRatio, newInfo.targetRatio)}>
+            {gammInfo.targetRatio == newInfo.targetRatio ? "-" : handleRatioInfo(newInfo.targetRatio)}
+          </p>
+          <p className={handleColors(gammInfo.lastFloorRaise, newInfo.lastFloorRaise)}>
+            {gammInfo.lastFloorRaise == newInfo.lastFloorRaise ? "-" : useFormatDate(newInfo.lastFloorRaise * Math.pow(10, 21))}
           </p>
         </div>
       </div>

@@ -56,6 +56,8 @@ contract GoldilendTest is Test, IERC721Receiver {
     goldilend = new Goldilend(
       startingPoolSize,
       protocolInterestRate,
+      // staking one gbera euqals one porridge ina year
+      10,
       address(bera),
       address(porridge),
       address(this),

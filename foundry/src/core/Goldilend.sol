@@ -103,6 +103,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
   /// @notice Constructor of this contract
   /// @param _startingPoolSize Starting size of the lending pool
   /// @param _protocolInterestRate Interest rate of the protocol
+  /// @param _porridgeMultiple Boost for earning $PRG
   /// @param _beraAddress Address of $BERA
   /// @param _porridgeAddress Address of $PRG
   /// @param _adminAddress Address of the Goldilocks DAO multisig
@@ -112,6 +113,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
   constructor(
     uint256 _startingPoolSize,
     uint256 _protocolInterestRate,
+    uint256 _porridgeMultiple,
     address _beraAddress, 
     address _porridgeAddress,
     address _treasuryAddress,
@@ -121,6 +123,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
   ) {
     poolSize = _startingPoolSize;
     protocolInterestRate = _protocolInterestRate;
+    porridgeMultiple = _porridgeMultiple;
     beraAddress = _beraAddress;
     porridgeAddress = _porridgeAddress;
     treasuryAddress = _treasuryAddress;
@@ -255,8 +258,8 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
   function lock(uint256 lockAmount) external {
     poolSize += lockAmount;
     SafeTransferLib.safeTransferFrom(beraAddress, msg.sender, address(this), lockAmount);
-    _mint(msg.sender, lockAmount * gberaRatio);
     _refreshBera(lockAmount);
+    _mint(msg.sender, lockAmount * gberaRatio);
   }
 
   /// @notice Stakes $gBERA
@@ -383,7 +386,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
   }
 
   //todo: test loanid lookup method and if someone can access someone elses
-  //todo: ask amp about interest math
+  //todo: transfer 5% to honeyjar
   /// @notice Repays loan of $BERA
   /// @param repayAmount Amount of $BERA to repay
   /// @param userLoanId ID of loan to repay
@@ -403,12 +406,11 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
         IERC721(userLoan.collateralNFTs[i]).safeTransferFrom(address(this), msg.sender, userLoan.collateralNFTIds[i]);
       }
     }
+    _refreshBera(repayAmount);
     SafeTransferLib.safeTransfer(beraAddress, treasuryAddress, interest * 5 / 100);
     SafeTransferLib.safeTransferFrom(beraAddress, msg.sender, address(this), repayAmount);
-    _refreshBera(repayAmount);
   }
 
-  //todo: check with amp about expirations
   /// @notice Liquidates overdue loans by paying $BERA to purchase collateral
   /// @param user Owner of loan to be liquidated
   /// @param userLoanId Loan to be liquidated
@@ -441,7 +443,8 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     IPorridge(porridgeAddress).goldilendMint(msg.sender, claimed);
   }
 
-  //todo: what should porridgeMultiple be
+  //todo: what should porridgeMultiple be, amount of porridge staked per bera per second
+  //todo: implement the 50 max on boost
   /// @notice Calculates claiming rewards
   /// @param userStake Struct of the user's current stake information
   function _calculateClaim(Stake memory userStake) internal view returns (uint256 porridgeEarned) {
@@ -464,6 +467,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     }
   }
 
+  //todo: fix math here
   /// @notice Caluclates the total interest due at repayment
   /// @param borrowAmount Amount to be borrowed
   /// @param debt Current amount of outstanding debt
@@ -474,9 +478,9 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     uint256 duration
   ) internal view returns (uint256 interest) {
     uint256 rate = protocolInterestRate;
-    uint256 ratio = ((2 * (debt + borrowAmount)) / poolSize + 1) / 2;
+    uint256 ratio = ((debt + borrowAmount) / poolSize) + 5e17;
     uint256 interestRate = rate + (10 * rate * duration * ratio / 365);
-    interest = (interestRate * borrowAmount * duration) / 365;
+    interest = (interestRate * borrowAmount) * (duration / 365);
   }
 
   /// @notice Finds the loan by userId

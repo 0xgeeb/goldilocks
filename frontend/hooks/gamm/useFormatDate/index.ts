@@ -11,16 +11,16 @@ export function useFormatDate(timestamp: number): string {
   if (secondsAgo < ONE_MINUTE) {
     return 'just now';
   } else if (secondsAgo < ONE_HOUR) {
-    const minutesAgo = Math.floor(secondsAgo / ONE_MINUTE);
-    return `${minutesAgo} minute${minutesAgo > 1 ? 's' : ''} ago`;
+    const minutesAgo = Math.floor(secondsAgo / ONE_MINUTE)
+    return `${minutesAgo} minute${minutesAgo > 1 ? 's' : ''} ago`
   } else if (secondsAgo < ONE_DAY) {
-    const hoursAgo = Math.floor(secondsAgo / ONE_HOUR);
-    return `${hoursAgo} hour${hoursAgo > 1 ? 's' : ''} ago`;
+    const hoursAgo = Math.floor(secondsAgo / ONE_HOUR)
+    return `${hoursAgo} hour${hoursAgo > 1 ? 's' : ''} ago`
   } else if (secondsAgo < ONE_WEEK) {
-    const daysAgo = Math.floor(secondsAgo / ONE_DAY);
-    return `${daysAgo} day${daysAgo > 1 ? 's' : ''} ago`;
+    const daysAgo = Math.floor(secondsAgo / ONE_DAY)
+    return `${daysAgo} day${daysAgo > 1 ? 's' : ''} ago`
   } else {
-    const weeksAgo = Math.floor(secondsAgo / ONE_WEEK);
-    return `${weeksAgo} week${weeksAgo > 1 ? 's' : ''} ago`;
+    const weeksAgo = Math.floor(secondsAgo / ONE_WEEK)
+    return `${weeksAgo} week${weeksAgo > 1 ? 's' : ''} ago`
   }
 }

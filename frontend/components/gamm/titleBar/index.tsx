@@ -1,19 +1,18 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { RedeemPopup } from "../../gamm"
 import { useGamm } from "../../../providers"
 
 export const TitleBar = () => {
 
-  const [popupToggle, setPopupToggle] = useState<boolean>(false)
   const [infoLoading, setInfoLoading] = useState<boolean>(true)
 
   const { 
     slippage, 
     changeSlippageToggle, 
     activeToggle, 
-    changeActiveToggle, 
+    changeActiveToggle,
+    setRedeemPopupToggle,
     refreshChartInfo,
     checkSlippageAmount
   } = useGamm()
@@ -35,10 +34,9 @@ export const TitleBar = () => {
   }, [])
 
   return (
-    <>
-      <RedeemPopup popupToggle={popupToggle} setPopupToggle={setPopupToggle}/>
+    <div className="flex flex-col w-[100%] h-[15%]">
       <h1 
-        className="text-[36px] 2xl:text-[50px] font-acme text-[#ffff00]" 
+        className="text-[36px] 2xl:text-[50px] font-acme text-[#ffff00]"
         id="text-outline" 
         onClick={() => test()} 
       >
@@ -58,7 +56,7 @@ export const TitleBar = () => {
               ⚙️
             </h1>
           </div>
-          <div className="flex flex-row bg-white rounded-2xl border-2 border-black">
+          <div className="flex flex-row bg-white rounded-2xl border-2 border-black mr-6 lg:mr-0">
             <div 
               className={`font-acme text-[13px] 2xl:text-[16px] w-[66px] 2xl:w-24 py-2 ${activeToggle === 'buy' ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-l-2xl text-center border-r-2 border-black cursor-pointer`} 
               onClick={() => changeActiveToggle('buy')}
@@ -80,7 +78,7 @@ export const TitleBar = () => {
                 className="ml-1 text-[13px] 2xl:text-[16px] rounded-full px-2 border-2 border-black hover:bg-black hover:text-white" 
                 onClick={(e) => {
                   e.stopPropagation()
-                  setPopupToggle(true)
+                  setRedeemPopupToggle(true)
                 }}
               >
                 ?
@@ -89,6 +87,6 @@ export const TitleBar = () => {
           </div>
         </div>
       </div>
-    </>
+    </div>
   )
 }

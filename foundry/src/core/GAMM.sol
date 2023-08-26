@@ -311,7 +311,7 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
     }
   }
 
-  //todo: fix the math here
+  //todo: max of 5% decreasefactor
   /// @notice If a day has elapsed since, reduces the FSL
   function _floorReduce() external returns (uint256) {
     uint256 elapsedRaise = block.timestamp - lastFloorRaise;

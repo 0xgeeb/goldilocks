@@ -22,7 +22,9 @@ const INITIAL_STATE: GammInitialState = {
     psl: 0,
     floor: 0,
     market: 0,
-    supply: 0
+    supply: 0,
+    targetRatio: 0,
+    lastFloorRaise: 0
   },
   slippage: {
     amount: 0.1,
@@ -56,13 +58,16 @@ const INITIAL_STATE: GammInitialState = {
   changeSlippageToggle: (_toggle: boolean) => {},
   checkSlippageAmount: () => {},
 
+  redeemPopupToggle: false,
+  setRedeemPopupToggle: (_bool: boolean) => {},
+
   activeToggle: 'buy',
   changeActiveToggle: (_toggle: string) => {},
 
   displayString: '',
   bottomDisplayString: '',
 
-  changeNewInfo: (_fsl: number, _psl: number, _floor: number, _market: number, _supply: number) => {},
+  changeNewInfo: (_fsl: number, _psl: number, _floor: number, _market: number, _supply: number, _ratio: number, _raise: number) => {},
 
   simulateBuy: (_amt: number) => {},
   simulateSell: (_amt: number) => {},
@@ -94,7 +99,7 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
 
   const { children } = props
 
-  const { balance, wallet, isConnected } = useWallet()
+  const { balance, wallet } = useWallet()
   const { simulateBuyDry, simulateSellDry, floorPrice, marketPrice } = useGammMath()
 
   const [gammInfoState, setGammInfoState] = useState<GammInfo>(INITIAL_STATE.gammInfo)
@@ -117,6 +122,9 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
 
   const [topInputFlagState, setTopInputFlagState] = useState<boolean>(INITIAL_STATE.topInputFlag)
   const [bottomInputFlagState, setBottomInputFlagState] = useState<boolean>(INITIAL_STATE.bottomInputFlag)
+
+  const [redeemPopupToggleState, setRedeemPopupToggleState] = useState<boolean>(INITIAL_STATE.redeemPopupToggle)
+
 
   const publicClient = getPublicClient()
 
@@ -174,13 +182,15 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
     }
   }
 
-  const changeNewInfo = (fsl: number, psl: number, floor: number, market: number, supply: number) => {
+  const changeNewInfo = (fsl: number, psl: number, floor: number, market: number, supply: number, ratio: number, raise: number) => {
     setNewInfoState({
       fsl: fsl,
       psl: psl,
       floor: floor,
       market: market,
-      supply: supply
+      supply: supply,
+      targetRatio: ratio,
+      lastFloorRaise: raise
     })
   }
 
@@ -362,9 +372,11 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
       psl: _psl,
       floor: floorPrice(_fsl + _tax, _supply),
       market: marketPrice(_fsl + _tax, _psl, _supply),
-      supply: _supply
+      supply: _supply,
+      targetRatio: gammInfoState.targetRatio,
+      lastFloorRaise: gammInfoState.lastFloorRaise
     }
-
+    
     setNewInfoState(response)
     simulateFloorRaise(_fsl + _tax, _psl, _supply)
   }
@@ -402,7 +414,9 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
       psl: _psl,
       floor: floorPrice(_fsl + _tax, _supply),
       market: marketPrice(_fsl + _tax, _psl, _supply),
-      supply: _supply
+      supply: _supply,
+      targetRatio: gammInfoState.targetRatio,
+      lastFloorRaise: gammInfoState.lastFloorRaise
     }
     
     setNewInfoState(response)
@@ -416,7 +430,9 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
       psl: gammInfoState.psl,
       floor: floorPrice(gammInfoState.fsl - rawTotal, gammInfoState.supply - redeemingLocksState),
       market: marketPrice(gammInfoState.fsl - rawTotal, gammInfoState.psl, gammInfoState.supply - redeemingLocksState),
-      supply: gammInfoState.supply - redeemingLocksState
+      supply: gammInfoState.supply - redeemingLocksState,
+      targetRatio: gammInfoState.targetRatio,
+      lastFloorRaise: gammInfoState.lastFloorRaise
     }
 
     setNewInfoState(response)
@@ -425,21 +441,21 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
 
   const simulateFloorRaise = (_fsl: number, _psl: number, _supply: number) => {
     if(_psl / _fsl >= gammInfoState.targetRatio) {
-      let raiseAmount: number = (_psl / _fsl) * (_psl / 32)
-      setNewInfoState((prevState) => {
-        const newFsl = prevState.fsl + raiseAmount;
-        const newPsl = prevState.psl - raiseAmount;
-        const newFloor = floorPrice(newFsl, prevState.supply);
-        const newMarket = marketPrice(newPsl, newPsl - raiseAmount, prevState.supply);
-      
-        return {
-          ...prevState,
-          fsl: newFsl,
-          psl: newPsl,
-          floor: newFloor,
-          market: newMarket
-        }
-      })
+      const raiseAmount: number = (_psl / _fsl) * (_psl / 32)
+      const newFsl = _fsl + raiseAmount
+      const newPsl = _psl - raiseAmount
+
+      const response = {
+        fsl: newFsl,
+        psl: newPsl,
+        floor: floorPrice(newFsl, _supply),
+        market: marketPrice(newFsl, newPsl, _supply),
+        supply: _supply,
+        targetRatio: newInfoState.targetRatio + (newInfoState.targetRatio / 50),
+        lastFloorRaise: Date.now()
+      }
+
+      setNewInfoState(response)
     }
   }
 
@@ -515,6 +531,8 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
       floor: floorPrice(parseFloat(formatEther(fsl as unknown as bigint)), parseFloat(formatEther(supply as unknown as bigint))),
       market: marketPrice(parseFloat(formatEther(fsl as unknown as bigint)), parseFloat(formatEther(psl as unknown as bigint)), parseFloat(formatEther(supply as unknown as bigint))),
       supply: parseFloat(formatEther(supply as unknown as bigint)),
+      targetRatio: parseFloat(formatEther(targetRatio as unknown as bigint)),
+      lastFloorRaise: parseFloat(formatEther(lastFloorRaise as unknown as bigint))
     }
 
     setGammInfoState(response)
@@ -569,6 +587,8 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
         bottomInputFlag: bottomInputFlagState,
         setTopInputFlag: setTopInputFlagState,
         setBottomInputFlag: setBottomInputFlagState,
+        redeemPopupToggle: redeemPopupToggleState,
+        setRedeemPopupToggle: setRedeemPopupToggleState,
         changeNewInfo,
         simulateBuy,
         simulateSell,
