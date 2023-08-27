@@ -28,6 +28,9 @@ const INITIAL_STATE: BorrowingInitialState = {
   activeToggle: 'borrow',
   changeActiveToggle: (_toggle: string) => {},
 
+  borrowPopupToggle: false,
+  setBorrowPopupToggle: (_bool: boolean) => {},
+
   handlePercentageButtons: (_action: number) => {},
   renderLabel: () => '',
   handleInput: () => '',
@@ -52,6 +55,9 @@ export const BorrowProvider = (props: PropsWithChildren<{}>) => {
 
   const [borrowState, setBorrowState] = useState<number>(INITIAL_STATE.borrow)
   const [repayState, setRepayState] = useState<number>(INITIAL_STATE.repay)
+
+  const [borrowPopupToggleState, setBorrowPopupToggleState] = useState<boolean>(INITIAL_STATE.borrowPopupToggle)
+
 
   const honeyContract = getContract({
     address: contracts.honey.address as `0x${string}`,
@@ -219,6 +225,8 @@ export const BorrowProvider = (props: PropsWithChildren<{}>) => {
         setRepay: setRepayState,
         refreshBorrowInfo,
         changeActiveToggle,
+        borrowPopupToggle: borrowPopupToggleState,
+        setBorrowPopupToggle: setBorrowPopupToggleState,
         handlePercentageButtons,
         renderLabel,
         handleInput,

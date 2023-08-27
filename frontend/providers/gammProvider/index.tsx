@@ -99,7 +99,7 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
 
   const { children } = props
 
-  const { balance, wallet } = useWallet()
+  const { balance, wallet, isConnected } = useWallet()
   const { simulateBuyDry, simulateSellDry, floorPrice, marketPrice } = useGammMath()
 
   const [gammInfoState, setGammInfoState] = useState<GammInfo>(INITIAL_STATE.gammInfo)
@@ -195,6 +195,7 @@ export const GammProvider = (props: PropsWithChildren<{}>) => {
   }
 
   const handlePercentageButtons = (action: number) => {
+    if(!isConnected) return
     if(action == 1) {
       if(activeToggleState === 'buy') {
         setDisplayStringState((balance.honey / 4).toFixed(4))

@@ -150,6 +150,8 @@ export interface StakingInitialState {
   setDisplayString: (_displayString: string) => void;
   activeToggle: string;
   changeActiveToggle: (_toggle: string) => void;
+  realizePopupToggle: boolean;
+  setRealizePopupToggle: (_bool: boolean) => void;
   renderLabel: () => string;
   handleBalance: () => string;
   handlePercentageButtons: (_action: number) => void;
@@ -177,6 +179,8 @@ export interface BorrowingInitialState {
   setDisplayString: (_displayString: string) => void;
   activeToggle: string;
   changeActiveToggle: (_toggle: string) => void;
+  borrowPopupToggle: boolean;
+  setBorrowPopupToggle: (_bool: boolean) => void;
   handlePercentageButtons: (_action: number) => void;
   renderLabel: () => string;
   handleInput: () => string;

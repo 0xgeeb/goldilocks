@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useGammMath } from "../../../hooks/gamm"
 import { useGamm, useWallet } from "../../../providers"
-import { SlippagePopup, GammButton, PercentageButtons } from "../../gamm"
+import { GammButton, PercentageButtons } from "../../gamm"
 
 export const TradeBox = () => {
 
@@ -255,7 +255,6 @@ export const TradeBox = () => {
   return (
     <div className="h-[65%] relative mt-2 2xl:mt-4 flex flex-col">
       <div className="h-[69%] px-6">
-        <SlippagePopup />
         <div className="rounded-3xl border-2 border-black mt-2 h-[50%] bg-white flex flex-col">
           <div className="h-[50%] flex flex-row items-center justify-between">
             <div className="rounded-[50px] m-3 2xl:m-6 p-2 flex flex-row bg-slate-100 border-2 border-black items-center">

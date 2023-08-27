@@ -31,6 +31,9 @@ const INITIAL_STATE: StakingInitialState = {
   activeToggle: 'stake',
   changeActiveToggle: (_toggle: string) => {},
 
+  realizePopupToggle: false,
+  setRealizePopupToggle: (_bool: boolean) => {},
+
   renderLabel: () => '',
   handleBalance: () => '',
   handlePercentageButtons: (_action: number) => {},
@@ -56,6 +59,8 @@ export const StakingProvider = (props: PropsWithChildren<{}>) => {
   const [stakeState, setStakeState] = useState<number>(INITIAL_STATE.stake)
   const [unstakeState, setUnstakeState] = useState<number>(INITIAL_STATE.unstake)
   const [realizeState, setRealizeState] = useState<number>(INITIAL_STATE.realize)
+
+  const [realizePopupToggleState, setRealizePopupToggleState] = useState<boolean>(INITIAL_STATE.realizePopupToggle)
 
   const honeyContract = getContract({
     address: contracts.honey.address as `0x${string}`,
@@ -235,6 +240,8 @@ export const StakingProvider = (props: PropsWithChildren<{}>) => {
         setDisplayString: setDisplayStringState,
         activeToggle: activeToggleState,
         changeActiveToggle,
+        realizePopupToggle: realizePopupToggleState,
+        setRealizePopupToggle: setRealizePopupToggleState,
         renderLabel,
         handleBalance,
         handlePercentageButtons,

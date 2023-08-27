@@ -1,16 +1,12 @@
 import type { Metadata } from 'next'
-import { BorrowMainBox } from "../../components/borrow"
+import { BorrowPage } from "../../components/borrow"
+import { NotificationManager } from "../../components/utils"
 import {
   NotificationProvider,
   WagmiProvider,
   WalletProvider,
   BorrowProvider
 } from "../../providers"
-import { 
-  NavBar,
-  NotificationManager,
-  RotatingImages
-} from "../../components/utils"
 
 export const metadata: Metadata = {
   title: "mf borrowing",
@@ -24,11 +20,7 @@ export default function Borrowing() {
       <WagmiProvider>
         <WalletProvider>
           <BorrowProvider>
-            <div className="w-screen h-screen" id="page-div">
-              <NavBar />
-              <BorrowMainBox />
-              <RotatingImages />
-            </div>
+            <BorrowPage />
             <NotificationManager />
           </BorrowProvider>
         </WalletProvider>

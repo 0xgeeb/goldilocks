@@ -1,25 +1,20 @@
 "use client"
 
-import { useState } from "react"
-import { RealizePopup } from "../realizePopup"
 import { useStaking } from "../../../providers"
 
 export const TitleBar = () => {
 
-  const [popupToggle, setPopupToggle] = useState<boolean>(false)
-  const { activeToggle, changeActiveToggle } = useStaking()
-
-  const test = () => {
-
-  }
+  const { 
+    activeToggle, 
+    changeActiveToggle,
+    setRealizePopupToggle
+  } = useStaking()
 
   return (
     <>
-      <RealizePopup popupToggle={popupToggle} setPopupToggle={setPopupToggle}/>
       <h1 
         className="text-[36px] 2xl:text-[50px] font-acme text-[#ffff00]" 
         id="text-outline" 
-        onClick={() => test()}
       >
         staking
       </h1>
@@ -47,7 +42,7 @@ export const TitleBar = () => {
               className="ml-1 text-[13px] 2xl:text-[16px] rounded-full px-2 border-2 border-black hover:bg-black hover:text-white" 
               onClick={(e) => {
                 e.stopPropagation()
-                setPopupToggle(true)
+                setRealizePopupToggle(true)
               }}
             >
               ?

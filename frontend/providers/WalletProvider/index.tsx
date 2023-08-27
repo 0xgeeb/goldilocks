@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, PropsWithChildren, useContext, useState } from "react"
-import { useAccount, useNetwork, useWalletClient, useContractReads } from "wagmi"
+import { useAccount, useNetwork, useWalletClient } from "wagmi"
 import { getContract, writeContract, waitForTransaction } from "@wagmi/core"
 import { WalletClient, parseEther, formatEther } from "viem"
 import { contracts } from "../../utils/addressi"

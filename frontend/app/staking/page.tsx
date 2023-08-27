@@ -1,16 +1,12 @@
 import type { Metadata } from 'next'
-import { StakingMainBox } from "../../components/staking"
+import { StakingPage } from "../../components/staking"
+import { NotificationManager } from "../../components/utils"
 import {
   NotificationProvider,
   WagmiProvider,
   WalletProvider,
   StakingProvider
 } from "../../providers"
-import { 
-  NavBar,
-  NotificationManager,
-  RotatingImages
-} from "../../components/utils"
 
 export const metadata: Metadata = {
   title: "mf staking",
@@ -24,11 +20,7 @@ export default function Staking() {
       <WagmiProvider>
         <WalletProvider>
           <StakingProvider>
-            <div className="w-screen h-screen" id="page-div">
-              <NavBar />
-              <StakingMainBox />
-              <RotatingImages />
-            </div>
+            <StakingPage />
             <NotificationManager />
           </StakingProvider>
         </WalletProvider>

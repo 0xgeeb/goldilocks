@@ -31,7 +31,8 @@ export const GammButton = () => {
 
   const { 
     wallet,
-    isConnected, 
+    isConnected,
+    balance,
     refreshBalances
   } = useWallet()
 
@@ -78,27 +79,33 @@ export const GammButton = () => {
       button && (button.innerHTML = "buy")
       return
     }
-    const sufficientAllowance: boolean | void = await checkAllowance(honeyBuy, wallet)
-    if(sufficientAllowance) {
-      button && (button.innerHTML = "buying...")
-      const buyTx = await sendBuyTx(buyingLocks, honeyBuy)
-      buyTx && openNotification({
-        title: 'Successfully Purchased $LOCKS!',
-        hash: buyTx,
-        direction: 'bought',
-        amount: buyingLocks,
-        price: honeyBuy,
-        page: 'amm'
-      })
-      button && (button.innerHTML = "buy")
-      refreshInfo()
+    if(honeyBuy > balance.honey) {
+      button && (button.innerHTML = "insufficient balance")
+      return
     }
     else {
-      button && (button.innerHTML = "approving...")
-      await sendApproveTx(honeyBuy)
-      setTimeout(() => {
+      const sufficientAllowance: boolean | void = await checkAllowance(honeyBuy, wallet)
+      if(sufficientAllowance) {
+        button && (button.innerHTML = "buying...")
+        const buyTx = await sendBuyTx(buyingLocks, honeyBuy)
+        buyTx && openNotification({
+          title: 'Successfully Purchased $LOCKS!',
+          hash: buyTx,
+          direction: 'bought',
+          amount: buyingLocks,
+          price: honeyBuy,
+          page: 'amm'
+        })
         button && (button.innerHTML = "buy")
-      }, 10000)
+        refreshInfo()
+      }
+      else {
+        button && (button.innerHTML = "approving...")
+        await sendApproveTx(honeyBuy)
+        setTimeout(() => {
+          button && (button.innerHTML = "buy")
+        }, 10000)
+      }
     }
   }
 
@@ -107,18 +114,24 @@ export const GammButton = () => {
       button && (button.innerHTML = "sell")
       return
     }
-    button && (button.innerHTML = "selling...")
-    const sellTx = await sendSellTx(sellingLocks, gettingHoney)
-    sellTx && openNotification({
-      title: 'Successfully Sold $LOCKS!',
-      hash: sellTx,
-      direction: 'sold',
-      amount: sellingLocks,
-      price: gettingHoney,
-      page: 'amm'
-    })
-    button && (button.innerHTML = "sell")
-    refreshInfo()
+    if(sellingLocks > balance.locks) {
+      button && (button.innerHTML = "insufficient balance")
+      return
+    }
+    else {
+      button && (button.innerHTML = "selling...")
+      const sellTx = await sendSellTx(sellingLocks, gettingHoney)
+      sellTx && openNotification({
+        title: 'Successfully Sold $LOCKS!',
+        hash: sellTx,
+        direction: 'sold',
+        amount: sellingLocks,
+        price: gettingHoney,
+        page: 'amm'
+      })
+      button && (button.innerHTML = "sell")
+      refreshInfo()
+    }
   }
 
   const redeemTxFlow = async (button: HTMLElement | null) => {
@@ -126,18 +139,24 @@ export const GammButton = () => {
       button && (button.innerHTML = "redeem")
       return
     }
-    button && (button.innerHTML = "redeeming...")
-    const redeemTx = await sendRedeemTx(redeemingLocks)
-    redeemTx && openNotification({
-      title: 'Successfully Redeemed $LOCKS!',
-      hash: redeemTx,
-      direction: 'redeemed',
-      amount: redeemingLocks,
-      price: redeemingHoney,
-      page: 'amm'
-    })
-    button && (button.innerHTML = "redeem")
-    refreshInfo()
+    if(redeemingLocks > balance.locks) {
+      button && (button.innerHTML = "insufficient balance")
+      return
+    }
+    else {
+      button && (button.innerHTML = "redeeming...")
+      const redeemTx = await sendRedeemTx(redeemingLocks)
+      redeemTx && openNotification({
+        title: 'Successfully Redeemed $LOCKS!',
+        hash: redeemTx,
+        direction: 'redeemed',
+        amount: redeemingLocks,
+        price: redeemingHoney,
+        page: 'amm'
+      })
+      button && (button.innerHTML = "redeem")
+      refreshInfo()
+    }
   }
 
   const handleButtonClick = () => {
