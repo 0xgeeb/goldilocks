@@ -43,7 +43,6 @@ export const StatsBox = () => {
   }
 
   return (
-    // <div className="w-[40%] h-[75%] bg-white border-2 border-black rounded-xl flex flex-col gap-2 2xl:gap-6 p-3 2xl:p-6">
     <div className="w-[40%] h-[75%] bg-white border-2 border-black rounded-xl p-3 2xl:p-6 flex flex-col justify-around">
       <div className="flex flex-row justify-between items-center font-acme">
         <h1 className="text-[20px] 2xl:text-[24px]">$LOCKS floor price:</h1>

@@ -23,6 +23,8 @@ export const StakingButton = () => {
 
   const {
     wallet,
+    balance,
+    isConnected,
     refreshBalances
   } = useWallet()
 
@@ -48,6 +50,10 @@ export const StakingButton = () => {
   const stakeTxFlow = async (button: HTMLElement | null) => {
     if(stake == 0) {
       button && (button.innerHTML = "stake")
+      return
+    }
+    if(stake > balance.locks) {
+      button && (button.innerHTML = "insufficient balance")
       return
     }
     const sufficientAllowance: boolean | void = await checkAllowance(stake, 'locks', wallet)
@@ -79,6 +85,10 @@ export const StakingButton = () => {
       button && (button.innerHTML = "unstake")
       return
     }
+    if(unstake > stakingInfo.staked) {
+      button && (button.innerHTML = "insufficient balance")
+      return
+    }
     button && (button.innerHTML = "unstaking...")
     const unstakeTx = await sendUnstakeTx(unstake)
     unstakeTx && openNotification({
@@ -96,6 +106,10 @@ export const StakingButton = () => {
   const realizeTxFlow = async (button: HTMLElement | null) => {
     if(realize == 0) {
       button && (button.innerHTML = "realize")
+      return
+    }
+    if(realize > balance.prg) {
+      button && (button.innerHTML = "insufficient balance")
       return
     }
     const sufficientAllowance: boolean | void = await checkAllowance(realize, 'honey', wallet)
@@ -137,7 +151,7 @@ export const StakingButton = () => {
 
   const renderButton = () => {
     if(activeToggle === 'stake') {
-      if(stake > stakingInfo.locksPrgAllowance) {
+      if(isConnected && stake > stakingInfo.locksPrgAllowance && balance.locks >= stake) {
         return 'approve use of $locks'
       }
       return 'stake'
@@ -146,7 +160,7 @@ export const StakingButton = () => {
       return 'unstake'
     }
     if(activeToggle === 'realize') {
-      if(realize > stakingInfo.honeyPrgAllowance) {
+      if(isConnected && realize > stakingInfo.honeyPrgAllowance && balance.prg >= realize) {
         return 'approve use of $honey'
       }
       return 'stir'

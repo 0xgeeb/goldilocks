@@ -12,7 +12,7 @@ export const BorrowBox = () => {
     activeToggle,
     renderLabel,
     handleChange,
-    handleInput,
+    displayString,
     handleBalance
   } = useBorrowing()
   
@@ -42,7 +42,7 @@ export const BorrowBox = () => {
             className="border-none focus:outline-none font-acme rounded-xl text-[34px] 2xl:text-[40px] pl-8 2xl:pl-12 w-[80%]" 
             placeholder="0.00"
             type="number"
-            value={handleInput()} 
+            value={displayString} 
             onChange={(e) => handleChange(e.target.value)} 
             id="number-input" 
             autoFocus 

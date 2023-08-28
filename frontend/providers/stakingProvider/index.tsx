@@ -38,7 +38,6 @@ const INITIAL_STATE: StakingInitialState = {
   handleBalance: () => '',
   handlePercentageButtons: (_action: number) => {},
   handleChange: (_input: string) => {},
-  handleInput: () => '',
 
   refreshStakingInfo: async () =>  {}
 }
@@ -185,20 +184,6 @@ export const StakingProvider = (props: PropsWithChildren<{}>) => {
     }
   }
 
-  const handleInput = (): string => {
-    if(activeToggleState === 'stake') {
-      return stakeState > balance.locks ? '' : displayStringState
-    }
-    if(activeToggleState === 'unstake') {
-      return unstakeState > stakingInfoState.staked ? '' : displayStringState
-    }
-    if(activeToggleState === 'realize') {
-      return realizeState > balance.prg ? '' : displayStringState
-    }
-
-    return ''
-  }
-
   const refreshStakingInfo = async () => {
     const fsl = await gammContract.read.fsl([])
     const supply = await gammContract.read.supply([])
@@ -246,7 +231,6 @@ export const StakingProvider = (props: PropsWithChildren<{}>) => {
         handleBalance,
         handlePercentageButtons,
         handleChange,
-        handleInput,
         refreshStakingInfo
       }}
     >

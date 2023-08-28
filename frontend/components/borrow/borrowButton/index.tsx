@@ -41,9 +41,25 @@ export const BorrowButton = () => {
     refreshBorrowInfo()
   }
 
+
+  // const handleInput = (): string => {
+  //   if(activeToggleState === 'borrow') {
+  //     return borrowState > (borrowInfoState.fsl / borrowInfoState.supply) * (borrowInfoState.staked - borrowInfoState.locked)  ? '' : displayStringState
+  //   }
+  //   if(activeToggleState === 'repay') {
+  //     return repayState > borrowInfoState.borrowed ? '' : displayStringState
+  //   }
+
+  //   return ''
+  // }
+
   const borrowTxFlow = async (button: HTMLElement | null) => {
     if(borrow == 0) {
       button && (button.innerHTML = "borrow")
+      return
+    }
+    if(borrow > (borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply)) {
+      button && (button.innerHTML = "insufficient balance")
       return
     }
     button && (button.innerHTML = "borrowing...")
@@ -63,6 +79,10 @@ export const BorrowButton = () => {
   const repayTxFlow = async (button: HTMLElement | null) => {
     if(repay == 0) {
       button && (button.innerHTML = "repay")
+      return
+    }
+    if(repay > borrowInfo.borrowed) {
+      button && (button.innerHTML = "insufficient balance")
       return
     }
     const sufficientAllowance: boolean | void = await checkAllowance(repay, wallet)

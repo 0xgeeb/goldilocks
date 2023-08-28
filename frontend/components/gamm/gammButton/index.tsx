@@ -61,7 +61,7 @@ export const GammButton = () => {
 
   const renderButton = () => {
     if(activeToggle === 'buy') {
-      if(isConnected && debouncedHoneyBuy > gammInfo.honeyAmmAllowance) {
+      if(isConnected && debouncedHoneyBuy > gammInfo.honeyAmmAllowance && balance.honey >= debouncedHoneyBuy) {
         return 'approve use of $honey'
       }
       return 'buy'

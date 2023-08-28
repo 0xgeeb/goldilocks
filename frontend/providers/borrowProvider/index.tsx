@@ -33,7 +33,6 @@ const INITIAL_STATE: BorrowingInitialState = {
 
   handlePercentageButtons: (_action: number) => {},
   renderLabel: () => '',
-  handleInput: () => '',
   handleChange: (_input: string) => {},
   handleBalance: () => '',
 
@@ -141,17 +140,6 @@ export const BorrowProvider = (props: PropsWithChildren<{}>) => {
     return ''
   }
 
-  const handleInput = (): string => {
-    if(activeToggleState === 'borrow') {
-      return borrowState > (borrowInfoState.fsl / borrowInfoState.supply) * (borrowInfoState.staked - borrowInfoState.locked)  ? '' : displayStringState
-    }
-    if(activeToggleState === 'repay') {
-      return repayState > borrowInfoState.borrowed ? '' : displayStringState
-    }
-
-    return ''
-  }
-
   const handleChange = (input: string) => {
     setDisplayStringState(input)
     if(activeToggleState === 'borrow') {
@@ -229,7 +217,6 @@ export const BorrowProvider = (props: PropsWithChildren<{}>) => {
         setBorrowPopupToggle: setBorrowPopupToggleState,
         handlePercentageButtons,
         renderLabel,
-        handleInput,
         handleChange,
         handleBalance
       }}

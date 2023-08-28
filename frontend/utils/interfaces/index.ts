@@ -156,7 +156,6 @@ export interface StakingInitialState {
   handleBalance: () => string;
   handlePercentageButtons: (_action: number) => void;
   handleChange: (_input: string) => void;
-  handleInput: () => string;
   refreshStakingInfo: () => void;
 }
 
@@ -183,7 +182,6 @@ export interface BorrowingInitialState {
   setBorrowPopupToggle: (_bool: boolean) => void;
   handlePercentageButtons: (_action: number) => void;
   renderLabel: () => string;
-  handleInput: () => string;
   handleChange: (_input: string) => void;
   handleBalance: () => string;
   refreshBorrowInfo: () =>  void;
