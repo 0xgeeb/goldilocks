@@ -14,7 +14,7 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
 
   const { children } = props
 
-  const { wallet } = useWallet()
+  const { balance, wallet } = useWallet()
 
   return (
     <GoldilendContext.Provider

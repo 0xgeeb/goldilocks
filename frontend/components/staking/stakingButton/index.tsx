@@ -85,7 +85,7 @@ export const StakingButton = () => {
       button && (button.innerHTML = "unstake")
       return
     }
-    if(unstake > stakingInfo.staked) {
+    if(unstake > balance.staked) {
       button && (button.innerHTML = "insufficient balance")
       return
     }

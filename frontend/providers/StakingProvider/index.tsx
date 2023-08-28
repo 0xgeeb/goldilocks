@@ -11,8 +11,6 @@ const INITIAL_STATE: StakingInitialState = {
   stakingInfo: {
     fsl: 0,
     supply: 0,
-    staked: 0,
-    yieldToClaim: 0,
     locksPrgAllowance: 0,
     honeyPrgAllowance: 0
   },
@@ -89,7 +87,7 @@ export const StakingProvider = (props: PropsWithChildren<{}>) => {
       return balance.locks > 0 ? balance.locks.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
     }
     if(activeToggleState === 'unstake') {
-      return stakingInfoState.staked > 0 ? stakingInfoState.staked.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
+      return balance.staked > 0 ? balance.staked.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
     }
     if(activeToggleState === 'realize') {
       return balance.prg > 0 ? balance.prg.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
@@ -105,8 +103,8 @@ export const StakingProvider = (props: PropsWithChildren<{}>) => {
         setStakeState(balance.locks / 4)
       }
       if(activeToggleState === 'unstake') {
-        setDisplayStringState((stakingInfoState.staked / 4).toFixed(2))
-        setUnstakeState(stakingInfoState.staked / 4)
+        setDisplayStringState((balance.staked / 4).toFixed(2))
+        setUnstakeState(balance.staked / 4)
       }
       if(activeToggleState === 'realize') {
         setDisplayStringState((balance.prg / 4).toFixed(2))
@@ -119,8 +117,8 @@ export const StakingProvider = (props: PropsWithChildren<{}>) => {
         setStakeState(balance.locks / 2)
       }
       if(activeToggleState === 'unstake') {
-        setDisplayStringState((stakingInfoState.staked / 2).toFixed(2))
-        setUnstakeState(stakingInfoState.staked / 2)
+        setDisplayStringState((balance.staked / 2).toFixed(2))
+        setUnstakeState(balance.staked / 2)
       }
       if(activeToggleState === 'realize') {
         setDisplayStringState((balance.prg / 2).toFixed(2))
@@ -133,8 +131,8 @@ export const StakingProvider = (props: PropsWithChildren<{}>) => {
         setStakeState(balance.locks * 0.75)
       }
       if(activeToggleState === 'unstake') {
-        setDisplayStringState((stakingInfoState.staked * 0.75).toFixed(2))
-        setUnstakeState(stakingInfoState.staked * 0.75)
+        setDisplayStringState((balance.staked * 0.75).toFixed(2))
+        setUnstakeState(balance.staked * 0.75)
       }
       if(activeToggleState === 'realize') {
         setDisplayStringState((balance.prg * 0.75).toFixed(2))
@@ -147,8 +145,8 @@ export const StakingProvider = (props: PropsWithChildren<{}>) => {
         setStakeState(balance.locks)
       }
       if(activeToggleState === 'unstake') {
-        setDisplayStringState(stakingInfoState.staked.toFixed(2))
-        setUnstakeState(stakingInfoState.staked)
+        setDisplayStringState(balance.staked.toFixed(2))
+        setUnstakeState(balance.staked)
       }
       if(activeToggleState === 'realize') {
         setDisplayStringState(balance.prg.toFixed(2))
@@ -187,23 +185,16 @@ export const StakingProvider = (props: PropsWithChildren<{}>) => {
   const refreshStakingInfo = async () => {
     const fsl = await gammContract.read.fsl([])
     const supply = await gammContract.read.supply([])
-    let staked
-    let yieldToClaim
     let locksPrgAllowance
     let honeyPrgAllowance
     if(wallet) {
-      staked = await porridgeContract.read.getStaked([wallet])
-      yieldToClaim = await porridgeContract.read.getClaimable([wallet])
       locksPrgAllowance = await gammContract.read.allowance([wallet, contracts.porridge.address])
       honeyPrgAllowance = await honeyContract.read.allowance([wallet, contracts.porridge.address])
     } 
 
-
     const response = {
       fsl: parseFloat(formatEther(fsl as unknown as bigint)),
       supply: parseFloat(formatEther(supply as unknown as bigint)),
-      staked: wallet ? parseFloat(formatEther(staked as unknown as bigint)) : 0, 
-      yieldToClaim: wallet ? parseFloat(formatEther(yieldToClaim as unknown as bigint)) : 0, 
       locksPrgAllowance: wallet ? parseFloat(formatEther(locksPrgAllowance as unknown as bigint)) : 0, 
       honeyPrgAllowance: wallet ? parseFloat(formatEther(honeyPrgAllowance as unknown as bigint)) : 0, 
     }

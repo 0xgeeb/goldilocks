@@ -41,7 +41,7 @@ export const StatsBox = () => {
   }
 
   const claimTxFlow = async (button: HTMLElement | null) => {
-    if(stakingInfo.yieldToClaim == 0) {
+    if(balance.claimable == 0) {
       button && (button.innerHTML = "claim yield")
       return
     }
@@ -51,7 +51,7 @@ export const StatsBox = () => {
       title: 'Successfully Claimed $PRG!',
       hash: claimTx,
       direction: 'claimed',
-      amount: stakingInfo.yieldToClaim,
+      amount: balance.claimable,
       price: 0,
       page: 'claim'
     })
@@ -98,11 +98,11 @@ export const StatsBox = () => {
         </div>
         <div className="flex flex-row justify-between items-center font-acme">
           <h1 className="text-[20px] 2xl:text-[24px]">staked $LOCKS:</h1>
-          <p className="text-[18px] 2xl:text-[20px]">{handleInfo(stakingInfo.staked)}</p>
+          <p className="text-[18px] 2xl:text-[20px]">{handleInfo(balance.staked)}</p>
         </div>
         <div className="flex flex-row justify-between items-center font-acme">
           <h1 className="text-[20px] 2xl:text-[24px]">$PRG available to claim:</h1>
-          <p className="text-[18px] 2xl:text-[20px]">{handleInfo(stakingInfo.yieldToClaim)}</p>
+          <p className="text-[18px] 2xl:text-[20px]">{handleInfo(balance.claimable)}</p>
         </div>
       </div>
       <div className="h-[10%] w-[65%] 2xl:w-[70%] mx-auto mt-4">

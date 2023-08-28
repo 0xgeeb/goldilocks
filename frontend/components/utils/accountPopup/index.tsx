@@ -1,8 +1,4 @@
-import {
-  useWallet,
-  useBorrowing,
-  useStaking
-} from "../../../providers"
+import { useWallet } from "../../../providers"
 
 type PopupProp = {
   setPopupToggle: React.Dispatch<React.SetStateAction<boolean>>;
@@ -11,8 +7,6 @@ type PopupProp = {
 export const AccountPopup = ({ setPopupToggle }: PopupProp) => {
 
   const { balance } = useWallet()
-  const { borrowInfo } = useBorrowing()
-  const { stakingInfo } = useStaking()
 
   const formatAsString = (num: number): string => {
     return num.toLocaleString('en-US', { maximumFractionDigits: 2 })
@@ -38,7 +32,7 @@ export const AccountPopup = ({ setPopupToggle }: PopupProp) => {
       <div className="w-full h-full flex flex-col">
         <h1 className="mx-auto text-[1.5rem] font-acme text-[#ffff00]" id="text-outline">goldilocks holdings</h1>
         <div className="flex flex-row w-[60%] lg:w-[50%] justify-between mx-auto mt-[5%] font-acme text-[15px] 2xl:text-[18px]">
-          {/* todo: add goldilend info here */}
+          {/* todo: add goldilend info and enable on goldilend page */}
           <div className="flex flex-col">
             <p>locks balance</p>
             <p>porridge balance</p>
@@ -52,10 +46,10 @@ export const AccountPopup = ({ setPopupToggle }: PopupProp) => {
             <p>{handleInfo(balance.locks)}</p>
             <p>{handleInfo(balance.prg)}</p>
             <p>{handleInfo(balance.honey)}</p>
-            <p>{handleInfo(borrowInfo.staked)}</p>
-            <p>{handleInfo(stakingInfo.yieldToClaim)}</p>
-            <p>{handleInfo(borrowInfo.locked)}</p>
-            <p>{handleInfo(borrowInfo.borrowed)}</p>
+            <p>{handleInfo(balance.staked)}</p>
+            <p>{handleInfo(balance.claimable)}</p>
+            <p>{handleInfo(balance.locked)}</p>
+            <p>{handleInfo(balance.borrowed)}</p>
           </div>
         </div>
       </div>

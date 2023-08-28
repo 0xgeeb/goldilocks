@@ -43,6 +43,10 @@ export interface BalanceState {
   locks: number;
   prg: number;
   honey: number;
+  staked: number;
+  claimable: number;
+  locked: number;
+  borrowed: number;
 }
 
 export interface WalletInitialState {
@@ -132,8 +136,6 @@ export interface GammInitialState {
 export interface StakingInfo {
   fsl: number;
   supply: number;
-  staked: number;
-  yieldToClaim: number;
   locksPrgAllowance: number;
   honeyPrgAllowance: number;
 }
@@ -160,9 +162,6 @@ export interface StakingInitialState {
 }
 
 export interface BorrowInfo {
-  staked: number;
-  borrowed: number;
-  locked: number;
   fsl: number;
   supply: number;
   honeyBorrowAllowance: number;

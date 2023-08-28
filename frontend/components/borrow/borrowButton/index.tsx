@@ -21,6 +21,7 @@ export const BorrowButton = () => {
 
   const {
     wallet,
+    balance,
     refreshBalances
   } = useWallet()
 
@@ -46,7 +47,7 @@ export const BorrowButton = () => {
       button && (button.innerHTML = "borrow")
       return
     }
-    if(borrow > (borrowInfo.staked - borrowInfo.locked) * (borrowInfo.fsl / borrowInfo.supply)) {
+    if(borrow > (balance.staked - balance.locked) * (borrowInfo.fsl / borrowInfo.supply)) {
       button && (button.innerHTML = "insufficient balance")
       return
     }
@@ -69,7 +70,7 @@ export const BorrowButton = () => {
       button && (button.innerHTML = "repay")
       return
     }
-    if(repay > borrowInfo.borrowed) {
+    if(repay > balance.borrowed) {
       button && (button.innerHTML = "insufficient balance")
       return
     }

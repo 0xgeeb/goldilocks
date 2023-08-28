@@ -9,9 +9,6 @@ import { BorrowingInitialState, BorrowInfo } from "../../utils/interfaces"
 
 const INITIAL_STATE: BorrowingInitialState = {
   borrowInfo: {
-    staked: 0,
-    borrowed: 0,
-    locked: 0,
     fsl: 0,
     supply: 0,
     honeyBorrowAllowance: 0
@@ -45,7 +42,7 @@ export const BorrowProvider = (props: PropsWithChildren<{}>) => {
 
   const { children } = props
 
-  const { wallet } = useWallet()
+  const { balance, wallet } = useWallet()
 
   const [borrowInfoState, setBorrowInfoState] = useState<BorrowInfo>(INITIAL_STATE.borrowInfo)
   const [activeToggleState, setActiveToggleState] = useState<string>(INITIAL_STATE.activeToggle)
@@ -86,15 +83,15 @@ export const BorrowProvider = (props: PropsWithChildren<{}>) => {
   }
 
   const handlePercentageButtons = (action: number) => {
-    const borrowTemp = (borrowInfoState.staked - borrowInfoState.locked) * (borrowInfoState.fsl / borrowInfoState.supply)
+    const borrowTemp = (balance.staked - balance.locked) * (borrowInfoState.fsl / borrowInfoState.supply)
     if(action == 1) {
       if(activeToggleState === 'borrow') {
         setDisplayStringState((borrowTemp / 4).toFixed(2))
         setBorrowState(borrowTemp / 4)
       }
       if(activeToggleState === 'repay') {
-        setDisplayStringState((borrowInfoState.borrowed / 4).toFixed(2))
-        setRepayState(borrowInfoState.borrowed / 4)
+        setDisplayStringState((balance.borrowed / 4).toFixed(2))
+        setRepayState(balance.borrowed / 4)
       }
     }
     if(action == 2) {
@@ -103,8 +100,8 @@ export const BorrowProvider = (props: PropsWithChildren<{}>) => {
         setBorrowState(borrowTemp / 2)
       }
       if(activeToggleState === 'repay') {
-        setDisplayStringState((borrowInfoState.borrowed / 2).toFixed(2))
-        setRepayState(borrowInfoState.borrowed / 2)
+        setDisplayStringState((balance.borrowed / 2).toFixed(2))
+        setRepayState(balance.borrowed / 2)
       }
     }
     if(action == 3) {
@@ -113,8 +110,8 @@ export const BorrowProvider = (props: PropsWithChildren<{}>) => {
         setBorrowState(borrowTemp * 0.75)
       }
       if(activeToggleState === 'repay') {
-        setDisplayStringState((borrowInfoState.borrowed * 0.75).toFixed(2))
-        setRepayState(borrowInfoState.borrowed * 0.75)
+        setDisplayStringState((balance.borrowed * 0.75).toFixed(2))
+        setRepayState(balance.borrowed * 0.75)
       }
     }
     if(action == 4) {
@@ -123,8 +120,8 @@ export const BorrowProvider = (props: PropsWithChildren<{}>) => {
         setBorrowState(borrowTemp - 0.0000009)
       }
       if(activeToggleState === 'repay') {
-        setDisplayStringState(borrowInfoState.borrowed.toFixed(2))
-        setRepayState(borrowInfoState.borrowed)
+        setDisplayStringState(balance.borrowed.toFixed(2))
+        setRepayState(balance.borrowed)
       }
     }
   }
@@ -162,35 +159,26 @@ export const BorrowProvider = (props: PropsWithChildren<{}>) => {
 
   const handleBalance = (): string => {
     if(activeToggleState === 'borrow') {
-      const borrowTemp = (borrowInfoState.staked - borrowInfoState.locked) * (borrowInfoState.fsl / borrowInfoState.supply)
+      const borrowTemp = (balance.staked - balance.locked) * (borrowInfoState.fsl / borrowInfoState.supply)
       return borrowTemp > 0 ? borrowTemp.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
     }
     if(activeToggleState === 'repay') {
-      return borrowInfoState.borrowed > 0 ? borrowInfoState.borrowed.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
+      return balance.borrowed > 0 ? balance.borrowed.toLocaleString('en-US', { maximumFractionDigits: 4 }) : "0.00"
     }
 
     return ''
   }
 
   const refreshBorrowInfo = async () => {
-    let staked
-    let borrowed
-    let locked
     const fsl = await gammContract.read.fsl([])
     const supply = await gammContract.read.supply([])
     let honeyBorrowAllowance
 
     if(wallet) {
-      staked = await porridgeContract.read.getStaked([wallet])
-      borrowed = await borrowContract.read.getBorrowed([wallet])
-      locked = await borrowContract.read.getLocked([wallet])
       honeyBorrowAllowance = await honeyContract.read.allowance([wallet, contracts.borrow.address])
     }
 
     const response = {
-      staked: wallet ? parseFloat(formatEther(staked as unknown as bigint)) : 0,
-      borrowed: wallet ? parseFloat(formatEther(borrowed as unknown as bigint)) : 0,
-      locked: wallet ? parseFloat(formatEther(locked as unknown as bigint)) : 0,
       fsl: parseFloat(formatEther(fsl as unknown as bigint)),
       supply: parseFloat(formatEther(supply as unknown as bigint)),
       honeyBorrowAllowance: wallet ? parseFloat(formatEther(honeyBorrowAllowance as unknown as bigint)) : 0,
