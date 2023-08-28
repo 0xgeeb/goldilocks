@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import "../lib/forge-std/src/Test.sol";
+import { IERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import { Honey } from "../src/mock/Honey.sol";
 import { GAMM } from "../src/core/GAMM.sol";
 import { Borrow } from "../src/core/Borrow.sol";
@@ -188,6 +189,16 @@ contract GAMMTest is Test {
     vm.warp(1692836841);
 
     console.log(gamm._floorReduce());
+  }
+
+  function testTokenBurn() public dealUserLocks {
+    console.log("before balance: ", gamm.balanceOf(address(this)));
+    console.log("before supply: ", gamm.totalSupply());
+
+    // gamm.burn(1e18);
+
+    console.log("after balance: ", gamm.balanceOf(address(this)));
+    console.log("after supply: ", gamm.totalSupply());
   }
 
 }

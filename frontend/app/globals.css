@@ -129,3 +129,10 @@
     transform: rotate(360deg);
   }
 } 
+
+#account-popup {
+  background: rgb(255,255,255);
+  background: linear-gradient(305deg, rgba(255,255,255,1) 62%, rgba(255,255,0,0.99298669467787116) 100%);
+
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}

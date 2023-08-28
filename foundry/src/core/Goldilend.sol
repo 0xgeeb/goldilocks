@@ -517,7 +517,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-  /*                   IMPLEMENTATION FUNCTIONS                 */
+  /*                   IMPLEMENTATION FUNCTION                  */
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 

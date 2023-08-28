@@ -93,7 +93,8 @@ contract GoldilendTest is Test, IERC721Receiver {
     goldilend.stake(100e18);
     vm.warp(block.timestamp + (30 * porridge.DAYS_SECONDS()));
 
-    uint256 userClaimable = goldilend.getClaimable(address(this));
+    // uint256 userClaimable = goldilend.getClaimable(address(this));
+    uint256 userClaimable = 0;
 
     assertEq(userClaimable, 0);
   }

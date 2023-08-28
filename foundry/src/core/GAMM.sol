@@ -358,4 +358,20 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
     borrowAddress = _borrowAddress;
   }
 
+
+  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+  /*                  IMPLEMENTATION FUNCTIONS                  */
+  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+
+  function _beforeTokenTransfer(
+    address from,
+    address to,
+    uint256 amount
+  ) internal virtual override {
+    if(from != msg.sender && to == address(0x0000000000000000000000000000000000000000)) {
+      supply -= amount;
+    }
+  }
+
 }

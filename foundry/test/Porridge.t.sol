@@ -64,6 +64,7 @@ contract PorridgeTest is Test {
     goldilend = new Goldilend(
       69,
       15,
+      69,
       address(bera),
       address(porridge),
       address(this),
@@ -226,6 +227,27 @@ contract PorridgeTest is Test {
     uint256 userBalanceofPrg = porridge.balanceOf(address(this));
 
     assertEq(userBalanceofPrg, 0);
+  }
+
+  function testRealizeSupplyAmount() public dealandStake100Locks dealUser280Honey {
+    // vm.warp(block.timestamp + (2 * porridge.DAYS_SECONDS()));
+    // porridge.unstake(100e18);
+    // porridge.realize(1e18);
+
+    // uint256 userBalanceofPrg = porridge.balanceOf(address(this));
+    // uint256 userBalanceofLocks = gamm.balanceOf(address(this));
+    // uint256 userBalanceofHoney = honey.balanceOf(address(this));
+    // uint256 gammBalanceofHoney = honey.balanceOf(address(gamm));
+
+    // assertEq(userBalanceofPrg, 0);
+    // assertEq(userBalanceofLocks, 101e18);
+    // assertEq(userBalanceofHoney, 0);
+    // assertEq(gammBalanceofHoney, 280e18);
+
+    console.log(gamm.supply());
+    console.log(gamm.totalSupply());
+
+    // assertEq(gamm.totalSupply(), gamm.supply());
   }
 
 }
