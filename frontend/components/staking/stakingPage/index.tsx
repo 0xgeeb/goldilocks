@@ -12,6 +12,7 @@ import { useStaking } from "../../../providers"
 export const StakingPage = () => {
 
   const [accountPopupToggle, setAccountPopupToggle] = useState<boolean>(false)
+  const [burgerPopupToggle, setBurgerPopupToggle] = useState<boolean>(false)
   const { realizePopupToggle, setRealizePopupToggle } = useStaking()
 
   const handlePopups = () => {
@@ -31,7 +32,11 @@ export const StakingPage = () => {
     >
       { accountPopupToggle && <AccountPopup setPopupToggle={setAccountPopupToggle} /> }
       { realizePopupToggle && <RealizePopup setPopupToggle={setRealizePopupToggle} /> }
-      <NavBar setPopupToggle={setAccountPopupToggle} />
+      <NavBar
+        burgerPopupToggle={burgerPopupToggle}
+        setBurgerPopupToggle={setBurgerPopupToggle} 
+        setAccountPopupToggle={setAccountPopupToggle}
+      />
       <StakingMainBox />
       <RotatingImages />
     </div>

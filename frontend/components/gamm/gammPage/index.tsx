@@ -13,6 +13,7 @@ import { useGamm } from "../../../providers"
 export const GammPage = () => {
 
   const [accountPopupToggle, setAccountPopupToggle] = useState<boolean>(false)
+  const [burgerPopupToggle, setBurgerPopupToggle] = useState<boolean>(false)
   const { 
     redeemPopupToggle, 
     setRedeemPopupToggle,
@@ -30,6 +31,9 @@ export const GammPage = () => {
     if(redeemPopupToggle) {
       setRedeemPopupToggle(false)
     }
+    if(burgerPopupToggle) {
+      setBurgerPopupToggle(false)
+    }
   }
 
   return (
@@ -41,7 +45,11 @@ export const GammPage = () => {
       { accountPopupToggle && <AccountPopup setPopupToggle={setAccountPopupToggle} /> }
       { redeemPopupToggle && <RedeemPopup setPopupToggle={setRedeemPopupToggle} /> }
       { slippage.toggle && <SlippagePopup /> }
-      <NavBar setPopupToggle={setAccountPopupToggle} />
+      <NavBar
+        burgerPopupToggle={burgerPopupToggle}
+        setBurgerPopupToggle={setBurgerPopupToggle} 
+        setAccountPopupToggle={setAccountPopupToggle}
+      />
       <div className="h-[85%] lg:h-[80%]">
         <GammMainBox />
         <GammSideBox />

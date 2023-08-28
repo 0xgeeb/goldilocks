@@ -1,7 +1,7 @@
 export const HomeNav = () => {
 
   return (
-    <div className="w-[100%] flex flex-row items-center justify-between px-10 py-4 2xl:px-24 2xl:py-8">
+    <div className="w-[100%] h-[10%] lg:h-[15%] flex flex-row items-center justify-between px-10 py-4 2xl:px-24 2xl:py-8">
       <a href="/">
         <div className="flex flex-row items-center hover:opacity-25">
           <img 

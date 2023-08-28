@@ -27,7 +27,7 @@ export const NotificationManager = () => {
   }, [notifications])
 
   return (
-    <div className={`fixed z-999 bg-[#ffffb4] top-[40%] left-[35%] w-[30%] rounded-xl ${notifications.length ? "border-2 border-black" : ""}`}>
+    <div className={`fixed z-999 bg-[#ffffb4] top-[40%] left-[12.5%] lg:left-[35%] w-[75%] lg:w-[30%] rounded-xl ${notifications.length ? "border-2 border-black" : ""}`}>
       {
         notifications.map((n, index) => {
           const { title, hash, direction, amount, price, page } = n

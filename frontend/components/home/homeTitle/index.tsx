@@ -1,6 +1,3 @@
-import Image from "next/image"
-import Link from "next/link"
-
 export const HomeTitle = () => {
 
   return (
@@ -8,10 +5,22 @@ export const HomeTitle = () => {
       <h1 className="text-[3rem] 2xl:text-[4rem]">cooking up porridge for beras</h1>
       <h3 className="text-[1.3rem] 2xl:text-[1.5rem]">DAO governed defi infrastructure for Berachain</h3>
       <div className="mt-5 flex flex-row items-center">
-        <Link href="https://goldilocks-1.gitbook.io/goldidocs/" target="_blank" >
-          <button className="w-32 2xl:w-36 py-1 2xl:py-2 text-[1.1rem] 2xl:text-[1.2rem] bg-slate-200 hover:scale-[120%] rounded-xl" id="home-button">GoldiDOCS</button>
-        </Link>
-        <Link href="https://twitter.com/goldilocksmoney" target="_blank"><Image className="h-6 w-6 ml-6 rounded-3xl hover:opacity-25" src="/twitter.png" alt="twitter" id="card-div-shadow" width="25" height="25" /></Link>
+        <a href="https://goldilocks-1.gitbook.io/goldidocs/" target="_blank">
+          <button 
+            className="w-32 2xl:w-36 py-1 2xl:py-2 text-[1.1rem] 2xl:text-[1.2rem] bg-slate-200 hover:scale-[120%] rounded-xl" 
+            id="home-button"
+          >
+            GoldiDOCS
+          </button>
+        </a>
+        <a href="https://twitter.com/goldilocksmoney" target="_blank">
+          <img 
+            className="h-[25px] w-[25px] ml-6 rounded-3xl hover:opacity-25"
+            src="/twitter.png"
+            alt="twitter"
+            id="home-twitter-image"
+          />
+        </a>
       </div>
     </div>
   )

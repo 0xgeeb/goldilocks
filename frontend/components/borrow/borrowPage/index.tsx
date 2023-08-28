@@ -12,6 +12,7 @@ import { useBorrowing } from "../../../providers"
 export const BorrowPage = () => {
 
   const [accountPopupToggle, setAccountPopupToggle] = useState<boolean>(false)
+  const [burgerPopupToggle, setBurgerPopupToggle] = useState<boolean>(false)
   const { borrowPopupToggle, setBorrowPopupToggle } = useBorrowing()
 
   const handlePopups = () => {
@@ -31,7 +32,11 @@ export const BorrowPage = () => {
     >
       { borrowPopupToggle && <BorrowPopup setPopupToggle={setBorrowPopupToggle} /> }
       { accountPopupToggle && <AccountPopup setPopupToggle={setAccountPopupToggle} /> }
-      <NavBar setPopupToggle={setAccountPopupToggle} />
+      <NavBar
+        burgerPopupToggle={burgerPopupToggle}
+        setBurgerPopupToggle={setBurgerPopupToggle} 
+        setAccountPopupToggle={setAccountPopupToggle}
+      />
       <BorrowMainBox />
       <RotatingImages />
     </div>

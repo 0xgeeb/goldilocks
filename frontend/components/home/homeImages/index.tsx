@@ -24,8 +24,7 @@ export const HomeImages = () => {
           src="/dancing.png" 
           alt="dancing"
           key="dancing"
-          >
-          </img>
+        />
       )
     },
     {
@@ -36,8 +35,7 @@ export const HomeImages = () => {
           src="/astronaut.png" 
           alt="astronaut"
           key="astronaut"
-        >
-        </img>
+        />
       )
     },
     {
@@ -48,8 +46,7 @@ export const HomeImages = () => {
           src="/cool_with_bear.png" 
           alt="withbear"
           key="withbear"
-        >
-        </img>
+        />
       )
     },
     {
@@ -60,8 +57,7 @@ export const HomeImages = () => {
           src="/real.png" 
           alt="real"
           key="real"
-        >
-        </img>
+        />
       )
     }
   ]

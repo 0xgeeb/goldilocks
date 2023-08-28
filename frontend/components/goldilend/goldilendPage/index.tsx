@@ -12,6 +12,7 @@ import { useGoldilend } from "../../../providers"
 export const GoldilendPage = () => {
 
   const [accountPopupToggle, setAccountPopupToggle] = useState<boolean>(false)
+  const [burgerPopupToggle, setBurgerPopupToggle] = useState<boolean>(false)
   
   const handlePopups = () => {
     if(accountPopupToggle) {
@@ -26,7 +27,11 @@ export const GoldilendPage = () => {
       onClick={() => handlePopups()}
     >
       { accountPopupToggle && <AccountPopup setPopupToggle={setAccountPopupToggle} /> }
-      <NavBar setPopupToggle={setAccountPopupToggle} />
+      <NavBar
+        burgerPopupToggle={burgerPopupToggle}
+        setBurgerPopupToggle={setBurgerPopupToggle} 
+        setAccountPopupToggle={setAccountPopupToggle}
+      />
       <GoldilendMainBox />
       <RotatingImages />
     </div>

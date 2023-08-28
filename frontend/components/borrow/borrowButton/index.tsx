@@ -40,19 +40,7 @@ export const BorrowButton = () => {
     refreshBalances()
     refreshBorrowInfo()
   }
-
-
-  // const handleInput = (): string => {
-  //   if(activeToggleState === 'borrow') {
-  //     return borrowState > (borrowInfoState.fsl / borrowInfoState.supply) * (borrowInfoState.staked - borrowInfoState.locked)  ? '' : displayStringState
-  //   }
-  //   if(activeToggleState === 'repay') {
-  //     return repayState > borrowInfoState.borrowed ? '' : displayStringState
-  //   }
-
-  //   return ''
-  // }
-
+  
   const borrowTxFlow = async (button: HTMLElement | null) => {
     if(borrow == 0) {
       button && (button.innerHTML = "borrow")

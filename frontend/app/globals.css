@@ -17,24 +17,12 @@
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
 }
 
-#nav-button {
-  box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px;
-}
-
-#nav-button:hover {
-  box-shadow: rgba(50, 50, 93, 0.25) 0px 30px 60px -12px inset, rgba(0, 0, 0, 0.3) 0px 18px 36px -18px inset;
-}
-
 #chart-button {
   box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px;
   user-select: none;
 }
 
-#card-image-shadow {
-  box-shadow: rgba(50, 50, 93, 0.25) 0px 30px 60px -12px inset, rgba(0, 0, 0, 0.3) 0px 18px 36px -18px inset;
-}
-
-#card-div-shadow {
+#home-twitter-image {
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
 }
 
@@ -65,16 +53,8 @@
   transition-duration: 0.2s;
 }
 
-#percentage-button {
-  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
-}
-
 #text-outline {
   text-shadow: -1px 2px 2px #000, 1px 2px 2px #000, 1px -1px 0 #000, -1px -1px 0 #000;
-}
-
-#label-outline {
-  text-shadow: -1px 2px 2px #ffff00, 1px 2px 2px #ffff00, 1px -1px 0 #ffff00, -1px -1px 0 #ffff00;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
