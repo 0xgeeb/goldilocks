@@ -85,6 +85,10 @@ export const StakingButton = () => {
       button && (button.innerHTML = "unstake")
       return
     }
+    if(unstake > balance.locked) {
+      button && (button.innerHTML = "$locks are borrowed against")
+      return
+    }
     if(unstake > balance.staked) {
       button && (button.innerHTML = "insufficient balance")
       return
