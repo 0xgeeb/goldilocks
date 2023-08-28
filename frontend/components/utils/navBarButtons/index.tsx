@@ -8,7 +8,12 @@ type PopupProp = {
 export const NavBarButtons = ({ setPopupToggle }: PopupProp) => {
 
   const { openNotification } = useNotification()
-  const { isConnected, network, refreshBalances, sendMintTx } = useWallet()
+  const { 
+    isConnected, 
+    network, 
+    refreshBalances, 
+    sendMintTx 
+  } = useWallet()
 
   const handleButtonClick = async () => {
     const button = document.getElementById('honey-button')
@@ -109,7 +114,7 @@ export const NavBarButtons = ({ setPopupToggle }: PopupProp) => {
                   {loadingElement()}
                 </button> :
               !account ?
-                <button 
+                <button
                   className={`w-20 2xl:w-24 py-2 text-[16px] 2xl:text-[18px] bg-[#ffff00] hover:scale-[120%] rounded-xl mr-4 font-acme`}
                   id="connect-button"
                   onClick={openConnectModal}

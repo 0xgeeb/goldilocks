@@ -22,6 +22,9 @@ export const StakingPage = () => {
     if(realizePopupToggle) {
       setRealizePopupToggle(false)
     }
+    if(burgerPopupToggle) {
+      setBurgerPopupToggle(false)
+    }
   }
 
   return (

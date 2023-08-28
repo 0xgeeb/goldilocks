@@ -22,6 +22,9 @@ export const BorrowPage = () => {
     if(borrowPopupToggle) {
       setBorrowPopupToggle(false)
     }
+    if(burgerPopupToggle) {
+      setBurgerPopupToggle(false)
+    }
   }
 
   return (

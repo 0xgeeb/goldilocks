@@ -37,7 +37,7 @@ export const AccountPopup = ({ setPopupToggle }: PopupProp) => {
       </span>
       <div className="w-full h-full flex flex-col">
         <h1 className="mx-auto text-[1.5rem] font-acme text-[#ffff00]" id="text-outline">goldilocks holdings</h1>
-        <div className="flex flex-row w-[70%] lg:w-[50%] justify-between mx-auto mt-[5%] font-acme text-[15px] 2xl:text-[18px]">
+        <div className="flex flex-row w-[60%] lg:w-[50%] justify-between mx-auto mt-[5%] font-acme text-[15px] 2xl:text-[18px]">
           {/* todo: add goldilend info here */}
           <div className="flex flex-col">
             <p>locks balance</p>
