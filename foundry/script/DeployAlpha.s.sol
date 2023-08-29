@@ -20,9 +20,9 @@ contract DeployAlphaScript is Script {
     vm.startBroadcast(deployerPrivateKey);
 
     honey = new Honey();
-    gamm = new GAMM(address(honey), admin);
-    borrow = new Borrow(address(gamm), address(honey), admin);
-    porridge = new Porridge(address(gamm), address(borrow), address(honey));
+    gamm = new GAMM(address(this), address(honey));
+    borrow = new Borrow(address(gamm), address(this), address(honey));
+    porridge = new Porridge(address(gamm), address(borrow), address(this), address(honey));
 
     gamm.setPorridgeAddress(address(porridge));
     gamm.setBorrowAddress(address(borrow));

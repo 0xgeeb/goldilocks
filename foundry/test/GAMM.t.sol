@@ -26,9 +26,9 @@ contract GAMMTest is Test {
 
   function setUp() public {
     honey = new Honey();
-    gamm = new GAMM(address(honey), address(this));
-    borrow = new Borrow(address(gamm), address(honey), address(this));
-    porridge = new Porridge(address(gamm), address(borrow), address(honey));
+    gamm = new GAMM(address(this), address(honey));
+    borrow = new Borrow(address(gamm), address(this), address(honey));
+    porridge = new Porridge(address(gamm), address(borrow), address(this), address(honey));
 
     gamm.setPorridgeAddress(address(porridge));
     gamm.setBorrowAddress(address(borrow));
@@ -165,17 +165,16 @@ contract GAMMTest is Test {
     assertEq(gamm.balanceOf(address(0x01)), 5e18);
   }
 
-  function testSellArithmeticError() public {
-    vm.store(address(gamm), bytes32(uint256(5)), bytes32(uint256(12424533327755417665454800)));
-    vm.store(address(gamm), bytes32(uint256(6)), bytes32(uint256(6069210257394481945730874)));
-    vm.store(address(gamm), bytes32(uint256(7)), bytes32(uint256(8402860035123450385400)));
+  function testSetBorrowAddress() public {
+    gamm.setBorrowAddress(address(borrow));
 
-    deal(address(honey), address(this), 1251210488977958997148919);
-    deal(address(gamm), address(this), 543082473864185130000);
-    deal(address(honey), address(gamm), 16442576931719627115185675);
+    assertEq(address(borrow), gamm.borrowAddress());
+  }
 
-    vm.warp(1692836841);
-    gamm.sell(5000000000000000000, 9886383387107016000000);
+    function testSetPorridgeAddress() public {
+    gamm.setPorridgeAddress(address(porridge));
+
+    assertEq(address(porridge), gamm.porridgeAddress());
   }
 
   function testFloorReduce() public {
@@ -183,14 +182,18 @@ contract GAMMTest is Test {
     vm.store(address(gamm), bytes32(uint256(6)), bytes32(uint256(6069210257394481945730874)));
     vm.store(address(gamm), bytes32(uint256(7)), bytes32(uint256(8402860035123450385400)));
     vm.store(address(gamm), bytes32(uint256(9)), bytes32(uint256(1692551675)));
+
     deal(address(honey), address(this), 1251210488977958997148919);
     deal(address(gamm), address(this), 543082473864185130000);
     deal(address(honey), address(gamm), 16442576931719627115185675);
-    vm.warp(1692836841);
 
-    console.log(gamm._floorReduce());
+    vm.warp(1692836841);
+    gamm.sell(5000000000000000000, 9886383387107016000000);
+
+    assertEq(gamm.targetRatio(), 348118083333333333);
   }
 
+  // not done
   function testTokenBurn() public dealUserLocks {
     console.log("before balance: ", gamm.balanceOf(address(this)));
     console.log("before supply: ", gamm.totalSupply());

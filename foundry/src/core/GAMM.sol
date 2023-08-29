@@ -33,21 +33,22 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
   /*                      STATE VARIABLES                       */
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
+  
+  uint256 public immutable DAYS_SECONDS = 86400;
+  uint256 public immutable MAX_FLOOR_REDUCE = 5e18;
 
   uint256 public fsl = 1400000e18;
   uint256 public psl = 400000e18;
   uint256 public supply = 5000e18;
-  
   uint256 public targetRatio = 360e15;
-  uint256 public immutable DAYS_SECONDS = 86400;
 
   uint256 public lastFloorRaise;
   uint256 public lastFloorDecrease;
 
   address public porridgeAddress;
   address public borrowAddress;
-  address public honeyAddress;
   address public adminAddress;
+  address public honeyAddress;
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -57,9 +58,9 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
 
   /// @notice Constructor of this contract
   /// @param _adminAddress Address of the GoldilocksDAO multisig
-  constructor(address _honeyAddress, address _adminAddress) {
-    honeyAddress = _honeyAddress;
+  constructor(address _adminAddress, address _honeyAddress) {
     adminAddress = _adminAddress;
+    honeyAddress = _honeyAddress;
     lastFloorRaise = block.timestamp;
     lastFloorDecrease = block.timestamp;
   }
@@ -175,7 +176,7 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
     fsl = __fsl + tax;
     psl = __psl;
     supply = __supply;
-    // _floorReduce();
+    _floorReduce();
     _burn(msg.sender, amount);
     SafeTransferLib.safeTransfer(honeyAddress, msg.sender, __saleAmount - tax);
     emit Sale(msg.sender, amount);
@@ -311,17 +312,20 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
     }
   }
 
-  //todo: max of 5% decreasefactor
   /// @notice If a day has elapsed since, reduces the FSL
-  function _floorReduce() external returns (uint256) {
+  function _floorReduce() internal {
     uint256 elapsedRaise = block.timestamp - lastFloorRaise;
     uint256 elapsedDrop = block.timestamp - lastFloorDecrease;
-      uint256 decreaseFactor = FixedPointMathLib.divWad(elapsedRaise*1e18, DAYS_SECONDS*1e18);
     if (elapsedRaise >= DAYS_SECONDS && elapsedDrop >= DAYS_SECONDS) {
-      // targetRatio -= (targetRatio * decreaseFactor);
+      uint256 decreaseFactor = FixedPointMathLib.divWad(elapsedRaise, DAYS_SECONDS);
+      if(decreaseFactor > MAX_FLOOR_REDUCE) {
+        targetRatio = FixedPointMathLib.mulWad(targetRatio / 100, 100e18 - MAX_FLOOR_REDUCE);
+      }
+      else {
+        targetRatio = FixedPointMathLib.mulWad(targetRatio / 100, 100e18 - decreaseFactor);
+      }
       lastFloorDecrease = block.timestamp;
     }
-    return FixedPointMathLib.mulWad(targetRatio / 100, 100e18 - decreaseFactor);
   }
 
 
@@ -364,14 +368,11 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  function _beforeTokenTransfer(
-    address from,
-    address to,
-    uint256 amount
-  ) internal virtual override {
-    if(from != msg.sender && to == address(0x0000000000000000000000000000000000000000)) {
-      supply -= amount;
-    }
-  }
+  // function _beforeTokenTransfer(
+  //   address from,
+  //   address to,
+  //   uint256 amount
+  // ) internal virtual override {
+  // }
 
 }

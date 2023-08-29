@@ -39,9 +39,9 @@ contract PorridgeTest is Test {
 
   function setUp() public {
     honey = new Honey();
-    gamm = new GAMM(address(honey), address(this));
-    borrow = new Borrow(address(gamm), address(honey), address(this));
-    porridge = new Porridge(address(gamm), address(borrow), address(honey));
+    gamm = new GAMM(address(this), address(honey));
+    borrow = new Borrow(address(gamm), address(this), address(honey));
+    porridge = new Porridge(address(gamm), address(borrow), address(this), address(honey));
 
     gamm.setPorridgeAddress(address(porridge));
     gamm.setBorrowAddress(address(borrow));
@@ -68,10 +68,11 @@ contract PorridgeTest is Test {
       address(bera),
       address(porridge),
       address(this),
-      address(this),
       nfts,
       boosts
     );
+
+    porridge.setGoldilendAddress(address(goldilend));
   }
 
   modifier dealandStake100Locks() {
@@ -92,6 +93,16 @@ contract PorridgeTest is Test {
     _;
   }
 
+  function testCalculateHalfDayofYield() public dealandStake100Locks {
+    vm.warp(block.timestamp + (porridge.DAYS_SECONDS() / 2));
+    porridge.claim();
+
+    uint256 halfDayofYield = 25e16;
+    uint256 prgBalance = porridge.balanceOf(address(this));
+    
+    assertEq(prgBalance, halfDayofYield);
+  }
+
   function testCalculate1DayofYield() public dealandStake100Locks {
     vm.warp(block.timestamp + porridge.DAYS_SECONDS());
     porridge.claim();
@@ -100,6 +111,16 @@ contract PorridgeTest is Test {
     uint256 prgBalance = porridge.balanceOf(address(this));
 
     assertEq(prgBalance, oneDayofYield);
+  }
+
+  function testCalculate1andHalfDayofYield() public dealandStake100Locks {
+    vm.warp(block.timestamp + porridge.DAYS_SECONDS() + (porridge.DAYS_SECONDS() / 2));
+    porridge.claim();
+
+    uint256 oneDayandHalfofYield = 75e16;
+    uint256 prgBalance = porridge.balanceOf(address(this));
+    
+    assertEq(prgBalance, oneDayandHalfofYield);
   }
 
   function testStake() public dealandStake100Locks {
@@ -217,6 +238,13 @@ contract PorridgeTest is Test {
     assertEq(claimable, OneDayofYield);
   }
 
+  function testSetGoldilendAddress() public {
+    porridge.setGoldilendAddress(address(goldilend));
+
+    assertEq(address(goldilend), porridge.goldilendAddress());
+  }
+
+  // not done
   function testGoldilendMint() public {
     console.log(block.timestamp);
     deal(address(goldilend), address(this), 100e18);
@@ -229,6 +257,7 @@ contract PorridgeTest is Test {
     assertEq(userBalanceofPrg, 0);
   }
 
+  // not done
   function testRealizeSupplyAmount() public dealandStake100Locks dealUser280Honey {
     // vm.warp(block.timestamp + (2 * porridge.DAYS_SECONDS()));
     // porridge.unstake(100e18);
@@ -249,5 +278,7 @@ contract PorridgeTest is Test {
 
     // assertEq(gamm.totalSupply(), gamm.supply());
   }
+
+
 
 }

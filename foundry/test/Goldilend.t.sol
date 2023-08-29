@@ -40,9 +40,13 @@ contract GoldilendTest is Test, IERC721Receiver {
     bandbear = new BandBear();
     consensusvault = new ConsensusVault(address(bera));
     
-    gamm = new GAMM(address(honey), address(this));
-    borrow = new Borrow(address(gamm), address(honey), address(this));
-    porridge = new Porridge(address(gamm), address(borrow), address(honey));
+    gamm = new GAMM(address(this), address(honey));
+    borrow = new Borrow(address(gamm), address(this), address(honey));
+    porridge = new Porridge(address(gamm), address(borrow), address(this), address(honey));
+
+    gamm.setPorridgeAddress(address(porridge));
+    gamm.setBorrowAddress(address(borrow));
+    borrow.setPorridgeAddress(address(porridge));
 
     uint256 startingPoolSize = 69;
     uint256 protocolInterestRate = 15;
@@ -60,7 +64,6 @@ contract GoldilendTest is Test, IERC721Receiver {
       10,
       address(bera),
       address(porridge),
-      address(this),
       address(this),
       nfts,
       boosts

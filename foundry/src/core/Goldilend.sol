@@ -74,10 +74,9 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
   uint32 public constant SIX_MONTHS = MONTH_DAYS * 6;
   uint32 public constant ONE_YEAR = MONTH_DAYS * 12;
 
-  address public beraAddress;
   address public porridgeAddress;
   address public adminAddress;
-  address public treasuryAddress;
+  address public beraAddress;
 
   mapping(address => Boost) public boosts;
   mapping(address => Stake) public stakes;
@@ -104,30 +103,27 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
   /// @param _startingPoolSize Starting size of the lending pool
   /// @param _protocolInterestRate Interest rate of the protocol
   /// @param _porridgeMultiple Boost for earning $PRG
-  /// @param _beraAddress Address of $BERA
   /// @param _porridgeAddress Address of $PRG
-  /// @param _adminAddress Address of the Goldilocks DAO multisig
-  /// @param _treasuryAddress Address of the Goldilocks Treasury
+  /// @param _adminAddress Address of the GoldilocksDAO multisig
+  /// @param _beraAddress Address of $BERA
   /// @param _partnerNFTs Partnership NFTs
   /// @param _partnerNFTBoosts Partnership NFTs Boosts
   constructor(
     uint256 _startingPoolSize,
     uint256 _protocolInterestRate,
     uint256 _porridgeMultiple,
-    address _beraAddress, 
     address _porridgeAddress,
-    address _treasuryAddress,
     address _adminAddress,
+    address _beraAddress, 
     address[] memory _partnerNFTs, 
     uint8[] memory _partnerNFTBoosts
   ) {
     poolSize = _startingPoolSize;
     protocolInterestRate = _protocolInterestRate;
     porridgeMultiple = _porridgeMultiple;
-    beraAddress = _beraAddress;
     porridgeAddress = _porridgeAddress;
-    treasuryAddress = _treasuryAddress;
     adminAddress = _adminAddress;
+    beraAddress = _beraAddress;
     emissionsStart = block.timestamp;
     for(uint8 i; i < _partnerNFTs.length; i++) {
       partnerNFTBoosts[_partnerNFTs[i]] = _partnerNFTBoosts[i];
@@ -144,7 +140,6 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
   error ArrayMismatch();
   error InvalidBoost();
   error BoostNotExpired();
-  error NotTreasury();
   error NotAdmin();
   error InvalidStake();
   error EmissionsEnded();
@@ -163,7 +158,11 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  //todo: add deez
+  event BeraLock(address indexed user, uint256 amount);
+  event gBeraStake(address indexed user, uint256 amount);
+  event Borrow(address indexed user, uint256 amount);
+  event Repay(address indexed user, uint256 amount);
+  event Liquidation(address indexed borrower, address indexed liquidator, uint256 amount);
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -172,14 +171,16 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
 
 
   /// @notice Ensures msg.sender is the treasury address
-  modifier onlyTreasury() {
-    if(msg.sender != treasuryAddress) revert NotTreasury();
+  modifier onlyAdmin() {
+    if(msg.sender != adminAddress) revert NotAdmin();
     _;
   }
 
-  /// @notice Ensures msg.sender is the admin address
-  modifier onlyAdmin() {
-    if(msg.sender != adminAddress) revert NotAdmin();
+  modifier validateBoost() {
+    _;
+  }
+
+  modifier validateBorrow() {
     _;
   }
 
@@ -260,6 +261,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     SafeTransferLib.safeTransferFrom(beraAddress, msg.sender, address(this), lockAmount);
     _refreshBera(lockAmount);
     _mint(msg.sender, lockAmount * gberaRatio);
+    emit BeraLock(msg.sender, lockAmount);
   }
 
   /// @notice Stakes $gBERA
@@ -274,6 +276,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     });
     stakes[msg.sender] = userStake;
     SafeTransferLib.safeTransferFrom(address(this), msg.sender, address(this), stakeAmount);
+    emit gBeraStake(msg.sender, stakeAmount);
   }
 
   /// @notice Unstakes $gBERA
@@ -339,6 +342,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     loans[msg.sender].push(loan);
     IERC721(collateralNFT).safeTransferFrom(msg.sender, address(this), collateralNFTId);
     SafeTransferLib.safeTransfer(beraAddress, msg.sender, borrowAmount);
+    emit Borrow(msg.sender, borrowAmount);
   }
 
   /// @notice Borrows $BERA against value of NFTs
@@ -383,6 +387,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
       IERC721(collateralNFTs[i]).safeTransferFrom(msg.sender, address(this), collateralNFTIds[i]);
     } 
     SafeTransferLib.safeTransfer(beraAddress, msg.sender, borrowAmount);
+    emit Borrow(msg.sender, borrowAmount);
   }
 
   //todo: test loanid lookup method and if someone can access someone elses
@@ -407,8 +412,9 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
       }
     }
     _refreshBera(repayAmount);
-    SafeTransferLib.safeTransfer(beraAddress, treasuryAddress, interest * 5 / 100);
+    SafeTransferLib.safeTransfer(beraAddress, adminAddress, interest * 5 / 100);
     SafeTransferLib.safeTransferFrom(beraAddress, msg.sender, address(this), repayAmount);
+    emit Repay(msg.sender, repayAmount);
   }
 
   /// @notice Liquidates overdue loans by paying $BERA to purchase collateral
@@ -425,8 +431,9 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     for(uint256 i; i < userLoan.collateralNFTs.length; i++) {
       IERC721(userLoan.collateralNFTs[i]).safeTransferFrom(address(this), msg.sender, userLoan.collateralNFTIds[i]);
     }
-    SafeTransferLib.safeTransfer(beraAddress, treasuryAddress, userLoan.interest * 5 / 100);
+    SafeTransferLib.safeTransfer(beraAddress, adminAddress, userLoan.interest * 5 / 100);
     SafeTransferLib.safeTransferFrom(beraAddress, msg.sender, address(this), userLoan.borrowedAmount);
+    emit Liquidation(msg.sender, user, userLoan.borrowedAmount);
   }
 
 
@@ -510,7 +517,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
 
 
   /// @notice Allows the DAO to adjust the valuation of the NFT's and the interest rate
-  function setValue(uint256 value, uint256 rate) external onlyTreasury {
+  function setValue(uint256 value, uint256 rate) external onlyAdmin {
     totalValuation = value;
     protocolInterestRate = rate;
   } 

@@ -38,10 +38,10 @@ contract Borrow {
   mapping(address => uint256) public lockedLocks;
   mapping(address => uint256) public borrowedHoney;
 
-  address public honeyAddress;
-  address public adminAddress;
   address public gammAddress;
   address public porridgeAddress;
+  address public adminAddress;
+  address public honeyAddress;
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -51,12 +51,16 @@ contract Borrow {
 
   /// @notice Constructor of this contract
   /// @param _gammAddress Address of the GAMM
-  /// @param _honeyAddress Address of the HONEY contract
   /// @param _adminAddress Address of the GoldilocksDAO multisig
-  constructor(address _gammAddress, address _honeyAddress, address _adminAddress) {
+  /// @param _honeyAddress Address of the HONEY contract
+  constructor(
+    address _gammAddress, 
+    address _adminAddress,
+    address _honeyAddress 
+  ) {
     gammAddress = _gammAddress;
-    honeyAddress = _honeyAddress;
     adminAddress = _adminAddress;
+    honeyAddress = _honeyAddress;
   }
 
 
