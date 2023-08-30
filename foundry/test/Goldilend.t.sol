@@ -62,12 +62,14 @@ contract GoldilendTest is Test, IERC721Receiver {
       protocolInterestRate,
       // staking one gbera euqals one porridge ina year
       10,
-      address(bera),
       address(porridge),
       address(this),
+      address(bera),
       nfts,
       boosts
     );
+
+    porridge.setGoldilendAddress(address(goldilend));
   }
 
   modifier dealUserBeras() {
@@ -100,6 +102,35 @@ contract GoldilendTest is Test, IERC721Receiver {
     uint256 userClaimable = 0;
 
     assertEq(userClaimable, 0);
+  }
+
+  function testBoostMapping() public {
+    uint256 honeycombValue = goldilend.partnerNFTBoosts(address(honeycomb));
+    uint256 randomValue = goldilend.partnerNFTBoosts(address(0x01));
+    
+    assertEq(honeycombValue, 6);
+    assertEq(randomValue, 0);
+  }
+
+  function testFairValueMapping() public {
+    uint256 totalValuation = 69;
+    address[] memory nfts = new address[](2);
+    nfts[0] = address(bondbear);
+    nfts[1] = address(bandbear);
+    uint256[] memory nftFairValues = new uint256[](2);
+    nftFairValues[0] = 50;
+    nftFairValues[1] = 50;
+    goldilend.setValue(
+      totalValuation,
+      nfts,
+      nftFairValues
+    );
+
+    uint256 bondbearValue = goldilend.nftFairValues(address(bondbear));
+    uint256 randomValue = goldilend.nftFairValues(address(0x01));
+    
+    assertEq(bondbearValue, 50);
+    assertEq(randomValue, 0);
   }
 
   function onERC721Received(

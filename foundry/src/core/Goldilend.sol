@@ -17,7 +17,6 @@ pragma solidity ^0.8.19;
 // ==============================================================================================
 
 
-//todo: validate bear nfts on boost and borrow and borrow functions
 //todo: implement this lib on all e18 number math
 import { FixedPointMathLib } from "../../lib/solady/src/utils/FixedPointMathLib.sol";
 import { SafeTransferLib } from "../../lib/solady/src/utils/SafeTransferLib.sol";
@@ -139,6 +138,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
   error ShortExpiration();
   error ArrayMismatch();
   error InvalidBoost();
+  error InvalidBoostNFT();
   error BoostNotExpired();
   error NotAdmin();
   error InvalidStake();
@@ -176,11 +176,21 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     _;
   }
 
-  modifier validateBoost() {
+  /// @notice Ensures a boost is created with only partner NFTs
+  /// @param partnerNFTs Array of NFTs to validate as partner NFTs
+  modifier validateBoost(address[] calldata partnerNFTs) {
+    for(uint256 i; i < partnerNFTs.length; i++) {
+      if(partnerNFTBoosts[partnerNFTs[i]] == 0) revert InvalidBoostNFT();
+    }
     _;
   }
 
-  modifier validateBorrow() {
+  /// @notice Ensures a loan is created with only bera NFTs
+  /// @param collateralNFTs Array of NFTs to validate as bera NFTs
+  modifier validateBorrow(address[] calldata collateralNFTs) {
+    for(uint256 i; i < collateralNFTs.length; i++) {
+      if(nftFairValues[collateralNFTs[i]] == 0) revert InvalidCollateral();
+    }
     _;
   }
 
@@ -218,7 +228,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     address[] calldata partnerNFTs, 
     uint256[] calldata partnerNFTIds, 
     uint256 expiry
-  ) external {
+  ) external validateBoost(partnerNFTs) {
     if(expiry < block.timestamp + MONTH_DAYS) revert ShortExpiration();
     if(partnerNFTs.length != partnerNFTIds.length) revert ArrayMismatch();
     uint256 magnitude;
@@ -312,6 +322,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
   ) external {
     if(duration < FORTNITE || duration > ONE_YEAR) revert InvalidLoanDuration();
     if(borrowAmount > poolSize / 10) revert InvalidLoanAmount();
+    if(nftFairValues[collateralNFT] == 0) revert InvalidCollateral();
     uint256 fairValue = nftFairValues[collateralNFT] * totalValuation / 100;
     uint256 debt = outstandingDebt;
     if(borrowAmount > fairValue || borrowAmount > poolSize - debt) revert BorrowLimitExceeded();
@@ -355,7 +366,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     uint256 duration, 
     address[] calldata collateralNFTs, 
     uint256[] calldata collateralNFTIds
-  ) external {
+  ) external validateBorrow(collateralNFTs) {
     if(duration < FORTNITE || duration > ONE_YEAR) revert InvalidLoanDuration();
     if(borrowAmount > poolSize / 10) revert InvalidLoanAmount();
     if(collateralNFTs.length != collateralNFTIds.length) revert ArrayMismatch();
@@ -512,15 +523,30 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-  /*                    PERMISSIONED FUNCTION                   */
+  /*                    PERMISSIONED FUNCTIONS                  */
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  /// @notice Allows the DAO to adjust the valuation of the NFT's and the interest rate
-  function setValue(uint256 value, uint256 rate) external onlyAdmin {
-    totalValuation = value;
-    protocolInterestRate = rate;
+  /// @notice Allows the DAO to adjust the valuation of the NFTs to borrow against
+  /// @param _totalValuation The total valuation of all NFTs able to be borrowed against
+  /// @param _nfts NFTs that are able to be borrowed against
+  /// @param _nftFairValues The percentage each NFT is valued as a porportion of the total valuation
+  function setValue(
+    uint256 _totalValuation, 
+    address[] calldata _nfts,
+    uint256[] calldata _nftFairValues
+  ) external onlyAdmin {
+    totalValuation = _totalValuation;
+    for(uint256 i; i < _nftFairValues.length; i++) {
+      nftFairValues[_nfts[i]] = _nftFairValues[i];
+    }
   } 
+
+  /// @notice Allows the DAO to adjust the interest rate for the protocol
+  /// @param _protocolInterestRate New interest rate
+  function setProtocolInterestRate(uint256 _protocolInterestRate) external onlyAdmin {
+    protocolInterestRate = _protocolInterestRate;
+  }
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
