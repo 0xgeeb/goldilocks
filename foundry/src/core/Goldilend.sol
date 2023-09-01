@@ -17,7 +17,6 @@ pragma solidity ^0.8.19;
 // ==============================================================================================
 
 
-//todo: implement this lib on all e18 number math
 import { FixedPointMathLib } from "../../lib/solady/src/utils/FixedPointMathLib.sol";
 import { SafeTransferLib } from "../../lib/solady/src/utils/SafeTransferLib.sol";
 import { ERC20 } from "../../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
@@ -84,13 +83,12 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
   mapping(address => uint8) public partnerNFTBoosts;
   mapping(address => uint256) public nftFairValues;
 
-  uint256 emissionsStart;
-  uint256 totalValuation;
-  uint256 protocolInterestRate;
-  uint256 outstandingDebt;
-  uint256 poolSize;
-  uint256 gberaRatio;
-  uint256 porridgeMultiple;
+  uint256 public emissionsStart;
+  uint256 public totalValuation;
+  uint256 public protocolInterestRate;
+  uint256 public outstandingDebt;
+  uint256 public poolSize;
+  uint256 public porridgeMultiple;
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -150,7 +148,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
   error ExcessiveRepay();
   error LoanNotFound();
   error LoanExpired();
-  error UnLiquidatable();
+  error Unliquidatable();
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -200,6 +198,12 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
+  /// @notice View the details of a boost
+  /// @param user Owner of boost
+  function lookupBoost(address user) external view returns (Boost memory userBoost) {
+    userBoost = boosts[user];
+  }
+
   /// @notice View the details of a loan
   /// @param user Originator of loan
   /// @param userLoanId Id of loan
@@ -213,13 +217,37 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     return _calculateClaim(stakes[user]);
   }
 
+  /// @notice View the current $gBERA ratio
+  function getgBERARatio() external view returns (uint256) {
+    return _gberaRatio();
+  }
+
+  /// @notice View the fair value of NFTs
+  function getFairValues(address[] calldata collateralNFTs) external view returns (uint256) {
+    return _calculateFairValue(collateralNFTs);
+  }
+
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
   /*                      EXTERNAL FUNCTIONS                    */
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  //todo: bug here where if user boosts twice the first boost NFTs would be stuck in contract
+  /// @notice Locks partner NFT to receive boost on staking yield and discounted borrowing rates
+  /// @param partnerNFT NFT addresse to transfer to this contract
+  /// @param partnerNFTId Token ID of NFT to be transferred
+  /// @param expiry Expiration date of the boost
+  function boost(
+    address partnerNFT, 
+    uint256 partnerNFTId, 
+    uint256 expiry
+  ) external {
+    if(expiry < block.timestamp + MONTH_DAYS) revert ShortExpiration();
+    boosts[msg.sender] = _buildBoost(partnerNFT, partnerNFTId, expiry);
+    IERC721(partnerNFT).safeTransferFrom(msg.sender, address(this), partnerNFTId);
+  }
+
+
   /// @notice Locks partner NFTs to receive boost on staking yield and discounted borrowing rates
   /// @param partnerNFTs Array of NFT addresses to transfer to this contract
   /// @param partnerNFTIds Array of token IDs for NFTs to be transferred
@@ -230,25 +258,18 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     uint256 expiry
   ) external validateBoost(partnerNFTs) {
     if(expiry < block.timestamp + MONTH_DAYS) revert ShortExpiration();
-    if(partnerNFTs.length != partnerNFTIds.length) revert ArrayMismatch();
-    uint256 magnitude;
+    if(partnerNFTs.length != partnerNFTIds.length) revert ArrayMismatch();    
+    boosts[msg.sender] = _buildBoost(partnerNFTs, partnerNFTIds, expiry);
     for(uint8 i; i < partnerNFTs.length; i++) {
       IERC721(partnerNFTs[i]).safeTransferFrom(msg.sender, address(this), partnerNFTIds[i]);
-      magnitude += partnerNFTBoosts[partnerNFTs[i]];
     }
-    Boost memory userBoost = Boost({
-      partnerNFTs: partnerNFTs,
-      partnerNFTIds: partnerNFTIds,
-      expiry: expiry,
-      boostMagnitude: magnitude
-    });
-    boosts[msg.sender] = userBoost;
   }
 
   /// @notice Extends the duration of an existing boost
   /// @param newExpiry New expiration of the boost
   function extendBoost(uint256 newExpiry) external {
     if(boosts[msg.sender].expiry == 0) revert InvalidBoost();
+    if(newExpiry < block.timestamp + MONTH_DAYS) revert ShortExpiration();
     boosts[msg.sender].expiry = newExpiry;
   }
 
@@ -257,11 +278,18 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     Boost memory userBoost = boosts[msg.sender];
     if(userBoost.expiry == 0) revert InvalidBoost();
     if(userBoost.expiry > block.timestamp) revert BoostNotExpired();
+    address[] memory nfts;
+    uint256[] memory ids;
+    Boost memory newUserBoost = Boost({
+      partnerNFTs: nfts,
+      partnerNFTIds: ids,
+      expiry: 0,
+      boostMagnitude: 0
+    });
+    boosts[msg.sender] = newUserBoost;
     for(uint8 i; i < userBoost.partnerNFTs.length; i++) {
       IERC721(userBoost.partnerNFTs[i]).safeTransferFrom(address(this), msg.sender, userBoost.partnerNFTIds[i]);
     }
-    boosts[msg.sender].boostMagnitude = 0;
-    boosts[msg.sender].expiry = 0;
   }
   
   /// @notice Locks $BERA and mints $gBERA
@@ -270,7 +298,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     poolSize += lockAmount;
     SafeTransferLib.safeTransferFrom(beraAddress, msg.sender, address(this), lockAmount);
     _refreshBera(lockAmount);
-    _mint(msg.sender, lockAmount * gberaRatio);
+    _mint(msg.sender, _gberaRatio());
     emit BeraLock(msg.sender, lockAmount);
   }
 
@@ -333,7 +361,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
       if(userBoost.boostMagnitude < discount) {
         discount = 100 - userBoost.boostMagnitude;
       }
-      interest = interest * discount / 100;
+      interest = (interest / 100) * discount;
     }
     outstandingDebt = debt + borrowAmount;
     address[] memory collateralNFTs = new address[](1);
@@ -380,7 +408,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
       if(userBoost.boostMagnitude < discount) {
         discount = 100 - userBoost.boostMagnitude;
       }
-      interest = interest * discount / 100;
+      interest = (interest / 100) * discount;
     }
     outstandingDebt = debt + borrowAmount;
     Loan memory loan = Loan({
@@ -401,8 +429,6 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     emit Borrow(msg.sender, borrowAmount);
   }
 
-  //todo: test loanid lookup method and if someone can access someone elses
-  //todo: transfer 5% to honeyjar
   /// @notice Repays loan of $BERA
   /// @param repayAmount Amount of $BERA to repay
   /// @param userLoanId ID of loan to repay
@@ -415,15 +441,14 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     outstandingDebt -= repayAmount - interest;
     loans[msg.sender][index].borrowedAmount -= repayAmount;
     loans[msg.sender][index].interest -= interest;
-    poolSize += interest * 95 / 100;
-    gberaRatio = FixedPointMathLib.divWad(totalSupply(), poolSize);
+    poolSize += (interest / 100) * 90;
     if(userLoan.borrowedAmount - repayAmount == 0) {
       for(uint256 i; i < userLoan.collateralNFTs.length; i++){
         IERC721(userLoan.collateralNFTs[i]).safeTransferFrom(address(this), msg.sender, userLoan.collateralNFTIds[i]);
       }
     }
     _refreshBera(repayAmount);
-    SafeTransferLib.safeTransfer(beraAddress, adminAddress, interest * 5 / 100);
+    SafeTransferLib.safeTransfer(beraAddress, adminAddress, (interest / 100) * 10);
     SafeTransferLib.safeTransferFrom(beraAddress, msg.sender, address(this), repayAmount);
     emit Repay(msg.sender, repayAmount);
   }
@@ -433,16 +458,15 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
   /// @param userLoanId Loan to be liquidated
   function liquidate(address user, uint256 userLoanId) external {
     (Loan memory userLoan, uint256 index) = _lookupLoan(user, userLoanId);
-    if(block.timestamp < userLoan.endDate || userLoan.liquidated) revert UnLiquidatable();
+    if(block.timestamp < userLoan.endDate || userLoan.liquidated) revert Unliquidatable();
     loans[user][index].liquidated = true;
     loans[user][index].borrowedAmount = 0;
-    poolSize += userLoan.interest * 95 / 100;
+    poolSize += (userLoan.interest / 100) * 95;
     outstandingDebt -= userLoan.borrowedAmount - userLoan.interest;
-    gberaRatio = FixedPointMathLib.divWad(totalSupply(), poolSize);
     for(uint256 i; i < userLoan.collateralNFTs.length; i++) {
       IERC721(userLoan.collateralNFTs[i]).safeTransferFrom(address(this), msg.sender, userLoan.collateralNFTIds[i]);
     }
-    SafeTransferLib.safeTransfer(beraAddress, adminAddress, userLoan.interest * 5 / 100);
+    SafeTransferLib.safeTransfer(beraAddress, adminAddress, (userLoan.interest / 100) * 5);
     SafeTransferLib.safeTransferFrom(beraAddress, msg.sender, address(this), userLoan.borrowedAmount);
     emit Liquidation(msg.sender, user, userLoan.borrowedAmount);
   }
@@ -481,7 +505,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
   /// @return fairValue Fair value of NFTs
   function _calculateFairValue(address[] calldata collateralNFTs) internal view returns (uint256 fairValue) {
     for(uint256 i; i < collateralNFTs.length; i++) {
-      fairValue += (nftFairValues[collateralNFTs[i]] * totalValuation) / 100;
+      fairValue += (totalValuation / 100) * nftFairValues[collateralNFTs[i]];
     }
   }
 
@@ -519,6 +543,92 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
   /// @param beraAmount Amount of $BERA to stake
   function _refreshBera(uint256 beraAmount) internal {
 
+  }
+
+  //todo: fix this
+  /// @notice Calculates the current $gBERA ratio
+  /// @return gberaRatio Total supply of $gBERA divided by the lending pool size
+  function _gberaRatio() internal view returns (uint256 gberaRatio) {
+    uint256 supply = totalSupply() > 0 ? totalSupply() : 1e18;
+    gberaRatio = FixedPointMathLib.divWad(supply, poolSize);
+  }
+
+  /// @notice Creates the struct containing the details of the boost
+  /// @param partnerNFT NFT address to transfer to this contract
+  /// @param partnerNFTId Token ID of NFT to be transferred
+  function _buildBoost(
+    address partnerNFT, 
+    uint256 partnerNFTId,
+    uint256 expiry
+  ) internal returns (Boost memory newUserBoost) {
+    uint256 magnitude;
+    Boost storage userBoost = boosts[msg.sender];
+    if(userBoost.expiry == 0) {
+      magnitude = partnerNFTBoosts[partnerNFT];
+      address[] memory nft = new address[](1);
+      nft[0] = partnerNFT;
+      uint256[] memory id = new uint256[](1);
+      id[0] = partnerNFTId;
+      newUserBoost = Boost({
+        partnerNFTs: nft,
+        partnerNFTIds: id,
+        expiry: expiry,
+        boostMagnitude: magnitude
+      });
+    }
+    else {
+      address[] storage nfts = userBoost.partnerNFTs;
+      uint256[] storage ids = userBoost.partnerNFTIds;
+      magnitude = userBoost.boostMagnitude;
+      magnitude += partnerNFTBoosts[partnerNFT];
+      nfts.push(partnerNFT);
+      ids.push(partnerNFTId);
+      newUserBoost = Boost({
+        partnerNFTs: nfts,
+        partnerNFTIds: ids,
+        expiry: expiry,
+        boostMagnitude: magnitude
+      });
+    }
+  }
+
+  /// @notice Creates the struct containing the details of the boost
+  /// @param partnerNFTs Array of NFT addresses to transfer to this contract
+  /// @param partnerNFTIds Array of token IDs for NFTs to be transferred
+  function _buildBoost(
+    address[] calldata partnerNFTs, 
+    uint256[] calldata partnerNFTIds,
+    uint256 expiry
+  ) internal returns (Boost memory newUserBoost) {
+    uint256 magnitude;
+    Boost storage userBoost = boosts[msg.sender];
+    if(userBoost.expiry == 0) {
+      for(uint8 i; i < partnerNFTs.length; i++) {
+        magnitude += partnerNFTBoosts[partnerNFTs[i]];
+      }
+      newUserBoost = Boost({
+        partnerNFTs: partnerNFTs,
+        partnerNFTIds: partnerNFTIds,
+        expiry: expiry,
+        boostMagnitude: magnitude
+      });
+    }
+    else {
+      address[] storage nfts = userBoost.partnerNFTs;
+      uint256[] storage ids = userBoost.partnerNFTIds;
+      magnitude = userBoost.boostMagnitude;
+      for (uint256 i = 0; i < partnerNFTs.length; i++) {
+        magnitude += partnerNFTBoosts[partnerNFTs[i]];
+        nfts.push(partnerNFTs[i]);
+        ids.push(partnerNFTIds[i]);
+      }
+      newUserBoost = Boost({
+        partnerNFTs: nfts,
+        partnerNFTIds: ids,
+        expiry: expiry,
+        boostMagnitude: magnitude
+      });
+    }
   }
 
 
