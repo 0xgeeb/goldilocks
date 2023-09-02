@@ -243,6 +243,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     uint256 expiry
   ) external {
     if(expiry < block.timestamp + MONTH_DAYS) revert ShortExpiration();
+    if(partnerNFTBoosts[partnerNFT] == 0) revert InvalidBoostNFT();
     boosts[msg.sender] = _buildBoost(partnerNFT, partnerNFTId, expiry);
     IERC721(partnerNFT).safeTransferFrom(msg.sender, address(this), partnerNFTId);
   }
@@ -441,14 +442,14 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     outstandingDebt -= repayAmount - interest;
     loans[msg.sender][index].borrowedAmount -= repayAmount;
     loans[msg.sender][index].interest -= interest;
-    poolSize += (interest / 100) * 90;
+    poolSize += (interest / 100) * 95;
     if(userLoan.borrowedAmount - repayAmount == 0) {
       for(uint256 i; i < userLoan.collateralNFTs.length; i++){
         IERC721(userLoan.collateralNFTs[i]).safeTransferFrom(address(this), msg.sender, userLoan.collateralNFTIds[i]);
       }
     }
     _refreshBera(repayAmount);
-    SafeTransferLib.safeTransfer(beraAddress, adminAddress, (interest / 100) * 10);
+    SafeTransferLib.safeTransfer(beraAddress, adminAddress, (interest / 100) * 5);
     SafeTransferLib.safeTransferFrom(beraAddress, msg.sender, address(this), repayAmount);
     emit Repay(msg.sender, repayAmount);
   }
@@ -485,7 +486,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     IPorridge(porridgeAddress).goldilendMint(msg.sender, claimed);
   }
 
-  //todo: what should porridgeMultiple be, amount of porridge staked per bera per second
+  //todo: what should porridgeMultiple be, amount of porridge earned per bera per second
   //todo: implement the 50 max on boost
   /// @notice Calculates claiming rewards
   /// @param userStake Struct of the user's current stake information

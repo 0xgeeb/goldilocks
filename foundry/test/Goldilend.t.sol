@@ -125,15 +125,16 @@ contract GoldilendTest is Test, IERC721Receiver {
 
   // not done
   function testCalculateClaim() public {
-    deal(address(goldilend), address(this), 100e18);
-    goldilend.approve(address(goldilend), 100e18);
-    goldilend.stake(100e18);
-    vm.warp(block.timestamp + (30 * porridge.DAYS_SECONDS()));
+    deal(address(goldilend), address(this), 1e18);
+    goldilend.approve(address(goldilend), 1e18);
+    goldilend.stake(1e18);
+    vm.warp(block.timestamp + goldilend.ONE_YEAR());
 
-    // uint256 userClaimable = goldilend.getClaimable(address(this));
-    uint256 userClaimable = 0;
+    uint256 userClaimable = goldilend.getClaimable(address(this));
+    console.log(userClaimable);
+    // uint256 userClaimable = 0;
 
-    assertEq(userClaimable, 0);
+    // assertEq(userClaimable, 0);
   }
 
   function testBoostMapping() public {
