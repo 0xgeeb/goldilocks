@@ -299,7 +299,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     poolSize += lockAmount;
     SafeTransferLib.safeTransferFrom(beraAddress, msg.sender, address(this), lockAmount);
     _refreshBera(lockAmount);
-    _mint(msg.sender, _gberaRatio());
+    _mint(msg.sender, _gberaMintAmount(lockAmount));
     emit BeraLock(msg.sender, lockAmount);
   }
 
@@ -486,15 +486,16 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     IPorridge(porridgeAddress).goldilendMint(msg.sender, claimed);
   }
 
-  //todo: what should porridgeMultiple be, amount of porridge earned per bera per second
+  //todo: what should porridgeMultiple be, amount of porridge earned per gbera per second
+  //todo: rewards should stop after 6 months, but can still claim after 6 months
   //todo: implement the 50 max on boost
   /// @notice Calculates claiming rewards
   /// @param userStake Struct of the user's current stake information
   function _calculateClaim(Stake memory userStake) internal view returns (uint256 porridgeEarned) {
     uint256 timeStaked = block.timestamp - userStake.lastClaim;
     uint256 average = ((block.timestamp - emissionsStart) + (userStake.lastClaim - emissionsStart)) / 2;
-    uint256 rate = porridgeMultiple - (porridgeMultiple * average / SIX_MONTHS);
-    porridgeEarned = (timeStaked * rate * userStake.stakedBalance) / 100;
+    uint256 rate = porridgeMultiple - (porridgeMultiple * (average / SIX_MONTHS));
+    porridgeEarned = timeStaked * rate * userStake.stakedBalance;
     Boost memory userBoost = boosts[msg.sender];
     if (userBoost.expiry > block.timestamp) {
       porridgeEarned = (porridgeEarned * (100 + userBoost.boostMagnitude)) / 100;
@@ -540,18 +541,24 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
 
   //todo: implement this
   /// @notice Stakes $BERA in Berachain Consensus Vault, 
-  /// claims existing vault rewards, and updates $gBERA ratio
+  /// claims existing vault rewards, and updates poolSize
   /// @param beraAmount Amount of $BERA to stake
   function _refreshBera(uint256 beraAmount) internal {
 
   }
 
-  //todo: fix this
+  /// @notice Calculates the amount of $gBERA to mint
+  /// @param lockAmount Amount of $BERA to lock
+  /// @return mintAmount Total supply of $gBERA divided by the lending pool size multiplied by lockAmount
+  function _gberaMintAmount(uint256 lockAmount) internal view returns (uint256 mintAmount) {
+    uint256 ratio = _gberaRatio();
+    mintAmount = totalSupply() > 0 ? FixedPointMathLib.mulWad(lockAmount, ratio) : lockAmount;
+  }
+
   /// @notice Calculates the current $gBERA ratio
   /// @return gberaRatio Total supply of $gBERA divided by the lending pool size
   function _gberaRatio() internal view returns (uint256 gberaRatio) {
-    uint256 supply = totalSupply() > 0 ? totalSupply() : 1e18;
-    gberaRatio = FixedPointMathLib.divWad(supply, poolSize);
+    gberaRatio = FixedPointMathLib.divWad(totalSupply(), poolSize);
   }
 
   /// @notice Creates the struct containing the details of the boost

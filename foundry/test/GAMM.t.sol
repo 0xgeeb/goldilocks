@@ -193,7 +193,7 @@ contract GAMMTest is Test {
     assertEq(gamm.targetRatio(), 348118083333333333);
   }
 
-  // not done
+  //todo: not done
   function testTokenBurn() public dealUserLocks {
     console.log("before balance: ", gamm.balanceOf(address(this)));
     console.log("before supply: ", gamm.totalSupply());

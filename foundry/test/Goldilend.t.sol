@@ -64,8 +64,10 @@ contract GoldilendTest is Test, IERC721Receiver {
     goldilend = new Goldilend(
       startingPoolSize,
       protocolInterestRate,
-      // staking one gbera euqals one porridge ina year
-      10,
+      // amount of porridge earned per gbera per second
+      // depends on what we want the initial apr
+      // apr will be a function of the bera and porridge prices
+      1e15,
       address(porridge),
       address(this),
       address(bera),
@@ -123,7 +125,7 @@ contract GoldilendTest is Test, IERC721Receiver {
     assertEq(goldilendBondBalance + goldilendBandBalance, 2);
   }
 
-  // not done
+  //todo: not done
   function testCalculateClaim() public {
     deal(address(goldilend), address(this), 1e18);
     goldilend.approve(address(goldilend), 1e18);
@@ -296,6 +298,12 @@ contract GoldilendTest is Test, IERC721Receiver {
     assertEq(IERC721(beradrome).balanceOf(address(goldilend)), 1);
     assertEq(userBoost.expiry, goldilend.MONTH_DAYS() + 1);
     assertEq(userBoost.boostMagnitude, 21);
+  }
+
+  //todo: not done
+  function testLock() public {
+    deal(address(bera), address(this), 100e18);
+    goldilend.lock(100e18);
   }
 
   function onERC721Received(

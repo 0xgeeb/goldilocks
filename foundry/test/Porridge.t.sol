@@ -244,7 +244,7 @@ contract PorridgeTest is Test {
     assertEq(address(goldilend), porridge.goldilendAddress());
   }
 
-  // not done
+  //todo: not done
   function testGoldilendMint() public {
     console.log(block.timestamp);
     deal(address(goldilend), address(this), 100e18);
@@ -257,7 +257,7 @@ contract PorridgeTest is Test {
     assertEq(userBalanceofPrg, 0);
   }
 
-  // not done
+  //todo: not done
   function testRealizeSupplyAmount() public dealandStake100Locks dealUser280Honey {
     // vm.warp(block.timestamp + (2 * porridge.DAYS_SECONDS()));
     // porridge.unstake(100e18);
