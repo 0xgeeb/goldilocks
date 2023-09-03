@@ -10,3 +10,6 @@
 [submodule "foundry/lib/foundry-huff"]
 	path = foundry/lib/foundry-huff
 	url = https://github.com/huff-language/foundry-huff
+[submodule "foundry/lib/SolPretty"]
+	path = foundry/lib/SolPretty
+	url = https://github.com/devtooligan/SolPretty
