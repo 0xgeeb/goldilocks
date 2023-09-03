@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import "../lib/forge-std/src/Test.sol";
+import { SolPretty, pp } from "../lib/SolPretty/src/SolPretty.sol";
 import { IERC721 } from "../lib/openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
 import { IERC721Receiver } from "../lib/openzeppelin-contracts/contracts/token/ERC721/IERC721Receiver.sol";
 import { INFT } from "../src/mock/INFT.sol";
@@ -18,6 +19,7 @@ import { BondBear } from "../src/mock/BondBear.sol";
 import { BandBear } from "../src/mock/BandBear.sol";
 
 contract GoldilendTest is Test, IERC721Receiver {
+  using SolPretty for string;
 
   Goldilend goldilend;
   GAMM gamm;
@@ -301,9 +303,18 @@ contract GoldilendTest is Test, IERC721Receiver {
   }
 
   //todo: not done
-  function testLock() public {
+  function testSuccessfulLock() public {
     deal(address(bera), address(this), 100e18);
+    bera.approve(address(goldilend), type(uint256).max);
     goldilend.lock(100e18);
+
+    // uint256 gberaBalance = goldilend.balanceOf(address(this));
+
+
+    uint256 number = 200e18;
+
+    console.log(number);
+    pp(number, 18, 2).log();
   }
 
   function onERC721Received(
