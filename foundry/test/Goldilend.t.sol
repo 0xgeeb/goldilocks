@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 import "../lib/forge-std/src/Test.sol";
-import { SolPretty, pp } from "../lib/SolPretty/src/SolPretty.sol";
+import { SolPretty, pp } from "../lib/solpretty/src/SolPretty.sol";
 import { IERC721 } from "../lib/openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
 import { IERC721Receiver } from "../lib/openzeppelin-contracts/contracts/token/ERC721/IERC721Receiver.sol";
 import { INFT } from "../src/mock/INFT.sol";
@@ -309,12 +309,10 @@ contract GoldilendTest is Test, IERC721Receiver {
     goldilend.lock(100e18);
 
     // uint256 gberaBalance = goldilend.balanceOf(address(this));
+    uint256 gberaBalance = 10000e18;
 
-
-    uint256 number = 200e18;
-
-    console.log(number);
-    pp(number, 18, 2).log();
+    console.log(gberaBalance);
+    pp(gberaBalance, 18, 2).log();
   }
 
   function onERC721Received(
