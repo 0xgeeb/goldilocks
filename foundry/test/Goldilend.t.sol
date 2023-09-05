@@ -127,7 +127,6 @@ contract GoldilendTest is Test, IERC721Receiver {
     assertEq(userClaimable, twoMonthsOfYield);
   }
 
-  //todo: not done
   function testCalculateBoostedClaim() public dealUserPartnerNFTs {
     deal(address(goldilend), address(this), 1e18);
     goldilend.approve(address(goldilend), 1e18);

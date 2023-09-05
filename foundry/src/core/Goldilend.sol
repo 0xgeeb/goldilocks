@@ -144,7 +144,6 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
   error BoostNotExpired();
   error NotAdmin();
   error InvalidStake();
-  error EmissionsEnded();
   error InvalidLoanDuration();
   error InvalidLoanAmount();
   error InvalidCollateral();
@@ -338,8 +337,8 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
 
   /// @notice Claims $gBERA staking rewards
   function claim() external {
-    if(emissionsStart + SIX_MONTHS > block.timestamp) revert EmissionsEnded();
     _claim();
+    stakes[msg.sender].lastClaim = block.timestamp;
   }
 
   /// @notice Borrows $BERA against value of NFT
@@ -495,7 +494,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
   /// @param userStake Struct of the user's current stake information
   function _calculateClaim(Stake memory userStake) internal view returns (uint256 porridgeEarned) {    
     uint256 timeStaked = block.timestamp - userStake.lastClaim;
-    uint256 average = ((block.timestamp - emissionsStart) + (userStake.lastClaim - emissionsStart)) / 2;
+    uint256 average = _calculateAverage(userStake.lastClaim);
     uint256 rate = porridgeMultiple - FixedPointMathLib.mulWad(porridgeMultiple, FixedPointMathLib.divWad(average, SIX_MONTHS));
     porridgeEarned = FixedPointMathLib.mulWad(timeStaked, rate) * userStake.stakedBalance;
     Boost memory userBoost = boosts[msg.sender];
@@ -505,6 +504,15 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
         porridgeBoost = userBoost.boostMagnitude;
       }
       porridgeEarned = (porridgeEarned / 100) * (100 + porridgeBoost);
+    }
+  }
+
+  /// @notice Calculates the average of time since the start of emissions and user's last claim
+  /// @param lastClaim Last timestamp user claimed
+  function _calculateAverage(uint256 lastClaim) internal view returns (uint256 average) {
+    average = ((block.timestamp - emissionsStart) + (lastClaim - emissionsStart)) / 2;
+    if(average > SIX_MONTHS) {
+      average = SIX_MONTHS;
     }
   }
 
