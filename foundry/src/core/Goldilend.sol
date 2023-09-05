@@ -75,6 +75,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
   address public porridgeAddress;
   address public adminAddress;
   address public beraAddress;
+  address public vaultAddress;
 
   mapping(address => Boost) public boosts;
   mapping(address => Stake) public stakes;
@@ -103,6 +104,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
   /// @param _porridgeAddress Address of $PRG
   /// @param _adminAddress Address of the GoldilocksDAO multisig
   /// @param _beraAddress Address of $BERA
+  /// @param _vaultAddress Address of Consensus Vault
   /// @param _partnerNFTs Partnership NFTs
   /// @param _partnerNFTBoosts Partnership NFTs Boosts
   constructor(
@@ -112,6 +114,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     address _porridgeAddress,
     address _adminAddress,
     address _beraAddress, 
+    address _vaultAddress,
     address[] memory _partnerNFTs, 
     uint8[] memory _partnerNFTBoosts
   ) {
@@ -121,6 +124,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     porridgeAddress = _porridgeAddress;
     adminAddress = _adminAddress;
     beraAddress = _beraAddress;
+    vaultAddress = _vaultAddress;
     emissionsStart = block.timestamp;
     for(uint8 i; i < _partnerNFTs.length; i++) {
       partnerNFTBoosts[_partnerNFTs[i]] = _partnerNFTBoosts[i];
@@ -486,19 +490,21 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     IPorridge(porridgeAddress).goldilendMint(msg.sender, claimed);
   }
 
-  //todo: what should porridgeMultiple be, amount of porridge earned per gbera per second
   //todo: rewards should stop after 6 months, but can still claim after 6 months
-  //todo: implement the 50 max on boost
   /// @notice Calculates claiming rewards
   /// @param userStake Struct of the user's current stake information
-  function _calculateClaim(Stake memory userStake) internal view returns (uint256 porridgeEarned) {
+  function _calculateClaim(Stake memory userStake) internal view returns (uint256 porridgeEarned) {    
     uint256 timeStaked = block.timestamp - userStake.lastClaim;
     uint256 average = ((block.timestamp - emissionsStart) + (userStake.lastClaim - emissionsStart)) / 2;
-    uint256 rate = porridgeMultiple - (porridgeMultiple * (average / SIX_MONTHS));
-    porridgeEarned = timeStaked * rate * userStake.stakedBalance;
+    uint256 rate = porridgeMultiple - FixedPointMathLib.mulWad(porridgeMultiple, FixedPointMathLib.divWad(average, SIX_MONTHS));
+    porridgeEarned = FixedPointMathLib.mulWad(timeStaked, rate) * userStake.stakedBalance;
     Boost memory userBoost = boosts[msg.sender];
     if (userBoost.expiry > block.timestamp) {
-      porridgeEarned = (porridgeEarned * (100 + userBoost.boostMagnitude)) / 100;
+      uint256 porridgeBoost = 50;
+      if(userBoost.boostMagnitude < porridgeBoost) {
+        porridgeBoost = userBoost.boostMagnitude;
+      }
+      porridgeEarned = (porridgeEarned / 100) * (100 + porridgeBoost);
     }
   }
 

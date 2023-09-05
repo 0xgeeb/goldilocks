@@ -3,7 +3,6 @@ pragma solidity ^0.8.19;
 
 import { SafeTransferLib } from "../../lib/solady/src/utils/SafeTransferLib.sol";
 
-
 contract ConsensusVault {
 
   address beraAddress;

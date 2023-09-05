@@ -54,23 +54,36 @@ contract PorridgeTest is Test {
     bandbear = new BandBear();
     consensusvault = new ConsensusVault(address(bera));
 
-    address[] memory nfts = new address[](2);
-    nfts[0] = address(honeycomb);
-    nfts[1] = address(beradrome);
+    uint256 startingPoolSize = 1e18;
+    uint256 protocolInterestRate = 15;
+    uint256 porridgeMultiple = 1e13;
+    address[] memory boostNfts = new address[](2);
+    boostNfts[0] = address(honeycomb);
+    boostNfts[1] = address(beradrome);
     uint8[] memory boosts = new uint8[](2);
     boosts[0] = 6;
     boosts[1] = 9;
     
     goldilend = new Goldilend(
-      69,
-      15,
-      69,
-      address(bera),
+      startingPoolSize,
+      protocolInterestRate,
+      porridgeMultiple,
       address(porridge),
       address(this),
-      nfts,
+      address(bera),
+      address(consensusvault),
+      boostNfts,
       boosts
     );
+
+    address[] memory nfts = new address[](2);
+    nfts[0] = address(bondbear);
+    nfts[1] = address(bandbear);
+    uint256[] memory values = new uint256[](2);
+    values[0] = 50;
+    values[1] = 50;
+
+    goldilend.setValue(100e18, nfts, values);
 
     porridge.setGoldilendAddress(address(goldilend));
   }
