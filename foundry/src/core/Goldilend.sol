@@ -489,13 +489,11 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     IPorridge(porridgeAddress).goldilendMint(msg.sender, claimed);
   }
 
-  //todo: rewards should stop after 6 months, but can still claim after 6 months
   /// @notice Calculates claiming rewards
   /// @param userStake Struct of the user's current stake information
   function _calculateClaim(Stake memory userStake) internal view returns (uint256 porridgeEarned) {    
-    uint256 timeStaked = block.timestamp - userStake.lastClaim;
-    uint256 average = _calculateAverage(userStake.lastClaim);
-    uint256 rate = porridgeMultiple - FixedPointMathLib.mulWad(porridgeMultiple, FixedPointMathLib.divWad(average, SIX_MONTHS));
+    uint256 timeStaked = (block.timestamp - userStake.lastClaim) > SIX_MONTHS ? SIX_MONTHS : block.timestamp - userStake.lastClaim;
+    uint256 rate = _calculateRate(userStake.lastClaim);
     porridgeEarned = FixedPointMathLib.mulWad(timeStaked, rate) * userStake.stakedBalance;
     Boost memory userBoost = boosts[msg.sender];
     if (userBoost.expiry > block.timestamp) {
@@ -507,13 +505,18 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     }
   }
 
-  /// @notice Calculates the average of time since the start of emissions and user's last claim
+  /// @notice Calculates the rate of $PRG emissions
   /// @param lastClaim Last timestamp user claimed
-  function _calculateAverage(uint256 lastClaim) internal view returns (uint256 average) {
-    average = ((block.timestamp - emissionsStart) + (lastClaim - emissionsStart)) / 2;
+  function _calculateRate(uint256 lastClaim) internal view returns (uint256 rate) {
+    uint256 emissionsPeriod = block.timestamp - emissionsStart;
+    if(emissionsPeriod > SIX_MONTHS) {
+      emissionsPeriod = SIX_MONTHS;
+    }
+    uint256 average = (emissionsPeriod + (lastClaim - emissionsStart)) / 2;
     if(average > SIX_MONTHS) {
       average = SIX_MONTHS;
     }
+    rate = porridgeMultiple - FixedPointMathLib.mulWad(porridgeMultiple, FixedPointMathLib.divWad(average, SIX_MONTHS));
   }
 
   /// @notice Calculates the fair value of NFTs being borrowed against
