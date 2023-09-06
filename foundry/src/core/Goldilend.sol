@@ -528,7 +528,6 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     }
   }
 
-  //todo: fix math here
   /// @notice Caluclates the total interest due at repayment
   /// @param borrowAmount Amount to be borrowed
   /// @param debt Current amount of outstanding debt
@@ -539,9 +538,9 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     uint256 duration
   ) internal view returns (uint256 interest) {
     uint256 rate = protocolInterestRate;
-    uint256 ratio = ((debt + borrowAmount) / poolSize) + 5e17;
-    uint256 interestRate = rate + (10 * rate * duration * ratio / 365);
-    interest = (interestRate * borrowAmount) * (duration / 365);
+    uint256 ratio = FixedPointMathLib.divWad(debt + borrowAmount, poolSize) + 5e17;
+    uint256 interestRate = rate + FixedPointMathLib.mulWad(10 * rate, FixedPointMathLib.mulWad(ratio, FixedPointMathLib.divWad(duration, ONE_YEAR)));
+    interest = FixedPointMathLib.mulWad(FixedPointMathLib.mulWad(interestRate, borrowAmount), FixedPointMathLib.divWad(duration, ONE_YEAR));
   }
 
   /// @notice Finds the loan by userId
