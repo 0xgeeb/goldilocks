@@ -2,7 +2,6 @@
 pragma solidity ^0.8.19;
 
 import "../lib/forge-std/src/Test.sol";
-import { IERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import { Honey } from "../src/mock/Honey.sol";
 import { GAMM } from "../src/core/GAMM.sol";
 import { Borrow } from "../src/core/Borrow.sol";

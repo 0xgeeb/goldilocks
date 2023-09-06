@@ -173,8 +173,8 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
     ) = _sellLoop(_psl, _fsl, _supply, amount);
     uint256 tax = (__saleAmount / 1000) * 53;
     if(__saleAmount - tax < minAmount) revert ExcessiveSlippage();
-    fsl = __fsl + tax;
-    psl = __psl;
+    fsl = __fsl + (tax / 2);
+    psl = __psl + (tax / 2);
     supply = __supply;
     _floorReduce();
     _burn(msg.sender, amount);
@@ -360,6 +360,15 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
   /// @param _borrowAddress Address of Borrow contract
   function setBorrowAddress(address _borrowAddress) external onlyAdmin {
     borrowAddress = _borrowAddress;
+  }
+
+  /// @notice Allows the DAO to inject liquidity into the GAMM
+  /// @param fslAddition Liquidity added to FSL
+  /// @param pslAddition Liquidity added to PSL
+  function injectLiquidity(uint256 fslAddition, uint256 pslAddition) external onlyAdmin {
+    fsl += fslAddition;
+    psl += pslAddition;
+    SafeTransferLib.safeTransferFrom(honeyAddress, msg.sender, address(this), fslAddition + pslAddition);
   }
 
 

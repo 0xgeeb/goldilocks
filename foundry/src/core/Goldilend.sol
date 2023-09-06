@@ -680,6 +680,11 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     protocolInterestRate = _protocolInterestRate;
   }
 
+  /// @notice Allows the DAO to withdraw $BERA in case of emergency
+  function emergencyWithdraw() external onlyAdmin {
+    SafeTransferLib.safeTransfer(beraAddress, adminAddress, poolSize - outstandingDebt);
+  }
+
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
   /*                   IMPLEMENTATION FUNCTION                  */
