@@ -321,17 +321,14 @@ contract GoldilendTest is Test, IERC721Receiver {
     assertEq(userBoost.boostMagnitude, 21);
   }
 
-  //todo: not done
   function testSuccessfulLock() public {
     deal(address(bera), address(this), 100e18);
     bera.approve(address(goldilend), type(uint256).max);
     goldilend.lock(100e18);
 
-    // uint256 gberaBalance = goldilend.balanceOf(address(this));
-    uint256 gberaBalance = 10000e18;
+    uint256 gberaBalance = goldilend.balanceOf(address(this));
 
-    console.log(gberaBalance);
-    pp(gberaBalance, 18, 2).log();
+    assertEq(gberaBalance, 100e18);
   }
 
   function onERC721Received(

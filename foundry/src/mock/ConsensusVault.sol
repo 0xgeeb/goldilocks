@@ -8,32 +8,17 @@ contract ConsensusVault {
   address beraAddress;
 
   mapping(address => uint256) public staked;
-  mapping(address => uint256) public rewards;
-
-  error InvalidWithdraw();
 
   constructor(address _beraAddress) {
     beraAddress = _beraAddress;
   }
 
-  function deposit(uint256 amount) external {
+  function deposit(uint256 amount) external returns (uint256) {
+    uint256 rewards = 5e18;
     staked[msg.sender] += amount;
     SafeTransferLib.safeTransferFrom(beraAddress, msg.sender, address(this), amount);
+    SafeTransferLib.safeTransfer(beraAddress, msg.sender, rewards);
+    return rewards;
   }
-
-  function withdraw(uint256 amount) external {
-    if(amount > staked[msg.sender]) revert InvalidWithdraw();
-    staked[msg.sender] -= amount;
-    SafeTransferLib.safeTransfer(beraAddress, msg.sender, amount);
-  }
-
-  function claim() external {
-    _claim();
-  }
-
-  function _claim() internal {
-
-  }
-
 
 }

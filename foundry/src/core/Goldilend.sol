@@ -20,9 +20,11 @@ pragma solidity ^0.8.19;
 import { FixedPointMathLib } from "../../lib/solady/src/utils/FixedPointMathLib.sol";
 import { SafeTransferLib } from "../../lib/solady/src/utils/SafeTransferLib.sol";
 import { ERC20 } from "../../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import { IERC20 } from "../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import { IERC721 } from "../../lib/openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
 import { IERC721Receiver } from "../../lib/openzeppelin-contracts/contracts/token/ERC721/IERC721Receiver.sol";
 import { IPorridge } from "../interfaces/IPorridge.sol";
+import { IConsensusVault } from "../mock/IConsensusVault.sol";
 
 
 /// @title Goldilend
@@ -561,12 +563,13 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     revert LoanNotFound();
   }
 
-  //todo: implement this
   /// @notice Stakes $BERA in Berachain Consensus Vault, 
   /// claims existing vault rewards, and updates poolSize
   /// @param beraAmount Amount of $BERA to stake
   function _refreshBera(uint256 beraAmount) internal {
-
+    IERC20(beraAddress).approve(vaultAddress, beraAmount);
+    uint256 rewards = IConsensusVault(vaultAddress).deposit(beraAmount);
+    poolSize += rewards;
   }
 
   /// @notice Calculates the amount of $gBERA to mint
