@@ -192,4 +192,22 @@ contract GAMMTest is Test {
     assertEq(gamm.targetRatio(), 348118083333333333);
   }
 
+  //todo: not done
+  function testMaxFloorReduce() public {
+    
+  }
+
+  function testInjectLiquidity() public {
+    uint256 fsltemp = gamm.fsl();
+    uint256 psltemp = gamm.psl();
+    uint256 injected = 69e18;
+    deal(address(honey), address(this), injected * 2);
+    honey.approve(address(gamm), injected * 2);
+    gamm.injectLiquidity(injected, injected);
+
+    assertEq(gamm.fsl(), fsltemp + injected);
+    assertEq(gamm.psl(), psltemp + injected);
+    assertEq(honey.balanceOf(address(gamm)), injected * 2);
+  }
+
 }
