@@ -31,6 +31,7 @@ contract PorridgeTest is Test {
   BandBear bandbear;
 
   uint256 OneDayofYield = 5e17;
+  uint256 twoMonthsOfGoldilendStakingYield = 43e18;
   uint256 borrowAmount = 280e20;
 
   bytes4 NoClaimablePRGSelector = 0x018bb287;
@@ -257,41 +258,16 @@ contract PorridgeTest is Test {
     assertEq(address(goldilend), porridge.goldilendAddress());
   }
 
-  //todo: not done
   function testGoldilendMint() public {
-    console.log(block.timestamp);
-    deal(address(goldilend), address(this), 100e18);
-    goldilend.approve(address(goldilend), 100e18);
-    goldilend.stake(100e18);
-    vm.warp(block.timestamp + (30 * porridge.DAYS_SECONDS()));
+    deal(address(goldilend), address(this), 1e18);
+    goldilend.approve(address(goldilend), 1e18);
+    goldilend.stake(1e18);
+    vm.warp(block.timestamp + (goldilend.MONTH_DAYS() * 2));
+    goldilend.claim();
 
-    uint256 userBalanceofPrg = porridge.balanceOf(address(this));
+    uint256 userPrgBalance = porridge.balanceOf(address(this));
 
-    assertEq(userBalanceofPrg, 0);
+    assertEq(userPrgBalance, twoMonthsOfGoldilendStakingYield);
   }
-
-  //todo: not done
-  function testRealizeSupplyAmount() public dealandStake100Locks dealUser280Honey {
-    // vm.warp(block.timestamp + (2 * porridge.DAYS_SECONDS()));
-    // porridge.unstake(100e18);
-    // porridge.realize(1e18);
-
-    // uint256 userBalanceofPrg = porridge.balanceOf(address(this));
-    // uint256 userBalanceofLocks = gamm.balanceOf(address(this));
-    // uint256 userBalanceofHoney = honey.balanceOf(address(this));
-    // uint256 gammBalanceofHoney = honey.balanceOf(address(gamm));
-
-    // assertEq(userBalanceofPrg, 0);
-    // assertEq(userBalanceofLocks, 101e18);
-    // assertEq(userBalanceofHoney, 0);
-    // assertEq(gammBalanceofHoney, 280e18);
-
-    console.log(gamm.supply());
-    console.log(gamm.totalSupply());
-
-    // assertEq(gamm.totalSupply(), gamm.supply());
-  }
-
-
 
 }
