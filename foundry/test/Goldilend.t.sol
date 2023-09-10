@@ -2,7 +2,6 @@
 pragma solidity ^0.8.19;
 
 import "../lib/forge-std/src/Test.sol";
-import { SolPretty, pp } from "../lib/solpretty/src/SolPretty.sol";
 import { IERC721 } from "../lib/openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
 import { IERC721Receiver } from "../lib/openzeppelin-contracts/contracts/token/ERC721/IERC721Receiver.sol";
 import { INFT } from "../src/mock/INFT.sol";
@@ -19,7 +18,6 @@ import { BondBear } from "../src/mock/BondBear.sol";
 import { BandBear } from "../src/mock/BandBear.sol";
 
 contract GoldilendTest is Test, IERC721Receiver {
-  using SolPretty for string;
 
   Goldilend goldilend;
   GAMM gamm;

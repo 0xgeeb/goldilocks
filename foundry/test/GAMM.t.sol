@@ -192,9 +192,20 @@ contract GAMMTest is Test {
     assertEq(gamm.targetRatio(), 348118083333333333);
   }
 
-  //todo: not done
   function testMaxFloorReduce() public {
-    
+    vm.store(address(gamm), bytes32(uint256(5)), bytes32(uint256(12424533327755417665454800)));
+    vm.store(address(gamm), bytes32(uint256(6)), bytes32(uint256(6069210257394481945730874)));
+    vm.store(address(gamm), bytes32(uint256(7)), bytes32(uint256(8402860035123450385400)));
+    vm.store(address(gamm), bytes32(uint256(9)), bytes32(uint256(1692551675)));
+
+    deal(address(honey), address(this), 1251210488977958997148919);
+    deal(address(gamm), address(this), 543082473864185130000);
+    deal(address(honey), address(gamm), 16442576931719627115185675);
+
+    vm.warp(1693936841);
+    gamm.sell(5000000000000000000, 9886383387107016000000);
+
+    assertEq(gamm.targetRatio(), 342000000000000000);
   }
 
   function testInjectLiquidity() public {
