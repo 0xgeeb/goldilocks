@@ -387,7 +387,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
       interest: interest,
       duration: duration,
       endDate: block.timestamp + duration,
-      loanId: loans[msg.sender].length,
+      loanId: loans[msg.sender].length + 1,
       liquidated: false
     });
     loans[msg.sender].push(loan);

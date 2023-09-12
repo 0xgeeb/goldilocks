@@ -109,6 +109,46 @@ contract GoldilendTest is Test, IERC721Receiver {
     _;
   }
 
+  function testInvalidLoanAmount() public {
+    vm.expectRevert(InvalidLoanAmountSelector);
+    goldilend.borrow(101e18, 1209600, address(bondbear), 1);
+  }
+
+  function testLoanNotFound() public {
+    vm.expectRevert(LoanNotFoundSelector);
+    goldilend.lookupLoan(address(this), 1);
+  }
+
+  function testInvalidBoost() public {
+    vm.expectRevert(InvalidBoostSelector);
+    goldilend.withdrawBoost();
+  }
+
+  function testLookupLoans() public dealUserBeras {
+    uint256 duration = 1209600;
+    goldilend.borrow(1e18, duration, address(bondbear), 1);
+    goldilend.borrow(1e18, duration, address(bandbear), 1);
+    
+    Goldilend.Loan[] memory userLoans = goldilend.lookupLoans(address(this));
+    uint256 userDuration = userLoans[0].duration;
+    uint256 userDuration2 = userLoans[1].duration;
+
+    assertEq(userDuration, duration);
+    assertEq(userDuration2, duration);
+  }
+
+  function testGetgBERARatio() public {
+    deal(address(bera), address(this), 11157e16);
+    bera.approve(address(goldilend), type(uint256).max);
+    goldilend.lock(100e18);
+    vm.store(address(goldilend), bytes32(uint256(2)), bytes32(uint256(100e18)));
+    vm.store(address(goldilend), bytes32(uint256(18)), bytes32(uint256(1000e18)));
+
+    uint256 gBERARatio = goldilend.getgBERARatio();
+
+    assertEq(gBERARatio, 10e16);
+  }
+
   function testTransferBeras() public dealUserBeras {
     IERC721(address(bondbear)).safeTransferFrom(address(this), address(goldilend), 1);
     IERC721(address(bandbear)).safeTransferFrom(address(this), address(goldilend), 1);
@@ -182,11 +222,6 @@ contract GoldilendTest is Test, IERC721Receiver {
     assertEq(randomValue, 0);
   }
 
-  function testInvalidLoanAmount() public {
-    vm.expectRevert(InvalidLoanAmountSelector);
-    goldilend.borrow(101e18, 1209600, address(bondbear), 1);
-  }
-
   function testCalculateFairValue() public {
     address[] memory nfts = new address[](2);
     nfts[0] = address(bondbear);
@@ -195,16 +230,6 @@ contract GoldilendTest is Test, IERC721Receiver {
     uint256 fairValues = goldilend.getFairValues(nfts);
 
     assertEq(fairValues, 100e18);
-  }
-
-  function testLoanNotFound() public {
-    vm.expectRevert(LoanNotFoundSelector);
-    goldilend.lookupLoan(address(this), 1);
-  }
-
-  function testInvalidBoost() public {
-    vm.expectRevert(InvalidBoostSelector);
-    goldilend.withdrawBoost();
   }
 
   function testSuccessfulBoost() public dealUserPartnerNFTs {
