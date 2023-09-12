@@ -204,6 +204,18 @@ contract GoldilendTest is Test, IERC721Receiver {
     assertEq(userClaimable, userClaimableAfter);
   }
 
+  function testDoubleStake() public {
+    deal(address(goldilend), address(this), 2e18);
+    goldilend.approve(address(goldilend), 2e18);
+    goldilend.stake(1e18);
+    vm.warp(block.timestamp + (goldilend.MONTH_DAYS() * 2));
+    goldilend.stake(1e18);
+
+    uint256 prgBalance = porridge.balanceOf(address(this));
+
+    assertEq(prgBalance, twoMonthsOfYield);
+  }
+
   function testBoostMapping() public {
     uint256 honeycombValue = goldilend.partnerNFTBoosts(address(honeycomb));
     uint256 beradromeValue = goldilend.partnerNFTBoosts(address(beradrome));
