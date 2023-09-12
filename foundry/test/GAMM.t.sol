@@ -36,11 +36,11 @@ contract GAMMTest is Test {
 
   modifier dealandApproveUserHoney() {
     deal(address(honey), address(this), type(uint256).max / 2);
-    honey.approve(address(gamm), type(uint256).max);
+    honey.approve(address(gamm), type(uint256).max / 2);
     _;
   }
 
-  modifier dealUserLocks() {
+  modifier dealLocks() {
     deal(address(gamm), address(this), txAmount);
     _;
   }
@@ -48,6 +48,32 @@ contract GAMMTest is Test {
   modifier dealGammHoney() {
     deal(address(honey), address(gamm), type(uint256).max);
     _;
+  }
+
+  function testNotAdmin() public {
+    vm.prank(address(0x01));
+    vm.expectRevert(NotAdminSelector);
+    gamm.injectLiquidity(69e18, 69e18);
+  }
+
+  function testNotPorridge() public {
+    vm.expectRevert(NotPorridgeSelector);
+    gamm.porridgeMint(address(0x01), 69e18);
+  }
+
+  function testNotBorrow() public {
+    vm.expectRevert(NotBorrowSelector);
+    gamm.borrowTransfer(address(0x01), 69e18, 69e18);
+  }
+
+  function testExcessiveSlippageBuy() public {
+    vm.expectRevert(ExcessiveSlippageSelector);
+    gamm.buy(69e18, 0);
+  }
+
+  function testExcessiveSlippageSell() public {
+    vm.expectRevert(ExcessiveSlippageSelector);
+    gamm.sell(69e18, type(uint256).max);
   }
 
   function testFloorPrice() public {
@@ -114,7 +140,7 @@ contract GAMMTest is Test {
     assertEq(userHoneyBalance, (type(uint256).max / 2) - costOf10Locks);
   }
 
-  function testSell() public dealUserLocks dealGammHoney {
+  function testSell() public dealLocks dealGammHoney {
     gamm.sell(txAmount, 0);
 
     uint256 userLocksBalance = gamm.balanceOf(address(this));
@@ -124,7 +150,7 @@ contract GAMMTest is Test {
     assertEq(userHoneyBalance, proceedsof10Locks);
   }
 
-  function testRedeemed() public dealUserLocks dealGammHoney{
+  function testRedeemed() public dealLocks dealGammHoney{
     gamm.redeem(txAmount);
 
     uint256 userLocksBalance = gamm.balanceOf(address(this));
@@ -135,28 +161,7 @@ contract GAMMTest is Test {
     assertEq(userHoneyBalance, floorPriceof10Locks);
   }
 
-  function testNotAdmin() public {
-    vm.prank(address(0x01));
-    vm.expectRevert(NotAdminSelector);
-    gamm.setBorrowAddress(address(0x01));
-  }
-
-  function testNotPorridge() public {
-    vm.expectRevert(NotPorridgeSelector);
-    gamm.porridgeMint(address(0x01), 69e18);
-  }
-
-  function testNotBorrow() public {
-    vm.expectRevert(NotBorrowSelector);
-    gamm.borrowTransfer(address(0x01), 69e18, 69e18);
-  }
-
-  function testExcessiveSlippage() public {
-    vm.expectRevert(ExcessiveSlippageSelector);
-    gamm.buy(1e18, 0);
-  }
-
-  function testSuccessfulTransfer() public dealUserLocks {
+  function testSuccessfulTransfer() public dealLocks {
     // bytes4(keccak256(bytes('transfer(address,uint256)')));
     (bool success, bytes memory data) = address(gamm).call(abi.encodeWithSelector(0xa9059cbb, address(0x01), 5e18));
     require(data.length == 0 || abi.decode(data, (bool)), 'transfer failed');

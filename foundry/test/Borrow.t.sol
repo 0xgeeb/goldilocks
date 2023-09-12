@@ -43,6 +43,23 @@ contract BorrowTest is Test {
     _;
   }
 
+  function testNotAdmin() public dealandStake100Locks dealGammMaxHoney {
+    vm.prank(address(0x01));
+    vm.expectRevert(NotAdminSelector);
+    borrow.setPorridgeAddress(address(0x01));
+  }
+
+  function testBorrowLimit() public dealandStake100Locks dealGammMaxHoney {
+    vm.expectRevert(InsufficientBorrowLimitSelector);
+    borrow.borrow(borrowAmount + 1);
+  }
+
+  function testExcessiveRepay() public dealandStake100Locks dealGammMaxHoney {
+    borrow.borrow(borrowAmount);
+    vm.expectRevert(ExcessiveRepaySelector);
+    borrow.repay(borrowAmount + 1);
+  }
+
   function testBorrowLimitCalculation() public dealandStake100Locks {
     uint256 limit = borrow.borrowLimit(address(this));
 
@@ -90,23 +107,6 @@ contract BorrowTest is Test {
     uint256 locked = borrow.getLocked(address(this));
 
     assertEq(locked, 0);
-  }
-
-  function testNotAdmin() public dealandStake100Locks dealGammMaxHoney {
-    vm.expectRevert(NotAdminSelector);
-    vm.prank(address(0x01));
-    borrow.setPorridgeAddress(address(0x02));
-  }
-
-  function testBorrowLimit() public dealandStake100Locks dealGammMaxHoney {
-    vm.expectRevert(InsufficientBorrowLimitSelector);
-    borrow.borrow(borrowAmount + 1);
-  }
-
-  function testExcessiveRepay() public dealandStake100Locks dealGammMaxHoney {
-    borrow.borrow(borrowAmount);
-    vm.expectRevert(ExcessiveRepaySelector);
-    borrow.repay(borrowAmount + 1);
   }
 
   function testPorridgeAddress() public {

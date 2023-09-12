@@ -34,7 +34,7 @@ contract PorridgeTest is Test {
   uint256 twoMonthsOfGoldilendStakingYield = 43e18;
   uint256 borrowAmount = 280e20;
 
-  bytes4 NoClaimablePRGSelector = 0x018bb287;
+  bytes4 NotGoldilendSelector = 0xc81d51dc;
   bytes4 InvalidUnstakeSelector = 0x280cf628;
   bytes4 LocksBorrowedAgainstSelector = 0xad7facc8;
 
@@ -105,6 +105,23 @@ contract PorridgeTest is Test {
   modifier dealGammMaxHoney() {
     deal(address(honey), address(gamm), type(uint256).max);
     _;
+  }
+
+  function testNotGoldilend() public { 
+    vm.prank(address(0x01));
+    vm.expectRevert(NotGoldilendSelector);
+    porridge.goldilendMint(address(this), 69e18);
+  }
+
+  function testInvalidUnstake() public dealandStake100Locks {
+    vm.expectRevert(InvalidUnstakeSelector);
+    porridge.unstake(100e18 + 1);
+  }
+
+  function testLocksBorrowedAgainst() public dealandStake100Locks dealGammMaxHoney {
+    borrow.borrow(borrowAmount);
+    vm.expectRevert(LocksBorrowedAgainstSelector);
+    porridge.unstake(1e18);
   }
 
   function testCalculateHalfDayofYield() public dealandStake100Locks {
@@ -214,17 +231,6 @@ contract PorridgeTest is Test {
     uint256 userBalanceofPrg = porridge.balanceOf(address(this));
 
     assertEq(userBalanceofPrg, OneDayofYield);
-  }
-
-  function testInvalidUnstake() public dealandStake100Locks {
-    vm.expectRevert(InvalidUnstakeSelector);
-    porridge.unstake(100e18 + 1);
-  }
-
-  function testLocksBorrowedAgainst() public dealandStake100Locks dealGammMaxHoney {
-    borrow.borrow(borrowAmount);
-    vm.expectRevert(LocksBorrowedAgainstSelector);
-    porridge.unstake(1);
   }
 
   function testGetStaked() public dealandStake100Locks{
