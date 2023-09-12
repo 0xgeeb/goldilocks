@@ -187,7 +187,8 @@ export interface BorrowingInitialState {
 }
 
 export interface GoldilendInitialState {
-  
+  activeToggle: string;
+  changeActiveToggle: (_toggle: string) => void;
 }
 
 export interface SideToggleProps {
