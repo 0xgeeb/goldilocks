@@ -406,6 +406,50 @@ contract GoldilendTest is Test, IERC721Receiver {
     assertEq(gberaBalance, 100e18);
   }
 
+  function testSingleBorrow() public {
+    uint256 duration = 1209600;
+    goldilend.borrow(1e18, duration, address(bondbear), 1);
+    goldilend.borrow(1e18, duration, address(bandbear), 1);
+    
+    Goldilend.Loan[] memory userLoans = goldilend.lookupLoans(address(this));
+    uint256 userDuration = userLoans[0].duration;
+    uint256 userDuration2 = userLoans[1].duration;
+
+    assertEq(userDuration, duration);
+    assertEq(userDuration2, duration); 
+  }
+
+  function testSetValue() public {
+    uint256 val = 69e18;
+    address[] memory nfts = new address[](2);
+    nfts[0] = address(bondbear);
+    nfts[1] = address(bandbear);
+    uint256[] memory values = new uint256[](2);
+    values[0] = 50;
+    values[1] = 50;
+    goldilend.setValue(val, nfts, values);
+
+    uint256 totalVal = goldilend.totalValuation();
+    uint256 bond = goldilend.nftFairValues(address(bondbear));
+    uint256 band = goldilend.nftFairValues(address(bandbear));
+
+    assertEq(totalVal, val);
+    assertEq(bond, 50);
+    assertEq(band, 50);
+  }
+
+  function testSetInterestRate() public {
+    goldilend.setProtocolInterestRate(69e18);
+
+    uint256 rate = goldilend.protocolInterestRate();
+
+    assertEq(rate, 69e18);
+  }
+
+  function testEmergencyWithdraw() public {
+    console.log(bera.balanceOf(address(goldilend)));
+  }
+
   function onERC721Received(
     address,
     address,
