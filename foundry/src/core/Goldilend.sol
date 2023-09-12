@@ -145,7 +145,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
   error InvalidBoostNFT();
   error BoostNotExpired();
   error NotAdmin();
-  error InvalidStake();
+  error InvalidUnstake();
   error InvalidLoanDuration();
   error InvalidLoanAmount();
   error InvalidCollateral();
@@ -333,7 +333,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
   /// @param unstakeAmount Amount of $gBERA to unstake
   function unstake(uint256 unstakeAmount) external {
     uint256 stakedBalance = stakes[msg.sender].stakedBalance;
-    if(stakedBalance < unstakeAmount) revert InvalidStake();
+    if(stakedBalance < unstakeAmount) revert InvalidUnstake();
     Stake memory userStake = Stake({
       lastClaim: block.timestamp,
       stakedBalance: stakedBalance - unstakeAmount

@@ -33,6 +33,7 @@ contract GoldilendTest is Test, IERC721Receiver {
 
   bytes4 InvalidLoanAmountSelector = 0x56976661;
   bytes4 InvalidBoostSelector = 0xe4c30186;
+  bytes4 InvalidUnstakeSelector = 0x280cf628;
   bytes4 LoanNotFoundSelector = 0x0e7e621d;
 
   uint256 twoMonthsOfYield = 43e18;
@@ -124,6 +125,11 @@ contract GoldilendTest is Test, IERC721Receiver {
     goldilend.withdrawBoost();
   }
 
+  function testInvalidStake() public {
+    vm.expectRevert(InvalidUnstakeSelector);
+    goldilend.unstake(69e18);
+  }
+
   function testLookupLoans() public dealUserBeras {
     uint256 duration = 1209600;
     goldilend.borrow(1e18, duration, address(bondbear), 1);
@@ -204,6 +210,21 @@ contract GoldilendTest is Test, IERC721Receiver {
     assertEq(userClaimable, userClaimableAfter);
   }
 
+  function testSingleStake() public {
+    deal(address(goldilend), address(this), 1e18);
+    goldilend.approve(address(goldilend), 1e18);
+    goldilend.stake(1e18);
+    
+    uint256 usergBeraBalance = goldilend.balanceOf(address(this));
+    uint256 goldilendgBeraBalance = goldilend.balanceOf(address(goldilend));
+    (uint256 claim, uint256 staked) = goldilend.stakes(address(this));
+
+    assertEq(goldilendgBeraBalance, 1e18);
+    assertEq(usergBeraBalance, 0);
+    assertEq(staked, 1e18);
+    assertEq(claim, 1);
+  }
+
   function testDoubleStake() public {
     deal(address(goldilend), address(this), 2e18);
     goldilend.approve(address(goldilend), 2e18);
@@ -214,6 +235,25 @@ contract GoldilendTest is Test, IERC721Receiver {
     uint256 prgBalance = porridge.balanceOf(address(this));
 
     assertEq(prgBalance, twoMonthsOfYield);
+  }
+
+  function testUnstake() public {
+    deal(address(goldilend), address(this), 1e18);
+    goldilend.approve(address(goldilend), 1e18);
+    goldilend.stake(1e18);
+    vm.warp(block.timestamp + (goldilend.MONTH_DAYS() * 2));
+    goldilend.unstake(1e18);
+
+    uint256 usergBeraBalance = goldilend.balanceOf(address(this));
+    uint256 userPrgBalance = porridge.balanceOf(address(this));
+    uint256 goldilendgBeraBalance = goldilend.balanceOf(address(goldilend));
+    (uint256 claim, uint256 staked) = goldilend.stakes(address(this));
+
+    assertEq(goldilendgBeraBalance, 0);
+    assertEq(userPrgBalance, twoMonthsOfYield);
+    assertEq(usergBeraBalance, 1e18);
+    assertEq(staked, 0);
+    assertEq(claim, goldilend.MONTH_DAYS() * 2 + 1);
   }
 
   function testBoostMapping() public {
