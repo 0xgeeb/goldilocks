@@ -37,6 +37,7 @@ contract GoldilendTest is Test, IERC721Receiver {
   bytes4 LoanNotFoundSelector = 0x0e7e621d;
   bytes4 ExcessiveRepaySelector = 0x7bc3c3ef;
   bytes4 LoanExpiredSelector = 0x5dc919ca;
+  bytes4 UnliquidatableSelector = 0x13d94799;
 
   uint256 twoMonthsOfYield = 43e18;
   uint256 twoMonthsOfBoostedYield = 4945e16;
@@ -155,6 +156,13 @@ contract GoldilendTest is Test, IERC721Receiver {
     goldilend.repay(1e18, 1);
   }
 
+  function testUnliquidatable() public dealUserBeras {
+    goldilend.borrow(1e18, 1209600, address(bondbear), 1);
+    vm.warp(1209599);
+    vm.expectRevert(UnliquidatableSelector);
+    goldilend.liquidate(address(this), 1);
+  }
+
   function testLookupLoans() public dealUserBeras {
     uint256 duration = 1209600;
     goldilend.borrow(1e18, duration, address(bondbear), 1);
@@ -233,6 +241,19 @@ contract GoldilendTest is Test, IERC721Receiver {
 
 
     assertEq(userClaimable, userClaimableAfter);
+  }
+
+  function testCalculatePostEmissionsClaimMaxAverage() public {
+    deal(address(goldilend), address(this), 2e18);
+    goldilend.approve(address(goldilend), 2e18);
+    goldilend.stake(1e18);
+    vm.warp(block.timestamp + (goldilend.MONTH_DAYS() * 36));
+
+    goldilend.stake(1e18);
+    vm.warp(block.timestamp + (goldilend.MONTH_DAYS() * 36));
+    uint256 userClaimable = goldilend.getClaimable(address(this));
+
+    assertEq(userClaimable, 0);    
   }
 
   function testSingleStake() public {
@@ -419,6 +440,25 @@ contract GoldilendTest is Test, IERC721Receiver {
     assertEq(IERC721(beradrome).balanceOf(address(goldilend)), 1);
     assertEq(userBoost.expiry, goldilend.MONTH_DAYS() + 1);
     assertEq(userBoost.boostMagnitude, 21);
+  }
+
+  function testSingleBoostSingleBoost() public {
+    INFT(address(honeycomb)).mint();
+    INFT(address(beradrome)).mint();
+    IERC721(honeycomb).setApprovalForAll(address(goldilend), true);
+    IERC721(beradrome).setApprovalForAll(address(goldilend), true);
+    goldilend.boost(address(honeycomb), 1, goldilend.MONTH_DAYS() + 1);
+    goldilend.boost(address(beradrome), 1, goldilend.MONTH_DAYS() + 1);
+    Goldilend.Boost memory userBoost = goldilend.lookupBoost(address(this));
+
+    assertEq(IERC721(honeycomb).balanceOf(address(this)), 0);
+    assertEq(IERC721(beradrome).balanceOf(address(this)), 0);
+    assertEq(IERC721(honeycomb).balanceOf(address(goldilend)), 1);
+    assertEq(IERC721(beradrome).balanceOf(address(goldilend)), 1);
+    assertEq(userBoost.expiry, goldilend.MONTH_DAYS() + 1);
+    assertEq(userBoost.boostMagnitude, 15);
+    assertEq(userBoost.partnerNFTs[0], address(honeycomb));
+    assertEq(userBoost.partnerNFTs[1], address(beradrome));
   }
 
   function testSuccessfulLock() public {
@@ -675,6 +715,26 @@ contract GoldilendTest is Test, IERC721Receiver {
     assertEq(userLoan.liquidated, false);
     assertEq(debt, 0);
     assertEq(pool, startingPoolSize + ((userLoanBefore.interest / 100) * 95) + 5e18);
+  }
+  
+  function testSingleBorrowLiquidate() public dealUserBera dealUserBeras {
+    goldilend.borrow(1e18, 1209600, address(bondbear), 1);
+    vm.warp(1209602);
+    goldilend.liquidate(address(this), 1);
+
+    Goldilend.Loan memory userLoan = goldilend.lookupLoan(address(this), 1);
+    uint256 goldilendBondBalance = IERC721(address(bondbear)).balanceOf(address(goldilend));
+    uint256 userBondBalance = IERC721(address(bondbear)).balanceOf(address(this));
+
+    assertEq(userLoan.collateralNFTs[0], address(bondbear));
+    assertEq(userLoan.collateralNFTIds[0], 1);
+    assertEq(userLoan.borrowedAmount, 0);
+    assertEq(userLoan.duration, 1209600);
+    assertEq(userLoan.endDate, 1209601);
+    assertEq(userLoan.loanId, 1);
+    assertEq(userLoan.liquidated, true);
+    assertEq(goldilendBondBalance, 0);
+    assertEq(userBondBalance, 1);
   }
 
   function onERC721Received(
