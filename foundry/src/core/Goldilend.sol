@@ -209,17 +209,17 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     userLoans = loans[user];
   }
 
-  /// @notice View the details of a boost
-  /// @param user Owner of boost
-  function lookupBoost(address user) external view returns (Boost memory userBoost) {
-    userBoost = boosts[user];
-  }
-
   /// @notice View the details of a loan
   /// @param user Originator of loan
   /// @param userLoanId Id of loan
   function lookupLoan(address user, uint256 userLoanId) external view returns (Loan memory loan) {
     (loan, ) = _lookupLoan(user, userLoanId);
+  }
+  
+  /// @notice View the details of a boost
+  /// @param user Owner of boost
+  function lookupBoost(address user) external view returns (Boost memory userBoost) {
+    userBoost = boosts[user];
   }
 
   /// @notice View the claimable $PRG of $gBERA staker
