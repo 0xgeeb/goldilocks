@@ -448,8 +448,8 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     (Loan memory userLoan, uint256 index) = _lookupLoan(msg.sender, userLoanId);
     if(userLoan.borrowedAmount < repayAmount) revert ExcessiveRepay();
     if(block.timestamp > userLoan.endDate) revert LoanExpired();
-    uint256 interestLoanRatio = userLoan.interest / userLoan.borrowedAmount;
-    uint256 interest = repayAmount * interestLoanRatio;
+    uint256 interestLoanRatio = FixedPointMathLib.divWad(userLoan.interest, userLoan.borrowedAmount - userLoan.interest);
+    uint256 interest = FixedPointMathLib.mulWad(repayAmount - userLoan.interest, interestLoanRatio);
     outstandingDebt -= repayAmount - interest;
     loans[msg.sender][index].borrowedAmount -= repayAmount;
     loans[msg.sender][index].interest -= interest;

@@ -85,6 +85,8 @@ contract PorridgeTest is Test {
     values[1] = 50;
 
     goldilend.setValue(100e18, nfts, values);
+    deal(address(bera), address(goldilend), startingPoolSize);
+    deal(address(bera), address(consensusvault), type(uint256).max / 2);
 
     porridge.setGoldilendAddress(address(goldilend));
   }
