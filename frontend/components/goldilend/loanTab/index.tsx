@@ -6,23 +6,15 @@ import { useGoldilend } from "../../../providers"
 export const LoanTab = () => {
 
   const [infoLoading, setInfoLoading] = useState<boolean>(true)
-  // const [beraArr, setBeraArr] = useState<string[]>([])
 
   const {
-    checkBondBalance,
-    checkBandBalance,
     checkBeraBalance,
     beraArray
   } = useGoldilend()
 
   useEffect(() => {
     if(infoLoading) {
-      // countBonds()
-      // countBands()
-      const fetchData = async () => {
-        checkBeraBalance()
-      }
-      fetchData()
+      checkBeraBalance()
       setInfoLoading(false)
     }
   }, [])
@@ -31,43 +23,8 @@ export const LoanTab = () => {
     return <span className="loader-small mx-auto"></span>
   }
 
-  // const countBonds = () => {
-  //   const bonds = checkBondBalance()
-  //   bonds.then(num => {
-  //     for(let i = 0; i < num / 2; i++) {
-  //       console.log('hello from bond: ', i)
-  //       setBeraArr(curr => [...curr, 'https://ipfs.io/ipfs/QmSaVWb15oQ1HcsUjGGkjwHQ1mxJBYeivtBCgHHHiVLt7w'])
-  //     }
-  //   })
-  // }
-
-  // const countBands = () => {
-  //   const bands = checkBandBalance()
-  //   bands.then(num => {
-  //     if(num % 2 == 0) {
-  //       for(let i = 0; i < num / 2; i++) {
-  //         console.log('hello from band: ', i)
-  //         setBeraArr(curr => [...curr, 'https://ipfs.io/ipfs/QmNWggx9vvBVEHZc6xwWkdyymoKuXCYrJ3zQwwKzocDxRt'])
-  //       }
-  //     }
-  //     else {
-  //       for(let i = 0; i < num / 2; i++) {
-  //         console.log('hello from band: ', i)
-  //         setBeraArr(curr => [...curr, 'https://ipfs.io/ipfs/QmNWggx9vvBVEHZc6xwWkdyymoKuXCYrJ3zQwwKzocDxRt'])
-  //       }
-  //     }
-  //   })
-  // }
-
-  const test = () => {
-    const num = 5
-    for(let i = 0; i < num / 2; i++) {
-      
-    }
-  }
-
   return (
-    <div className="w-[100%] h-[100%] flex flex-row" onClick={() => test()}>
+    <div className="w-[100%] h-[100%] flex flex-row">
       <div className="h-[100%] w-[70%] bg-green-400">
 
       </div>
@@ -75,11 +32,11 @@ export const LoanTab = () => {
         <h1 className="font-acme mx-auto underline py-8 text-[18px] 2xl:text-[24px]">your beras</h1>
         { 
           infoLoading ? loadingElement() : 
-          <div className="flex flex-wrap overflow-y-auto h-[90%] border-2 border-black">
+          <div className="flex flex-wrap overflow-y-auto h-[90%] border-2 border-black" id="hide-scrollbar">
             {
               beraArray.map((src, index) => (
-                <div key={index} className="w-[40%]">
-                  <img src={src} alt="bera" />
+                <div key={index} className="w-[50%] py-2">
+                  <img className="ml-[5%] w-[90%] rounded-xl" src={src} alt="bera" id="home-button" />
                 </div>
               ))
             }

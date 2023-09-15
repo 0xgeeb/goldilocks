@@ -9,8 +9,6 @@ import { contracts } from "../../utils/addressi"
 const INITIAL_STATE: GoldilendInitialState = {
   activeToggle: 'loan',
   changeActiveToggle: (_toggle: string) => {},
-  checkBondBalance: async (): Promise<number> => 0,
-  checkBandBalance: async (): Promise<number> => 0,
   checkBeraBalance: async () => {},
   beraArray: []
 }
@@ -49,26 +47,6 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
     setActiveToggleState(toggle)
   }
 
-  const checkBondBalance = async (): Promise<number> => {
-    if(wallet) {
-      const bondBalance = await bondbearContract.read.balanceOf([wallet])
-      return parseFloat(bondBalance.toString())
-    }
-    else {
-      return 0
-    }
-  }
-
-  const checkBandBalance = async (): Promise<number> => {
-    if(wallet) {
-      const bandBalance = await bandbearContract.read.balanceOf([wallet])
-      return parseFloat(bandBalance.toString())
-    }
-    else {
-      return 0
-    }
-  }
-
   const checkBeraBalance = async () => {
     if(wallet) {
       const bondBalance = await bondbearContract.read.balanceOf([wallet])
@@ -76,11 +54,9 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
       const bondNum = parseFloat(bondBalance.toString())
       const bandNum = parseFloat(bandBalance.toString())
       for(let i = 0; i < bondNum; i++) {
-        console.log('hello from bond: ', i)
         setBeraArrayState(curr => [...curr, 'https://ipfs.io/ipfs/QmSaVWb15oQ1HcsUjGGkjwHQ1mxJBYeivtBCgHHHiVLt7w'])
       }
       for(let i = 0; i < bandNum; i++) {
-        console.log('hello from band: ', i)
         setBeraArrayState(curr => [...curr, 'https://ipfs.io/ipfs/QmNWggx9vvBVEHZc6xwWkdyymoKuXCYrJ3zQwwKzocDxRt'])
       }
     }
@@ -92,8 +68,6 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
         activeToggle: activeToggleState,
         beraArray: beraArrayState,
         changeActiveToggle,
-        checkBondBalance,
-        checkBandBalance,
         checkBeraBalance
       }}
     >
