@@ -192,6 +192,8 @@ export interface GoldilendInitialState {
   changeActiveToggle: (_toggle: string) => void;
   checkBondBalance: () => Promise<number>;
   checkBandBalance: () => Promise<number>;
+  checkBeraBalance: () => {};
+  beraArray: string[];
 }
 
 export interface SideToggleProps {
