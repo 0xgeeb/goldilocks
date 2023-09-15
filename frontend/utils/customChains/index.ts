@@ -1,39 +1,20 @@
 import { Chain } from "wagmi"
 
-export const devnet: Chain = {
-  id: 69420,
-  name: 'Polaris Devnet 1',
-  network: 'polaris',
+export const Goerli: Chain = {
+  id: 5,
+  name: 'Goerli test network',
+  network: 'Goerli',
   nativeCurrency: {
     decimals: 18,
-    name: 'Polaris',
-    symbol: 'tBERA',
+    name: 'GoerliETH',
+    symbol: 'ETH',
   },
   rpcUrls: {
     default: { 
-      http: [process.env.NEXT_PUBLIC_DEVNET_RPC_URL as string] 
+      http: [process.env.NEXT_PUBLIC_GOERLI_RPC_URL as string] 
     },
     public: {
-      http: [process.env.NEXT_PUBLIC_DEVNET_RPC_URL as string] 
-    }
-  }
-} as const satisfies Chain
-
-export const fuji: Chain = {
-  id: 43113,
-  name: 'Avalanche Fuji C-Chain',
-  network: 'fuji',
-  nativeCurrency: {
-    decimals: 18,
-    name: 'Avalanche',
-    symbol: 'AVAX',
-  },
-  rpcUrls: {
-    default: { 
-      http: [process.env.NEXT_PUBLIC_FUJI_RPC_URL as string] 
-    },
-    public: {
-      http: [process.env.NEXT_PUBLIC_FUJI_RPC_URL as string] 
+      http: [process.env.NEXT_PUBLIC_GOERLI_RPC_URL as string] 
     }
   }
 }

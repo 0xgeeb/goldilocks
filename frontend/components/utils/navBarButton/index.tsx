@@ -25,8 +25,8 @@ export const NavBarButton = ({ burgerPopupToggle, setBurgerPopupToggle, setAccou
       if(!isConnected) {
       setTagText("where wallet")
     }
-    else if(network !== "Avalanche Fuji C-Chain") {
-      setTagText("where fuji")
+    else if(network !== "Goerli test network") {
+      setTagText("where goerli")
     }
     else {
       setTagText("loading...")

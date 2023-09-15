@@ -1751,8 +1751,7 @@ interface IGAMM {
   function redeem(uint256 amount) external;
 
   function borrowTransfer(address to, uint256 amount, uint256 fee) external;
-  function porridgeMint(address _to, uint256 _amount) external;
-
+  function porridgeMint(address to, uint256 amount) external;
 }
 
 /// @title Porridge
@@ -1773,6 +1772,8 @@ contract Porridge is ERC20("Porridge Token", "PRG"), ReentrancyGuard {
 
   address public gammAddress;
   address public borrowAddress;
+  address public goldilendAddress;
+  address public adminAddress;
   address public honeyAddress;
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -1782,10 +1783,17 @@ contract Porridge is ERC20("Porridge Token", "PRG"), ReentrancyGuard {
   /// @notice Constructor of this contract
   /// @param _gammAddress Address of the GAMM
   /// @param _borrowAddress Address of the Borrow contract
+  /// @param _adminAddress Address of the GoldilocksDAO multisig
   /// @param _honeyAddress Address of the HONEY contract
-  constructor(address _gammAddress, address _borrowAddress, address _honeyAddress) {
+  constructor(
+    address _gammAddress, 
+    address _borrowAddress, 
+    address _adminAddress, 
+    address _honeyAddress
+  ) {
     gammAddress = _gammAddress;
     borrowAddress = _borrowAddress;
+    adminAddress = _adminAddress;
     honeyAddress = _honeyAddress;
   }
 
@@ -1793,6 +1801,8 @@ contract Porridge is ERC20("Porridge Token", "PRG"), ReentrancyGuard {
   /*                           ERRORS                           */
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
+  error NotGoldilend();
+  error NotAdmin();
   error InvalidUnstake();
   error LocksBorrowedAgainst();
 
@@ -1804,6 +1814,22 @@ contract Porridge is ERC20("Porridge Token", "PRG"), ReentrancyGuard {
   event Unstaked(address indexed user, uint256 amount);
   event Realized(address indexed user, uint256 amount);
   event Claimed(address indexed user, uint256 amount);
+
+  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+  /*                         MODIFIERS                          */
+  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+  /// @notice Ensures msg.sender is the goldilend address
+  modifier onlyGoldilend() {
+    if(msg.sender != goldilendAddress) revert NotGoldilend();
+    _;
+  }
+
+  /// @notice Ensures msg.sender is the admin address
+  modifier onlyAdmin() {
+    if(msg.sender != adminAddress) revert NotAdmin();
+    _;
+  }
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
   /*                       VIEW FUNCTIONS                       */
@@ -1895,15 +1921,18 @@ contract Porridge is ERC20("Porridge Token", "PRG"), ReentrancyGuard {
       emit Claimed(msg.sender, claimable);
     }
   }
-
+    
   /// @notice Calculates claimable yield
   /// @param user Address of staker to calculate yield
   /// @param stakedAmount Amount of $LOCKS the user has staked in the contract
   /// @return yield Amount of $PRG earned by staker
-  function _calculateClaimable(address user, uint256 stakedAmount) internal view returns (uint256 yield) {
+  function _calculateClaimable(
+    address user, 
+    uint256 stakedAmount
+  ) internal view returns (uint256 yield) {
     uint256 timeStaked = _timeStaked(user);
     uint256 yieldPortion = stakedAmount / DAILY_EMISSISION_RATE;
-    yield = yieldPortion * (timeStaked / DAYS_SECONDS);
+    yield = FixedPointMathLib.mulWad(yieldPortion, FixedPointMathLib.divWad(timeStaked, DAYS_SECONDS));
   }
 
   /// @notice Calculates time staked of a staker
@@ -1911,5 +1940,22 @@ contract Porridge is ERC20("Porridge Token", "PRG"), ReentrancyGuard {
   /// @return timeStaked staked of an address
   function _timeStaked(address user) internal view returns (uint256 timeStaked) {
     timeStaked = block.timestamp - stakeStartTime[user];
+  }
+
+  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+  /*                   PERMISSIONED FUNCTIONS                   */
+  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+  /// @notice Goldilend contract will call this function when users claim $PRG tokens
+  /// @param to Recipient of minted $PRG tokens
+  /// @param amount Amount of minted $PRG tokens
+  function goldilendMint(address to, uint256 amount) external onlyGoldilend {
+    _mint(to, amount);
+  }
+
+  /// @notice Set address of Goldilend contract
+  /// @param _goldilendAddress Address of Goldilend contract
+  function setGoldilendAddress(address _goldilendAddress) external onlyAdmin {
+    goldilendAddress = _goldilendAddress;
   }
 }

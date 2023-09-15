@@ -2,7 +2,7 @@
 
 import { FC, ReactNode } from "react"
 import { configureChains, createConfig, WagmiConfig } from "wagmi"
-import { fuji } from "../../utils/customChains"
+import { Goerli } from "../../utils/customChains"
 import { jsonRpcProvider } from "@wagmi/core/providers/jsonRpc"
 import { createPublicClient, http } from "viem"
 import { connectorsForWallets, getDefaultWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit"
@@ -10,7 +10,7 @@ import { metaMaskWallet, injectedWallet, rainbowWallet, rabbyWallet, ledgerWalle
 import "@rainbow-me/rainbowkit/styles.css"
 
 const { chains } = configureChains(
-  [fuji],
+  [Goerli],
   [
     jsonRpcProvider({
       rpc: chain => ({ http: chain.rpcUrls.default.http[0] }),
@@ -44,7 +44,7 @@ const config = createConfig({
   autoConnect: true,
   connectors,
   publicClient: createPublicClient({
-    chain: fuji,
+    chain: Goerli,
     transport: http(),
   })
 })

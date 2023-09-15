@@ -1673,20 +1673,22 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
   /*                      STATE VARIABLES                       */
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
+  
+  uint256 public immutable DAYS_SECONDS = 86400;
+  uint256 public immutable MAX_FLOOR_REDUCE = 5e18;
+
   uint256 public fsl = 1400000e18;
   uint256 public psl = 400000e18;
   uint256 public supply = 5000e18;
-  
   uint256 public targetRatio = 360e15;
-  uint256 public immutable DAYS_SECONDS = 86400;
 
   uint256 public lastFloorRaise;
   uint256 public lastFloorDecrease;
 
   address public porridgeAddress;
   address public borrowAddress;
-  address public honeyAddress;
   address public adminAddress;
+  address public honeyAddress;
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
   /*                          CONSTRUCTOR                       */
@@ -1694,10 +1696,11 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
 
   /// @notice Constructor of this contract
   /// @param _adminAddress Address of the GoldilocksDAO multisig
-  constructor(address _honeyAddress, address _adminAddress) {
-    honeyAddress = _honeyAddress;
+  constructor(address _adminAddress, address _honeyAddress) {
     adminAddress = _adminAddress;
+    honeyAddress = _honeyAddress;
     lastFloorRaise = block.timestamp;
+    lastFloorDecrease = block.timestamp;
   }
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -1773,10 +1776,10 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
       uint256 __purchasePrice
     ) = _buyLoop(_psl, _fsl, _supply, amount);
     uint256 tax = (__purchasePrice / 1000) * 3;
+    if(__purchasePrice + tax > maxAmount) revert ExcessiveSlippage();
     fsl = __fsl + tax;
     psl = __psl;
     supply = __supply;
-    if(__purchasePrice + tax > maxAmount) revert ExcessiveSlippage();
     _floorRaise();
     SafeTransferLib.safeTransferFrom(honeyAddress, msg.sender, address(this), __purchasePrice + tax);
     _mint(msg.sender, amount);
@@ -1796,12 +1799,11 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
       uint256 __supply,
       uint256 __saleAmount
     ) = _sellLoop(_psl, _fsl, _supply, amount);
-
     uint256 tax = (__saleAmount / 1000) * 53;
-    fsl = __fsl + tax;
-    psl = __psl;
-    supply = __supply;
     if(__saleAmount - tax < minAmount) revert ExcessiveSlippage();
+    fsl = __fsl + (tax / 2);
+    psl = __psl + (tax / 2);
+    supply = __supply;
     _floorReduce();
     _burn(msg.sender, amount);
     SafeTransferLib.safeTransfer(honeyAddress, msg.sender, __saleAmount - tax);
@@ -1936,13 +1938,18 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
     }
   }
 
-  /// @notice If a day has elapsed since , reduces the FSL
+  /// @notice If a day has elapsed since, reduces the FSL
   function _floorReduce() internal {
     uint256 elapsedRaise = block.timestamp - lastFloorRaise;
     uint256 elapsedDrop = block.timestamp - lastFloorDecrease;
     if (elapsedRaise >= DAYS_SECONDS && elapsedDrop >= DAYS_SECONDS) {
-      uint256 _decreaseFactor = elapsedRaise / DAYS_SECONDS;
-      targetRatio -= (targetRatio * _decreaseFactor);
+      uint256 decreaseFactor = FixedPointMathLib.divWad(elapsedRaise, DAYS_SECONDS);
+      if(decreaseFactor > MAX_FLOOR_REDUCE) {
+        targetRatio = FixedPointMathLib.mulWad(targetRatio / 100, 100e18 - MAX_FLOOR_REDUCE);
+      }
+      else {
+        targetRatio = FixedPointMathLib.mulWad(targetRatio / 100, 100e18 - decreaseFactor);
+      }
       lastFloorDecrease = block.timestamp;
     }
   }
@@ -1960,11 +1967,11 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
     SafeTransferLib.safeTransfer(honeyAddress, adminAddress, fee);
   }
 
-  /// @notice Porridge Contract will call this function when users realize $PRG tokens
-  /// @param _to Recipient of minted $LOCKS tokens
-  /// @param _amount Amount of minted $LOCKS tokens
-  function porridgeMint(address _to, uint256 _amount) external onlyPorridge {
-    _mint(_to, _amount);
+  /// @notice Porridge contract will call this function when users realize $PRG tokens
+  /// @param to Recipient of minted $LOCKS tokens
+  /// @param amount Amount of minted $LOCKS tokens
+  function porridgeMint(address to, uint256 amount) external onlyPorridge {
+    _mint(to, amount);
   }
 
   /// @notice Set address of Porridge contract
@@ -1978,5 +1985,25 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
   function setBorrowAddress(address _borrowAddress) external onlyAdmin {
     borrowAddress = _borrowAddress;
   }
+
+  /// @notice Allows the DAO to inject liquidity into the GAMM
+  /// @param fslAddition Liquidity added to FSL
+  /// @param pslAddition Liquidity added to PSL
+  function injectLiquidity(uint256 fslAddition, uint256 pslAddition) external onlyAdmin {
+    fsl += fslAddition;
+    psl += pslAddition;
+    SafeTransferLib.safeTransferFrom(honeyAddress, msg.sender, address(this), fslAddition + pslAddition);
+  }
+
+  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+  /*                  IMPLEMENTATION FUNCTIONS                  */
+  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+  // function _beforeTokenTransfer(
+  //   address from,
+  //   address to,
+  //   uint256 amount
+  // ) internal virtual override {
+  // }
 
 }

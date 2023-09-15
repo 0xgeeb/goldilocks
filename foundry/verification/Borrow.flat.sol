@@ -1164,8 +1164,7 @@ interface IGAMM {
   function redeem(uint256 amount) external;
 
   function borrowTransfer(address to, uint256 amount, uint256 fee) external;
-  function porridgeMint(address _to, uint256 _amount) external;
-
+  function porridgeMint(address to, uint256 amount) external;
 }
 
 interface IPorridge {
@@ -1179,6 +1178,7 @@ interface IPorridge {
   function realize(uint256 amount) external;
   function claim() external;
 
+  function goldilendMint(address to, uint256 amount) external;
 }
 
 /// @title Borrow
@@ -1194,10 +1194,10 @@ contract Borrow {
   mapping(address => uint256) public lockedLocks;
   mapping(address => uint256) public borrowedHoney;
 
-  address public honeyAddress;
-  address public adminAddress;
   address public gammAddress;
   address public porridgeAddress;
+  address public adminAddress;
+  address public honeyAddress;
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
   /*                          CONSTRUCTOR                       */
@@ -1205,12 +1205,16 @@ contract Borrow {
 
   /// @notice Constructor of this contract
   /// @param _gammAddress Address of the GAMM
-  /// @param _honeyAddress Address of the HONEY contract
   /// @param _adminAddress Address of the GoldilocksDAO multisig
-  constructor(address _gammAddress, address _honeyAddress, address _adminAddress) {
+  /// @param _honeyAddress Address of the HONEY contract
+  constructor(
+    address _gammAddress, 
+    address _adminAddress,
+    address _honeyAddress 
+  ) {
     gammAddress = _gammAddress;
-    honeyAddress = _honeyAddress;
     adminAddress = _adminAddress;
+    honeyAddress = _honeyAddress;
   }
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -1329,7 +1333,7 @@ contract Borrow {
   }
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-  /*                       ADMIN FUNCTIONS                      */
+  /*                    PERMISSIONED FUNCTION                   */
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
   /// @notice Set address of Porridge contract

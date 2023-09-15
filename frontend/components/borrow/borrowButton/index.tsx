@@ -144,12 +144,12 @@ export const BorrowButton = () => {
                     button && (button.innerHTML = "connect wallet")
                   }
                 }
-                else if(chain?.name !== "Avalanche Fuji C-Chain") {
-                  if(button && button.innerHTML === "switch to fuji plz") {
+                else if(chain?.name !== "Goerli test network") {
+                  if(button && button.innerHTML === "switch to goerli plz") {
                     openChainModal()
                   }
                   else {
-                    button && (button.innerHTML = "switch to fuji plz")
+                    button && (button.innerHTML = "switch to goerli plz")
                   }
                 }
                 else {

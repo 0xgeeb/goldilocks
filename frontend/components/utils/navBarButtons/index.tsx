@@ -21,8 +21,8 @@ export const NavBarButtons = ({ setPopupToggle }: PopupProp) => {
     if(!isConnected) {
       button && (button.innerHTML = "where wallet")
     }
-    else if(network !== "Avalanche Fuji C-Chain") {
-      button && (button.innerHTML = "where fuji")
+    else if(network !== "Goerli test network") {
+      button && (button.innerHTML = "where goerli")
     }
     else {
       button && (button.innerHTML = "loading...")
