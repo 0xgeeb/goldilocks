@@ -108,16 +108,16 @@ contract GoldilendTest is Test, IERC721Receiver {
   }
 
   modifier dealUserBeras() {
-    INFT(address(bondbear)).mint();
-    INFT(address(bandbear)).mint();
+    INFT(address(bondbear)).mint(address(this));
+    INFT(address(bandbear)).mint(address(this));
     IERC721(bondbear).setApprovalForAll(address(goldilend), true);
     IERC721(bandbear).setApprovalForAll(address(goldilend), true);
     _;
   }
 
   modifier dealUserPartnerNFTs() {
-    INFT(address(honeycomb)).mint();
-    INFT(address(beradrome)).mint();
+    INFT(address(honeycomb)).mint(address(this));
+    INFT(address(beradrome)).mint(address(this));
     IERC721(honeycomb).setApprovalForAll(address(goldilend), true);
     IERC721(beradrome).setApprovalForAll(address(goldilend), true);
     _;
@@ -388,10 +388,10 @@ contract GoldilendTest is Test, IERC721Receiver {
   }
 
   function testBoostBoostWithdrawBoost() public {
-    INFT(address(honeycomb)).mint();
-    INFT(address(honeycomb)).mint();
-    INFT(address(beradrome)).mint();
-    INFT(address(beradrome)).mint();
+    INFT(address(honeycomb)).mint(address(this));
+    INFT(address(honeycomb)).mint(address(this));
+    INFT(address(beradrome)).mint(address(this));
+    INFT(address(beradrome)).mint(address(this));
     address[] memory nfts = new address[](2);
     nfts[0] = address(honeycomb);
     nfts[1] = address(beradrome);
@@ -419,9 +419,9 @@ contract GoldilendTest is Test, IERC721Receiver {
   }
 
   function testSingleBoostMultipleBoost() public {
-    INFT(address(honeycomb)).mint();
-    INFT(address(honeycomb)).mint();
-    INFT(address(beradrome)).mint();
+    INFT(address(honeycomb)).mint(address(this));
+    INFT(address(honeycomb)).mint(address(this));
+    INFT(address(beradrome)).mint(address(this));
     address[] memory nfts = new address[](2);
     nfts[0] = address(honeycomb);
     nfts[1] = address(beradrome);
@@ -443,8 +443,8 @@ contract GoldilendTest is Test, IERC721Receiver {
   }
 
   function testSingleBoostSingleBoost() public {
-    INFT(address(honeycomb)).mint();
-    INFT(address(beradrome)).mint();
+    INFT(address(honeycomb)).mint(address(this));
+    INFT(address(beradrome)).mint(address(this));
     IERC721(honeycomb).setApprovalForAll(address(goldilend), true);
     IERC721(beradrome).setApprovalForAll(address(goldilend), true);
     goldilend.boost(address(honeycomb), 1, goldilend.MONTH_DAYS() + 1);
@@ -564,12 +564,12 @@ contract GoldilendTest is Test, IERC721Receiver {
   }
 
   function testSingleMaxBoostedBorrow() public dealUserBeras  {
-    INFT(address(honeycomb)).mint();
-    INFT(address(beradrome)).mint();
-    INFT(address(beradrome)).mint();
-    INFT(address(beradrome)).mint();
-    INFT(address(beradrome)).mint();
-    INFT(address(beradrome)).mint();
+    INFT(address(honeycomb)).mint(address(this));
+    INFT(address(beradrome)).mint(address(this));
+    INFT(address(beradrome)).mint(address(this));
+    INFT(address(beradrome)).mint(address(this));
+    INFT(address(beradrome)).mint(address(this));
+    INFT(address(beradrome)).mint(address(this));
     address[] memory nfts = new address[](6);
     nfts[0] = address(honeycomb);
     nfts[1] = address(beradrome);
@@ -624,12 +624,12 @@ contract GoldilendTest is Test, IERC721Receiver {
   }
 
   function testMultipleMaxBoostedBorrow() public dealUserBeras {
-    INFT(address(honeycomb)).mint();
-    INFT(address(beradrome)).mint();
-    INFT(address(beradrome)).mint();
-    INFT(address(beradrome)).mint();
-    INFT(address(beradrome)).mint();
-    INFT(address(beradrome)).mint();
+    INFT(address(honeycomb)).mint(address(this));
+    INFT(address(beradrome)).mint(address(this));
+    INFT(address(beradrome)).mint(address(this));
+    INFT(address(beradrome)).mint(address(this));
+    INFT(address(beradrome)).mint(address(this));
+    INFT(address(beradrome)).mint(address(this));
     address[] memory nfts = new address[](6);
     nfts[0] = address(honeycomb);
     nfts[1] = address(beradrome);

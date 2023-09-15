@@ -10,8 +10,8 @@ contract HoneyComb is ERC721URIStorage {
 
   constructor() ERC721("Honey Comb", "HONEYCOMB") {}
 
-  function mint() external {
-    _safeMint(msg.sender, tokenId);
+  function mint(address user) external {
+    _safeMint(user, tokenId);
     _setTokenURI(tokenId, "ipfs://Qmf1ZPzpSZPXzwNgraT6sDXGNBTvJShB4eVkwikRB2sXq9");
     tokenId++;
   }

@@ -3,5 +3,5 @@ pragma solidity ^0.8.19;
 
 interface INFT {
 
-  function mint() external;
+  function mint(address) external;
 }

@@ -57,6 +57,7 @@ export interface WalletInitialState {
   network: string;
   refreshBalances: () => void;
   sendMintTx: () => Promise<string>;
+  sendGoldiMintTx: () => Promise<string>;
 }
 
 export interface GammInfo {

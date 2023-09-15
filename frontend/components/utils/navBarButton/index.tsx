@@ -12,24 +12,26 @@ type PopupProps = {
 
 export const NavBarButton = ({ burgerPopupToggle, setBurgerPopupToggle, setAccountPopupToggle }: PopupProps) => {
 
-  const [tagText, setTagText] = useState<string>('mint $honey')
+  const [honeyTagText, setHoneyTagText] = useState<string>('mint $honey')
+  const [beraTagText, setBeraTagText] = useState<string>('mint $bera')
   const { openNotification } = useNotification()
   const { 
     isConnected, 
     network, 
     refreshBalances, 
-    sendMintTx 
+    sendMintTx,
+    sendGoldiMintTx
   } = useWallet()
 
-  const handleClick = async () => {
+  const handleHoneyClick = async () => {
       if(!isConnected) {
-      setTagText("where wallet")
+      setHoneyTagText("where wallet")
     }
     else if(network !== "Goerli test network") {
-      setTagText("where goerli")
+      setHoneyTagText("where goerli")
     }
     else {
-      setTagText("loading...")
+      setHoneyTagText("loading...")
       const mintTx = await sendMintTx()
       mintTx && openNotification({
         title: 'Successfully Minted $HONEY!',
@@ -37,15 +39,41 @@ export const NavBarButton = ({ burgerPopupToggle, setBurgerPopupToggle, setAccou
         direction: 'minted',
         amount: 1000000,
         price: 0,
-        page: 'nav'
+        page: 'nav-honey'
       })
-      setTagText("u got $honey")
+      setHoneyTagText("u got $honey")
       refreshBalances()
       setTimeout(() => {
-        setTagText("$honey")
+        setHoneyTagText("$honey")
       }, 5000)
     }
   }
+
+  const handleBeraClick = async () => {
+    if(!isConnected) {
+    setBeraTagText("where wallet")
+  }
+  else if(network !== "Goerli test network") {
+    setBeraTagText("where goerli")
+  }
+  else {
+    setBeraTagText("loading...")
+    const goldiMintTx = await sendGoldiMintTx()
+    goldiMintTx && openNotification({
+      title: 'Successfully Minted $HONEY and Beras!',
+      hash: goldiMintTx,
+      direction: 'minted',
+      amount: 1000000,
+      price: 0,
+      page: 'nav-bera'
+    })
+    setBeraTagText("u got $bera")
+    refreshBalances()
+    setTimeout(() => {
+      setBeraTagText("mint $bera")
+    }, 5000)
+  }
+}
 
   const loadingElement = () => {
     return <span className="loader-small"></span>
@@ -66,9 +94,15 @@ export const NavBarButton = ({ burgerPopupToggle, setBurgerPopupToggle, setAccou
         <div className="z-40 absolute flex flex-col font-acme text-center justify-between p-4 lg:hidden left-[79%] w-[20%] top-[8%] h-[30%] border-2 border-black rounded-xl bg-white" id="home-button">
           <p 
             className="hover:underline cursor-pointer"
-            onClick={() => handleClick()}
+            onClick={() => handleHoneyClick()}
           >
-            {tagText}
+            {honeyTagText}
+          </p>
+          <p 
+            className="hover:underline cursor-pointer"
+            onClick={() => handleBeraClick()}
+          >
+            {beraTagText}
           </p>
           <a href="/gamm">
             <p className="hover:underline cursor-pointer">gamm</p>

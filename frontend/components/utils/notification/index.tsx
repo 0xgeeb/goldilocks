@@ -31,11 +31,13 @@ const Notification = ({ hash, title, direction, amount, price, page }: Notificat
             `you claimed ${amount.toLocaleString('en-US', { maximumFractionDigits: 4 })} $PRG` :
           page === 'borrow' ?
             `you ${direction} ${amount.toLocaleString('en-US', { maximumFractionDigits: 4 })} $HONEY` :
-          page === 'nav' ? 
+          page === 'nav-honey' ? 
             `you ${direction} ${amount.toLocaleString('en-US', { maximumFractionDigits: 4 })} $HONEY` :
+          page === 'nav-bera' ? 
+            `you ${direction} ${amount.toLocaleString('en-US', { maximumFractionDigits: 4 })} $BERA and beras` :
           ''
         }</h1>
-        <a href={`https://testnet.snowtrace.io/tx/${hash}`} target="_blank">
+        <a href={`https://goerli.etherscan.io/tx/${hash}`} target="_blank">
           <h1 className="hover:underline">link to tx</h1>
         </a>
     </div>

@@ -12,10 +12,11 @@ export const NavBarButtons = ({ setPopupToggle }: PopupProp) => {
     isConnected, 
     network, 
     refreshBalances, 
-    sendMintTx 
+    sendMintTx,
+    sendGoldiMintTx
   } = useWallet()
 
-  const handleButtonClick = async () => {
+  const handleMintButtonClick = async () => {
     const button = document.getElementById('honey-button')
 
     if(!isConnected) {
@@ -33,12 +34,40 @@ export const NavBarButtons = ({ setPopupToggle }: PopupProp) => {
         direction: 'minted',
         amount: 1000000,
         price: 0,
-        page: 'nav'
+        page: 'nav-honey'
       })
       button && (button.innerHTML = "u got $honey")
       refreshBalances()
       setTimeout(() => {
         button && (button.innerHTML = "$honey")
+      }, 5000)
+    }
+  }
+
+  const handleGoldiMintButtonClick = async () => {
+    const button = document.getElementById('bera-button')
+
+    if(!isConnected) {
+      button && (button.innerHTML = "where wallet")
+    }
+    else if(network !== "Goerli test network") {
+      button && (button.innerHTML = "where goerli")
+    }
+    else {
+      button && (button.innerHTML = "loading...")
+      const goldiMintTx = await sendGoldiMintTx()
+      goldiMintTx && openNotification({
+        title: 'Successfully Minted $BERA and Beras!',
+        hash: goldiMintTx,
+        direction: 'minted',
+        amount: 1000000,
+        price: 0,
+        page: 'nav-bera'
+      })
+      button && (button.innerHTML = "u got $bera")
+      refreshBalances()
+      setTimeout(() => {
+        button && (button.innerHTML = "beras")
       }, 5000)
     }
   }
@@ -49,13 +78,22 @@ export const NavBarButtons = ({ setPopupToggle }: PopupProp) => {
 
   return (
     <div className="flex-row justify-between w-[55%] 2xl:w-[50%] hidden lg:flex">
-      <button 
-        className={`w-36 py-2 text-[16px] 2xl:text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme`} 
-        id="honey-button" 
-        onClick={() => handleButtonClick()}
-      >
-        $honey
-      </button>
+      <div className="flex flex-row">
+        <button 
+          className={`w-36 py-2 text-[16px] 2xl:text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme`} 
+          id="honey-button" 
+          onClick={() => handleMintButtonClick()}
+        >
+          $honey
+        </button>
+        <button 
+          className={`w-36 py-2 text-[16px] 2xl:text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme`} 
+          id="bera-button" 
+          onClick={() => handleGoldiMintButtonClick()}
+        >
+          beras
+        </button>
+      </div>
       <div className="flex flex-row">
         <a href="/gamm">
           <button 

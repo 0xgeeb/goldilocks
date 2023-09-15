@@ -10,8 +10,8 @@ contract BondBear is ERC721URIStorage {
 
   constructor() ERC721("Bond Bears", "BOND") {}
 
-  function mint() external {
-    _safeMint(msg.sender, tokenId);
+  function mint(address user) external {
+    _safeMint(user, tokenId);
     _setTokenURI(tokenId, "ipfs://QmSBdpnJQCCCcDZ7pvx5dCB1qu2zBAKzC6KuwgseBwyr7m/109.json");
     tokenId++;
   }

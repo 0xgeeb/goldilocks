@@ -22,7 +22,8 @@ const INITIAL_STATE: WalletInitialState = {
   signer: null as WalletClient | null,
   network: '',
   refreshBalances: async () => {},
-  sendMintTx: async () => ''
+  sendMintTx: async () => '',
+  sendGoldiMintTx: async () => ''
 }
 
 const WalletContext = createContext(INITIAL_STATE)
@@ -100,6 +101,25 @@ export const WalletProvider = (props: PropsWithChildren<{}>) => {
     return ''
   }
 
+  const sendGoldiMintTx = async (): Promise<string> => {
+    try {
+      const { hash } = await writeContract({
+        address: contracts.faucet.address as `0x${string}`,
+        abi: contracts.faucet.abi,
+        functionName: 'drip',
+        args: []
+      })
+      const data = await waitForTransaction({ hash })
+        return data.transactionHash
+    }
+    catch (e) {
+      console.log('user denied tx')
+      console.log('or: ', e)
+    }
+
+    return ''
+  }
+
   return (
     <WalletContext.Provider
       value={{
@@ -109,7 +129,8 @@ export const WalletProvider = (props: PropsWithChildren<{}>) => {
         signer: signer || null,
         network: chain?.name ? chain.name : '',
         refreshBalances,
-        sendMintTx
+        sendMintTx,
+        sendGoldiMintTx
       }}
     >
       { children }

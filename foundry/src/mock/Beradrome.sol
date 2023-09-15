@@ -10,8 +10,8 @@ contract Beradrome is ERC721URIStorage {
 
   constructor() ERC721("Tour de Berance", "DROM") {}
 
-  function mint() external {
-    _safeMint(msg.sender, tokenId);
+  function mint(address user) external {
+    _safeMint(user, tokenId);
     _setTokenURI(tokenId, "ipfs://QmaqxDAW9ZYSpsZHGZboGwoKnmwfcunc5mK8iwCvPiYxGc/73");
     tokenId++;
   }

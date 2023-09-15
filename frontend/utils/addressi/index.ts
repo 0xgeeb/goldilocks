@@ -3,22 +3,32 @@ import borrowABI from "../abi/Borrow.json"
 import porridgeABI from "../abi/Porridge.json"
 import honeyABI from "../abi/Honey.json"
 import gammABI from "../abi/GAMM.json"
+import faucetABI from "../abi/BeraFaucet.json"
+import goldilendABI from "../abi/Goldilend.json"
 
 export const contracts: Contracts = {
   gamm: {
-    address: '0x2f9145825CDCAF96305b8372d7355A053D83555b',
+    address: '0x4d9dC113486aAafc4b40319eE05A128C792bb10C',
     abi: gammABI.abi
   },
   porridge: {
-    address: '0x877e5657b234e864D6c09a7DE3E06d8e384a1894',
+    address: '0x18A0Db5A6Ae6cBc317a11F8BD241fe1e9071dE5C',
     abi: porridgeABI.abi
-  } ,
+  },
   honey: {
-    address: '0xf0d4E88ed8C797049888C49Fd0202907B8ACa031',
+    address: '0xeB7095ccbb4Ce4Bf72717e0fDc54f1a7f48E3F63',
     abi: honeyABI.abi
-  } ,
+  },
   borrow: {
-    address: '0x57b60f98d40E48dEffE501a8544e709AD4a74bF1',
+    address: '0x746ed951978a9eFBf47137E1F6844bd8740B3B96',
     abi: borrowABI.abi
-  } 
+  },
+  faucet: {
+    address: '0x6c22bA412BAAf3B931dc18eBa10bF510b11577a7',
+    abi: faucetABI.abi
+  },
+  goldilend: {
+    address: '0xB5dfc873f71748073F965fF6e8d510F44707eCb5',
+    abi: goldilendABI.abi
+  }
 }
