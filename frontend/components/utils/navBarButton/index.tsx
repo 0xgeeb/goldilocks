@@ -70,9 +70,6 @@ export const NavBarButton = ({ burgerPopupToggle, setBurgerPopupToggle, setAccou
           >
             {tagText}
           </p>
-          <a href="https://core.app/tools/testnet-faucet" target="_blank">
-            <p className="hover:underline cursor-pointer">faucet</p>
-          </a>
           <a href="/gamm">
             <p className="hover:underline cursor-pointer">gamm</p>
           </a>

@@ -49,23 +49,13 @@ export const NavBarButtons = ({ setPopupToggle }: PopupProp) => {
 
   return (
     <div className="flex-row justify-between w-[55%] 2xl:w-[50%] hidden lg:flex">
-      <div className="flex flex-row">
-        <button 
-          className={`w-36 py-2 text-[16px] 2xl:text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme`} 
-          id="honey-button" 
-          onClick={() => handleButtonClick()}
-        >
-          $honey
-        </button>
-        <a href="https://core.app/tools/testnet-faucet" target="_blank">
-          <button 
-            className="w-20 2xl:w-24 py-2 text-[16px] 2xl:text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl font-acme" 
-            id="home-button"
-          >
-            faucet
-          </button>
-        </a>
-      </div>
+      <button 
+        className={`w-36 py-2 text-[16px] 2xl:text-[18px] bg-slate-200 hover:scale-[120%] rounded-xl mr-4 font-acme`} 
+        id="honey-button" 
+        onClick={() => handleButtonClick()}
+      >
+        $honey
+      </button>
       <div className="flex flex-row">
         <a href="/gamm">
           <button 
