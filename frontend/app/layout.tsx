@@ -12,7 +12,7 @@ const acme = Acme({
 })
 
 export const metadata: Metadata = {
-  title: 'Goldilocks Alpha',
+  title: 'Goldilocks Beta',
   description: 'bera themed defi protocol'
 }
 

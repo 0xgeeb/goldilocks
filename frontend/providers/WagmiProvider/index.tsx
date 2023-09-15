@@ -21,7 +21,7 @@ const { chains } = configureChains(
 const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_ID as string
 
 const { wallets } = getDefaultWallets({
-  appName: "Goldilocks Alpha",
+  appName: "Goldilocks Beta",
   projectId,
   chains
 })

@@ -46,7 +46,7 @@ contract DeployBetaScript is Script {
     // consensusvault = new ConsensusVault(0xB0F2B8A4A0C4c71e3623Aa95fFE1E09f4568FDAC);
 
     // berafaucet = new BeraFaucet(address(bondbear), address(bandbear), address(honeycomb), address(beradrome), address(bera));
-    berafaucet = new BeraFaucet(0x9C3C3E7f882aFe6d9C63F4b84DDc1E434Dc8e083, 0x853fE59f27A9AC25422Cb6cEFb116126468D3025, 0xc8CA5f855203a05773F8529367c35c7cF6676E70, 0x3017Fff986824372d26BE6c5695cB79414e0ca8c, 0xB0F2B8A4A0C4c71e3623Aa95fFE1E09f4568FDAC);
+    // berafaucet = new BeraFaucet(0x9C3C3E7f882aFe6d9C63F4b84DDc1E434Dc8e083, 0x853fE59f27A9AC25422Cb6cEFb116126468D3025, 0xc8CA5f855203a05773F8529367c35c7cF6676E70, 0x3017Fff986824372d26BE6c5695cB79414e0ca8c, 0xB0F2B8A4A0C4c71e3623Aa95fFE1E09f4568FDAC);
 
     // gamm = new GAMM(address(admin), address(honey));
     // gamm = new GAMM(admin, 0xeB7095ccbb4Ce4Bf72717e0fDc54f1a7f48E3F63);

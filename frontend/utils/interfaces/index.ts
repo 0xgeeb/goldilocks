@@ -190,6 +190,8 @@ export interface BorrowingInitialState {
 export interface GoldilendInitialState {
   activeToggle: string;
   changeActiveToggle: (_toggle: string) => void;
+  checkBondBalance: () => Promise<number>;
+  checkBandBalance: () => Promise<number>;
 }
 
 export interface SideToggleProps {

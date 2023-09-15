@@ -4,6 +4,7 @@ import {
   LoanTab,
   RepayTab,
   BoostTab,
+  StakeTab,
   LiquidateTab
 } from "../../goldilend"
 import { useGoldilend } from "../../../providers"
@@ -21,8 +22,10 @@ export const TabToggle = () => {
           <RepayTab /> :
         activeToggle === 'boost' ? 
           <BoostTab /> :
+        activeToggle === 'stake' ?
+          <StakeTab /> :
         activeToggle === 'liquidate' ??
-          <LiquidateTab /> 
+          <LiquidateTab />
       }
     </div>
   )

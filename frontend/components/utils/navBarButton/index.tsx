@@ -60,7 +60,7 @@ export const NavBarButton = ({ burgerPopupToggle, setBurgerPopupToggle, setAccou
     setBeraTagText("loading...")
     const goldiMintTx = await sendGoldiMintTx()
     goldiMintTx && openNotification({
-      title: 'Successfully Minted $HONEY and Beras!',
+      title: 'Successfully Minted $BERA and Beras!',
       hash: goldiMintTx,
       direction: 'minted',
       amount: 1000000,

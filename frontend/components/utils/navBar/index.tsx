@@ -18,7 +18,7 @@ export const NavBar = ({ burgerPopupToggle, setBurgerPopupToggle, setAccountPopu
               src="/yellow_transparent_logo.png"
               alt="logo"
             />
-            <h1 className="text-[35px] 2xl:text-[45px] ml-5 font-acme">Goldilocks Alpha</h1>
+            <h1 className="text-[35px] 2xl:text-[45px] ml-5 font-acme">Goldilocks Beta</h1>
           </div>
         </a>
         <NavBarButton

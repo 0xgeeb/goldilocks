@@ -5,6 +5,8 @@ import honeyABI from "../abi/Honey.json"
 import gammABI from "../abi/GAMM.json"
 import faucetABI from "../abi/BeraFaucet.json"
 import goldilendABI from "../abi/Goldilend.json"
+import bondbearABI from "../abi/BondBear.json"
+import bandbearABI from "../abi/BandBear.json"
 
 export const contracts: Contracts = {
   gamm: {
@@ -30,5 +32,13 @@ export const contracts: Contracts = {
   goldilend: {
     address: '0xB5dfc873f71748073F965fF6e8d510F44707eCb5',
     abi: goldilendABI.abi
+  },
+  bondbear: {
+    address: '0x9C3C3E7f882aFe6d9C63F4b84DDc1E434Dc8e083',
+    abi: bondbearABI.abi
+  },
+  bandbear: {
+    address: '0x853fE59f27A9AC25422Cb6cEFb116126468D3025',
+    abi: bandbearABI.abi
   }
 }

@@ -39,6 +39,12 @@ export const TitleBar = () => {
             boost
           </div>
           <div 
+            className={`font-acme text-[13px] 2xl:text-[16px] w-[66px] 2xl:w-24 py-2 ${activeToggle === 'stake' ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] text-center border-r-2 border-black cursor-pointer`} 
+            onClick={() => changeActiveToggle('stake')}
+          >
+            stake
+          </div>
+          <div 
             className={`font-acme text-[13px] 2xl:text-[16px] w-[76px] 2xl:w-24 py-2 ${activeToggle === 'liquidate' ? "bg-[#ffff00]" : "bg-white"} hover:bg-[#d6d633] rounded-r-2xl text-center cursor-pointer`} 
             onClick={() => changeActiveToggle('liquidate')}
           >
