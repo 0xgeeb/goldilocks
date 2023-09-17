@@ -188,10 +188,12 @@ export interface BorrowingInitialState {
 }
 
 export interface GoldilendInitialState {
+  displayString: string;
   activeToggle: string;
   changeActiveToggle: (_toggle: string) => void;
   checkBeraBalance: () => {};
   beraArray: string[];
+  handleBorrowChange: (_input: string) => void;
 }
 
 export interface SideToggleProps {

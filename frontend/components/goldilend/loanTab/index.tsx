@@ -10,7 +10,9 @@ export const LoanTab = () => {
 
   const {
     checkBeraBalance,
-    beraArray
+    beraArray,
+    displayString,
+    handleBorrowChange
   } = useGoldilend()
 
   useEffect(() => {
@@ -35,9 +37,24 @@ export const LoanTab = () => {
 
   return (
     <div className="w-[100%] h-[100%] flex flex-row justify-between">
-      <div className="h-[97.5%] mt-[2.5%] w-[67.5%] flex flex-col px-6 bg-white border-2 border-black rounded-xl">
-        <h1 className="font-acme py-4 text-[20px] 2xl:text-[26px]">create loan</h1>
-        <h2 className="font-acme text-[18px] 2xl:text-[24px]">loan amount</h2>
+      <div className="h-[97.5%] mt-[2.5%] w-[67.5%] flex flex-col py-4 px-6 bg-white border-2 border-black rounded-xl">
+        <h1 className="font-acme text-[20px] 2xl:text-[26px]">create loan</h1>
+        <div className="h-[60%] w-[100%] flex flex-col justify-between font-acme">
+          <div className="w-[100%]">
+            <h2 className="text-[18px] 2xl:text-[24px]">borrowed amount</h2>
+            <input
+              className="w-[90%] h-[90%] border-none focus:outline-none bg-green-400 text-[18px] 2xl:text-[24px]"
+              type="number"
+              id="number-input"
+              placeholder="0.00"
+              value={displayString}
+              onChange={(e) => handleBorrowChange(e.target.value)}
+            />
+            <h2 className="text-[18px] 2xl:text-[24px]">borrow limit: {}</h2>
+          </div>
+          <h2 className="text-[18px] 2xl:text-[24px]">duration</h2>
+          <h2 className="text-[18px] 2xl:text-[24px]">collateral</h2>
+        </div>
       </div>
       <div className="h-[97.5%] mt-[2.5%] w-[30%] flex flex-col border-2 border-black rounded-xl bg-white px-2">
         <h1 className="font-acme mx-auto underline py-4 text-[18px] 2xl:text-[24px]">your beras</h1>

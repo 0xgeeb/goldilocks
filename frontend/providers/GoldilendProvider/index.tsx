@@ -7,10 +7,12 @@ import { GoldilendInitialState } from "../../utils/interfaces"
 import { contracts } from "../../utils/addressi"
 
 const INITIAL_STATE: GoldilendInitialState = {
+  displayString: '',
   activeToggle: 'loan',
   changeActiveToggle: (_toggle: string) => {},
   checkBeraBalance: async () => {},
-  beraArray: []
+  beraArray: [],
+  handleBorrowChange: (_input: string) => {}
 }
 
 const GoldilendContext = createContext(INITIAL_STATE)
@@ -21,6 +23,7 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
 
   const { balance, wallet } = useWallet()
 
+  const [displayStringState, setDisplayStringState] = useState<string>(INITIAL_STATE.displayString)
   const [activeToggleState, setActiveToggleState] = useState<string>(INITIAL_STATE.activeToggle)
   const [beraArrayState, setBeraArrayState] = useState<string[]>(INITIAL_STATE.beraArray)
 
@@ -47,6 +50,11 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
     setActiveToggleState(toggle)
   }
 
+  const handleBorrowChange = (input: string) => {
+    setDisplayStringState(input)
+    //todo: set number state here
+  }
+
   const checkBeraBalance = async () => {
     if(wallet) {
       const bondBalance = await bondbearContract.read.balanceOf([wallet])
@@ -54,6 +62,7 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
       const bondNum = parseFloat(bondBalance.toString())
       const bandNum = parseFloat(bandBalance.toString())
       for(let i = 0; i < bondNum; i++) {
+        //todo: change this to an object with different data about bera instead
         setBeraArrayState(curr => [...curr, 'https://ipfs.io/ipfs/QmSaVWb15oQ1HcsUjGGkjwHQ1mxJBYeivtBCgHHHiVLt7w'])
       }
       for(let i = 0; i < bandNum; i++) {
@@ -62,13 +71,19 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
     }
   }
 
+  const updateBorrowLimit = () => {
+    
+  }
+
   return (
     <GoldilendContext.Provider
       value={{
+        displayString: displayStringState,
         activeToggle: activeToggleState,
         beraArray: beraArrayState,
         changeActiveToggle,
-        checkBeraBalance
+        checkBeraBalance,
+        handleBorrowChange
       }}
     >
       { children }
