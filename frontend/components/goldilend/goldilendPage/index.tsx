@@ -7,12 +7,19 @@ import {
   AccountPopup,
   RotatingImages
 } from "../../utils"
+import {
+  LoanPopup
+} from "../../goldilend"
 import { useGoldilend } from "../../../providers"
 
 export const GoldilendPage = () => {
 
   const [accountPopupToggle, setAccountPopupToggle] = useState<boolean>(false)
   const [burgerPopupToggle, setBurgerPopupToggle] = useState<boolean>(false)
+  const {
+    loanPopupToggle,
+    setLoanPopupToggle
+  } = useGoldilend()
   
   const handlePopups = () => {
     if(accountPopupToggle) {
@@ -30,6 +37,7 @@ export const GoldilendPage = () => {
       onClick={() => handlePopups()}
     >
       { accountPopupToggle && <AccountPopup setPopupToggle={setAccountPopupToggle} /> }
+      { loanPopupToggle && <LoanPopup setPopupToggle={setLoanPopupToggle} /> }
       <NavBar
         burgerPopupToggle={burgerPopupToggle}
         setBurgerPopupToggle={setBurgerPopupToggle} 

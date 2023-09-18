@@ -7,17 +7,22 @@ import { BeraInfo, GoldilendInitialState } from "../../utils/interfaces"
 import { contracts } from "../../utils/addressi"
 
 const INITIAL_STATE: GoldilendInitialState = {
+  loanAmount: 0,
   displayString: '',
   activeToggle: 'loan',
   borrowLimit: 0,
+  loanExpiration: '',
   changeActiveToggle: (_toggle: string) => {},
   checkBeraBalance: async () => {},
   beraArray: [],
   selectedBeras: [],
   handleBorrowChange: (_input: string) => {},
+  handleDateChange: (_input: string) => {},
   handleBeraClick: (_bera: BeraInfo) => {},
   findSelectedIdxs: () => [],
-  updateBorrowLimit: () => {}
+  updateBorrowLimit: () => {},
+  loanPopupToggle: false,
+  setLoanPopupToggle: (_bool: boolean) => {}
 }
 
 const GoldilendContext = createContext(INITIAL_STATE)
@@ -28,11 +33,14 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
 
   const { wallet } = useWallet()
 
+  const [loanAmountState, setLoanAmountState] = useState<number>(INITIAL_STATE.loanAmount)
   const [displayStringState, setDisplayStringState] = useState<string>(INITIAL_STATE.displayString)
   const [activeToggleState, setActiveToggleState] = useState<string>(INITIAL_STATE.activeToggle)
   const [borrowLimitState, setBorrowLimitState] = useState<number>(INITIAL_STATE.borrowLimit)
+  const [loanExpirationState, setLoanExpirationState] = useState<string>(INITIAL_STATE.loanExpiration)
   const [beraArrayState, setBeraArrayState] = useState<BeraInfo[]>(INITIAL_STATE.beraArray)
   const [selectedBerasState, setSelectedBerasState] = useState<BeraInfo[]>([])
+  const [loanPopupToggleState, setLoanPopupToggleState] = useState<boolean>(INITIAL_STATE.loanPopupToggle)
 
   const bondbearContract = getContract({
     address: contracts.bondbear.address as `0x${string}`,
@@ -45,21 +53,18 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
   })
 
   const changeActiveToggle = (toggle: string) => {
-    //todo: add clearing out state here
-    // setDisplayStringState('')
-    // setBottomDisplayStringState('')
-    // setHoneyBuyState(0)
-    // setBuyingLocksState(0)
-    // setSellingLocksState(0)
-    // setGettingHoneyState(0)
-    // setRedeemingLocksState(0)
-    // setRedeemingHoneyState(0)
+    setDisplayStringState('')
+    setLoanAmountState(0)
     setActiveToggleState(toggle)
   }
 
   const handleBorrowChange = (input: string) => {
     setDisplayStringState(input)
-    //todo: set number state here
+    !input ? setLoanAmountState(0) : setLoanAmountState(parseFloat(input))
+  }
+
+  const handleDateChange = (input: string) => {
+    setLoanExpirationState(input)
   }
 
   const checkBeraBalance = async () => {
@@ -87,7 +92,7 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
         setBeraArrayState(curr => [...curr, bandInfo])
       }
     }
-  }
+  }  
 
   const handleBeraClick = (bera: BeraInfo) => {
     const idxArray: number[] = findSelectedIdxs()
@@ -118,14 +123,19 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
   return (
     <GoldilendContext.Provider
       value={{
+        loanAmount: loanAmountState,
         displayString: displayStringState,
         activeToggle: activeToggleState,
         borrowLimit: borrowLimitState,
+        loanExpiration: loanExpirationState,
         beraArray: beraArrayState,
         selectedBeras: selectedBerasState,
+        loanPopupToggle: loanPopupToggleState,
+        setLoanPopupToggle: setLoanPopupToggleState,
         changeActiveToggle,
         checkBeraBalance,
         handleBorrowChange,
+        handleDateChange,
         updateBorrowLimit,
         handleBeraClick,
         findSelectedIdxs
