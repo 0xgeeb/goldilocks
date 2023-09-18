@@ -3,16 +3,21 @@
 import { createContext, PropsWithChildren, useContext, useState } from "react"
 import { useWallet } from ".."
 import { getContract } from "@wagmi/core"
-import { GoldilendInitialState } from "../../utils/interfaces"
+import { BeraInfo, GoldilendInitialState } from "../../utils/interfaces"
 import { contracts } from "../../utils/addressi"
 
 const INITIAL_STATE: GoldilendInitialState = {
   displayString: '',
   activeToggle: 'loan',
+  borrowLimit: 0,
   changeActiveToggle: (_toggle: string) => {},
   checkBeraBalance: async () => {},
   beraArray: [],
-  handleBorrowChange: (_input: string) => {}
+  selectedBeras: [],
+  handleBorrowChange: (_input: string) => {},
+  handleBeraClick: (_bera: BeraInfo) => {},
+  findSelectedIdxs: () => [],
+  updateBorrowLimit: () => {}
 }
 
 const GoldilendContext = createContext(INITIAL_STATE)
@@ -21,11 +26,13 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
 
   const { children } = props
 
-  const { balance, wallet } = useWallet()
+  const { wallet } = useWallet()
 
   const [displayStringState, setDisplayStringState] = useState<string>(INITIAL_STATE.displayString)
   const [activeToggleState, setActiveToggleState] = useState<string>(INITIAL_STATE.activeToggle)
-  const [beraArrayState, setBeraArrayState] = useState<string[]>(INITIAL_STATE.beraArray)
+  const [borrowLimitState, setBorrowLimitState] = useState<number>(INITIAL_STATE.borrowLimit)
+  const [beraArrayState, setBeraArrayState] = useState<BeraInfo[]>(INITIAL_STATE.beraArray)
+  const [selectedBerasState, setSelectedBerasState] = useState<BeraInfo[]>([])
 
   const bondbearContract = getContract({
     address: contracts.bondbear.address as `0x${string}`,
@@ -62,17 +69,50 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
       const bondNum = parseFloat(bondBalance.toString())
       const bandNum = parseFloat(bandBalance.toString())
       for(let i = 0; i < bondNum; i++) {
-        //todo: change this to an object with different data about bera instead
-        setBeraArrayState(curr => [...curr, 'https://ipfs.io/ipfs/QmSaVWb15oQ1HcsUjGGkjwHQ1mxJBYeivtBCgHHHiVLt7w'])
+        const bondInfo  = {
+          name: "BondBera",
+          imageSrc: "https://ipfs.io/ipfs/QmSaVWb15oQ1HcsUjGGkjwHQ1mxJBYeivtBCgHHHiVLt7w",
+          valuation: 50,
+          index: i
+        }
+        setBeraArrayState(curr => [...curr, bondInfo])
       }
       for(let i = 0; i < bandNum; i++) {
-        setBeraArrayState(curr => [...curr, 'https://ipfs.io/ipfs/QmNWggx9vvBVEHZc6xwWkdyymoKuXCYrJ3zQwwKzocDxRt'])
+        const bandInfo  = {
+          name: "BandBera",
+          imageSrc: "https://ipfs.io/ipfs/QmNWggx9vvBVEHZc6xwWkdyymoKuXCYrJ3zQwwKzocDxRt",
+          valuation: 50,
+          index: bondNum + i
+        }
+        setBeraArrayState(curr => [...curr, bandInfo])
       }
     }
   }
 
+  const handleBeraClick = (bera: BeraInfo) => {
+    const idxArray: number[] = findSelectedIdxs()
+    if(idxArray.includes(bera.index)) {
+      setSelectedBerasState(prev => prev.filter(beraf => beraf.index !== bera.index))
+    }
+    else {
+      setSelectedBerasState(prev => [...prev, bera])
+    }
+  }
+
+  const findSelectedIdxs = (): number[] => {
+    let idxArray: number[] = []
+    selectedBerasState.forEach((selectedBera) => {
+      idxArray.push(selectedBera.index)
+    })
+    return idxArray
+  }
+
   const updateBorrowLimit = () => {
-    
+    let limit = 0
+    selectedBerasState.forEach((bera) => {
+      limit += bera.valuation
+    })
+    setBorrowLimitState(limit)
   }
 
   return (
@@ -80,10 +120,15 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
       value={{
         displayString: displayStringState,
         activeToggle: activeToggleState,
+        borrowLimit: borrowLimitState,
         beraArray: beraArrayState,
+        selectedBeras: selectedBerasState,
         changeActiveToggle,
         checkBeraBalance,
-        handleBorrowChange
+        handleBorrowChange,
+        updateBorrowLimit,
+        handleBeraClick,
+        findSelectedIdxs
       }}
     >
       { children }

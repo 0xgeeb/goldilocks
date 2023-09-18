@@ -187,13 +187,25 @@ export interface BorrowingInitialState {
   refreshBorrowInfo: () =>  void;
 }
 
+export interface BeraInfo {
+  name: string;
+  imageSrc: string;
+  valuation: number;
+  index: number;
+}
+
 export interface GoldilendInitialState {
   displayString: string;
   activeToggle: string;
+  borrowLimit: number;
   changeActiveToggle: (_toggle: string) => void;
   checkBeraBalance: () => {};
-  beraArray: string[];
+  beraArray: BeraInfo[];
+  selectedBeras: BeraInfo[];
   handleBorrowChange: (_input: string) => void;
+  handleBeraClick: (bera: BeraInfo) => void;
+  findSelectedIdxs: () => number[];
+  updateBorrowLimit: () => void;
 }
 
 export interface SideToggleProps {
