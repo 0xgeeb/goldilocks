@@ -71,7 +71,7 @@ export const LoanTab = () => {
         <h1 className="font-acme pb-4 text-[24px] 2xl:text-[30px]">create loan</h1>
         <div className="pl-2 h-[80%] w-[100%] flex flex-col justify-between font-acme">
           <div className="w-[100%] h-[33%] relative">
-            <h2 className="text-[18px] 2xl:text-[24px]">borrowed amount</h2>
+            <h2 className="text-[18px] 2xl:text-[24px]">loan amount</h2>
             <input
               className="w-[90%] h-[50%] border-none focus:outline-none pl-4 text-[18px] 2xl:text-[24px]"
               type="number"

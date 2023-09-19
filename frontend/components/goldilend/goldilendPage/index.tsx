@@ -28,6 +28,9 @@ export const GoldilendPage = () => {
     if(burgerPopupToggle) {
       setBurgerPopupToggle(false)
     }
+    if(loanPopupToggle) {
+      setLoanPopupToggle(false)
+    }
   }
 
   return (
