@@ -2,7 +2,8 @@
 
 import { createContext, PropsWithChildren, useContext, useState } from "react"
 import { useWallet } from ".."
-import { getContract } from "@wagmi/core"
+import { getContract, getPublicClient } from "@wagmi/core"
+import { formatEther, parseAbiItem } from "viem"
 import { BeraInfo, GoldilendInitialState } from "../../utils/interfaces"
 import { contracts } from "../../utils/addressi"
 
@@ -22,7 +23,8 @@ const INITIAL_STATE: GoldilendInitialState = {
   findSelectedIdxs: () => [],
   updateBorrowLimit: () => {},
   loanPopupToggle: false,
-  setLoanPopupToggle: (_bool: boolean) => {}
+  setLoanPopupToggle: (_bool: boolean) => {},
+  eventTest: () => {}
 }
 
 const GoldilendContext = createContext(INITIAL_STATE)
@@ -41,6 +43,8 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
   const [beraArrayState, setBeraArrayState] = useState<BeraInfo[]>(INITIAL_STATE.beraArray)
   const [selectedBerasState, setSelectedBerasState] = useState<BeraInfo[]>([])
   const [loanPopupToggleState, setLoanPopupToggleState] = useState<boolean>(INITIAL_STATE.loanPopupToggle)
+
+  const publicClient = getPublicClient()
 
   const bondbearContract = getContract({
     address: contracts.bondbear.address as `0x${string}`,
@@ -68,31 +72,77 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
   }
 
   const checkBeraBalance = async () => {
-    if(wallet) {
-      const bondBalance = await bondbearContract.read.balanceOf([wallet])
-      const bandBalance = await bandbearContract.read.balanceOf([wallet])
-      const bondNum = parseFloat(bondBalance.toString())
-      const bandNum = parseFloat(bandBalance.toString())
-      for(let i = 0; i < bondNum; i++) {
-        const bondInfo  = {
-          name: "BondBera",
-          imageSrc: "https://ipfs.io/ipfs/QmSaVWb15oQ1HcsUjGGkjwHQ1mxJBYeivtBCgHHHiVLt7w",
-          valuation: 50,
-          index: i
+    let fromBlockBond = '9699688'
+    let toBlockBond = '9704688'
+    const currentBlock = await publicClient.getBlockNumber()
+    const currentBlockNum = parseFloat(currentBlock.toString())
+    const loopNum = Math.ceil((currentBlockNum - parseFloat(fromBlockBond)) / 5000)
+    let beraIndex = 0
+    
+    for(let i = 0; i < loopNum; i++) {
+      const bondFilter = await publicClient.createEventFilter({
+        address: contracts.bondbear.address as `0x${string}`,
+        event: parseAbiItem('event Transfer(address indexed, address indexed, uint256)'),
+        fromBlock: BigInt(fromBlockBond),
+        toBlock: BigInt(toBlockBond)
+      })
+
+      const bondLogs = await publicClient.getFilterLogs({ filter: bondFilter })
+      for(let i = 0; i < bondLogs.length; i++) {
+        if(bondLogs[i].args[1] === wallet) {
+          beraIndex++
+          const topic = bondLogs[i].topics as unknown as [string, string, string, string]
+          const nftId = parseInt(topic[3], 16)
+          const bondInfo  = {
+            name: "BondBera",
+            id: nftId,
+            imageSrc: "https://ipfs.io/ipfs/QmSaVWb15oQ1HcsUjGGkjwHQ1mxJBYeivtBCgHHHiVLt7w",
+            valuation: 50,
+            index: beraIndex
+          }
+          setBeraArrayState(curr => [...curr, bondInfo])
         }
-        setBeraArrayState(curr => [...curr, bondInfo])
       }
-      for(let i = 0; i < bandNum; i++) {
-        const bandInfo  = {
-          name: "BandBera",
-          imageSrc: "https://ipfs.io/ipfs/QmNWggx9vvBVEHZc6xwWkdyymoKuXCYrJ3zQwwKzocDxRt",
-          valuation: 50,
-          index: bondNum + i
+
+      fromBlockBond = (parseFloat(fromBlockBond) + 5000).toString()
+      toBlockBond = parseFloat(toBlockBond) + 5000 > currentBlockNum ?  parseFloat(currentBlock.toString()).toString() : (parseFloat(toBlockBond) + 5000).toString()
+    }
+
+    let fromBlockBand = '9699688'
+    let toBlockBand = '9704688'
+    for(let i = 0; i < loopNum; i++) {
+      const bandFilter = await publicClient.createEventFilter({
+        address: contracts.bandbear.address as `0x${string}`,
+        event: parseAbiItem('event Transfer(address indexed, address indexed, uint256)'),
+        fromBlock: BigInt(fromBlockBand),
+        toBlock: BigInt(toBlockBand)
+      })
+
+      const bandLogs = await publicClient.getFilterLogs({ filter: bandFilter })
+      for(let i = 0; i < bandLogs.length; i++) {
+        if(bandLogs[i].args[1] === wallet) {
+          beraIndex++
+          const topic = bandLogs[i].topics as unknown as [string, string, string, string]
+          const nftId = parseInt(topic[3], 16)
+          const bandInfo  = {
+            name: "BandBera",
+            id: nftId,
+            imageSrc: "https://ipfs.io/ipfs/QmNWggx9vvBVEHZc6xwWkdyymoKuXCYrJ3zQwwKzocDxRt",
+            valuation: 50,
+            index: beraIndex
+          }
+          setBeraArrayState(curr => [...curr, bandInfo])
         }
-        setBeraArrayState(curr => [...curr, bandInfo])
       }
+
+      fromBlockBand = (parseFloat(fromBlockBand) + 5000).toString()
+      toBlockBand = parseFloat(toBlockBand) + 5000 > currentBlockNum ?  parseFloat(currentBlock.toString()).toString() : (parseFloat(toBlockBand) + 5000).toString()
     }
   }  
+  
+  const eventTest = async () => {
+    console.log(beraArrayState)
+  }
 
   const handleBeraClick = (bera: BeraInfo) => {
     const idxArray: number[] = findSelectedIdxs()
@@ -138,7 +188,8 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
         handleDateChange,
         updateBorrowLimit,
         handleBeraClick,
-        findSelectedIdxs
+        findSelectedIdxs,
+        eventTest
       }}
     >
       { children }

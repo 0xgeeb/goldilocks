@@ -21,7 +21,8 @@ export const LoanTab = () => {
     handleBeraClick,
     findSelectedIdxs,
     updateBorrowLimit,
-    setLoanPopupToggle
+    setLoanPopupToggle,
+    eventTest
   } = useGoldilend()
   const { isConnected }  = useWallet()
 
@@ -39,8 +40,7 @@ export const LoanTab = () => {
   }
 
   const test = () => {
-    console.log(borrowLimit)
-    console.log(selectedBeras)
+    eventTest()
   }
 
   const renderButton = () => {

@@ -189,6 +189,7 @@ export interface BorrowingInitialState {
 
 export interface BeraInfo {
   name: string;
+  id: number;
   imageSrc: string;
   valuation: number;
   index: number;
@@ -211,6 +212,7 @@ export interface GoldilendInitialState {
   updateBorrowLimit: () => void;
   loanPopupToggle: boolean;
   setLoanPopupToggle: (_bool: boolean) => void;
+  eventTest: () => void;
 }
 
 export interface SideToggleProps {
