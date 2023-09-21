@@ -90,7 +90,6 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
       const bondLogs = await publicClient.getFilterLogs({ filter: bondFilter })
       for(let i = 0; i < bondLogs.length; i++) {
         if(bondLogs[i].args[1] === wallet) {
-          beraIndex++
           const topic = bondLogs[i].topics as unknown as [string, string, string, string]
           const nftId = parseInt(topic[3], 16)
           const bondInfo  = {
@@ -101,6 +100,7 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
             index: beraIndex
           }
           setBeraArrayState(curr => [...curr, bondInfo])
+          beraIndex++
         }
       }
 
@@ -121,7 +121,6 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
       const bandLogs = await publicClient.getFilterLogs({ filter: bandFilter })
       for(let i = 0; i < bandLogs.length; i++) {
         if(bandLogs[i].args[1] === wallet) {
-          beraIndex++
           const topic = bandLogs[i].topics as unknown as [string, string, string, string]
           const nftId = parseInt(topic[3], 16)
           const bandInfo  = {
@@ -132,13 +131,14 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
             index: beraIndex
           }
           setBeraArrayState(curr => [...curr, bandInfo])
+          beraIndex++
         }
       }
 
       fromBlockBand = (parseFloat(fromBlockBand) + 5000).toString()
       toBlockBand = parseFloat(toBlockBand) + 5000 > currentBlockNum ?  parseFloat(currentBlock.toString()).toString() : (parseFloat(toBlockBand) + 5000).toString()
     }
-  }  
+  }
   
   const eventTest = async () => {
     console.log(beraArrayState)
