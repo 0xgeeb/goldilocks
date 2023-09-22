@@ -203,7 +203,7 @@ export interface GoldilendInitialState {
   loanExpiration: string;
   changeActiveToggle: (_toggle: string) => void;
   checkBeraBalance: () => {};
-  beraArray: BeraInfo[];
+  ownedBeras: BeraInfo[];
   selectedBeras: BeraInfo[];
   handleBorrowChange: (_input: string) => void;
   handleDateChange: (_input: string) => void;
@@ -212,7 +212,6 @@ export interface GoldilendInitialState {
   updateBorrowLimit: () => void;
   loanPopupToggle: boolean;
   setLoanPopupToggle: (_bool: boolean) => void;
-  eventTest: () => void;
 }
 
 export interface SideToggleProps {

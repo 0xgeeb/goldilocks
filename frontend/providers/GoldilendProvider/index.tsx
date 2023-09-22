@@ -15,7 +15,7 @@ const INITIAL_STATE: GoldilendInitialState = {
   loanExpiration: '',
   changeActiveToggle: (_toggle: string) => {},
   checkBeraBalance: async () => {},
-  beraArray: [],
+  ownedBeras: [],
   selectedBeras: [],
   handleBorrowChange: (_input: string) => {},
   handleDateChange: (_input: string) => {},
@@ -24,7 +24,6 @@ const INITIAL_STATE: GoldilendInitialState = {
   updateBorrowLimit: () => {},
   loanPopupToggle: false,
   setLoanPopupToggle: (_bool: boolean) => {},
-  eventTest: () => {}
 }
 
 const GoldilendContext = createContext(INITIAL_STATE)
@@ -40,7 +39,7 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
   const [activeToggleState, setActiveToggleState] = useState<string>(INITIAL_STATE.activeToggle)
   const [borrowLimitState, setBorrowLimitState] = useState<number>(INITIAL_STATE.borrowLimit)
   const [loanExpirationState, setLoanExpirationState] = useState<string>(INITIAL_STATE.loanExpiration)
-  const [beraArrayState, setBeraArrayState] = useState<BeraInfo[]>(INITIAL_STATE.beraArray)
+  const [ownedBerasState, setOwnedBerasState] = useState<BeraInfo[]>(INITIAL_STATE.ownedBeras)
   const [selectedBerasState, setSelectedBerasState] = useState<BeraInfo[]>([])
   const [loanPopupToggleState, setLoanPopupToggleState] = useState<boolean>(INITIAL_STATE.loanPopupToggle)
 
@@ -99,7 +98,7 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
             valuation: 50,
             index: beraIndex
           }
-          setBeraArrayState(curr => [...curr, bondInfo])
+          setOwnedBerasState(curr => [...curr, bondInfo])
           beraIndex++
         }
       }
@@ -130,7 +129,7 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
             valuation: 50,
             index: beraIndex
           }
-          setBeraArrayState(curr => [...curr, bandInfo])
+          setOwnedBerasState(curr => [...curr, bandInfo])
           beraIndex++
         }
       }
@@ -138,10 +137,6 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
       fromBlockBand = (parseFloat(fromBlockBand) + 5000).toString()
       toBlockBand = parseFloat(toBlockBand) + 5000 > currentBlockNum ?  parseFloat(currentBlock.toString()).toString() : (parseFloat(toBlockBand) + 5000).toString()
     }
-  }
-  
-  const eventTest = async () => {
-    console.log(beraArrayState)
   }
 
   const handleBeraClick = (bera: BeraInfo) => {
@@ -178,7 +173,7 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
         activeToggle: activeToggleState,
         borrowLimit: borrowLimitState,
         loanExpiration: loanExpirationState,
-        beraArray: beraArrayState,
+        ownedBeras: ownedBerasState,
         selectedBeras: selectedBerasState,
         loanPopupToggle: loanPopupToggleState,
         setLoanPopupToggle: setLoanPopupToggleState,
@@ -188,8 +183,7 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
         handleDateChange,
         updateBorrowLimit,
         handleBeraClick,
-        findSelectedIdxs,
-        eventTest
+        findSelectedIdxs
       }}
     >
       { children }
