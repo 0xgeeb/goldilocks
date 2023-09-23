@@ -377,11 +377,11 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  // function _beforeTokenTransfer(
-  //   address from,
-  //   address to,
-  //   uint256 amount
-  // ) internal virtual override {
-  // }
+  function _beforeTokenTransfer(
+    address from,
+    address to,
+    uint256 amount
+  ) internal override {
+  }
 
 }
