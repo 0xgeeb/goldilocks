@@ -10,7 +10,7 @@ export const TitleBar = () => {
   } = useGoldilend()
 
   return (
-    <div className="flex flex-col w-[100%] h-[15%]">
+    <div className="flex flex-col w-[100%] h-[15%] mb-[2.5%]">
       <h1 
         className="text-[36px] 2xl:text-[50px] font-acme text-[#ffff00]"
         id="text-outline" 

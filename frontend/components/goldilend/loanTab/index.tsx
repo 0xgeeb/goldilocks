@@ -61,7 +61,7 @@ export const LoanTab = () => {
   }
 
   return (
-    <div className="w-[100%] h-[100%] flex flex-row justify-between">
+    <div className="w-[100%] h-[95%] flex flex-row justify-between">
       <div className="h-[97.5%] mt-[2.5%] w-[67.5%] flex flex-col py-4 px-6 bg-white border-2 border-black rounded-xl">
         <h1 className="font-acme pb-4 text-[24px] 2xl:text-[30px]">create loan</h1>
         <div className="pl-2 h-[80%] w-[100%] flex flex-col justify-between font-acme">
