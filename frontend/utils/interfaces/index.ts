@@ -195,6 +195,14 @@ export interface BeraInfo {
   index: number;
 }
 
+export interface PartnerInfo {
+  name: string;
+  id: number;
+  imageSrc: string;
+  boost: number;
+  index: number;
+}
+
 export interface GoldilendInitialState {
   loanAmount: number;
   displayString: string;
@@ -202,13 +210,18 @@ export interface GoldilendInitialState {
   borrowLimit: number;
   loanExpiration: string;
   changeActiveToggle: (_toggle: string) => void;
-  checkBeraBalance: () => {};
+  getOwnedBeras: () => {};
+  getOwnedPartners: () => {};
   ownedBeras: BeraInfo[];
+  ownedPartners: PartnerInfo[];
   selectedBeras: BeraInfo[];
+  selectedPartners: PartnerInfo[];
   handleBorrowChange: (_input: string) => void;
   handleDateChange: (_input: string) => void;
-  handleBeraClick: (bera: BeraInfo) => void;
-  findSelectedIdxs: () => number[];
+  handleBeraClick: (_bera: BeraInfo) => void;
+  handlePartnerClick: (_bera: PartnerInfo) => void;
+  findSelectedBeraIdxs: () => number[];
+  findSelectedPartnerIdxs: () => number[];
   updateBorrowLimit: () => void;
   loanPopupToggle: boolean;
   setLoanPopupToggle: (_bool: boolean) => void;

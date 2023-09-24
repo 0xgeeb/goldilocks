@@ -9,7 +9,7 @@ export const LoanTab = () => {
   const [infoLoading, setInfoLoading] = useState<boolean>(true)
 
   const {
-    checkBeraBalance,
+    getOwnedBeras,
     ownedBeras,
     selectedBeras,
     loanAmount,
@@ -19,14 +19,14 @@ export const LoanTab = () => {
     handleBorrowChange,
     handleDateChange,
     handleBeraClick,
-    findSelectedIdxs,
+    findSelectedBeraIdxs,
     updateBorrowLimit,
     setLoanPopupToggle,
   } = useGoldilend()
   const { isConnected }  = useWallet()
 
   useEffect(() => {
-    checkBeraBalance()
+    getOwnedBeras()
     setInfoLoading(false)
   }, [isConnected])
 
@@ -152,15 +152,15 @@ export const LoanTab = () => {
         </div>
       </div>
       <div className="h-[97.5%] mt-[2.5%] w-[30%] flex flex-col border-2 border-black rounded-xl bg-white px-2">
-        <h1 className="font-acme mx-auto underline py-4 text-[18px] 2xl:text-[24px]">your beras</h1>
+        <h1 onClick={() => console.log(selectedBeras)} className="font-acme mx-auto underline py-4 text-[18px] 2xl:text-[24px]">your beras</h1>
         { 
           infoLoading ? loadingElement() : 
           <div className="flex flex-wrap overflow-y-auto h-[90%]" id="hide-scrollbar">
             {
               ownedBeras.map((bera, index) => (
-                <div key={index} className="w-[50%] py-2">
+                <div key={index} className="h-[30%] w-[50%] py-2">
                   <img
-                    className={`ml-[5%] w-[90%] rounded-xl hover:scale-110 hover:cursor-pointer ${findSelectedIdxs().includes(index) ? "border-4 border-black" : "opacity-75"}`}
+                    className={`ml-[5%] w-[90%] rounded-xl hover:scale-110 hover:cursor-pointer ${findSelectedBeraIdxs().includes(bera.index) ? "border-4 border-black" : "opacity-75"}`}
                     onClick={() => handleBeraClick(bera)}
                     src={bera.imageSrc}
                     alt="bera"

@@ -7,6 +7,8 @@ import faucetABI from "../abi/BeraFaucet.json"
 import goldilendABI from "../abi/Goldilend.json"
 import bondbearABI from "../abi/BondBear.json"
 import bandbearABI from "../abi/BandBear.json"
+import honeycombABI from "../abi/HoneyComb.json"
+import beradromeABI from "../abi/Beradrome.json"
 
 export const contracts: Contracts = {
   gamm: {
@@ -40,5 +42,13 @@ export const contracts: Contracts = {
   bandbear: {
     address: '0x853fE59f27A9AC25422Cb6cEFb116126468D3025',
     abi: bandbearABI.abi
+  },
+  honeycomb: {
+    address: '0xc8CA5f855203a05773F8529367c35c7cF6676E70',
+    abi: honeycombABI.abi
+  },
+  beradrome: {
+    address: '0x3017Fff986824372d26BE6c5695cB79414e0ca8c',
+    abi: beradromeABI.abi
   }
 }

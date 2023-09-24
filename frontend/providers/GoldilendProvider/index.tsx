@@ -4,23 +4,28 @@ import { createContext, PropsWithChildren, useContext, useState } from "react"
 import { useWallet } from ".."
 import { getContract, getPublicClient } from "@wagmi/core"
 import { formatEther, parseAbiItem } from "viem"
-import { BeraInfo, GoldilendInitialState } from "../../utils/interfaces"
+import { BeraInfo, PartnerInfo, GoldilendInitialState } from "../../utils/interfaces"
 import { contracts } from "../../utils/addressi"
 
 const INITIAL_STATE: GoldilendInitialState = {
   loanAmount: 0,
   displayString: '',
-  activeToggle: 'loan',
+  activeToggle: 'boost',
   borrowLimit: 0,
   loanExpiration: '',
   changeActiveToggle: (_toggle: string) => {},
-  checkBeraBalance: async () => {},
+  getOwnedBeras: async () => {},
+  getOwnedPartners: async () => {},
   ownedBeras: [],
+  ownedPartners: [],
   selectedBeras: [],
+  selectedPartners: [],
   handleBorrowChange: (_input: string) => {},
   handleDateChange: (_input: string) => {},
   handleBeraClick: (_bera: BeraInfo) => {},
-  findSelectedIdxs: () => [],
+  handlePartnerClick: (_partner: PartnerInfo) => {},
+  findSelectedBeraIdxs: () => [],
+  findSelectedPartnerIdxs: () => [],
   updateBorrowLimit: () => {},
   loanPopupToggle: false,
   setLoanPopupToggle: (_bool: boolean) => {},
@@ -40,20 +45,12 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
   const [borrowLimitState, setBorrowLimitState] = useState<number>(INITIAL_STATE.borrowLimit)
   const [loanExpirationState, setLoanExpirationState] = useState<string>(INITIAL_STATE.loanExpiration)
   const [ownedBerasState, setOwnedBerasState] = useState<BeraInfo[]>(INITIAL_STATE.ownedBeras)
+  const [ownedPartnersState, setOwnedPartnersState] = useState<PartnerInfo[]>(INITIAL_STATE.ownedPartners)
   const [selectedBerasState, setSelectedBerasState] = useState<BeraInfo[]>([])
+  const [selectedPartnersState, setSelectedPartnersState] = useState<PartnerInfo[]>([])
   const [loanPopupToggleState, setLoanPopupToggleState] = useState<boolean>(INITIAL_STATE.loanPopupToggle)
 
   const publicClient = getPublicClient()
-
-  const bondbearContract = getContract({
-    address: contracts.bondbear.address as `0x${string}`,
-    abi: contracts.bondbear.abi
-  })
-
-  const bandbearContract = getContract({
-    address: contracts.bandbear.address as `0x${string}`,
-    abi: contracts.bandbear.abi
-  })
 
   const changeActiveToggle = (toggle: string) => {
     setDisplayStringState('')
@@ -70,7 +67,10 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
     setLoanExpirationState(input)
   }
 
-  const checkBeraBalance = async () => {
+  const getOwnedBeras = async () => {
+    if(ownedBerasState.length > 0) {
+      return
+    }
     let fromBlockBond = '9699688'
     let toBlockBond = '9704688'
     const currentBlock = await publicClient.getBlockNumber()
@@ -139,8 +139,82 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
     }
   }
 
+  const getOwnedPartners = async () => {
+    if(ownedPartnersState.length > 0) {
+      return
+    }
+    const step = 5000
+    let fromBlockComb = '9699688'
+    let toBlockComb = (parseFloat(fromBlockComb) + step).toString()
+    const currentBlock = await publicClient.getBlockNumber()
+    const currentBlockNum = parseFloat(currentBlock.toString())
+    const loopNum = Math.ceil((currentBlockNum - parseFloat(fromBlockComb)) / step)
+    let partnerIndex = 0
+
+    for(let i = 0; i < loopNum; i++) {
+      const combFilter = await publicClient.createEventFilter({
+        address: contracts.honeycomb.address as `0x${string}`,
+        event: parseAbiItem('event Transfer(address indexed, address indexed, uint256)'),
+        fromBlock: BigInt(fromBlockComb),
+        toBlock: BigInt(toBlockComb)
+      })
+
+      const combLogs = await publicClient.getFilterLogs({ filter: combFilter })
+      for(let i = 0; i < combLogs.length; i++) {
+        if(combLogs[i].args[1] === wallet) {
+          const topic = combLogs[i].topics as unknown as [string, string, string, string]
+          const nftId = parseInt(topic[3], 16)
+          const combInfo  = {
+            name: "HoneyComb",
+            id: nftId,
+            imageSrc: "https://ipfs.io/ipfs/QmTffyDuYgSyFAgispVjuVaTsKnC5vVs7FFq1YkGde4ZX5",
+            boost: 6,
+            index: partnerIndex
+          }
+          setOwnedPartnersState(curr => [...curr, combInfo])
+          partnerIndex++
+        }
+      }
+
+      fromBlockComb = (parseFloat(fromBlockComb) + 5000).toString()
+      toBlockComb =  parseFloat(toBlockComb) + 5000 > currentBlockNum ?  parseFloat(currentBlock.toString()).toString() : (parseFloat(toBlockComb) + 5000).toString()
+    }
+
+    let fromBlockDrome = '9699688'
+    let toBlockDrome = (parseFloat(fromBlockDrome) + step).toString()
+    for(let i = 0; i < loopNum; i++) {
+      const dromeFilter = await publicClient.createEventFilter({
+        address: contracts.bandbear.address as `0x${string}`,
+        event: parseAbiItem('event Transfer(address indexed, address indexed, uint256)'),
+        fromBlock: BigInt(fromBlockDrome),
+        toBlock: BigInt(toBlockDrome)
+      })
+
+      const dromeLogs = await publicClient.getFilterLogs({ filter: dromeFilter })
+      for(let i = 0; i < dromeLogs.length; i++) {
+        if(dromeLogs[i].args[1] === wallet) {
+          const topic = dromeLogs[i].topics as unknown as [string, string, string, string]
+          const nftId = parseInt(topic[3], 16)
+          const dromeInfo  = {
+            name: "Beradrome",
+            id: nftId,
+            imageSrc: "https://ipfs.io/ipfs/QmYhKPJVDZDRDpJAJ2TyCXK981B4pvtPcjrKgN256U4Cok/73.png",
+            boost: 9,
+            index: partnerIndex
+          }
+          setOwnedPartnersState(curr => [...curr, dromeInfo])
+          partnerIndex++
+        }
+      }
+
+      fromBlockDrome = (parseFloat(fromBlockDrome) + 5000).toString()
+      toBlockDrome = parseFloat(toBlockDrome) + 5000 > currentBlockNum ?  parseFloat(currentBlock.toString()).toString() : (parseFloat(toBlockDrome) + 5000).toString()
+    }
+  }
+
   const handleBeraClick = (bera: BeraInfo) => {
-    const idxArray: number[] = findSelectedIdxs()
+    console.log('clicked: ', bera.name, bera.id, bera.index)
+    const idxArray: number[] = findSelectedBeraIdxs()
     if(idxArray.includes(bera.index)) {
       setSelectedBerasState(prev => prev.filter(beraf => beraf.index !== bera.index))
     }
@@ -149,10 +223,28 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
     }
   }
 
-  const findSelectedIdxs = (): number[] => {
+  const handlePartnerClick = (partner: PartnerInfo) => {
+    const idxArray: number[] = findSelectedPartnerIdxs()
+    if(idxArray.includes(partner.index)) {
+      setSelectedPartnersState(prev => prev.filter(partnerf => partnerf.index !== partner.index))
+    }
+    else {
+      setSelectedPartnersState(prev => [...prev, partner])
+    }
+  }
+
+  const findSelectedBeraIdxs = (): number[] => {
     let idxArray: number[] = []
     selectedBerasState.forEach((selectedBera) => {
       idxArray.push(selectedBera.index)
+    })
+    return idxArray
+  }
+
+  const findSelectedPartnerIdxs = (): number[] => {
+    let idxArray: number[] = []
+    selectedPartnersState.forEach((selectedPartner) => {
+      idxArray.push(selectedPartner.index)
     })
     return idxArray
   }
@@ -174,16 +266,21 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
         borrowLimit: borrowLimitState,
         loanExpiration: loanExpirationState,
         ownedBeras: ownedBerasState,
+        ownedPartners: ownedPartnersState,
         selectedBeras: selectedBerasState,
+        selectedPartners: selectedPartnersState,
         loanPopupToggle: loanPopupToggleState,
         setLoanPopupToggle: setLoanPopupToggleState,
         changeActiveToggle,
-        checkBeraBalance,
+        getOwnedBeras,
+        getOwnedPartners,
         handleBorrowChange,
         handleDateChange,
         updateBorrowLimit,
         handleBeraClick,
-        findSelectedIdxs
+        handlePartnerClick,
+        findSelectedBeraIdxs,
+        findSelectedPartnerIdxs
       }}
     >
       { children }
