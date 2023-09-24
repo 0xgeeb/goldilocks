@@ -17,7 +17,7 @@ export const LoanTab = () => {
     borrowLimit,
     loanExpiration,
     handleBorrowChange,
-    handleDateChange,
+    handleLoanDateChange,
     handleBeraClick,
     findSelectedBeraIdxs,
     updateBorrowLimit,
@@ -86,7 +86,7 @@ export const LoanTab = () => {
               id="number-input"
               placeholder="dd-mm-yyyy"
               value={loanExpiration}
-              onChange={(e) => handleDateChange(e.target.value)}
+              onChange={(e) => handleLoanDateChange(e.target.value)}
             />
           </div>
           <div className="w-[100%] h-[33%]">
@@ -152,7 +152,7 @@ export const LoanTab = () => {
         </div>
       </div>
       <div className="h-[97.5%] mt-[2.5%] w-[30%] flex flex-col border-2 border-black rounded-xl bg-white px-2">
-        <h1 onClick={() => console.log(selectedBeras)} className="font-acme mx-auto underline py-4 text-[18px] 2xl:text-[24px]">your beras</h1>
+        <h1 className="font-acme mx-auto underline py-4 text-[18px] 2xl:text-[24px]">your beras</h1>
         { 
           infoLoading ? loadingElement() : 
           <div className="flex flex-wrap overflow-y-auto h-[90%]" id="hide-scrollbar">

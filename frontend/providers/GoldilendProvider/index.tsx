@@ -13,15 +13,60 @@ const INITIAL_STATE: GoldilendInitialState = {
   activeToggle: 'boost',
   borrowLimit: 0,
   loanExpiration: '',
+  boostExpiration: '',
   changeActiveToggle: (_toggle: string) => {},
   getOwnedBeras: async () => {},
   getOwnedPartners: async () => {},
   ownedBeras: [],
-  ownedPartners: [],
+  ownedPartners: [
+    {
+      name: "HoneyComb",
+      id: 1,
+      imageSrc: "https://ipfs.io/ipfs/QmTffyDuYgSyFAgispVjuVaTsKnC5vVs7FFq1YkGde4ZX5",
+      boost: 6,
+      index: 0
+    },
+    {
+      name: "HoneyComb",
+      id: 2,
+      imageSrc: "https://ipfs.io/ipfs/QmTffyDuYgSyFAgispVjuVaTsKnC5vVs7FFq1YkGde4ZX5",
+      boost: 6,
+      index: 1
+    },
+    {
+      name: "HoneyComb",
+      id: 3,
+      imageSrc: "https://ipfs.io/ipfs/QmTffyDuYgSyFAgispVjuVaTsKnC5vVs7FFq1YkGde4ZX5",
+      boost: 6,
+      index: 2
+    },
+    {
+      name: "HoneyComb",
+      id: 4,
+      imageSrc: "https://ipfs.io/ipfs/QmTffyDuYgSyFAgispVjuVaTsKnC5vVs7FFq1YkGde4ZX5",
+      boost: 6,
+      index: 3
+    },
+    {
+      name: "Beradrome",
+      id: 1,
+      imageSrc: "https://ipfs.io/ipfs/QmYhKPJVDZDRDpJAJ2TyCXK981B4pvtPcjrKgN256U4Cok/73.png",
+      boost: 9,
+      index: 4
+    },
+    {
+      name: "Beradrome",
+      id: 2,
+      imageSrc: "https://ipfs.io/ipfs/QmYhKPJVDZDRDpJAJ2TyCXK981B4pvtPcjrKgN256U4Cok/73.png",
+      boost: 9,
+      index: 5
+    }
+  ],
   selectedBeras: [],
   selectedPartners: [],
   handleBorrowChange: (_input: string) => {},
-  handleDateChange: (_input: string) => {},
+  handleLoanDateChange: (_input: string) => {},
+  handleBoostDateChange: (_input: string) => {},
   handleBeraClick: (_bera: BeraInfo) => {},
   handlePartnerClick: (_partner: PartnerInfo) => {},
   findSelectedBeraIdxs: () => [],
@@ -44,6 +89,7 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
   const [activeToggleState, setActiveToggleState] = useState<string>(INITIAL_STATE.activeToggle)
   const [borrowLimitState, setBorrowLimitState] = useState<number>(INITIAL_STATE.borrowLimit)
   const [loanExpirationState, setLoanExpirationState] = useState<string>(INITIAL_STATE.loanExpiration)
+  const [boostExpirationState, setBoostExpirationState] = useState<string>(INITIAL_STATE.boostExpiration)
   const [ownedBerasState, setOwnedBerasState] = useState<BeraInfo[]>(INITIAL_STATE.ownedBeras)
   const [ownedPartnersState, setOwnedPartnersState] = useState<PartnerInfo[]>(INITIAL_STATE.ownedPartners)
   const [selectedBerasState, setSelectedBerasState] = useState<BeraInfo[]>([])
@@ -63,8 +109,12 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
     !input ? setLoanAmountState(0) : setLoanAmountState(parseFloat(input))
   }
 
-  const handleDateChange = (input: string) => {
+  const handleLoanDateChange = (input: string) => {
     setLoanExpirationState(input)
+  }
+
+  const handleBoostDateChange = (input: string) => {
+    setBoostExpirationState(input)
   }
 
   const getOwnedBeras = async () => {
@@ -213,7 +263,6 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
   }
 
   const handleBeraClick = (bera: BeraInfo) => {
-    console.log('clicked: ', bera.name, bera.id, bera.index)
     const idxArray: number[] = findSelectedBeraIdxs()
     if(idxArray.includes(bera.index)) {
       setSelectedBerasState(prev => prev.filter(beraf => beraf.index !== bera.index))
@@ -265,6 +314,7 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
         activeToggle: activeToggleState,
         borrowLimit: borrowLimitState,
         loanExpiration: loanExpirationState,
+        boostExpiration: boostExpirationState,
         ownedBeras: ownedBerasState,
         ownedPartners: ownedPartnersState,
         selectedBeras: selectedBerasState,
@@ -275,7 +325,8 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
         getOwnedBeras,
         getOwnedPartners,
         handleBorrowChange,
-        handleDateChange,
+        handleLoanDateChange,
+        handleBoostDateChange,
         updateBorrowLimit,
         handleBeraClick,
         handlePartnerClick,

@@ -209,6 +209,7 @@ export interface GoldilendInitialState {
   activeToggle: string;
   borrowLimit: number;
   loanExpiration: string;
+  boostExpiration: string;
   changeActiveToggle: (_toggle: string) => void;
   getOwnedBeras: () => {};
   getOwnedPartners: () => {};
@@ -217,7 +218,8 @@ export interface GoldilendInitialState {
   selectedBeras: BeraInfo[];
   selectedPartners: PartnerInfo[];
   handleBorrowChange: (_input: string) => void;
-  handleDateChange: (_input: string) => void;
+  handleLoanDateChange: (_input: string) => void;
+  handleBoostDateChange: (_input: string) => void;
   handleBeraClick: (_bera: BeraInfo) => void;
   handlePartnerClick: (_bera: PartnerInfo) => void;
   findSelectedBeraIdxs: () => number[];
