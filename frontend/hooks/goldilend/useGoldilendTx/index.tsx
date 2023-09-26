@@ -2,8 +2,11 @@ import { getContract, writeContract, waitForTransaction } from "@wagmi/core"
 import { parseEther, formatEther } from "viem"
 import { contracts } from "../../../utils/addressi"
 import { PartnerInfo } from "../../../utils/interfaces"
+import { useWallet } from "../../../providers"
 
 export const useGoldilendTx = () => {
+
+  const { wallet } = useWallet()
 
   const honeycombContract = getContract({
     address: contracts.honeycomb.address as `0x${string}`,
@@ -15,28 +18,14 @@ export const useGoldilendTx = () => {
     abi: contracts.beradrome.abi
   })
   
-  const checkBoostAllowance = async (nfts: PartnerInfo[]): Promise<boolean[]> => {
-    let combFlag = true
-    let dromeFlag = true
+  const checkBoostAllowance = async (): Promise<boolean[]> => {
+    const honeycombAllApproved = await honeycombContract.read.isApprovedForAll([wallet, contracts.goldilend.address])
+    const beradromeAllApproved = await beradromeContract.read.isApprovedForAll([wallet, contracts.goldilend.address])
     
-    for(let i = 0; i < nfts.length; i++) {
-      if(nfts[i].name === "HoneyComb") {
-        const honeycombAllowance = await honeycombContract.read.getApproved([nfts[i].id])
-        const honeycombAllowanceStr = honeycombAllowance as unknown as string
-        if(honeycombAllowanceStr !== contracts.goldilend.address) {
-          combFlag = false
-        }
-      }
-      else {
-        const beradromeAllowance = await beradromeContract.read.getApproved([nfts[i].id])
-        const beradromeAllowanceStr = beradromeAllowance as unknown as string
-        if(beradromeAllowanceStr !== contracts.goldilend.address) {
-          dromeFlag = false
-        }
-      }
-    }
+    const hcAA = honeycombAllApproved as unknown as boolean
+    const bdAA = beradromeAllApproved as unknown as boolean
 
-    return [combFlag, dromeFlag]
+    return [hcAA, bdAA]
   }
   
   const sendGoldilendNFTApproveTx = async (nft: string) => {
@@ -54,6 +43,50 @@ export const useGoldilendTx = () => {
     }
   }
 
+  const sendBoostTx = async (selectedPartners: PartnerInfo[], expiry: number): Promise<string> => {
+    console.log(selectedPartners)
+    if(selectedPartners.length == 1) {
+      try {
+        const { hash } = await writeContract({
+          address: contracts.goldilend.address as `0x${string}`,
+          abi: contracts.goldilend.abi,
+          functionName: 'boost',
+          args: [selectedPartners[0].name === "HoneyComb" ? contracts.honeycomb.address : contracts.beradrome.address, selectedPartners[0].id, expiry]
+        })
+        const data = await waitForTransaction({ hash })
+        return data.transactionHash
+      }
+      catch (e) {
+        console.log('user denied tx')
+        console.log('or: ', e)
+      }
+    }
+    else {
+      let nfts = []
+      let ids = []
+      for(let i = 0; i < selectedPartners.length; i++) {
+        nfts.push(selectedPartners[i].name === "HoneyComb" ? contracts.honeycomb.address : contracts.beradrome.address)
+        ids.push(selectedPartners[i].id)
+      }
+      try {
+        const { hash } = await writeContract({
+          address: contracts.goldilend.address as `0x${string}`,
+          abi: contracts.goldilend.abi,
+          functionName: 'boost',
+          args: [nfts, ids, expiry]
+        })
+        const data = await waitForTransaction({ hash })
+        return data.transactionHash
+      }
+      catch (e) {
+        console.log('user denied tx')
+        console.log('or: ', e)
+      }
+    }
+
+    return ''
+  }
+
   //todo: implement these functions
   const sendApproveTx = async () => {
 
@@ -63,5 +96,5 @@ export const useGoldilendTx = () => {
 
   }
 
-  return { checkBoostAllowance, sendGoldilendNFTApproveTx }
+  return { checkBoostAllowance, sendGoldilendNFTApproveTx, sendBoostTx }
 }

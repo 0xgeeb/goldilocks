@@ -24,7 +24,8 @@ export const BoostTab = () => {
 
   const { 
     checkBoostAllowance,
-    sendGoldilendNFTApproveTx
+    sendGoldilendNFTApproveTx,
+    sendBoostTx
   } = useGoldilendTx()
 
   useEffect(() => {
@@ -37,36 +38,57 @@ export const BoostTab = () => {
     return <span className="loader-small mx-auto"></span>
   }
 
-  const parseDate = (dateString: string) => {
+  const parseDate = (dateString: string): number => {
     const dateParts = dateString.split('-')
-    if(dateParts.length !== 3) {
-      return
-    }
     const [month, day, year] = dateParts.map(Number);
-    if (isNaN(month) || isNaN(day) || isNaN(year)) {
-      return
-    }
     const parsedDate = new Date(year, month - 1, day)
-    if (isNaN(parsedDate.getTime())) {
-      return null
-    }
     const timestamp = parsedDate.getTime()
     const timestampDigits = Math.floor(timestamp / 1000)
-  
-    console.log(timestampDigits)
+    return timestampDigits
   }
 
   const renderButton = () => {
     return 'create boost'
   }
 
+  const checkDate = (dateString: String): boolean => {
+    const dateParts = dateString.split('-')
+    const [month, day, year] = dateParts.map(Number)
+    const parsedDate = new Date(year, month - 1, day)
+    const timestamp = parsedDate.getTime()
+    const timestampDigits = Math.floor(timestamp / 1000)
+    if(dateParts.length !== 3) {
+      return false
+    }
+    if (isNaN(month) || isNaN(day) || isNaN(year)) {
+      return false
+    }
+    if (isNaN(parsedDate.getTime())) {
+      return false
+    }
+    if(timestampDigits < Math.floor(Date.now() / 1000)) {
+      return false
+    }
+    if(timestampDigits < Math.floor(Date.now() / 1000) + (86400 * 30)) {
+      return false
+    }
+    return true
+  }
+
   const handleButtonClick = async () => {
     const button = document.getElementById('amm-button')
-    //todo: add date error handling here with error booleans and red UI
-
-    const [combFlag, beraFlag] = await checkBoostAllowance(selectedPartners)
+    if(!checkDate(boostExpiration)) {
+      button && (button.innerHTML = "invalid expiration date")
+      return
+    }
+    if(selectedPartners.length == 0) {
+      button && (button.innerHTML = "no collateral")
+      return
+    }
+    const [combFlag, beraFlag] = await checkBoostAllowance()
     if(combFlag && beraFlag) {
-
+      button && (button.innerHTML = "boosting...")
+      const boostTx = await sendBoostTx(selectedPartners, parseDate(boostExpiration))
     }
     else {
       button && (button.innerHTML = "approving...")
@@ -85,7 +107,7 @@ export const BoostTab = () => {
   return (
     <div className="w-[100%] h-[95%] flex flex-row justify-between">
       <div className="h-[97.5%] mt-[2.5%] w-[67.5%] flex flex-col py-4 px-6 border-2 border-black rounded-xl bg-white">
-        <h1 onClick={() => parseDate(boostExpiration)}className="font-acme pb-4 text-[24px] 2xl:text-[30px]">create boost</h1>
+        <h1 className="font-acme pb-4 text-[24px] 2xl:text-[30px]">create boost</h1>
         <div className="pl-2 h-[70%] w-[100%] flex flex-col justify-between font-acme">
           <div className="w-[100%] h-[33%]">
             <h2 className="text-[18px] 2xl:text-[24px]">expiration</h2>
