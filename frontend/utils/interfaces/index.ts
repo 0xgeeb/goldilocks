@@ -203,7 +203,12 @@ export interface PartnerInfo {
   index: number;
 }
 
+export interface GoldilendInfo {
+
+}
+
 export interface GoldilendInitialState {
+  goldilendInfo: GoldilendInfo;
   loanAmount: number;
   displayString: string;
   activeToggle: string;
@@ -213,6 +218,7 @@ export interface GoldilendInitialState {
   changeActiveToggle: (_toggle: string) => void;
   getOwnedBeras: () => {};
   getOwnedPartners: () => {};
+  findBoost: () => {};
   ownedBeras: BeraInfo[];
   ownedPartners: PartnerInfo[];
   selectedBeras: BeraInfo[];

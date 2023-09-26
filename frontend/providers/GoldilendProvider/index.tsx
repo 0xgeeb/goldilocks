@@ -4,19 +4,23 @@ import { createContext, PropsWithChildren, useContext, useState } from "react"
 import { useWallet } from ".."
 import { getContract, getPublicClient } from "@wagmi/core"
 import { formatEther, parseAbiItem } from "viem"
-import { BeraInfo, PartnerInfo, GoldilendInitialState } from "../../utils/interfaces"
+import { BeraInfo, PartnerInfo, GoldilendInitialState, GoldilendInfo } from "../../utils/interfaces"
 import { contracts } from "../../utils/addressi"
 
 const INITIAL_STATE: GoldilendInitialState = {
+  goldilendInfo: {
+
+  },
   loanAmount: 0,
+  borrowLimit: 0,
   displayString: '',
   activeToggle: 'boost',
-  borrowLimit: 0,
   loanExpiration: '',
   boostExpiration: '',
   changeActiveToggle: (_toggle: string) => {},
   getOwnedBeras: async () => {},
   getOwnedPartners: async () => {},
+  findBoost: async () => {},
   ownedBeras: [],
   ownedPartners: [
     {
@@ -84,6 +88,7 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
 
   const { wallet } = useWallet()
 
+  const [goldilendInfoState, setGoldilendInfoState] = useState<GoldilendInfo>(INITIAL_STATE.goldilendInfo)
   const [loanAmountState, setLoanAmountState] = useState<number>(INITIAL_STATE.loanAmount)
   const [displayStringState, setDisplayStringState] = useState<string>(INITIAL_STATE.displayString)
   const [activeToggleState, setActiveToggleState] = useState<string>(INITIAL_STATE.activeToggle)
@@ -97,6 +102,21 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
   const [loanPopupToggleState, setLoanPopupToggleState] = useState<boolean>(INITIAL_STATE.loanPopupToggle)
 
   const publicClient = getPublicClient()
+
+  const goldilendContract = getContract({
+    address: contracts.goldilend.address as `0x${string}`,
+    abi: contracts.goldilend.abi
+  })
+
+  const bondbearContract = getContract({
+    address: contracts.bondbear.address as `0x${string}`,
+    abi: contracts.bondbear.abi
+  })
+
+  const bandbearContract = getContract({
+    address: contracts.bandbear.address as `0x${string}`,
+    abi: contracts.bandbear.abi
+  })
 
   const changeActiveToggle = (toggle: string) => {
     setDisplayStringState('')
@@ -262,6 +282,11 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
     }
   }
 
+  const findBoost = async () => {
+    const boost = await goldilendContract.read.lookupBoost([wallet])
+    console.log(boost)
+  }
+
   const handleBeraClick = (bera: BeraInfo) => {
     const idxArray: number[] = findSelectedBeraIdxs()
     if(idxArray.includes(bera.index)) {
@@ -309,6 +334,7 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
   return (
     <GoldilendContext.Provider
       value={{
+        goldilendInfo: goldilendInfoState,
         loanAmount: loanAmountState,
         displayString: displayStringState,
         activeToggle: activeToggleState,
@@ -324,6 +350,7 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
         changeActiveToggle,
         getOwnedBeras,
         getOwnedPartners,
+        findBoost,
         handleBorrowChange,
         handleLoanDateChange,
         handleBoostDateChange,

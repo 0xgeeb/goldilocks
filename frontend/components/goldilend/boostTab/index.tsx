@@ -1,25 +1,35 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useGoldilend } from "../../../providers"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
+import { useGoldilend } from "../../../providers"
+import { useGoldilendTx } from "../../../hooks/goldilend"
+import { contracts } from "../../../utils/addressi"
 
 export const BoostTab = () => {
 
   const [infoLoading, setInfoLoading] = useState<boolean>(true)
+  const [dateError, setDateError] = useState<boolean>(false)
 
   const { 
     ownedPartners,
     selectedPartners,
     getOwnedPartners,
+    findBoost,
     findSelectedPartnerIdxs,
     handlePartnerClick,
     boostExpiration,
     handleBoostDateChange
-   } = useGoldilend()
+  } = useGoldilend()
+
+  const { 
+    checkBoostAllowance,
+    sendGoldilendNFTApproveTx
+  } = useGoldilendTx()
 
   useEffect(() => {
     // getOwnedPartners()
+    findBoost()
     setInfoLoading(false)
   }, [])
 
@@ -50,8 +60,26 @@ export const BoostTab = () => {
     return 'create boost'
   }
 
-  const handleButtonClick = () => {
+  const handleButtonClick = async () => {
+    const button = document.getElementById('amm-button')
+    //todo: add date error handling here with error booleans and red UI
 
+    const [combFlag, beraFlag] = await checkBoostAllowance(selectedPartners)
+    if(combFlag && beraFlag) {
+
+    }
+    else {
+      button && (button.innerHTML = "approving...")
+      if(!combFlag) {
+        await sendGoldilendNFTApproveTx(contracts.honeycomb.address)
+      }
+      if(!beraFlag) {
+        await sendGoldilendNFTApproveTx(contracts.beradrome.address)
+      }
+      setTimeout(() => {
+        button && (button.innerHTML = "create boost")
+      }, 10000)
+    }
   }
 
   return (
@@ -148,7 +176,9 @@ export const BoostTab = () => {
         </div>
         <div className="w-[100%] h-[30%]">
           <h2 className="font-acme text-[18px] 2xl:text-[24px]">your boost</h2>
-            
+            {
+
+            }
         </div>
       </div>
       <div className="h-[97.5%] mt-[2.5%] w-[30%] flex flex-col px-2 border-2 border-black rounded-xl bg-white">
