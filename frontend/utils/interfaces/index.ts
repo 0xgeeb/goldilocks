@@ -229,7 +229,6 @@ export interface GoldilendInitialState {
   borrowLimit: number;
   loanExpiration: string;
   boostExpiration: string;
-  newBoostExpiration: string;
   changeActiveToggle: (_toggle: string) => void;
   getOwnedBeras: () => {};
   getOwnedPartners: () => {};
@@ -248,6 +247,7 @@ export interface GoldilendInitialState {
   updateBorrowLimit: () => void;
   loanPopupToggle: boolean;
   setLoanPopupToggle: (_bool: boolean) => void;
+  clearOutBoostInputs: () => void;
 }
 
 export interface SideToggleProps {

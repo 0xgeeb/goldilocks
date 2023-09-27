@@ -9,7 +9,8 @@ import { contracts } from "../../../utils/addressi"
 export const BoostTab = () => {
 
   const [infoLoading, setInfoLoading] = useState<boolean>(true)
-  const [dateError, setDateError] = useState<boolean>(false)
+  const [extendInput, setExtendInput] = useState<boolean>(false)
+  const [newExpiration, setNewExpiration] = useState<string>('')
 
   const { 
     goldilendInfo,
@@ -20,25 +21,35 @@ export const BoostTab = () => {
     findSelectedPartnerIdxs,
     handlePartnerClick,
     boostExpiration,
-    handleBoostDateChange
+    handleBoostDateChange,
+    clearOutBoostInputs
   } = useGoldilend()
 
   const { 
     checkBoostAllowance,
     sendGoldilendNFTApproveTx,
-    sendBoostTx
+    sendBoostTx,
+    sendExtendBoostTx,
+    sendWithdrawBoostTx
   } = useGoldilendTx()
 
   const { openNotification } = useNotification()
 
   useEffect(() => {
-    // getOwnedPartners()
-    // findBoost()
+    getOwnedPartners()
+    findBoost()    
     setInfoLoading(false)
   }, [])
 
   const loadingElement = () => {
     return <span className="loader-small mx-auto"></span>
+  }
+
+  const refreshInfo = () => {
+    getOwnedPartners()
+    findBoost()
+    setNewExpiration('')
+    clearOutBoostInputs()
   }
 
   const parseDate = (dateString: string): number => {
@@ -48,10 +59,6 @@ export const BoostTab = () => {
     const timestamp = parsedDate.getTime()
     const timestampDigits = Math.floor(timestamp / 1000)
     return timestampDigits
-  }
-
-  const renderButton = () => {
-    return 'create boost'
   }
 
   const checkDate = (dateString: String): boolean => {
@@ -72,14 +79,26 @@ export const BoostTab = () => {
     if(timestampDigits < Math.floor(Date.now() / 1000)) {
       return false
     }
-    if(timestampDigits < Math.floor(Date.now() / 1000) + (86400 * 30)) {
+    if(timestampDigits < goldilendInfo.userBoost.expiry + (86400 * 30)) {
       return false
     }
     return true
   }
 
-  const handleButtonClick = async () => {
-    const button = document.getElementById('amm-button')
+  const formatDate = (timestamp: number): string => {
+    const date = new Date(timestamp * 1000)
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const year = String(date.getFullYear())
+    return `${month}-${day}-${year}`
+  }
+
+  const renderButton = () => {
+    return 'create boost'
+  }
+
+  const handleBoostButtonClick = async () => {
+    const button = document.getElementById('boost-button')
     if(!checkDate(boostExpiration)) {
       button && (button.innerHTML = "invalid expiration date")
       return
@@ -100,6 +119,8 @@ export const BoostTab = () => {
         price: 0,
         page: 'boost'
       })
+      button && (button.innerHTML = "create boost")
+      refreshInfo()
     }
     else {
       button && (button.innerHTML = "approving...")
@@ -112,6 +133,44 @@ export const BoostTab = () => {
       setTimeout(() => {
         button && (button.innerHTML = "create boost")
       }, 10000)
+    }
+  }
+
+  const handleExtendButtonClick = async () => {
+    const button = document.getElementById('extend-boost-button')
+    
+    if(extendInput) {
+      if(newExpiration === '') {
+        setExtendInput(false)
+      }
+      else {
+        if(!checkDate(newExpiration)) {
+          button && (button.innerHTML = "invalid date")
+          return
+        }
+        button && (button.innerHTML = "extending...")
+        await sendExtendBoostTx(parseDate(newExpiration))
+        button && (button.innerHTML = "extend")
+        setExtendInput(false)
+        refreshInfo()
+      }
+    }
+    else {
+      setExtendInput(true)
+    }
+  }
+
+  const handleWithdrawButtonClick = async () => {
+    const button = document.getElementById('withdraw-boost-button')
+    if(goldilendInfo.userBoost.expiry > Math.floor(Date.now() / 1000)) {
+      button && (button.innerHTML = "not expired")
+      return
+    }
+    else {
+      button && (button.innerHTML = "withdrawing...")
+      await sendWithdrawBoostTx()
+      button && (button.innerHTML = "withdraw")
+      refreshInfo()
     }
   }
 
@@ -175,9 +234,9 @@ export const BoostTab = () => {
                 return (
                   <button
                     className="h-[60%] w-[50%] mt-[2.5%] ml-[50%] rounded-xl px-4 2xl:px-6 border-2 border-black font-acme text-[20px] 2xl:text-[24px]"
-                    id="amm-button"
+                    id="boost-button"
                     onClick={() => {
-                      const button = document.getElementById('amm-button')
+                      const button = document.getElementById('boost-button')
 
                       if(!account) {
                         if(button && button.innerHTML === "connect wallet") {
@@ -196,7 +255,7 @@ export const BoostTab = () => {
                         }
                       }
                       else {
-                        handleButtonClick()
+                        handleBoostButtonClick()
                       }
                     }}
                   >
@@ -208,11 +267,67 @@ export const BoostTab = () => {
           </div>
         </div>
         <div className="w-[100%] h-[30%]">
-          <h2 className="font-acme text-[18px] 2xl:text-[24px]">your boost</h2>
+          <h2 className="font-acme h-[28.5%] text-[18px] 2xl:text-[24px] border-2 border-b-black border-t-white border-l-white border-r-white mb-2">your boost</h2>
             {
-              goldilendInfo.userBoost.partnerNFTs.length > 0 ??
-              <div>
-
+              goldilendInfo.userBoost.partnerNFTs.length > 0 &&
+              <div className="w-[100%] h-[72.5%] flex flex-row">
+                <div className="h-[100%] w-[25%] flex flex-col justify-center font-acme">
+                  <p className="text-[20px] ml-2">magnitude</p>
+                  <p className="ml-4">{goldilendInfo.userBoost.boostMagnitude}</p>
+                  <p className="text-[20px] ml-2">expiration</p>
+                  <p className="ml-4">{formatDate(goldilendInfo.userBoost.expiry)}</p>
+                </div>
+                <div className="h-[100%] w-[50%] flex flex-row items-center overflow-x-auto" id="hide-scrollbar">
+                  {
+                    goldilendInfo.userBoost.partnerNFTs.map((nft) => (
+                      nft.toLowerCase() === contracts.beradrome.address.toLowerCase() ?
+                      <img
+                        className={`ml-[5%] h-[81%] w-[${goldilendInfo.userBoost.partnerNFTs.length > 2 ? "45" : "29"}%] rounded-xl`}
+                        src="https://ipfs.io/ipfs/QmYhKPJVDZDRDpJAJ2TyCXK981B4pvtPcjrKgN256U4Cok/73.png"
+                        alt="nft"
+                        id="home-button"
+                      />
+                    :
+                      <video
+                        className={`ml-[5%] h-[81%] w-[${goldilendInfo.userBoost.partnerNFTs.length > 2 ? "45" : "29"}%] rounded-xl`}
+                        id="home-button"
+                        autoPlay
+                        loop
+                        muted
+                      >
+                        <source src="https://ipfs.io/ipfs/QmTffyDuYgSyFAgispVjuVaTsKnC5vVs7FFq1YkGde4ZX5" type="video/mp4" />
+                      </video>
+                    ))
+                  }
+                </div>
+                <div className="h-[100%] w-[25%] flex flex-col justify-around items-center font-acme">
+                  <button
+                    className="w-[90%] h-[35%] rounded-xl border-2 border-black hover:scale-110 hover:cursor-pointer"
+                    id="extend-boost-button"
+                    onClick={() => handleExtendButtonClick()}
+                  >
+                    extend
+                  </button>
+                  {
+                    extendInput ?
+                      <input
+                        className="w-[90%] h-[35%] border-none focus:outline-none pl-2"
+                        type="text"
+                        id="number-input"
+                        placeholder="mm-dd-yyyy"
+                        value={newExpiration}
+                        onChange={(e) => setNewExpiration(e.target.value)}
+                      /> 
+                    :
+                      <button
+                        className="w-[90%] h-[35%] rounded-xl border-2 border-black hover:scale-110 hover:cursor-pointer"
+                        id="withdraw-boost-button"
+                        onClick={() => handleWithdrawButtonClick()}
+                      >
+                        withdraw
+                      </button>
+                  }
+                </div>
               </div>
             }
         </div>

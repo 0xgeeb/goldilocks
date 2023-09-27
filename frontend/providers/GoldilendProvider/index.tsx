@@ -4,16 +4,16 @@ import { createContext, PropsWithChildren, useContext, useState } from "react"
 import { useWallet } from ".."
 import { getContract, getPublicClient } from "@wagmi/core"
 import { formatEther, parseAbiItem } from "viem"
-import { BeraInfo, PartnerInfo, GoldilendInitialState, GoldilendInfo, BoostInfo, BoostData } from "../../utils/interfaces"
+import { BeraInfo, PartnerInfo, GoldilendInitialState, GoldilendInfo, BoostData } from "../../utils/interfaces"
 import { contracts } from "../../utils/addressi"
 
 const INITIAL_STATE: GoldilendInitialState = {
   goldilendInfo: {
     userBoost: {
-      partnerNFTs: ['0xc8ca5f855203a05773f8529367c35c7cf6676e70', '0x3017fff986824372d26be6c5695cb79414e0ca8c'],
-      partnerNFTIds: [3, 1],
-      boostMagnitude: 15,
-      expiry: 	1698379200
+      partnerNFTs: [],
+      partnerNFTIds: [],
+      boostMagnitude: 0,
+      expiry: 0
     }
   },
   loanAmount: 0,
@@ -22,56 +22,12 @@ const INITIAL_STATE: GoldilendInitialState = {
   activeToggle: 'boost',
   loanExpiration: '',
   boostExpiration: '',
-  newBoostExpiration: '',
   changeActiveToggle: (_toggle: string) => {},
   getOwnedBeras: async () => {},
   getOwnedPartners: async () => {},
   findBoost: async () => {},
   ownedBeras: [],
-  ownedPartners: [
-    {
-      name: "HoneyComb",
-      id: 1,
-      imageSrc: "https://ipfs.io/ipfs/QmTffyDuYgSyFAgispVjuVaTsKnC5vVs7FFq1YkGde4ZX5",
-      boost: 6,
-      index: 0
-    },
-    {
-      name: "HoneyComb",
-      id: 2,
-      imageSrc: "https://ipfs.io/ipfs/QmTffyDuYgSyFAgispVjuVaTsKnC5vVs7FFq1YkGde4ZX5",
-      boost: 6,
-      index: 1
-    },
-    {
-      name: "HoneyComb",
-      id: 3,
-      imageSrc: "https://ipfs.io/ipfs/QmTffyDuYgSyFAgispVjuVaTsKnC5vVs7FFq1YkGde4ZX5",
-      boost: 6,
-      index: 2
-    },
-    {
-      name: "HoneyComb",
-      id: 4,
-      imageSrc: "https://ipfs.io/ipfs/QmTffyDuYgSyFAgispVjuVaTsKnC5vVs7FFq1YkGde4ZX5",
-      boost: 6,
-      index: 3
-    },
-    {
-      name: "Beradrome",
-      id: 1,
-      imageSrc: "https://ipfs.io/ipfs/QmYhKPJVDZDRDpJAJ2TyCXK981B4pvtPcjrKgN256U4Cok/73.png",
-      boost: 9,
-      index: 4
-    },
-    {
-      name: "Beradrome",
-      id: 2,
-      imageSrc: "https://ipfs.io/ipfs/QmYhKPJVDZDRDpJAJ2TyCXK981B4pvtPcjrKgN256U4Cok/73.png",
-      boost: 9,
-      index: 5
-    }
-  ],
+  ownedPartners: [],
   selectedBeras: [],
   selectedPartners: [],
   handleBorrowChange: (_input: string) => {},
@@ -84,6 +40,7 @@ const INITIAL_STATE: GoldilendInitialState = {
   updateBorrowLimit: () => {},
   loanPopupToggle: false,
   setLoanPopupToggle: (_bool: boolean) => {},
+  clearOutBoostInputs: () => {}
 }
 
 const GoldilendContext = createContext(INITIAL_STATE)
@@ -101,7 +58,6 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
   const [borrowLimitState, setBorrowLimitState] = useState<number>(INITIAL_STATE.borrowLimit)
   const [loanExpirationState, setLoanExpirationState] = useState<string>(INITIAL_STATE.loanExpiration)
   const [boostExpirationState, setBoostExpirationState] = useState<string>(INITIAL_STATE.boostExpiration)
-  const [newBoostExpirationState, setNewBoostExpirationState] = useState<string>(INITIAL_STATE.newBoostExpiration)
   const [ownedBerasState, setOwnedBerasState] = useState<BeraInfo[]>(INITIAL_STATE.ownedBeras)
   const [ownedPartnersState, setOwnedPartnersState] = useState<PartnerInfo[]>(INITIAL_STATE.ownedPartners)
   const [selectedBerasState, setSelectedBerasState] = useState<BeraInfo[]>([])
@@ -115,16 +71,6 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
     abi: contracts.goldilend.abi
   })
 
-  const bondbearContract = getContract({
-    address: contracts.bondbear.address as `0x${string}`,
-    abi: contracts.bondbear.abi
-  })
-
-  const bandbearContract = getContract({
-    address: contracts.bandbear.address as `0x${string}`,
-    abi: contracts.bandbear.abi
-  })
-
   const changeActiveToggle = (toggle: string) => {
     setDisplayStringState('')
     setLoanAmountState(0)
@@ -133,6 +79,11 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
     setSelectedBerasState([])
     setSelectedPartnersState([])
     setActiveToggleState(toggle)
+  }
+
+  const clearOutBoostInputs = () => {
+    setSelectedPartnersState([])
+    setBoostExpirationState('')
   }
 
   const handleBorrowChange = (input: string) => {
@@ -300,7 +251,7 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
       partnerNFTs: boosted.partnerNFTs,
       partnerNFTIds: boosted.partnerNFTIds.map(id => parseInt(id.toString(), 16)),
       boostMagnitude: parseInt(boosted.boostMagnitude.toString(), 16),
-      expiry: parseInt(boosted.expiry.toString(), 16)
+      expiry: Number(boosted.expiry)
     }
     setGoldilendInfoState({ userBoost })
   }
@@ -359,7 +310,6 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
         borrowLimit: borrowLimitState,
         loanExpiration: loanExpirationState,
         boostExpiration: boostExpirationState,
-        newBoostExpiration: newBoostExpirationState,
         ownedBeras: ownedBerasState,
         ownedPartners: ownedPartnersState,
         selectedBeras: selectedBerasState,
@@ -377,7 +327,8 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
         handleBeraClick,
         handlePartnerClick,
         findSelectedBeraIdxs,
-        findSelectedPartnerIdxs
+        findSelectedPartnerIdxs,
+        clearOutBoostInputs
       }}
     >
       { children }
