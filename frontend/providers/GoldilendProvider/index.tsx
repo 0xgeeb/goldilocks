@@ -4,12 +4,17 @@ import { createContext, PropsWithChildren, useContext, useState } from "react"
 import { useWallet } from ".."
 import { getContract, getPublicClient } from "@wagmi/core"
 import { formatEther, parseAbiItem } from "viem"
-import { BeraInfo, PartnerInfo, GoldilendInitialState, GoldilendInfo } from "../../utils/interfaces"
+import { BeraInfo, PartnerInfo, GoldilendInitialState, GoldilendInfo, BoostInfo, BoostData } from "../../utils/interfaces"
 import { contracts } from "../../utils/addressi"
 
 const INITIAL_STATE: GoldilendInitialState = {
   goldilendInfo: {
-
+    userBoost: {
+      partnerNFTs: ['0xc8ca5f855203a05773f8529367c35c7cf6676e70', '0x3017fff986824372d26be6c5695cb79414e0ca8c'],
+      partnerNFTIds: [3, 1],
+      boostMagnitude: 15,
+      expiry: 	1698379200
+    }
   },
   loanAmount: 0,
   borrowLimit: 0,
@@ -17,6 +22,7 @@ const INITIAL_STATE: GoldilendInitialState = {
   activeToggle: 'boost',
   loanExpiration: '',
   boostExpiration: '',
+  newBoostExpiration: '',
   changeActiveToggle: (_toggle: string) => {},
   getOwnedBeras: async () => {},
   getOwnedPartners: async () => {},
@@ -95,6 +101,7 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
   const [borrowLimitState, setBorrowLimitState] = useState<number>(INITIAL_STATE.borrowLimit)
   const [loanExpirationState, setLoanExpirationState] = useState<string>(INITIAL_STATE.loanExpiration)
   const [boostExpirationState, setBoostExpirationState] = useState<string>(INITIAL_STATE.boostExpiration)
+  const [newBoostExpirationState, setNewBoostExpirationState] = useState<string>(INITIAL_STATE.newBoostExpiration)
   const [ownedBerasState, setOwnedBerasState] = useState<BeraInfo[]>(INITIAL_STATE.ownedBeras)
   const [ownedPartnersState, setOwnedPartnersState] = useState<PartnerInfo[]>(INITIAL_STATE.ownedPartners)
   const [selectedBerasState, setSelectedBerasState] = useState<BeraInfo[]>([])
@@ -288,7 +295,14 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
 
   const findBoost = async () => {
     const boost = await goldilendContract.read.lookupBoost([wallet])
-    console.log(boost)
+    const boosted = boost as unknown as BoostData
+    const userBoost = {
+      partnerNFTs: boosted.partnerNFTs,
+      partnerNFTIds: boosted.partnerNFTIds.map(id => parseInt(id.toString(), 16)),
+      boostMagnitude: parseInt(boosted.boostMagnitude.toString(), 16),
+      expiry: parseInt(boosted.expiry.toString(), 16)
+    }
+    setGoldilendInfoState({ userBoost })
   }
 
   const handleBeraClick = (bera: BeraInfo) => {
@@ -345,6 +359,7 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
         borrowLimit: borrowLimitState,
         loanExpiration: loanExpirationState,
         boostExpiration: boostExpirationState,
+        newBoostExpiration: newBoostExpirationState,
         ownedBeras: ownedBerasState,
         ownedPartners: ownedPartnersState,
         selectedBeras: selectedBerasState,

@@ -87,14 +87,49 @@ export const useGoldilendTx = () => {
     return ''
   }
 
-  //todo: implement these functions
-  const sendApproveTx = async () => {
+  const sendExtendBoostTx = async (newExpiry: number): Promise<string> => {
+    try {
+      const { hash } = await writeContract({
+        address: contracts.goldilend.address as `0x${string}`,
+        abi: contracts.goldilend.abi,
+        functionName: 'extendBoost',
+        args: [newExpiry]
+      })
+      const data = await waitForTransaction({ hash })
+      return data.transactionHash
+    }
+    catch (e) {
+      console.log('user denied tx')
+      console.log('or: ', e)
+    }
 
+    return ''
   }
 
-  const sendBorrowTx = async () => {
+  const sendWithdrawBoostTx = async (): Promise<string> => {
+    try {
+      const { hash } = await writeContract({
+        address: contracts.goldilend.address as `0x${string}`,
+        abi: contracts.goldilend.abi,
+        functionName: 'withdrawBoost',
+        args: []
+      })
+      const data = await waitForTransaction({ hash })
+      return data.transactionHash
+    }
+    catch (e) {
+      console.log('user denied tx')
+      console.log('or: ', e)
+    }
 
+    return ''
   }
 
-  return { checkBoostAllowance, sendGoldilendNFTApproveTx, sendBoostTx }
+  return { 
+    checkBoostAllowance,
+    sendGoldilendNFTApproveTx,
+    sendBoostTx,
+    sendExtendBoostTx,
+    sendWithdrawBoostTx 
+  }
 }

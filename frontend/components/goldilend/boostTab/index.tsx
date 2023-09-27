@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
-import { useGoldilend } from "../../../providers"
+import { useGoldilend, useNotification } from "../../../providers"
 import { useGoldilendTx } from "../../../hooks/goldilend"
 import { contracts } from "../../../utils/addressi"
 
@@ -12,6 +12,7 @@ export const BoostTab = () => {
   const [dateError, setDateError] = useState<boolean>(false)
 
   const { 
+    goldilendInfo,
     ownedPartners,
     selectedPartners,
     getOwnedPartners,
@@ -28,9 +29,11 @@ export const BoostTab = () => {
     sendBoostTx
   } = useGoldilendTx()
 
+  const { openNotification } = useNotification()
+
   useEffect(() => {
     // getOwnedPartners()
-    findBoost()
+    // findBoost()
     setInfoLoading(false)
   }, [])
 
@@ -89,6 +92,14 @@ export const BoostTab = () => {
     if(combFlag && beraFlag) {
       button && (button.innerHTML = "boosting...")
       const boostTx = await sendBoostTx(selectedPartners, parseDate(boostExpiration))
+      boostTx && openNotification({
+        title: 'Successfully Boosted!',
+        hash: boostTx,
+        direction: 'boosted',
+        amount: 0,
+        price: 0,
+        page: 'boost'
+      })
     }
     else {
       button && (button.innerHTML = "approving...")
@@ -199,7 +210,10 @@ export const BoostTab = () => {
         <div className="w-[100%] h-[30%]">
           <h2 className="font-acme text-[18px] 2xl:text-[24px]">your boost</h2>
             {
+              goldilendInfo.userBoost.partnerNFTs.length > 0 ??
+              <div>
 
+              </div>
             }
         </div>
       </div>

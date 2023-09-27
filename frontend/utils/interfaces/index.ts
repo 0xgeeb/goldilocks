@@ -203,8 +203,22 @@ export interface PartnerInfo {
   index: number;
 }
 
-export interface GoldilendInfo {
+export interface BoostInfo {
+  partnerNFTs: string[];
+  partnerNFTIds: number[];
+  boostMagnitude: number;
+  expiry: number;
+}
 
+export interface GoldilendInfo {
+  userBoost: BoostInfo;
+}
+
+export interface BoostData {
+  partnerNFTs: string[];
+  partnerNFTIds: bigint[];
+  boostMagnitude: bigint;
+  expiry: bigint;
 }
 
 export interface GoldilendInitialState {
@@ -215,6 +229,7 @@ export interface GoldilendInitialState {
   borrowLimit: number;
   loanExpiration: string;
   boostExpiration: string;
+  newBoostExpiration: string;
   changeActiveToggle: (_toggle: string) => void;
   getOwnedBeras: () => {};
   getOwnedPartners: () => {};
