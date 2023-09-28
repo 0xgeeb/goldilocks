@@ -1,8 +1,10 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useGoldilend, useWallet } from "../../../providers"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
+import { useGoldilendTx } from "../../../hooks/goldilend"
+import { useGoldilend, useWallet, useNotification } from "../../../providers"
+import { contracts } from "../../../utils/addressi"
 
 export const LoanTab = () => {
 
@@ -22,12 +24,20 @@ export const LoanTab = () => {
     handleBeraClick,
     findSelectedBeraIdxs,
     updateBorrowLimit,
+    loanPopupToggle,
     setLoanPopupToggle,
   } = useGoldilend()
+
+  const {
+    checkLoanAllowance,
+    sendGoldilendNFTApproveTx
+  } = useGoldilendTx()
+  
   const { isConnected }  = useWallet()
+  const { openNotification } = useNotification()
 
   useEffect(() => {
-    getOwnedBeras()
+    // getOwnedBeras()
     setInfoLoading(false)
   }, [isConnected])
 
@@ -66,7 +76,7 @@ export const LoanTab = () => {
     if(timestampDigits < Math.floor(Date.now() / 1000)) {
       return false
     }
-    if(timestampDigits < Date.now() + (86400 * 30)) {
+    if(timestampDigits < Math.floor(Date.now() / 1000) + (86400 * 14)) {
       return false
     }
     return true
@@ -80,12 +90,33 @@ export const LoanTab = () => {
     return `${month}-${day}-${year}`
   }
 
+  const checkSelected = (beraName: string): boolean => {
+    for(let i = 0; i < selectedBeras.length; i++) {
+      if(selectedBeras[i].name === beraName) {
+        return true
+      }
+    }
+    
+    return false
+  }
+
   const renderButton = () => {
     return 'create loan'
   }
 
-  const handleButtonClick = () => {
+  const handleButtonClick = async () => {
     const button = document.getElementById('amm-button')
+    if(loanPopupToggle) {
+      return
+    }
+    if(loanAmount == 0) {
+      button && (button.innerHTML = "empty loan")
+      return
+    }
+    if(loanAmount > borrowLimit) {
+      button && (button.innerHTML = "insufficient limit")
+      return
+    }
     if(!checkDate(loanExpiration)) {
       button && (button.innerHTML = "invalid expiration date")
       return
@@ -94,19 +125,23 @@ export const LoanTab = () => {
       button && (button.innerHTML = "no collateral")
       return
     }
-    if(loanAmount == 0) {
-      button && (button.innerHTML = "empty loan")
-      return
+    const [bondFlag, bandFlag] = await checkLoanAllowance()
+    if((bondFlag || !checkSelected("BondBera")) && (bandFlag || !checkSelected("BandBera"))) {
+      button && (button.innerHTML = "create loan")
+      setLoanPopupToggle(true)
     }
-    // //todo: figure this out
-    // // if(loanAmount > ) {
-    // //   button && (button.innerHTML = "insufficient balance")
-    // //   return
-    // // }
-    // else {
-
-    // }
-    setLoanPopupToggle(true)
+    else {
+      button && (button.innerHTML = "approving...")
+      if(!bondFlag && checkSelected('BondBera')) {
+        await sendGoldilendNFTApproveTx(contracts.bondbear.address)
+      }
+      if(!bandFlag && checkSelected('BandBera')) {
+        await sendGoldilendNFTApproveTx(contracts.bandbear.address)
+      }
+      setTimeout(() => {
+        button && (button.innerHTML = "create loan")
+      }, 10000)
+    }
   }
 
   return (
@@ -127,13 +162,13 @@ export const LoanTab = () => {
             <h2 className="absolute right-0 text-[14px] 2xl:text-[18px]">borrow limit: {borrowLimit > 0 ? borrowLimit : "0.00"}</h2>
           </div>
           <div className="w-[100%] h-[33%]">
-            <h2 className="text-[18px] 2xl:text-[24px]">duration</h2>
+            <h2 className="text-[18px] 2xl:text-[24px]">expiration</h2>
             {/* todo: add actual calendar select */}
             <input
               className="w-[90%] h-[50%] border-none focus:outline-none pl-4 text-[18px] 2xl:text-[24px]"
               type="text"
               id="number-input"
-              placeholder="dd-mm-yyyy"
+              placeholder="mm-dd-yyyy"
               value={loanExpiration}
               onChange={(e) => handleLoanDateChange(e.target.value)}
             />

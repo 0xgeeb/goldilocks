@@ -94,6 +94,16 @@ export const BoostTab = () => {
     return `${month}-${day}-${year}`
   }
 
+  const checkSelected = (partnerName: string): boolean => {
+    for(let i = 0; i < selectedPartners.length; i++) {
+      if(selectedPartners[i].name === partnerName) {
+        return true
+      }
+    }
+
+    return false
+  }
+
   const renderButton = () => {
     return 'create boost'
   }
@@ -125,10 +135,10 @@ export const BoostTab = () => {
     }
     else {
       button && (button.innerHTML = "approving...")
-      if(!combFlag) {
+      if(!combFlag && checkSelected('HoneyComb')) {
         await sendGoldilendNFTApproveTx(contracts.honeycomb.address)
       }
-      if(!beraFlag) {
+      if(!beraFlag && checkSelected('Beradrome')) {
         await sendGoldilendNFTApproveTx(contracts.beradrome.address)
       }
       setTimeout(() => {

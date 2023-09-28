@@ -8,6 +8,16 @@ export const useGoldilendTx = () => {
 
   const { wallet } = useWallet()
 
+  const bondbearContract = getContract({
+    address: contracts.bondbear.address as `0x${string}`,
+    abi: contracts.bondbear.abi
+  })
+
+  const bandbearContract = getContract({
+    address: contracts.bandbear.address as `0x${string}`,
+    abi: contracts.bandbear.abi
+  })
+
   const honeycombContract = getContract({
     address: contracts.honeycomb.address as `0x${string}`,
     abi: contracts.honeycomb.abi
@@ -26,6 +36,16 @@ export const useGoldilendTx = () => {
     const bdAA = beradromeAllApproved as unknown as boolean
 
     return [hcAA, bdAA]
+  }
+
+  const checkLoanAllowance = async (): Promise<boolean[]> => {
+    const bondbearAllApproved = await bondbearContract.read.isApprovedForAll([wallet, contracts.goldilend.address])
+    const bandbearAllApproved = await bandbearContract.read.isApprovedForAll([wallet, contracts.goldilend.address])
+
+    const boAA = bondbearAllApproved as unknown as boolean
+    const baAA = bandbearAllApproved as unknown as boolean
+
+    return [boAA, baAA]
   }
   
   const sendGoldilendNFTApproveTx = async (nft: string) => {
@@ -125,8 +145,13 @@ export const useGoldilendTx = () => {
     return ''
   }
 
+  // const sendBorrowTx = async (): Promise<string> => {
+
+  // }
+
   return { 
     checkBoostAllowance,
+    checkLoanAllowance,
     sendGoldilendNFTApproveTx,
     sendBoostTx,
     sendExtendBoostTx,

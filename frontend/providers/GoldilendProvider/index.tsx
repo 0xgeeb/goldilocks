@@ -26,7 +26,64 @@ const INITIAL_STATE: GoldilendInitialState = {
   getOwnedBeras: async () => {},
   getOwnedPartners: async () => {},
   findBoost: async () => {},
-  ownedBeras: [],
+  ownedBeras: [
+    {
+      name: "BondBera",
+      id: 1,
+      imageSrc: "https://ipfs.io/ipfs/QmSaVWb15oQ1HcsUjGGkjwHQ1mxJBYeivtBCgHHHiVLt7w",
+      valuation: 50,
+      index: 0
+    },
+    {
+      name: "BandBera",
+      id: 2,
+      imageSrc: "https://ipfs.io/ipfs/QmNWggx9vvBVEHZc6xwWkdyymoKuXCYrJ3zQwwKzocDxRt",
+      valuation: 50,
+      index: 1
+    },
+    {
+      name: "BondBera",
+      id: 2,
+      imageSrc: "https://ipfs.io/ipfs/QmSaVWb15oQ1HcsUjGGkjwHQ1mxJBYeivtBCgHHHiVLt7w",
+      valuation: 50,
+      index: 2
+    },
+    {
+      name: "BondBera",
+      id: 3,
+      imageSrc: "https://ipfs.io/ipfs/QmSaVWb15oQ1HcsUjGGkjwHQ1mxJBYeivtBCgHHHiVLt7w",
+      valuation: 50,
+      index: 3
+    },
+    {
+      name: "BondBera",
+      id: 4,
+      imageSrc: "https://ipfs.io/ipfs/QmSaVWb15oQ1HcsUjGGkjwHQ1mxJBYeivtBCgHHHiVLt7w",
+      valuation: 50,
+      index: 4
+    },
+    {
+      name: "BondBera",
+      id: 5,
+      imageSrc: "https://ipfs.io/ipfs/QmSaVWb15oQ1HcsUjGGkjwHQ1mxJBYeivtBCgHHHiVLt7w",
+      valuation: 50,
+      index: 5
+    },
+    {
+      name: "BondBera",
+      id: 6,
+      imageSrc: "https://ipfs.io/ipfs/QmSaVWb15oQ1HcsUjGGkjwHQ1mxJBYeivtBCgHHHiVLt7w",
+      valuation: 50,
+      index: 6
+    },
+    {
+      name: "BondBera",
+      id: 7,
+      imageSrc: "https://ipfs.io/ipfs/QmSaVWb15oQ1HcsUjGGkjwHQ1mxJBYeivtBCgHHHiVLt7w",
+      valuation: 50,
+      index: 7
+    },
+  ],
   ownedPartners: [],
   selectedBeras: [],
   selectedPartners: [],
