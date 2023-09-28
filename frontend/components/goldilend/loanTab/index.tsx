@@ -9,6 +9,7 @@ export const LoanTab = () => {
   const [infoLoading, setInfoLoading] = useState<boolean>(true)
 
   const {
+    goldilendInfo,
     getOwnedBeras,
     ownedBeras,
     selectedBeras,
@@ -38,17 +39,65 @@ export const LoanTab = () => {
     return <span className="loader-small mx-auto"></span>
   }
 
+  const parseDate = (dateString: string): number => {
+    const dateParts = dateString.split('-')
+    const [month, day, year] = dateParts.map(Number);
+    const parsedDate = new Date(year, month - 1, day)
+    const timestamp = parsedDate.getTime()
+    const timestampDigits = Math.floor(timestamp / 1000)
+    return timestampDigits
+  }
+
+  const checkDate = (dateString: String): boolean => {
+    const dateParts = dateString.split('-')
+    const [month, day, year] = dateParts.map(Number)
+    const parsedDate = new Date(year, month - 1, day)
+    const timestamp = parsedDate.getTime()
+    const timestampDigits = Math.floor(timestamp / 1000)
+    if(dateParts.length !== 3) {
+      return false
+    }
+    if (isNaN(month) || isNaN(day) || isNaN(year)) {
+      return false
+    }
+    if (isNaN(parsedDate.getTime())) {
+      return false
+    }
+    if(timestampDigits < Math.floor(Date.now() / 1000)) {
+      return false
+    }
+    if(timestampDigits < Date.now() + (86400 * 30)) {
+      return false
+    }
+    return true
+  }
+
+  const formatDate = (timestamp: number): string => {
+    const date = new Date(timestamp * 1000)
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const year = String(date.getFullYear())
+    return `${month}-${day}-${year}`
+  }
+
   const renderButton = () => {
     return 'create loan'
   }
 
   const handleButtonClick = () => {
-    // const button = document.getElementById('amm-button')
-
-    // if(loanAmount == 0) {
-    //   button && (button.innerHTML = "create loan")
-    //   return
-    // }
+    const button = document.getElementById('amm-button')
+    if(!checkDate(loanExpiration)) {
+      button && (button.innerHTML = "invalid expiration date")
+      return
+    }
+    if(selectedBeras.length == 0) {
+      button && (button.innerHTML = "no collateral")
+      return
+    }
+    if(loanAmount == 0) {
+      button && (button.innerHTML = "empty loan")
+      return
+    }
     // //todo: figure this out
     // // if(loanAmount > ) {
     // //   button && (button.innerHTML = "insufficient balance")

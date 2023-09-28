@@ -19,7 +19,7 @@ const INITIAL_STATE: GoldilendInitialState = {
   loanAmount: 0,
   borrowLimit: 0,
   displayString: '',
-  activeToggle: 'boost',
+  activeToggle: 'loan',
   loanExpiration: '',
   boostExpiration: '',
   changeActiveToggle: (_toggle: string) => {},
@@ -100,6 +100,9 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
   }
 
   const getOwnedBeras = async () => {
+    if(!wallet) {
+      return
+    }
     if(ownedBerasState.length > 0) {
       return
     }
@@ -172,6 +175,9 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
   }
 
   const getOwnedPartners = async () => {
+    if(!wallet) {
+      return
+    }
     if(ownedPartnersState.length > 0) {
       return
     }
@@ -245,6 +251,9 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
   }
 
   const findBoost = async () => {
+    if(!wallet) {
+      return
+    }
     const boost = await goldilendContract.read.lookupBoost([wallet])
     const boosted = boost as unknown as BoostData
     const userBoost = {

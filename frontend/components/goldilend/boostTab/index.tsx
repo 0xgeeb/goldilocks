@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
-import { useGoldilend, useNotification } from "../../../providers"
+import { useGoldilend, useNotification, useWallet } from "../../../providers"
 import { useGoldilendTx } from "../../../hooks/goldilend"
 import { contracts } from "../../../utils/addressi"
 
@@ -34,12 +34,13 @@ export const BoostTab = () => {
   } = useGoldilendTx()
 
   const { openNotification } = useNotification()
+  const { isConnected } = useWallet()
 
   useEffect(() => {
     getOwnedPartners()
     findBoost()    
     setInfoLoading(false)
-  }, [])
+  }, [isConnected])
 
   const loadingElement = () => {
     return <span className="loader-small mx-auto"></span>
@@ -233,7 +234,7 @@ export const BoostTab = () => {
               }) => {
                 return (
                   <button
-                    className="h-[60%] w-[50%] mt-[2.5%] ml-[50%] rounded-xl px-4 2xl:px-6 border-2 border-black font-acme text-[20px] 2xl:text-[24px]"
+                    className="h-[60%] w-[50%] mt-[2.5%] ml-[50%] rounded-xl px-4 2xl:px-6 border-2 border-black hover:scale-110 font-acme text-[20px] 2xl:text-[24px]"
                     id="boost-button"
                     onClick={() => {
                       const button = document.getElementById('boost-button')
@@ -302,7 +303,7 @@ export const BoostTab = () => {
                 </div>
                 <div className="h-[100%] w-[25%] flex flex-col justify-around items-center font-acme">
                   <button
-                    className="w-[90%] h-[35%] rounded-xl border-2 border-black hover:scale-110 hover:cursor-pointer"
+                    className="w-[90%] h-[35%] rounded-xl border-2 border-black hover:scale-110"
                     id="extend-boost-button"
                     onClick={() => handleExtendButtonClick()}
                   >
@@ -320,7 +321,7 @@ export const BoostTab = () => {
                       /> 
                     :
                       <button
-                        className="w-[90%] h-[35%] rounded-xl border-2 border-black hover:scale-110 hover:cursor-pointer"
+                        className="w-[90%] h-[35%] rounded-xl border-2 border-black hover:scale-110"
                         id="withdraw-boost-button"
                         onClick={() => handleWithdrawButtonClick()}
                       >
