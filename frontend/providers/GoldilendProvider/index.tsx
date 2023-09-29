@@ -28,7 +28,7 @@ const INITIAL_STATE: GoldilendInitialState = {
   loanAmount: 0,
   borrowLimit: 0,
   displayString: '',
-  activeToggle: 'loan',
+  activeToggle: 'repay',
   loanExpiration: '',
   boostExpiration: '',
   changeActiveToggle: (_toggle: string) => {},
@@ -289,10 +289,10 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
       const userLoan = {
         collateralNFTs: loansData[i].collateralNFTs,
         collateralNFTIds: loansData[i].collateralNFTIds.map(id => parseInt(id.toString(), 16)),
-        borrowedAmount: parseInt(loansData[i].borrowedAmount.toString(), 16),
-        interest: 5,
-        duration: 5,
-        endDate: 5,
+        borrowedAmount: parseFloat(formatEther(loansData[i].borrowedAmount)),
+        interest: parseFloat(formatEther(loansData[i].interest)),
+        duration: Number(loansData[i].duration),
+        endDate: Number(loansData[i].endDate),
         loanId: parseInt(loansData[i].loanId.toString(), 16),
         liquidated: loansData[i].liquidated
       }
@@ -302,7 +302,6 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
       ...prev,
       userLoans
     }))
-    console.log(loansData)
   }
 
   const handleBeraClick = (bera: BeraInfo) => {
