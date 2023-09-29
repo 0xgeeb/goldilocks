@@ -11,7 +11,8 @@ export const LoanPopup = ({ setPopupToggle }: PopupProp) => {
     loanAmount,
     loanExpiration,
     selectedBeras,
-    setLoanPopupToggle
+    setLoanPopupToggle,
+    changeActiveToggle
   } = useGoldilend()
 
   const { sendBorrowTx } = useGoldilendTx()
@@ -28,17 +29,19 @@ export const LoanPopup = ({ setPopupToggle }: PopupProp) => {
 
   const handleButtonClick = async () => {
     const button = document.getElementById('amm-button')
+    button && (button.innerHTML = "creating loan...")
     const borrowTx = await sendBorrowTx(loanAmount, selectedBeras, parseDate(loanExpiration) - Math.floor(Date.now() / 1000))
     borrowTx && openNotification({
-      title: 'Successfully Boosted!',
+      title: 'Successfully Created a Loan!',
       hash: borrowTx,
       direction: 'borrowed',
       amount: loanAmount,
       price: 0,
-      page: 'goldilendBorrow'
+      page: 'goldilend'
     })
-    setLoanPopupToggle(true)
     button && (button.innerHTML = "create loan")
+    setLoanPopupToggle(false)
+    changeActiveToggle('loan')
   }
 
   return (
@@ -77,7 +80,10 @@ export const LoanPopup = ({ setPopupToggle }: PopupProp) => {
       </div>
       <button 
         className="w-[55%] h-[10%] mt-[10%] mx-auto border-2 border-black rounded-xl text-[22px]"
-        onClick={() => handleButtonClick()}
+        onClick={(e) => {
+          e.stopPropagation()
+          handleButtonClick()
+        }}
         id="amm-button"
       >
         create loan

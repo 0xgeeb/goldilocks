@@ -146,24 +146,44 @@ export const useGoldilendTx = () => {
   }
 
   const sendBorrowTx = async (loanAmount: number, selectedBeras: BeraInfo[], duration: number): Promise<string> => {
-    //todo: build args
-    
-    console.log('loanAmount: ', loanAmount)
-    console.log('selectedBeras: ', selectedBeras)
-    console.log('duration: ', duration)
-
-    // try {
-    //   const { hash } = await writeContract({
-    //     address: contracts.goldilend.address as `0x${string}`,
-    //     abi: contracts.goldilend.abi,
-    //     functionName: 'borrow',
-    //     args: []
-    //   })
-    // }
-    // catch (e) {
-    //   console.log('user denied tx')
-    //   console.log('or: ', e)
-    // }
+    if(selectedBeras.length == 1) {
+      try {
+        const { hash } = await writeContract({
+          address: contracts.goldilend.address as `0x${string}`,
+          abi: contracts.goldilend.abi,
+          functionName: 'borrow',
+          args: [parseEther(`${loanAmount}`), duration, selectedBeras[0].name === 'BondBera' ? contracts.bondbear.address : contracts.bandbear.address, selectedBeras[0].id]
+        })
+        const data = await waitForTransaction({ hash })
+        return data.transactionHash
+      }
+      catch (e) {
+        console.log('user denied tx')
+        console.log('or: ', e)
+      }
+    }
+    else{
+      let nfts = []
+      let ids = []
+      for(let i = 0; i < selectedBeras.length; i++) {
+        nfts.push(selectedBeras[i].name === 'BondBera' ? contracts.bondbear.address : contracts.bandbear.address)
+        ids.push(selectedBeras[i].id)
+      }
+      try {
+        const { hash } = await writeContract({
+          address: contracts.goldilend.address as `0x${string}`,
+          abi: contracts.goldilend.abi,
+          functionName: 'borrow',
+          args: [parseEther(`${loanAmount}`), duration, nfts, ids]
+        })
+        const data = await waitForTransaction({ hash })
+        return data.transactionHash
+      }
+      catch (e) {
+        console.log('user denied tx')
+        console.log('or: ', e)
+      }
+    }
 
     return ''
   }
