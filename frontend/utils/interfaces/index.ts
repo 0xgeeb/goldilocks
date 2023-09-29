@@ -210,9 +210,20 @@ export interface BoostInfo {
   expiry: number;
 }
 
+export interface LoanInfo {
+  collateralNFTs: string[];
+  collateralNFTIds: number[];
+  borrowedAmount: number;
+  interest: number;
+  duration: number;
+  endDate: number;
+  loanId: number;
+  liquidated: boolean;
+}
+
 export interface GoldilendInfo {
   userBoost: BoostInfo;
-  // userLoans:
+  userLoans: LoanInfo[];
 }
 
 export interface BoostData {

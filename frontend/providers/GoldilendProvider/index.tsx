@@ -11,7 +11,8 @@ import {
   GoldilendInitialState,
   GoldilendInfo,
   BoostData,
-  LoanData
+  LoanData,
+  LoanInfo
 } from "../../utils/interfaces"
 
 const INITIAL_STATE: GoldilendInitialState = {
@@ -21,7 +22,8 @@ const INITIAL_STATE: GoldilendInitialState = {
       partnerNFTIds: [],
       boostMagnitude: 0,
       expiry: 0
-    }
+    },
+    userLoans: []
   },
   loanAmount: 0,
   borrowLimit: 0,
@@ -34,64 +36,7 @@ const INITIAL_STATE: GoldilendInitialState = {
   getOwnedPartners: async () => {},
   findBoost: async () => {},
   findLoans: async () => {},
-  ownedBeras: [
-    {
-      name: "BondBera",
-      id: 1,
-      imageSrc: "https://ipfs.io/ipfs/QmSaVWb15oQ1HcsUjGGkjwHQ1mxJBYeivtBCgHHHiVLt7w",
-      valuation: 50,
-      index: 0
-    },
-    {
-      name: "BandBera",
-      id: 2,
-      imageSrc: "https://ipfs.io/ipfs/QmNWggx9vvBVEHZc6xwWkdyymoKuXCYrJ3zQwwKzocDxRt",
-      valuation: 50,
-      index: 1
-    },
-    {
-      name: "BondBera",
-      id: 2,
-      imageSrc: "https://ipfs.io/ipfs/QmSaVWb15oQ1HcsUjGGkjwHQ1mxJBYeivtBCgHHHiVLt7w",
-      valuation: 50,
-      index: 2
-    },
-    {
-      name: "BondBera",
-      id: 3,
-      imageSrc: "https://ipfs.io/ipfs/QmSaVWb15oQ1HcsUjGGkjwHQ1mxJBYeivtBCgHHHiVLt7w",
-      valuation: 50,
-      index: 3
-    },
-    {
-      name: "BondBera",
-      id: 4,
-      imageSrc: "https://ipfs.io/ipfs/QmSaVWb15oQ1HcsUjGGkjwHQ1mxJBYeivtBCgHHHiVLt7w",
-      valuation: 50,
-      index: 4
-    },
-    {
-      name: "BondBera",
-      id: 5,
-      imageSrc: "https://ipfs.io/ipfs/QmSaVWb15oQ1HcsUjGGkjwHQ1mxJBYeivtBCgHHHiVLt7w",
-      valuation: 50,
-      index: 5
-    },
-    {
-      name: "BondBera",
-      id: 6,
-      imageSrc: "https://ipfs.io/ipfs/QmSaVWb15oQ1HcsUjGGkjwHQ1mxJBYeivtBCgHHHiVLt7w",
-      valuation: 50,
-      index: 6
-    },
-    {
-      name: "BondBera",
-      id: 7,
-      imageSrc: "https://ipfs.io/ipfs/QmSaVWb15oQ1HcsUjGGkjwHQ1mxJBYeivtBCgHHHiVLt7w",
-      valuation: 50,
-      index: 7
-    },
-  ],
+  ownedBeras: [],
   ownedPartners: [],
   selectedBeras: [],
   selectedPartners: [],
@@ -327,7 +272,10 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
       boostMagnitude: parseInt(boosted.boostMagnitude.toString(), 16),
       expiry: Number(boosted.expiry)
     }
-    setGoldilendInfoState({ userBoost })
+    setGoldilendInfoState(prev => ({
+      ...prev,
+      userBoost
+    }))
   }
 
   const findLoans = async () => {
@@ -335,7 +283,25 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
       return
     }
     const loans = await goldilendContract.read.lookupLoans([wallet])
-    const loansData = loans as unknown as LoanData
+    const loansData = loans as unknown as LoanData[]
+    let userLoans: LoanInfo[] = []
+    for(let i = 0; i < loansData.length; i++) {
+      const userLoan = {
+        collateralNFTs: loansData[i].collateralNFTs,
+        collateralNFTIds: loansData[i].collateralNFTIds.map(id => parseInt(id.toString(), 16)),
+        borrowedAmount: parseInt(loansData[i].borrowedAmount.toString(), 16),
+        interest: 5,
+        duration: 5,
+        endDate: 5,
+        loanId: parseInt(loansData[i].loanId.toString(), 16),
+        liquidated: loansData[i].liquidated
+      }
+      userLoans.push(userLoan)
+    }
+    setGoldilendInfoState(prev => ({
+      ...prev,
+      userLoans
+    }))
     console.log(loansData)
   }
 
