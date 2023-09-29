@@ -212,6 +212,7 @@ export interface BoostInfo {
 
 export interface GoldilendInfo {
   userBoost: BoostInfo;
+  // userLoans:
 }
 
 export interface BoostData {
@@ -219,6 +220,17 @@ export interface BoostData {
   partnerNFTIds: bigint[];
   boostMagnitude: bigint;
   expiry: bigint;
+}
+
+export interface LoanData {
+  collateralNFTs: string[];
+  collateralNFTIds: bigint[];
+  borrowedAmount: bigint;
+  interest: bigint;
+  duration: bigint;
+  endDate: bigint;
+  loanId: bigint;
+  liquidated: boolean;
 }
 
 export interface GoldilendInitialState {
@@ -233,6 +245,7 @@ export interface GoldilendInitialState {
   getOwnedBeras: () => {};
   getOwnedPartners: () => {};
   findBoost: () => {};
+  findLoans: () => {};
   ownedBeras: BeraInfo[];
   ownedPartners: PartnerInfo[];
   selectedBeras: BeraInfo[];

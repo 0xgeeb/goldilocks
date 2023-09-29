@@ -4,8 +4,15 @@ import { createContext, PropsWithChildren, useContext, useState } from "react"
 import { useWallet } from ".."
 import { getContract, getPublicClient } from "@wagmi/core"
 import { formatEther, parseAbiItem } from "viem"
-import { BeraInfo, PartnerInfo, GoldilendInitialState, GoldilendInfo, BoostData } from "../../utils/interfaces"
 import { contracts } from "../../utils/addressi"
+import { 
+  BeraInfo,
+  PartnerInfo,
+  GoldilendInitialState,
+  GoldilendInfo,
+  BoostData,
+  LoanData
+} from "../../utils/interfaces"
 
 const INITIAL_STATE: GoldilendInitialState = {
   goldilendInfo: {
@@ -26,6 +33,7 @@ const INITIAL_STATE: GoldilendInitialState = {
   getOwnedBeras: async () => {},
   getOwnedPartners: async () => {},
   findBoost: async () => {},
+  findLoans: async () => {},
   ownedBeras: [
     {
       name: "BondBera",
@@ -322,6 +330,15 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
     setGoldilendInfoState({ userBoost })
   }
 
+  const findLoans = async () => {
+    if(!wallet) {
+      return
+    }
+    const loans = await goldilendContract.read.lookupLoans([wallet])
+    const loansData = loans as unknown as LoanData
+    console.log(loansData)
+  }
+
   const handleBeraClick = (bera: BeraInfo) => {
     const idxArray: number[] = findSelectedBeraIdxs()
     if(idxArray.includes(bera.index)) {
@@ -386,6 +403,7 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
         getOwnedBeras,
         getOwnedPartners,
         findBoost,
+        findLoans,
         handleBorrowChange,
         handleLoanDateChange,
         handleBoostDateChange,
