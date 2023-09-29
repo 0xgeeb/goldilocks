@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
 import { useGoldilendTx } from "../../../hooks/goldilend"
-import { useGoldilend, useWallet, useNotification } from "../../../providers"
+import { useGoldilend, useWallet } from "../../../providers"
 import { contracts } from "../../../utils/addressi"
 
 export const LoanTab = () => {
@@ -34,7 +34,6 @@ export const LoanTab = () => {
   } = useGoldilendTx()
   
   const { isConnected }  = useWallet()
-  const { openNotification } = useNotification()
 
   useEffect(() => {
     // getOwnedBeras()
@@ -47,15 +46,6 @@ export const LoanTab = () => {
 
   const loadingElement = () => {
     return <span className="loader-small mx-auto"></span>
-  }
-
-  const parseDate = (dateString: string): number => {
-    const dateParts = dateString.split('-')
-    const [month, day, year] = dateParts.map(Number);
-    const parsedDate = new Date(year, month - 1, day)
-    const timestamp = parsedDate.getTime()
-    const timestampDigits = Math.floor(timestamp / 1000)
-    return timestampDigits
   }
 
   const checkDate = (dateString: String): boolean => {

@@ -1,7 +1,7 @@
 import { getContract, writeContract, waitForTransaction } from "@wagmi/core"
 import { parseEther, formatEther } from "viem"
 import { contracts } from "../../../utils/addressi"
-import { PartnerInfo } from "../../../utils/interfaces"
+import { BeraInfo, PartnerInfo } from "../../../utils/interfaces"
 import { useWallet } from "../../../providers"
 
 export const useGoldilendTx = () => {
@@ -145,9 +145,28 @@ export const useGoldilendTx = () => {
     return ''
   }
 
-  // const sendBorrowTx = async (): Promise<string> => {
+  const sendBorrowTx = async (loanAmount: number, selectedBeras: BeraInfo[], duration: number): Promise<string> => {
+    //todo: build args
+    
+    console.log('loanAmount: ', loanAmount)
+    console.log('selectedBeras: ', selectedBeras)
+    console.log('duration: ', duration)
 
-  // }
+    // try {
+    //   const { hash } = await writeContract({
+    //     address: contracts.goldilend.address as `0x${string}`,
+    //     abi: contracts.goldilend.abi,
+    //     functionName: 'borrow',
+    //     args: []
+    //   })
+    // }
+    // catch (e) {
+    //   console.log('user denied tx')
+    //   console.log('or: ', e)
+    // }
+
+    return ''
+  }
 
   return { 
     checkBoostAllowance,
@@ -155,6 +174,7 @@ export const useGoldilendTx = () => {
     sendGoldilendNFTApproveTx,
     sendBoostTx,
     sendExtendBoostTx,
-    sendWithdrawBoostTx 
+    sendWithdrawBoostTx,
+    sendBorrowTx
   }
 }

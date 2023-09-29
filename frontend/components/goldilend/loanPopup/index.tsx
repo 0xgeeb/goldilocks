@@ -1,4 +1,4 @@
-import { useGoldilend } from "../../../providers"
+import { useGoldilend, useNotification } from "../../../providers"
 import { useGoldilendTx } from "../../../hooks/goldilend"
 
 type PopupProp = {
@@ -11,10 +11,35 @@ export const LoanPopup = ({ setPopupToggle }: PopupProp) => {
     loanAmount,
     loanExpiration,
     selectedBeras,
-    getOwnedBeras
+    setLoanPopupToggle
   } = useGoldilend()
 
-  // const { send}
+  const { sendBorrowTx } = useGoldilendTx()
+  const { openNotification } = useNotification()
+
+  const parseDate = (dateString: string): number => {
+    const dateParts = dateString.split('-')
+    const [month, day, year] = dateParts.map(Number);
+    const parsedDate = new Date(year, month - 1, day)
+    const timestamp = parsedDate.getTime()
+    const timestampDigits = Math.floor(timestamp / 1000)
+    return timestampDigits
+  }
+
+  const handleButtonClick = async () => {
+    const button = document.getElementById('amm-button')
+    const borrowTx = await sendBorrowTx(loanAmount, selectedBeras, parseDate(loanExpiration) - Math.floor(Date.now() / 1000))
+    borrowTx && openNotification({
+      title: 'Successfully Boosted!',
+      hash: borrowTx,
+      direction: 'borrowed',
+      amount: loanAmount,
+      price: 0,
+      page: 'goldilendBorrow'
+    })
+    setLoanPopupToggle(true)
+    button && (button.innerHTML = "create loan")
+  }
 
   return (
     <div className="absolute z-10 top-[20%] left-[40%] h-[60%] w-[20%] bg-white flex flex-col items-center py-8 rounded-xl border-2 border-black font-acme" id="home-button">
@@ -52,6 +77,7 @@ export const LoanPopup = ({ setPopupToggle }: PopupProp) => {
       </div>
       <button 
         className="w-[55%] h-[10%] mt-[10%] mx-auto border-2 border-black rounded-xl text-[22px]"
+        onClick={() => handleButtonClick()}
         id="amm-button"
       >
         create loan
