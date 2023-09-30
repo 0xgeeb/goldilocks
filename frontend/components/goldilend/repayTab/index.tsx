@@ -29,6 +29,10 @@ export const RepayTab = () => {
     return `${month}-${day}-${year}`
   }
 
+  const formatNum = (num: number): string => {
+    return num.toLocaleString('en-US', { maximumFractionDigits: 2 })
+  }
+
   return (
     <div className="h-[95%] mt-[2.5%] w-[100%] flex flex-col py-4 px-6 border-2 border-black rounded-xl bg-white font-acme">
       <h1 className="pb-4 text-[24px] 2xl:text-[30px]">repay loan</h1>
@@ -43,22 +47,36 @@ export const RepayTab = () => {
                   <h1>{loan.liquidated ? 'liquidated' : ''}</h1>
                 </div>
                 <div className="w-[100%] h-[85%] flex flex-row">
-                  <div className="h-[100%] w-[33%] flex flex-row justify-between bg-red-200">
-                    <div className="h-[100%] w-[50%] flex flex-col">
-                      <p>borrowed amount:</p>   
+                  <div className="h-[100%] w-[30%] flex flex-row justify-between bg-red-200">
+                    <div className="h-[100%] w-[50%] flex flex-col pl-1 justify-center">
+                      <p>borrowed $BERA:</p>   
                       <p>interest:</p>
                       <p>expiration:</p>
                     </div>
-                    <div className="h-[100%] w-[50%] flex flex-col">
-                      <p>{loan.borrowedAmount}</p>   
-                      <p>{loan.interest}</p>   
+                    <div className="h-[100%] w-[50%] flex flex-col justify-center items-end pr-4">
+                      <p>{formatNum(loan.borrowedAmount)}</p>   
+                      <p>{formatNum(loan.interest)}</p>   
                       <p>{formatDate(loan.endDate)}</p>
                     </div>
                   </div>
-                  <div className="h-[100%] w-[33%] bg-red-300">
-
+                  <div className="h-[100%] w-[40%] bg-red-300">
+                    <div className="w-[100%] h-[15%]">
+                      <h1>collateral</h1>
+                    </div>
+                    <div className="w-[100%] h-[85%] flex flex-row items-center overflow-x-auto" id="hide-scrollbar">
+                      {
+                        loan.collateralNFTs.map((nft) => (
+                          <img
+                            className=""
+                            id="home-button"
+                            src={'todo: use ternanry with ipfs'}
+                            alt="collateral"
+                          />
+                        ))
+                      }
+                    </div>
                   </div>
-                  <div className="h-[100%] w-[33%] bg-red-400">
+                  <div className="h-[100%] w-[30%] bg-red-400">
                     {/* //todo: disable button if expired */}
                   </div>
                 </div>
