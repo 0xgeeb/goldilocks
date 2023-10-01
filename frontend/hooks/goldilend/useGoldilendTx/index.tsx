@@ -1,12 +1,17 @@
 import { getContract, writeContract, waitForTransaction } from "@wagmi/core"
 import { parseEther, formatEther } from "viem"
 import { contracts } from "../../../utils/addressi"
-import { BeraInfo, PartnerInfo } from "../../../utils/interfaces"
+import { BeraInfo, LoanData, PartnerInfo } from "../../../utils/interfaces"
 import { useWallet } from "../../../providers"
 
 export const useGoldilendTx = () => {
 
   const { wallet } = useWallet()
+
+  const goldilendContract = getContract({
+    address: contracts.goldilend.address as `0x${string}`,
+    abi: contracts.goldilend.abi
+  })
 
   const bondbearContract = getContract({
     address: contracts.bondbear.address as `0x${string}`,
@@ -53,11 +58,16 @@ export const useGoldilendTx = () => {
     return [boAA, baAA]
   }
 
-  const checkRepayAllowance = async (): Promise<boolean> => {
+  const checkRepayAllowance = async (amt: number): Promise<boolean> => {
     const beraAllowance = await beraContract.read.allowance([wallet, contracts.goldilend.address])
     const allowanceNum = parseFloat(formatEther(beraAllowance as unknown as bigint))
-    
-    return true
+  
+    if(amt > allowanceNum) {
+      return false
+    }
+    else {
+      return true
+    }
   }
   
   const sendGoldilendNFTApproveTx = async (nft: string) => {
@@ -67,6 +77,21 @@ export const useGoldilendTx = () => {
         abi: contracts.bondbear.abi,
         functionName: 'setApprovalForAll',
         args: [contracts.goldilend.address, true]
+      })
+    }
+    catch (e) {
+      console.log('user denied tx')
+      console.log('or: ', e)
+    }
+  }
+
+  const sendBeraApproveTx = async (amt: number) => {
+    try {
+      await writeContract({
+        address: contracts.bera.address as `0x${string}`,
+        abi: contracts.bera.abi,
+        functionName: 'approve',
+        args: [contracts.goldilend.address, parseEther(`${amt}`)]
       })
     }
     catch (e) {
@@ -199,13 +224,15 @@ export const useGoldilendTx = () => {
     return ''
   }
 
-  const sendRepayTx = async (repayAmount: number, loanId: number): Promise<string> => {
+  const sendRepayTx = async (loanId: number): Promise<string> => {
+    const loan = await goldilendContract.read.lookupLoan([wallet, loanId])
+    const userLoan = loan as unknown as LoanData
     try {
       const { hash } = await writeContract({
         address: contracts.goldilend.address as `0x${string}`,
         abi: contracts.goldilend.abi,
         functionName: 'repay',
-        args: [parseEther(`${repayAmount}`), loanId]
+        args: [userLoan.borrowedAmount.toString(), loanId]
       })
       const data = await waitForTransaction({ hash })
       return data.transactionHash
@@ -226,6 +253,8 @@ export const useGoldilendTx = () => {
     sendExtendBoostTx,
     sendWithdrawBoostTx,
     sendBorrowTx,
-    sendRepayTx
+    sendRepayTx,
+    checkRepayAllowance,
+    sendBeraApproveTx
   }
 }

@@ -13,9 +13,6 @@ export const useGammTx = () => {
     const allowance = await honeyContract.read.allowance([wallet, contracts.gamm.address])
     const allowanceNum = parseFloat(formatEther(allowance as unknown as bigint))
 
-    console.log('allowanceNum: ', allowanceNum)
-    console.log('amount: ', amt)
-    
     if(amt > allowanceNum) {
       return false
     }

@@ -15,6 +15,12 @@ export const RepayTab = () => {
     findLoans
   } = useGoldilend()
 
+  const {
+    checkRepayAllowance,
+    sendBeraApproveTx,
+    sendRepayTx
+  } = useGoldilendTx()
+
   const { openNotification } = useNotification()
   const { isConnected } = useWallet()
 
@@ -22,6 +28,10 @@ export const RepayTab = () => {
     findLoans()
     setInfoLoading(false)
   }, [isConnected])
+
+  const loadingElement = () => {
+    return <span className="loader-small mx-auto"></span>
+  }
 
   const formatDate = (timestamp: number): string => {
     const date = new Date(timestamp * 1000)
@@ -44,23 +54,46 @@ export const RepayTab = () => {
 
   const handleButtonClick = async (index: number) => {
     const id = `repay-button${index}`
+    const borrowed = goldilendInfo.userLoans[index].borrowedAmount
+    const loanId = goldilendInfo.userLoans[index].loanId
     const button = document.getElementById(id)
     if(!checkExpiry(goldilendInfo.userLoans[index].endDate)) {
       button && (button.innerHTML = "loan expired")
       return
     }
-    // const beraFlag = await checkRepayAllowance()
+    const beraFlag = await checkRepayAllowance(borrowed)
+    if(beraFlag) {
+      button && (button.innerHTML = "repaying...")
+      const repayTx = await sendRepayTx(loanId)
+      repayTx && openNotification({
+        title: `Successfully Repaid Loan #${loanId}`,
+        hash: repayTx,
+        direction: 'repaid',
+        amount: borrowed,
+        price: 0,
+        page: 'goldilend'
+      })
+      button && (button.innerHTML = "repaid")
+      findLoans()
+    }
+    else {
+      button && (button.innerHTML = "approving...")
+      await sendBeraApproveTx(borrowed)
+      setTimeout(() => {
+        button && (button.innerHTML = "repay loan")
+      }, 10000)
+    }
   }
 
   return (
     <div className="h-[95%] mt-[2.5%] w-[100%] flex flex-col py-4 px-6 border-2 border-black rounded-xl bg-white font-acme">
       <h1 className="pb-4 text-[24px] 2xl:text-[30px]">repay loan</h1>
-      <div className="w-[100%] h-[85%] mt-2">
+      { infoLoading ? loadingElement() : <div className="w-[100%] h-[85%] mt-2">
         <h2 onClick={() => console.log(goldilendInfo.userLoans)} className="ml-2 text-[18px] 2xl:text-[24px]">your loans</h2>
         <div className="w-[100%] h-[90%] mt-[1%] flex flex-wrap overflow-y-auto" id="hide-scrollbar">
           {
             goldilendInfo.userLoans.map((loan, index) => (
-              <div className="w-[100%] h-[40%] mb-[1%] flex flex-col px-6 py-2 rounded-xl border-2 border-black bg-slate-100" key={index}>
+              <div className={`w-[100%] h-[40%] mb-[1%] flex flex-col px-6 py-2 rounded-xl border-2 border-black ${loan.borrowedAmount > 0 ? "bg-slate-200" : "bg-slate-400"}`} key={index}>
                 <div className="w-[100%] h-[15%] flex flex-row justify-between">
                   <h1>loan # {loan.loanId}</h1>
                 </div>
@@ -94,8 +127,7 @@ export const RepayTab = () => {
                       }
                     </div>
                   </div>
-                  <div className="h-[100%] w-[30%] bg-red-200" id="child-buttons">
-                    {/* //todo: disable button if expired */}
+                  <div className="h-[100%] w-[30%] relative" id="child-buttons">
                     <ConnectButton.Custom>
                       {({
                         account,
@@ -105,7 +137,7 @@ export const RepayTab = () => {
                       }) => {
                         return (
                           <button
-                            className="h-[60%] w-[50%] mt-[2.5%] ml-[50%] rounded-xl px-4 2xl:px-6 border-2 border-black hover:scale-110 font-acme text-[20px] 2xl:text-[24px]"
+                            className={`absolute right-[5%] bottom-[15%] h-[30%] w-[50%] rounded-xl border-2 border-black hover:scale-110 ${loan.borrowedAmount > 0 ? "" : "opacity-50"}`}
                             id={`repay-button${index}`}
                             onClick={() => {
                               const id = `repay-button${index}`
@@ -132,7 +164,7 @@ export const RepayTab = () => {
                               }
                             }}
                           >
-                            repay loan
+                            {loan.borrowedAmount > 0 ? "repay loan" : "repaid"}
                           </button>
                         )
                       }}
@@ -143,7 +175,7 @@ export const RepayTab = () => {
             ))
           }
         </div>
-      </div>
+      </div> }
     </div>
   )
 }
