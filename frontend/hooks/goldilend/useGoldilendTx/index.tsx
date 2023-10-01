@@ -27,6 +27,11 @@ export const useGoldilendTx = () => {
     address: contracts.beradrome.address as `0x${string}`,
     abi: contracts.beradrome.abi
   })
+
+  const beraContract = getContract({
+    address: contracts.bera.address as `0x${string}`,
+    abi: contracts.bera.abi
+  })
   
   const checkBoostAllowance = async (): Promise<boolean[]> => {
     const honeycombAllApproved = await honeycombContract.read.isApprovedForAll([wallet, contracts.goldilend.address])
@@ -47,6 +52,13 @@ export const useGoldilendTx = () => {
 
     return [boAA, baAA]
   }
+
+  const checkRepayAllowance = async (): Promise<boolean> => {
+    const beraAllowance = await beraContract.read.allowance([wallet, contracts.goldilend.address])
+    const allowanceNum = parseFloat(formatEther(beraAllowance as unknown as bigint))
+    
+    return true
+  }
   
   const sendGoldilendNFTApproveTx = async (nft: string) => {
     try {
@@ -64,7 +76,6 @@ export const useGoldilendTx = () => {
   }
 
   const sendBoostTx = async (selectedPartners: PartnerInfo[], expiry: number): Promise<string> => {
-    console.log(selectedPartners)
     if(selectedPartners.length == 1) {
       try {
         const { hash } = await writeContract({
