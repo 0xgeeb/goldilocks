@@ -122,6 +122,7 @@ export const RepayTab = () => {
                             id="home-button"
                             src={nft === contracts.bondbear.address ? 'https://ipfs.io/ipfs/QmSaVWb15oQ1HcsUjGGkjwHQ1mxJBYeivtBCgHHHiVLt7w' : 'https://ipfs.io/ipfs/QmNWggx9vvBVEHZc6xwWkdyymoKuXCYrJ3zQwwKzocDxRt'}
                             alt="collateral"
+                            key={nft}
                           />
                         ))
                       }

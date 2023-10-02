@@ -222,6 +222,10 @@ export interface LoanInfo {
 }
 
 export interface GoldilendInfo {
+  bera: number;
+  gbera: number;
+  staked: number;
+  claimable: number;
   userBoost: BoostInfo;
   userLoans: LoanInfo[];
 }
@@ -247,9 +251,15 @@ export interface LoanData {
 export interface GoldilendInitialState {
   goldilendInfo: GoldilendInfo;
   loanAmount: number;
-  displayString: string;
-  activeToggle: string;
   borrowLimit: number;
+  lock: number;
+  stake: number;
+  unstake: number;
+  displayString: string;
+  lockDisplayString: string;
+  stakeDisplayString: string;
+  unstakeDisplayString: string;
+  activeToggle: string;
   loanExpiration: string;
   boostExpiration: string;
   changeActiveToggle: (_toggle: string) => void;
@@ -257,6 +267,7 @@ export interface GoldilendInitialState {
   getOwnedPartners: () => {};
   findBoost: () => {};
   findLoans: () => {};
+  findStake: () => {};
   ownedBeras: BeraInfo[];
   ownedPartners: PartnerInfo[];
   selectedBeras: BeraInfo[];
@@ -264,6 +275,7 @@ export interface GoldilendInitialState {
   handleBorrowChange: (_input: string) => void;
   handleLoanDateChange: (_input: string) => void;
   handleBoostDateChange: (_input: string) => void;
+  handleStakeChange: (_input: string, _tab: string) => void;
   handleBeraClick: (_bera: BeraInfo) => void;
   handlePartnerClick: (_bera: PartnerInfo) => void;
   findSelectedBeraIdxs: () => number[];
@@ -272,6 +284,7 @@ export interface GoldilendInitialState {
   loanPopupToggle: boolean;
   setLoanPopupToggle: (_bool: boolean) => void;
   clearOutBoostInputs: () => void;
+  clearOutStakeInputs: () => void;
 }
 
 export interface SideToggleProps {

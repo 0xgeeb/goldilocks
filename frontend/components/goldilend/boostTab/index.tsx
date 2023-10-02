@@ -195,7 +195,7 @@ export const BoostTab = () => {
             {/* todo: add actual calendar select */}
             <input
               className="w-[90%] h-[50%] border-none focus:outline-none pl-4 text-[18px] 2xl:text-[24px]"
-              type="text"
+              type="number"
               id="number-input"
               placeholder="mm-dd-yyyy"
               value={boostExpiration}

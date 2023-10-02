@@ -69,6 +69,30 @@ export const useGoldilendTx = () => {
       return true
     }
   }
+
+  const checkLockAllowance = async (amt: number): Promise<boolean> => {
+    const beraAllowance = await beraContract.read.allowance([wallet, contracts.goldilend.address])
+    const allowanceNum = parseFloat(formatEther(beraAllowance as unknown as bigint))
+
+    if(amt > allowanceNum) {
+      return false
+    }
+    else {
+      return true
+    }
+  }
+
+  const checkStakeAllowance = async (amt: number): Promise<boolean> => {
+    const gberaAllowance = await goldilendContract.read.allowance([wallet, contracts.goldilend.address])
+    const allowanceNum = parseFloat(formatEther(gberaAllowance as unknown as bigint))
+
+    if(amt > allowanceNum) {
+      return false
+    }
+    else {
+      return true
+    }
+  }
   
   const sendGoldilendNFTApproveTx = async (nft: string) => {
     try {
@@ -90,6 +114,21 @@ export const useGoldilendTx = () => {
       await writeContract({
         address: contracts.bera.address as `0x${string}`,
         abi: contracts.bera.abi,
+        functionName: 'approve',
+        args: [contracts.goldilend.address, parseEther(`${amt}`)]
+      })
+    }
+    catch (e) {
+      console.log('user denied tx')
+      console.log('or: ', e)
+    }
+  }
+
+  const sendgBeraApproveTx = async (amt: number) => {
+    try {
+      await writeContract({
+        address: contracts.goldilend.address as `0x${string}`,
+        abi: contracts.goldilend.abi,
         functionName: 'approve',
         args: [contracts.goldilend.address, parseEther(`${amt}`)]
       })
@@ -245,6 +284,82 @@ export const useGoldilendTx = () => {
     return ''
   }
 
+  const sendLockTx = async (lockAmount: number): Promise<string> => {
+    try {
+      const { hash } = await writeContract({
+        address: contracts.goldilend.address as `0x${string}`,
+        abi: contracts.goldilend.abi,
+        functionName: 'lock',
+        args: [parseEther(`${lockAmount}`)]
+      })
+      const data = await waitForTransaction({ hash })
+      return data.transactionHash
+    }
+    catch (e) {
+      console.log('user denied tx')
+      console.log('or: ', e)
+    }
+
+    return ''
+  }
+
+  const sendStakeTx = async (stakeAmount: number): Promise<string> => {
+    try {
+      const { hash } = await writeContract({
+        address: contracts.goldilend.address as `0x${string}`,
+        abi: contracts.goldilend.abi,
+        functionName: 'stake',
+        args: [parseEther(`${stakeAmount}`)]
+      })
+      const data = await waitForTransaction({ hash })
+      return data.transactionHash
+    }
+    catch (e) {
+      console.log('user denied tx')
+      console.log('or: ', e)
+    }
+
+    return ''
+  }
+
+  const sendUnstakeTx = async (unstakeAmount: number): Promise<string> => {
+    try {
+      const { hash } = await writeContract({
+        address: contracts.goldilend.address as `0x${string}`,
+        abi: contracts.goldilend.abi,
+        functionName: 'unstake',
+        args: [parseEther(`${unstakeAmount}`)]
+      })
+      const data = await waitForTransaction({ hash })
+      return data.transactionHash
+    }
+    catch (e) {
+      console.log('user denied tx')
+      console.log('or: ', e)
+    }
+
+    return ''
+  }
+
+  const sendClaimTx = async (): Promise<string> => {
+    try {
+      const { hash } = await writeContract({
+        address: contracts.goldilend.address as `0x${string}`,
+        abi: contracts.goldilend.abi,
+        functionName: 'claim',
+        args: []
+      })
+      const data = await waitForTransaction({ hash })
+      return data.transactionHash
+    }
+    catch (e) {
+      console.log('user denied tx')
+      console.log('or: ', e)
+    }
+
+    return ''
+  }
+
   return { 
     checkBoostAllowance,
     checkLoanAllowance,
@@ -255,6 +370,13 @@ export const useGoldilendTx = () => {
     sendBorrowTx,
     sendRepayTx,
     checkRepayAllowance,
-    sendBeraApproveTx
+    sendBeraApproveTx,
+    sendLockTx,
+    sendStakeTx,
+    sendUnstakeTx,
+    sendClaimTx,
+    checkLockAllowance,
+    checkStakeAllowance,
+    sendgBeraApproveTx
   }
 }

@@ -17,6 +17,10 @@ import {
 
 const INITIAL_STATE: GoldilendInitialState = {
   goldilendInfo: {
+    bera: 0,
+    gbera: 0,
+    staked: 0,
+    claimable: 0,
     userBoost: {
       partnerNFTs: [],
       partnerNFTIds: [],
@@ -27,8 +31,14 @@ const INITIAL_STATE: GoldilendInitialState = {
   },
   loanAmount: 0,
   borrowLimit: 0,
+  lock: 0,
+  stake: 0,
+  unstake: 0,
   displayString: '',
-  activeToggle: 'repay',
+  lockDisplayString: '',
+  stakeDisplayString: '',
+  unstakeDisplayString: '',
+  activeToggle: 'stake',
   loanExpiration: '',
   boostExpiration: '',
   changeActiveToggle: (_toggle: string) => {},
@@ -36,6 +46,7 @@ const INITIAL_STATE: GoldilendInitialState = {
   getOwnedPartners: async () => {},
   findBoost: async () => {},
   findLoans: async () => {},
+  findStake: async () => {},
   ownedBeras: [],
   ownedPartners: [],
   selectedBeras: [],
@@ -43,6 +54,7 @@ const INITIAL_STATE: GoldilendInitialState = {
   handleBorrowChange: (_input: string) => {},
   handleLoanDateChange: (_input: string) => {},
   handleBoostDateChange: (_input: string) => {},
+  handleStakeChange: (_input: string, _tab: string) => {},
   handleBeraClick: (_bera: BeraInfo) => {},
   handlePartnerClick: (_partner: PartnerInfo) => {},
   findSelectedBeraIdxs: () => [],
@@ -50,7 +62,8 @@ const INITIAL_STATE: GoldilendInitialState = {
   updateBorrowLimit: () => {},
   loanPopupToggle: false,
   setLoanPopupToggle: (_bool: boolean) => {},
-  clearOutBoostInputs: () => {}
+  clearOutBoostInputs: () => {},
+  clearOutStakeInputs: () => {}
 }
 
 const GoldilendContext = createContext(INITIAL_STATE)
@@ -64,6 +77,12 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
   const [goldilendInfoState, setGoldilendInfoState] = useState<GoldilendInfo>(INITIAL_STATE.goldilendInfo)
   const [loanAmountState, setLoanAmountState] = useState<number>(INITIAL_STATE.loanAmount)
   const [displayStringState, setDisplayStringState] = useState<string>(INITIAL_STATE.displayString)
+  const [lockState, setLockState] = useState<number>(INITIAL_STATE.lock)
+  const [stakeState, setStakeState] = useState<number>(INITIAL_STATE.stake)
+  const [unstakeState, setUnstakeState] = useState<number>(INITIAL_STATE.unstake)
+  const [lockDisplayStringState, setLockDisplayStringState] = useState<string>(INITIAL_STATE.lockDisplayString)
+  const [stakeDisplayStringState, setStakeDisplayStringState] = useState<string>(INITIAL_STATE.stakeDisplayString)
+  const [unstakeDisplayStringState, setUnstakeDisplayStringState] = useState<string>(INITIAL_STATE.unstakeDisplayString)
   const [activeToggleState, setActiveToggleState] = useState<string>(INITIAL_STATE.activeToggle)
   const [borrowLimitState, setBorrowLimitState] = useState<number>(INITIAL_STATE.borrowLimit)
   const [loanExpirationState, setLoanExpirationState] = useState<string>(INITIAL_STATE.loanExpiration)
@@ -81,6 +100,11 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
     abi: contracts.goldilend.abi
   })
 
+  const beraContract = getContract({
+    address: contracts.bera.address as `0x${string}`,
+    abi: contracts.bera.abi
+  })
+
   const changeActiveToggle = (toggle: string) => {
     setDisplayStringState('')
     setLoanAmountState(0)
@@ -94,6 +118,15 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
   const clearOutBoostInputs = () => {
     setSelectedPartnersState([])
     setBoostExpirationState('')
+  }
+
+  const clearOutStakeInputs = () => {
+    setLockDisplayStringState('')
+    setStakeDisplayStringState('')
+    setUnstakeDisplayStringState('')
+    setLockState(0)
+    setStakeState(0)
+    setUnstakeState(0)
   }
 
   const handleBorrowChange = (input: string) => {
@@ -304,6 +337,34 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
     }))
   }
 
+  const findStake = async () => {
+    if(!wallet) {
+      return
+    }
+    const beraBalance = await beraContract.read.balanceOf([wallet])
+    const gberaBalance = await goldilendContract.read.balanceOf([wallet])
+    const userStake = await goldilendContract.read.stakes([wallet])
+    let claimableBalance
+
+    const bera = beraBalance as unknown as bigint
+    const gbera = gberaBalance as unknown as bigint
+    const staked = userStake[1] as unknown as bigint
+    let claim: bigint
+
+    if(parseFloat(formatEther(staked)) > 0) {
+      claimableBalance = await goldilendContract.read.getClaimable([wallet])
+      claim = claimableBalance as unknown as bigint
+    }
+
+    setGoldilendInfoState(prev => ({
+      ...prev,
+      bera: parseFloat(formatEther(bera)),
+      gbera: parseFloat(formatEther(gbera)),
+      staked: parseFloat(formatEther(staked)),
+      claimable: claim > 0 ? parseFloat(formatEther(claim)) : 0
+    }))
+  }
+
   const handleBeraClick = (bera: BeraInfo) => {
     const idxArray: number[] = findSelectedBeraIdxs()
     if(idxArray.includes(bera.index)) {
@@ -348,14 +409,35 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
     setBorrowLimitState(limit)
   }
 
+  const handleStakeChange = (input: string, tab: string) => {
+    if(tab === 'lock') {
+      setLockDisplayStringState(input)
+      !input ? setLockState(0) : setLockState(parseFloat(input))
+    }
+    if(tab === 'stake') {
+      setStakeDisplayStringState(input)
+      !input ? setStakeState(0) : setStakeState(parseFloat(input))
+    }
+    if(tab === 'unstake') {
+      setUnstakeDisplayStringState(input)
+      !input ? setUnstakeState(0) : setUnstakeState(parseFloat(input))
+    }
+  }
+
   return (
     <GoldilendContext.Provider
       value={{
         goldilendInfo: goldilendInfoState,
         loanAmount: loanAmountState,
-        displayString: displayStringState,
-        activeToggle: activeToggleState,
         borrowLimit: borrowLimitState,
+        lock: lockState,
+        stake: stakeState,
+        unstake: unstakeState,
+        displayString: displayStringState,
+        lockDisplayString: lockDisplayStringState,
+        stakeDisplayString: stakeDisplayStringState,
+        unstakeDisplayString: unstakeDisplayStringState,
+        activeToggle: activeToggleState,
         loanExpiration: loanExpirationState,
         boostExpiration: boostExpirationState,
         ownedBeras: ownedBerasState,
@@ -369,15 +451,18 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
         getOwnedPartners,
         findBoost,
         findLoans,
+        findStake,
         handleBorrowChange,
         handleLoanDateChange,
         handleBoostDateChange,
+        handleStakeChange,
         updateBorrowLimit,
         handleBeraClick,
         handlePartnerClick,
         findSelectedBeraIdxs,
         findSelectedPartnerIdxs,
-        clearOutBoostInputs
+        clearOutBoostInputs,
+        clearOutStakeInputs
       }}
     >
       { children }

@@ -39,7 +39,11 @@ const Notification = ({ hash, title, direction, amount, price, page }: Notificat
             `you ${direction} with partner NFTs` :
           page === 'goldilend' ?
             `you ${direction} ${amount.toLocaleString('en-US', { maximumFractionDigits: 4 })} $BERA` :
-            ''
+          page === 'goldilend-gbera' ?
+            `you ${direction} ${amount.toLocaleString('en-US', { maximumFractionDigits: 4 })} $gBERA` :
+          page === 'goldilend-claim' ?
+            `you ${direction} $PRG` :
+          ''
         }</h1>
         <a href={`https://goerli.etherscan.io/tx/${hash}`} target="_blank">
           <h1 className="hover:underline">link to tx</h1>

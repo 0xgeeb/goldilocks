@@ -38,14 +38,14 @@ export const StakeBox = () => {
         </div>
         <div className="absolute top-[45%]">
           <input 
-          className="border-none focus:outline-none font-acme rounded-xl text-[34px] 2xl:text-[40px] pl-8 2xl:pl-10" 
-          placeholder="0.00" 
-          type="number" 
-          value={displayString}
-          onChange={(e) => handleChange(e.target.value)} 
-          id="number-input" 
-          autoFocus 
-        />
+            className="border-none focus:outline-none font-acme rounded-xl text-[34px] 2xl:text-[40px] pl-8 2xl:pl-10" 
+            placeholder="0.00" 
+            type="number" 
+            value={displayString}
+            onChange={(e) => handleChange(e.target.value)} 
+            id="number-input" 
+            autoFocus 
+          />
         </div>
         <div className="absolute right-0 bottom-[35%]">
           <h1 
