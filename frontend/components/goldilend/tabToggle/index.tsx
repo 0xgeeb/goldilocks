@@ -24,8 +24,9 @@ export const TabToggle = () => {
           <BoostTab /> :
         activeToggle === 'stake' ?
           <StakeTab /> :
-        activeToggle === 'liquidate' ??
-          <LiquidateTab />
+        activeToggle === 'liquidate' ?
+          <LiquidateTab /> :
+        ''
       }
     </div>
   )

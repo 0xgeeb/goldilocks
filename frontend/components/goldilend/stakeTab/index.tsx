@@ -391,6 +391,7 @@ export const StakeTab = () => {
             </div>
             <div className="w-[100%] flex flex-row justify-between items-center">
               <h1 className="text-[22px]">claimable prg:</h1>
+              {/* todo: this doesnt include boost, can findBoost and calculate from front end */}
               <h1 className="text-[20px]">{formatAsString(goldilendInfo.claimable)}</h1>
             </div>
           </>

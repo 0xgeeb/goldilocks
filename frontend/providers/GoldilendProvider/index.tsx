@@ -27,7 +27,17 @@ const INITIAL_STATE: GoldilendInitialState = {
       boostMagnitude: 0,
       expiry: 0
     },
-    userLoans: []
+    userLoans: [],
+    loanToLiq: {
+      collateralNFTs: [],
+      collateralNFTIds: [],
+      borrowedAmount: 0,
+      interest: 0,
+      duration: 0,
+      endDate: 0,
+      loanId: 0,
+      liquidated: false
+    }
   },
   loanAmount: 0,
   borrowLimit: 0,
@@ -38,7 +48,7 @@ const INITIAL_STATE: GoldilendInitialState = {
   lockDisplayString: '',
   stakeDisplayString: '',
   unstakeDisplayString: '',
-  activeToggle: 'stake',
+  activeToggle: 'liquidate',
   loanExpiration: '',
   boostExpiration: '',
   changeActiveToggle: (_toggle: string) => {},
@@ -47,6 +57,7 @@ const INITIAL_STATE: GoldilendInitialState = {
   findBoost: async () => {},
   findLoans: async () => {},
   findStake: async () => {},
+  findLoan: async (_addy: string, _id: number) => {},
   ownedBeras: [],
   ownedPartners: [],
   selectedBeras: [],
@@ -112,6 +123,7 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
     setBoostExpirationState('')
     setSelectedBerasState([])
     setSelectedPartnersState([])
+    clearOutStakeInputs()
     setActiveToggleState(toggle)
   }
 
@@ -365,6 +377,25 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
     }))
   }
 
+  const findLoan = async (addy: string, id: number) => {
+    const loan = await goldilendContract.read.lookupLoan([addy, id])
+    const loanToBeLiq = loan as unknown as LoanData
+    const loanToLiq = {
+      collateralNFTs: loanToBeLiq.collateralNFTs,
+      collateralNFTIds: loanToBeLiq.collateralNFTIds.map(id => parseInt(id.toString(), 16)),
+      borrowedAmount: parseFloat(formatEther(loanToBeLiq.borrowedAmount)),
+      interest: parseFloat(formatEther(loanToBeLiq.interest)),
+      duration: Number(loanToBeLiq.duration),
+      endDate: Number(loanToBeLiq.endDate),
+      loanId: parseInt(loanToBeLiq.loanId.toString(), 16),
+      liquidated: loanToBeLiq.liquidated
+    }
+    setGoldilendInfoState(prev => ({
+      ...prev,
+      loanToLiq
+    }))
+  }
+
   const handleBeraClick = (bera: BeraInfo) => {
     const idxArray: number[] = findSelectedBeraIdxs()
     if(idxArray.includes(bera.index)) {
@@ -452,6 +483,7 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
         findBoost,
         findLoans,
         findStake,
+        findLoan,
         handleBorrowChange,
         handleLoanDateChange,
         handleBoostDateChange,

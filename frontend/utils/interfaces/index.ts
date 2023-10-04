@@ -228,6 +228,7 @@ export interface GoldilendInfo {
   claimable: number;
   userBoost: BoostInfo;
   userLoans: LoanInfo[];
+  loanToLiq: LoanInfo;
 }
 
 export interface BoostData {
@@ -268,6 +269,7 @@ export interface GoldilendInitialState {
   findBoost: () => {};
   findLoans: () => {};
   findStake: () => {};
+  findLoan: (_addy: string, _id: number) => {};
   ownedBeras: BeraInfo[];
   ownedPartners: PartnerInfo[];
   selectedBeras: BeraInfo[];
