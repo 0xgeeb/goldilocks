@@ -71,6 +71,10 @@ export const LiquidateTab = () => {
       button && (button.innerHTML = "insufficient $BERA")
       return
     }
+    if(goldilendInfo.loanToLiq.liquidated) {
+      button && (button.innerHTML = "liquidated")
+      return
+    }
     const beraAllowance = await checkRepayAllowance(amt)
     if(beraAllowance) {
       button && (button.innerHTML = "liquidating...")
@@ -101,7 +105,7 @@ export const LiquidateTab = () => {
 
   return (
     <div className="h-[95%] mt-[2.5%] w-[100%] flex flex-col py-4 px-6 border-2 border-black rounded-xl bg-white font-acme">
-      <h1 onClick={() => console.log(goldilendInfo)} className="pb-4 text-[24px] 2xl:text-[30px]">liquidate a loan</h1>
+      <h1 className="pb-4 text-[24px] 2xl:text-[30px]">liquidate a loan</h1>
       {
         searchToggle ?
           <div className="h-[50%] w-[100%] flex flex-col items-center">
@@ -142,6 +146,7 @@ export const LiquidateTab = () => {
                 <h1 className="text-[26px]">loan #{goldilendInfo.loanToLiq.loanId}</h1>
                 <h1 className="pl-[3%]">(owner: {searchAddy.slice(0, 6)}...)</h1>
               </div>
+              {goldilendInfo.loanToLiq.liquidated && <h1 className="text-red-500 text-[24px]">liquidated</h1>}
               <div className="flex flex-col">
                 <h1>expiration date</h1>
                 <h1 className="pl-[3%]">{formatDate(goldilendInfo.loanToLiq.endDate)}</h1>

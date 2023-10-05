@@ -263,7 +263,7 @@ export const useGoldilendTx = () => {
     return ''
   }
 
-  const sendRepayTx = async (loanId: number): Promise<string> => {
+  const sendRepayTx = async (repayAmount: number, loanId: number, maxToggle: boolean): Promise<string> => {
     const loan = await goldilendContract.read.lookupLoan([wallet, loanId])
     const userLoan = loan as unknown as LoanData
     try {
@@ -271,7 +271,7 @@ export const useGoldilendTx = () => {
         address: contracts.goldilend.address as `0x${string}`,
         abi: contracts.goldilend.abi,
         functionName: 'repay',
-        args: [userLoan.borrowedAmount.toString(), loanId]
+        args: [maxToggle ? userLoan.borrowedAmount.toString() : parseEther(`${repayAmount}`), loanId]
       })
       const data = await waitForTransaction({ hash })
       return data.transactionHash
