@@ -86,8 +86,11 @@ export const RepayTab = () => {
             price: 0,
             page: 'goldilend'
           })
-          button && (button.innerHTML = "repaid")
+          button && (button.innerHTML = "repay")
           findLoans()
+          setRepayInput(false)
+          setMaxToggle(false)
+          setRepayAmount('')
         }
         else {
           button && (button.innerHTML = "approving...")
