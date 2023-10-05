@@ -129,6 +129,7 @@ export const RepayTab = () => {
                     </div>
                   </div>
                   <div className="h-[100%] w-[30%] relative" id="child-buttons">
+                    {/* todo: add repay amount input */}
                     <ConnectButton.Custom>
                       {({
                         account,

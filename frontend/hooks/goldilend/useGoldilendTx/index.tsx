@@ -360,6 +360,26 @@ export const useGoldilendTx = () => {
     return ''
   }
 
+  const sendLiquidateTx = async (addy: string, id: number): Promise<string> => {
+    try {
+      const { hash } = await writeContract({
+        address: contracts.goldilend.address as `0x${string}`,
+        abi: contracts.goldilend.abi,
+        functionName: 'liquidate',
+        args: [addy, id]
+      })
+      const data = await waitForTransaction({ hash })
+      return data.transactionHash
+    }
+    catch (e) {
+      console.log('user denied tx')
+      console.log('or: ', e)
+    }
+
+
+    return ''
+  }
+
   return { 
     checkBoostAllowance,
     checkLoanAllowance,
@@ -377,6 +397,7 @@ export const useGoldilendTx = () => {
     sendClaimTx,
     checkLockAllowance,
     checkStakeAllowance,
-    sendgBeraApproveTx
+    sendgBeraApproveTx,
+    sendLiquidateTx
   }
 }

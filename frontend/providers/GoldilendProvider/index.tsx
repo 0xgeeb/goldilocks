@@ -390,6 +390,7 @@ export const GoldilendProvider = (props: PropsWithChildren<{}>) => {
       loanId: parseInt(loanToBeLiq.loanId.toString(), 16),
       liquidated: loanToBeLiq.liquidated
     }
+    console.log(loanToLiq)
     setGoldilendInfoState(prev => ({
       ...prev,
       loanToLiq

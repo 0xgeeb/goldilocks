@@ -43,6 +43,8 @@ const Notification = ({ hash, title, direction, amount, price, page }: Notificat
             `you ${direction} ${amount.toLocaleString('en-US', { maximumFractionDigits: 4 })} $gBERA` :
           page === 'goldilend-claim' ?
             `you ${direction} $PRG` :
+          page === 'goldilend-liq' ?
+            `you ${direction} loan #${price} with ${amount} $BERA` :
           ''
         }</h1>
         <a href={`https://goerli.etherscan.io/tx/${hash}`} target="_blank">
