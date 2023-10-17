@@ -179,13 +179,14 @@ export const StakeTab = () => {
         <div className="w-[100%] h-[25%] relative px-6 py-4">
           <h1 className="text-[22px]">lock $BERA</h1>
           <input
-            className="w-[30%] border-none focus:outline-none text-[20px] pl-8 mt-4"
+            className="w-[30%] focus:outline-none text-[20px] pl-4 ml-4 mt-4 border-2 border-black rounded-xl"
             value={lockDisplayString}
             onChange={(e) => handleStakeChange(e.target.value, 'lock')}
             placeholder="0.00"
             type="number"
             id="number-input"
           />
+          <h1 className="pt-2 ml-6 cursor-pointer hover:scale-105" onClick={() => handleStakeChange(goldilendInfo.bera.toFixed(2), 'lock')}>balance: {formatAsString(goldilendInfo.bera)}</h1>
           <ConnectButton.Custom>
             {({
               account,
@@ -230,13 +231,14 @@ export const StakeTab = () => {
         <div className="w-[100%] h-[25%] relative px-6 py-4">
           <h1 className="text-[22px]">stake $gBERA</h1>
           <input
-            className="w-[30%] border-none focus:outline-none text-[20px] pl-8 mt-4"
+            className="w-[30%] focus:outline-none text-[20px] pl-4 ml-4 mt-4 border-2 border-black rounded-xl"
             value={stakeDisplayString}
             onChange={(e) => handleStakeChange(e.target.value, 'stake')}
             placeholder="0.00"
             type="number"
             id="number-input"
           />
+          <h1 className="pt-2 ml-6 cursor-pointer hover:scale-105" onClick={() => handleStakeChange(goldilendInfo.gbera.toFixed(2), 'stake')}>balance: {formatAsString(goldilendInfo.gbera)}</h1>
           <ConnectButton.Custom>
             {({
               account,
@@ -281,13 +283,14 @@ export const StakeTab = () => {
         <div className="w-[100%] h-[25%] relative px-6 py-4">
           <h1 className="text-[22px]">unstake $gBERA</h1>
           <input
-            className="w-[30%] border-none focus:outline-none text-[20px] pl-8 mt-4"
+            className="w-[30%] focus:outline-none text-[20px] pl-4 ml-4 mt-4 border-2 border-black rounded-xl"
             value={unstakeDisplayString}
             onChange={(e) => handleStakeChange(e.target.value, 'unstake')}
             placeholder="0.00"
             type="number"
             id="number-input"
           />
+          <h1 className="pt-2 ml-6 cursor-pointer hover:scale-105" onClick={() => handleStakeChange(goldilendInfo.staked.toFixed(2), 'unstake')}>balance: {formatAsString(goldilendInfo.staked)}</h1>
           <ConnectButton.Custom>
             {({
               account,

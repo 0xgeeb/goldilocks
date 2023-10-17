@@ -48,7 +48,7 @@ const INITIAL_STATE: GoldilendInitialState = {
   lockDisplayString: '',
   stakeDisplayString: '',
   unstakeDisplayString: '',
-  activeToggle: 'liquidate',
+  activeToggle: 'loan',
   loanExpiration: '',
   boostExpiration: '',
   changeActiveToggle: (_toggle: string) => {},
