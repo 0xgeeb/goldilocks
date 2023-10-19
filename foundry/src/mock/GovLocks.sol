@@ -13,52 +13,30 @@ pragma solidity ^0.8.19;
 // |                                                                                            |
 // |============================================================================================|
 // ==============================================================================================
-// ========================================= GoldiGov ===========================================
+// ========================================= GovLocks ===========================================
 // ==============================================================================================
 
-
-import { FixedPointMathLib } from "../../lib/solady/src/utils/FixedPointMathLib.sol";
-import { SafeTransferLib } from "../../lib/solady/src/utils/SafeTransferLib.sol";
 import { ERC20 } from "../../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
-import { IERC20 } from "../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import { IERC20 } from "../../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import { ERC20Permit } from "../../lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Permit.sol";
+import { ERC20Votes } from "../../lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Votes.sol";
+import { ERC20Wrapper } from "../../lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Wrapper.sol";
+import { Nonces } from "../../lib/openzeppelin-contracts/contracts/utils/Nonces.sol";
 
+contract GovLocks is ERC20, ERC20Permit, ERC20Votes, ERC20Wrapper {
+  constructor(
+    IERC20 govlocks
+  ) ERC20("GovLocks", "gLocks") ERC20Permit("GovLocks") ERC20Wrapper(govlocks) {}
 
-/// @title GoldiGov
-/// @notice Goldilocks Governance
-/// @author geeb
-/// @author ampnoob
-contract GoldiGov {
-  
-  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-  /*                            STRUCT                          */
-  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
-
-
-  struct Proposal {
-    uint256 id;
-    uint256 startDate;
-    uint256 votesFor;
-    uint256 votesAgainst;
-    bool concluded;
-    bool passed;
-    string contents;
-    mapping(address => bool) voted;
+  function decimals() public view override(ERC20, ERC20Wrapper) returns (uint8) {
+    return super.decimals();
   }
 
-  uint256 public proposalIds;
-  mapping(uint256 => Proposal) proposals;
-  address THJ;
-  bool liveProposal;
-
-  function createProposal(string calldata message) external {
-
+  function _update(address from, address to, uint256 amount) internal override(ERC20, ERC20Votes) {
+    super._update(from, to, amount);
   }
 
-  function vote(uint256 id, bool support) external {
-
-  }
-
-  function conclude(uint256 id) external {
-    
+  function nonces(address owner) public view virtual override(ERC20Permit, Nonces) returns (uint256) {
+    return super.nonces(owner);
   }
 }
