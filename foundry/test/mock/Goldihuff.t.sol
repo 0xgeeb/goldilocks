@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "../lib/foundry-huff/src/HuffDeployer.sol";
-import "../lib/forge-std/src/Test.sol";
+import "../../lib/foundry-huff/src/HuffDeployer.sol";
+import "../../lib/forge-std/src/Test.sol";
 
 contract GoldihuffTest is Test {
 
