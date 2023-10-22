@@ -58,16 +58,19 @@ contract Porridge is ERC20("Porridge Token", "PRG"), ReentrancyGuard {
   /// @notice Constructor of this contract
   /// @param _gammAddress Address of the GAMM
   /// @param _borrowAddress Address of the Borrow contract
+  /// @param _goldilendAddress Address of the Goldilend contract
   /// @param _adminAddress Address of the GoldilocksDAO multisig
   /// @param _honeyAddress Address of the HONEY contract
   constructor(
     address _gammAddress, 
-    address _borrowAddress, 
+    address _borrowAddress,
+    address _goldilendAddress,
     address _adminAddress, 
     address _honeyAddress
   ) {
     gammAddress = _gammAddress;
     borrowAddress = _borrowAddress;
+    goldilendAddress = _goldilendAddress;
     adminAddress = _adminAddress;
     honeyAddress = _honeyAddress;
   }
@@ -103,12 +106,6 @@ contract Porridge is ERC20("Porridge Token", "PRG"), ReentrancyGuard {
   /// @notice Ensures msg.sender is the goldilend address
   modifier onlyGoldilend() {
     if(msg.sender != goldilendAddress) revert NotGoldilend();
-    _;
-  }
-
-  /// @notice Ensures msg.sender is the admin address
-  modifier onlyAdmin() {
-    if(msg.sender != adminAddress) revert NotAdmin();
     _;
   }
 
@@ -242,9 +239,4 @@ contract Porridge is ERC20("Porridge Token", "PRG"), ReentrancyGuard {
     _mint(to, amount);
   }
 
-  /// @notice Set address of Goldilend contract
-  /// @param _goldilendAddress Address of Goldilend contract
-  function setGoldilendAddress(address _goldilendAddress) external onlyAdmin {
-    goldilendAddress = _goldilendAddress;
-  }
 }

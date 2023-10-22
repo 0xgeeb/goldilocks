@@ -43,10 +43,11 @@ contract PorridgeTest is Test {
 
   function setUp() public {
     Porridge porridgeComputed = Porridge(address(this).computeAddress(4));
+    Goldilend goldilendComputed = Goldilend(address(this).computeAddress(11));
     honey = new Honey();
     gamm = new GAMM(address(this), address(honey));
     borrow = new Borrow(address(gamm), address(porridgeComputed), address(honey));
-    porridge = new Porridge(address(gamm), address(borrow), address(this), address(honey));
+    porridge = new Porridge(address(gamm), address(borrow), address(goldilendComputed), address(this), address(honey));
 
     gamm.setPorridgeAddress(address(porridge));
     gamm.setBorrowAddress(address(borrow));
@@ -90,8 +91,6 @@ contract PorridgeTest is Test {
     goldilend.setValue(100e18, nfts, values);
     deal(address(bera), address(goldilend), startingPoolSize);
     deal(address(bera), address(consensusvault), type(uint256).max / 2);
-
-    porridge.setGoldilendAddress(address(goldilend));
   }
 
   modifier dealandStake100Locks() {
@@ -110,6 +109,11 @@ contract PorridgeTest is Test {
   modifier dealGammMaxHoney() {
     deal(address(honey), address(gamm), type(uint256).max);
     _;
+  }
+
+  function testSanity() public {
+    console.log(address(goldilend));
+    console.log(porridge.goldilendAddress());
   }
 
   function testNotGoldilend() public { 
@@ -261,12 +265,6 @@ contract PorridgeTest is Test {
     uint256 claimable = porridge.getClaimable(address(this));
 
     assertEq(claimable, OneDayofYield);
-  }
-
-  function testSetGoldilendAddress() public {
-    porridge.setGoldilendAddress(address(goldilend));
-
-    assertEq(address(goldilend), porridge.goldilendAddress());
   }
 
   function testGoldilendMint() public {

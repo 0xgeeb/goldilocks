@@ -50,6 +50,7 @@ contract GoldilendTest is Test, IERC721Receiver {
 
   function setUp() public {
     Porridge porridgeComputed = Porridge(address(this).computeAddress(10));
+    Goldilend goldilendComputed = Goldilend(address(this).computeAddress(11));
     honey = new Honey();
     bera = new Bera();
     honeycomb = new HoneyComb();
@@ -60,7 +61,7 @@ contract GoldilendTest is Test, IERC721Receiver {
   
     gamm = new GAMM(address(this), address(honey));
     borrow = new Borrow(address(gamm), address(porridgeComputed), address(honey));
-    porridge = new Porridge(address(gamm), address(borrow), address(this), address(honey));
+    porridge = new Porridge(address(gamm), address(borrow), address(goldilendComputed), address(this), address(honey));
 
     gamm.setPorridgeAddress(address(porridge));
     gamm.setBorrowAddress(address(borrow));
@@ -100,8 +101,6 @@ contract GoldilendTest is Test, IERC721Receiver {
     goldilend.setValue(100e18, nfts, values);
     deal(address(bera), address(goldilend), startingPoolSize);
     deal(address(bera), address(consensusvault), type(uint256).max / 2);
-
-    porridge.setGoldilendAddress(address(goldilend));
   }
 
   modifier dealUserBera() {

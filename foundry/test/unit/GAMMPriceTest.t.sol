@@ -7,6 +7,7 @@ import { Honey } from "../../src/mock/Honey.sol";
 import { GAMM } from "../../src/core/GAMM.sol";
 import { Borrow } from "../../src/core/Borrow.sol";
 import { Porridge } from "../../src/core/Porridge.sol";
+import { Goldilend } from "../../src/core/Goldilend.sol";
 
 contract GAMMPriceTest is Test {
 
@@ -19,10 +20,11 @@ contract GAMMPriceTest is Test {
 
   function setUp() public {
     Porridge porridgeComputed = Porridge(address(this).computeAddress(4));
+    Goldilend goldilendComputed = Goldilend(address(this).computeAddress(13));
     honey = new Honey();
     gamm = new GAMM(address(this), address(honey));
     borrow = new Borrow(address(gamm), address(porridgeComputed), address(honey));
-    porridge = new Porridge(address(gamm), address(borrow), address(this), address(honey));
+    porridge = new Porridge(address(gamm), address(borrow), address(goldilendComputed), address(this), address(honey));
 
     gamm.setPorridgeAddress(address(porridge));
     gamm.setBorrowAddress(address(borrow));

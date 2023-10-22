@@ -7,6 +7,7 @@ import { Porridge } from "../src/core/Porridge.sol";
 import { GAMM } from  "../src/core/GAMM.sol";
 import { Borrow } from "../src/core/Borrow.sol";
 import { Honey } from "../src/mock/Honey.sol";
+import { Goldilend } from "../src/core/Goldilend.sol";
 
 contract DeployDScript is Script {
 
@@ -23,11 +24,12 @@ contract DeployDScript is Script {
     vm.startBroadcast(deployerPrivateKey);
 
     Porridge porridgeComputed = Porridge(address(this).computeAddress(2));
+    Goldilend goldilendComputed = Goldilend(address(this).computeAddress(13));
 
     honey = new Honey();
     gamm = new GAMM(address(admin), address(honey));
     borrow = new Borrow(address(gamm), address(porridgeComputed), address(honey));
-    porridge = new Porridge(address(gamm), address(borrow), address(admin), address(honey));
+    porridge = new Porridge(address(gamm), address(borrow), address(goldilendComputed), address(admin), address(honey));
 
     gamm.setPorridgeAddress(address(porridge));
     gamm.setBorrowAddress(address(borrow));
