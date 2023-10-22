@@ -10,16 +10,17 @@ import { Honey } from "../src/mock/Honey.sol";
 
 contract DeployDScript is Script {
 
+  using LibRLP for address;
+
   Porridge porridge;
   GAMM gamm;
   Borrow borrow;
   Honey honey;
-  // address admin = 0x50A7dd4778724FbED41aCe9B3d3056a7B36E874C;
-  address admin = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
+  address admin = 0x50A7dd4778724FbED41aCe9B3d3056a7B36E874C;
   uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
 
   function run() external {
-    vm.startBroadcast(0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80);
+    vm.startBroadcast(deployerPrivateKey);
 
     honey = new Honey();
     gamm = new GAMM(address(admin), address(honey));
