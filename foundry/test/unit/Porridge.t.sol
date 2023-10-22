@@ -45,7 +45,7 @@ contract PorridgeTest is Test {
     Porridge porridgeComputed = Porridge(address(this).computeAddress(4));
     honey = new Honey();
     gamm = new GAMM(address(this), address(honey));
-    borrow = new Borrow(address(gamm), address(porridgeComputed), address(this), address(honey));
+    borrow = new Borrow(address(gamm), address(porridgeComputed), address(honey));
     porridge = new Porridge(address(gamm), address(borrow), address(this), address(honey));
 
     gamm.setPorridgeAddress(address(porridge));

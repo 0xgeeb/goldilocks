@@ -27,7 +27,7 @@ contract BorrowTest is Test {
     Porridge porridgeComputed = Porridge(address(this).computeAddress(4));
     honey = new Honey();
     gamm = new GAMM(address(this), address(honey));
-    borrow = new Borrow(address(gamm), address(porridgeComputed), address(this), address(honey));
+    borrow = new Borrow(address(gamm), address(porridgeComputed), address(honey));
     porridge = new Porridge(address(gamm), address(borrow), address(this), address(honey));
 
     gamm.setPorridgeAddress(address(porridge));
@@ -45,12 +45,6 @@ contract BorrowTest is Test {
     deal(address(honey), address(gamm), type(uint256).max);
     _;
   }
-
-  // function testNotAdmin() public dealandStake100Locks dealGammMaxHoney {
-  //   vm.prank(address(0x01));
-  //   vm.expectRevert(NotAdminSelector);
-  //   borrow.setPorridgeAddress(address(0x01));
-  // }
 
   function testSanity() public {
     console.log(address(porridge));
@@ -116,10 +110,5 @@ contract BorrowTest is Test {
 
     assertEq(locked, 0);
   }
-
-  // function testPorridgeAddress() public {
-  //   borrow.setPorridgeAddress(address(0x01));
-  //   assertEq(address(0x01), borrow.porridgeAddress());
-  // }
 
 }

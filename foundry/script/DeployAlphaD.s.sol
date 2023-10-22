@@ -26,8 +26,7 @@ contract DeployDScript is Script {
 
     honey = new Honey();
     gamm = new GAMM(address(admin), address(honey));
-    borrow = new Borrow(address(gamm), address(porridgeComputed), address(admin), address(honey));
-    // borrow = new Borrow(address(gamm), address(admin), address(honey));
+    borrow = new Borrow(address(gamm), address(porridgeComputed), address(honey));
     porridge = new Porridge(address(gamm), address(borrow), address(admin), address(honey));
 
     gamm.setPorridgeAddress(address(porridge));

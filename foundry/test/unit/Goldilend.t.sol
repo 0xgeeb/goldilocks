@@ -59,7 +59,7 @@ contract GoldilendTest is Test, IERC721Receiver {
     consensusvault = new ConsensusVault(address(bera));
   
     gamm = new GAMM(address(this), address(honey));
-    borrow = new Borrow(address(gamm), address(porridgeComputed), address(this), address(honey));
+    borrow = new Borrow(address(gamm), address(porridgeComputed), address(honey));
     porridge = new Porridge(address(gamm), address(borrow), address(this), address(honey));
 
     gamm.setPorridgeAddress(address(porridge));

@@ -40,7 +40,6 @@ contract Borrow {
 
   address public gammAddress;
   address public porridgeAddress;
-  address public adminAddress;
   address public honeyAddress;
 
 
@@ -52,17 +51,14 @@ contract Borrow {
   /// @notice Constructor of this contract
   /// @param _gammAddress Address of the GAMM
   /// @param _porridgeAddress Address of Porridge
-  /// @param _adminAddress Address of the GoldilocksDAO multisig
   /// @param _honeyAddress Address of the HONEY contract
   constructor(
     address _gammAddress,
     address _porridgeAddress,
-    address _adminAddress,
     address _honeyAddress 
   ) {
     gammAddress = _gammAddress;
     porridgeAddress = _porridgeAddress;
-    adminAddress = _adminAddress;
     honeyAddress = _honeyAddress;
   }
 
@@ -84,18 +80,6 @@ contract Borrow {
 
   event Borrowed(address indexed user, uint256 amount);
   event Repaid(address indexed user, uint256 amount);
-
-
-  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-  /*                         MODIFIERS                          */
-  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
-
-
-  /// @notice Ensures msg.sender is the admin address
-  modifier onlyAdmin() {
-    if(msg.sender != adminAddress) revert NotAdmin();
-    _;
-  }
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
