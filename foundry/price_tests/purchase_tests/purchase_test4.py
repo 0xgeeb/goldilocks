@@ -1,5 +1,5 @@
 import random
-from eth_abi import encode_single
+from eth_abi import encode
 #this test varies the initial psl, fsl and supply
 fsl = 8700000
 supply = 2364
@@ -124,5 +124,5 @@ while(bought < 8000):
   # print("Price:", market_price, "Floor price:", floor_price)
 
 market_price *= (10 ** 18)
-enc = encode_single('uint256', int(market_price))
+enc = encode(['uint256'], [int(market_price)])
 print("0x" + enc.hex())

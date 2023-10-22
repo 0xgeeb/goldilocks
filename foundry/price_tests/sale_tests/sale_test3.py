@@ -1,5 +1,5 @@
 import random
-from eth_abi import encode_single
+from eth_abi import encode
 #assuming 1 million dollar presale and 1000 initial supply
 fsl = 800000
 supply = 1000
@@ -116,5 +116,5 @@ while(sold < 975):
   sold += 25
 
 market_price *= (10 ** 18)
-enc = encode_single('uint256', int(market_price))
+enc = encode(['uint256'], [int(market_price)])
 print("0x" + enc.hex())

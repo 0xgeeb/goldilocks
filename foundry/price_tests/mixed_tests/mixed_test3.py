@@ -1,5 +1,5 @@
 import random
-from eth_abi import encode_single
+from eth_abi import encode
 #varing initial fsl/psl/supply
 fsl = 973000
 supply = 6780
@@ -140,5 +140,5 @@ buy(123)
 floor_raise()
 
 market_price *= (10 ** 18)
-enc = encode_single('uint256', int(market_price))
+enc = encode(['uint256'], [int(market_price)])
 print("0x" + enc.hex())
