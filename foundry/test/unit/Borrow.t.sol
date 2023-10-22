@@ -2,12 +2,15 @@
 pragma solidity ^0.8.19;
 
 import "../../lib/forge-std/src/Test.sol";
+import { LibRLP } from "../../lib/solady/src/utils/LibRLP.sol";
 import { Honey } from "../../src/mock/Honey.sol";
 import { GAMM } from "../../src/core/GAMM.sol";
 import { Borrow } from "../../src/core/Borrow.sol";
 import { Porridge } from "../../src/core/Porridge.sol";
 
 contract BorrowTest is Test {
+
+  using LibRLP for address;
 
   Honey honey;
   GAMM gamm;
@@ -21,14 +24,14 @@ contract BorrowTest is Test {
   bytes4 ExcessiveRepaySelector = 0x7bc3c3ef;
 
   function setUp() public {
+    Porridge porridgeComputed = Porridge(address(this).computeAddress(4));
     honey = new Honey();
     gamm = new GAMM(address(this), address(honey));
-    borrow = new Borrow(address(gamm), address(this), address(honey));
+    borrow = new Borrow(address(gamm), address(porridgeComputed), address(this), address(honey));
     porridge = new Porridge(address(gamm), address(borrow), address(this), address(honey));
 
     gamm.setPorridgeAddress(address(porridge));
     gamm.setBorrowAddress(address(borrow));
-    borrow.setPorridgeAddress(address(porridge));
   }
 
   modifier dealandStake100Locks() {
@@ -43,10 +46,15 @@ contract BorrowTest is Test {
     _;
   }
 
-  function testNotAdmin() public dealandStake100Locks dealGammMaxHoney {
-    vm.prank(address(0x01));
-    vm.expectRevert(NotAdminSelector);
-    borrow.setPorridgeAddress(address(0x01));
+  // function testNotAdmin() public dealandStake100Locks dealGammMaxHoney {
+  //   vm.prank(address(0x01));
+  //   vm.expectRevert(NotAdminSelector);
+  //   borrow.setPorridgeAddress(address(0x01));
+  // }
+
+  function testSanity() public {
+    console.log(address(porridge));
+    console.log(borrow.porridgeAddress());
   }
 
   function testBorrowLimit() public dealandStake100Locks dealGammMaxHoney {
@@ -109,9 +117,9 @@ contract BorrowTest is Test {
     assertEq(locked, 0);
   }
 
-  function testPorridgeAddress() public {
-    borrow.setPorridgeAddress(address(0x01));
-    assertEq(address(0x01), borrow.porridgeAddress());
-  }
+  // function testPorridgeAddress() public {
+  //   borrow.setPorridgeAddress(address(0x01));
+  //   assertEq(address(0x01), borrow.porridgeAddress());
+  // }
 
 }

@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import "../../lib/forge-std/src/Test.sol";
+import { LibRLP } from "../../lib/solady/src/utils/LibRLP.sol";
 import { IERC721 } from "../../lib/openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
 import { IERC721Receiver } from "../../lib/openzeppelin-contracts/contracts/token/ERC721/IERC721Receiver.sol";
 import { INFT } from "../../src/mock/INFT.sol";
@@ -18,6 +19,8 @@ import { BondBear } from "../../src/mock/BondBear.sol";
 import { BandBear } from "../../src/mock/BandBear.sol";
 
 contract GoldilendTest is Test, IERC721Receiver {
+
+  using LibRLP for address;
 
   Goldilend goldilend;
   GAMM gamm;
@@ -46,6 +49,7 @@ contract GoldilendTest is Test, IERC721Receiver {
   uint256 singleBorrowInterestMaxBoost = 2323287037037000;
 
   function setUp() public {
+    Porridge porridgeComputed = Porridge(address(this).computeAddress(10));
     honey = new Honey();
     bera = new Bera();
     honeycomb = new HoneyComb();
@@ -53,14 +57,13 @@ contract GoldilendTest is Test, IERC721Receiver {
     bondbear = new BondBear();
     bandbear = new BandBear();
     consensusvault = new ConsensusVault(address(bera));
-    
+  
     gamm = new GAMM(address(this), address(honey));
-    borrow = new Borrow(address(gamm), address(this), address(honey));
+    borrow = new Borrow(address(gamm), address(porridgeComputed), address(this), address(honey));
     porridge = new Porridge(address(gamm), address(borrow), address(this), address(honey));
 
     gamm.setPorridgeAddress(address(porridge));
     gamm.setBorrowAddress(address(borrow));
-    borrow.setPorridgeAddress(address(porridge));
 
     uint256 startingPoolSize = 1000e18;
     uint256 protocolInterestRate = 1e17;

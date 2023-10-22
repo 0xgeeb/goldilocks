@@ -13,7 +13,7 @@ contract SetterDeployerTest is Test {
   function testDeploy() public {
     Reader readerComputed = Reader(address(this).computeAddress(2));
     Writer writer = new Writer(address(readerComputed));
-    Reader reader = new Reader(address(writer));
+    Reader reader = new Reader(address(writer), address(this));
     require(reader == readerComputed, "no sanity");
 
     console.log(address(reader));

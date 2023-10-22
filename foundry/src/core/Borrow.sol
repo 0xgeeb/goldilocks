@@ -51,14 +51,17 @@ contract Borrow {
 
   /// @notice Constructor of this contract
   /// @param _gammAddress Address of the GAMM
+  /// @param _porridgeAddress Address of Porridge
   /// @param _adminAddress Address of the GoldilocksDAO multisig
   /// @param _honeyAddress Address of the HONEY contract
   constructor(
-    address _gammAddress, 
+    address _gammAddress,
+    address _porridgeAddress,
     address _adminAddress,
     address _honeyAddress 
   ) {
     gammAddress = _gammAddress;
+    porridgeAddress = _porridgeAddress;
     adminAddress = _adminAddress;
     honeyAddress = _honeyAddress;
   }
@@ -188,18 +191,6 @@ contract Borrow {
   /// @return fee Fee that user pays for borrowing
   function _calcFee(uint256 amount) internal pure returns (uint256 fee) {
     return (amount / 100) * 3;
-  }
-
-
-  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-  /*                    PERMISSIONED FUNCTION                   */
-  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
-
-
-  /// @notice Set address of Porridge contract
-  /// @param _porridgeAddress Address of Porridge contract
-  function setPorridgeAddress(address _porridgeAddress) external onlyAdmin {
-    porridgeAddress = _porridgeAddress;
   }
 
 }
