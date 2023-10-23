@@ -31,11 +31,10 @@ contract GAMMTest is Test {
     Porridge porridgeComputed = Porridge(address(this).computeAddress(4));
     Goldilend goldilendComputed = Goldilend(address(this).computeAddress(13));
     honey = new Honey();
-    gamm = new GAMM(address(this), address(honey));
+    gamm = new GAMM(address(this), address(porridgeComputed), address(honey));
     borrow = new Borrow(address(gamm), address(porridgeComputed), address(honey));
     porridge = new Porridge(address(gamm), address(borrow), address(goldilendComputed), address(this), address(honey));
 
-    gamm.setPorridgeAddress(address(porridge));
     gamm.setBorrowAddress(address(borrow));
   }
 
@@ -178,12 +177,6 @@ contract GAMMTest is Test {
     gamm.setBorrowAddress(address(borrow));
 
     assertEq(address(borrow), gamm.borrowAddress());
-  }
-
-    function testSetPorridgeAddress() public {
-    gamm.setPorridgeAddress(address(porridge));
-
-    assertEq(address(porridge), gamm.porridgeAddress());
   }
 
   function testFloorReduce() public {

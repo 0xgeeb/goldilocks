@@ -58,8 +58,11 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
 
   /// @notice Constructor of this contract
   /// @param _adminAddress Address of the GoldilocksDAO multisig
-  constructor(address _adminAddress, address _honeyAddress) {
+  /// @param _porridgeAddress Address of Porridge
+  /// @param _honeyAddress Address of $HONEY
+  constructor(address _adminAddress, address _porridgeAddress, address _honeyAddress) {
     adminAddress = _adminAddress;
+    porridgeAddress = _porridgeAddress;
     honeyAddress = _honeyAddress;
     lastFloorRaise = block.timestamp;
     lastFloorDecrease = block.timestamp;
@@ -348,12 +351,6 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
   /// @param amount Amount of minted $LOCKS tokens
   function porridgeMint(address to, uint256 amount) external onlyPorridge {
     _mint(to, amount);
-  }
-
-  /// @notice Set address of Porridge contract
-  /// @param _porridgeAddress Address of Porridge contract
-  function setPorridgeAddress(address _porridgeAddress) external onlyAdmin {
-    porridgeAddress = _porridgeAddress;
   }
 
   /// @notice Set address of Borrow contract

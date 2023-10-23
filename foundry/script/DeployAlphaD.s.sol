@@ -27,11 +27,10 @@ contract DeployDScript is Script {
     Goldilend goldilendComputed = Goldilend(address(this).computeAddress(13));
 
     honey = new Honey();
-    gamm = new GAMM(address(admin), address(honey));
+    gamm = new GAMM(address(admin), address(porridgeComputed), address(honey));
     borrow = new Borrow(address(gamm), address(porridgeComputed), address(honey));
     porridge = new Porridge(address(gamm), address(borrow), address(goldilendComputed), address(admin), address(honey));
-
-    gamm.setPorridgeAddress(address(porridge));
+    
     gamm.setBorrowAddress(address(borrow));
     
     vm.stopBroadcast();
