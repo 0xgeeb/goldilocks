@@ -82,7 +82,6 @@ contract Porridge is ERC20("Porridge Token", "PRG"), ReentrancyGuard {
 
 
   error NotGoldilend();
-  error NotAdmin();
   error InvalidUnstake();
   error LocksBorrowedAgainst();
 

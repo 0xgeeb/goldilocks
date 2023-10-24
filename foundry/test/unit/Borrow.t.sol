@@ -46,7 +46,7 @@ contract BorrowTest is Test {
     _;
   }
 
-  function testBorrowLimit() public dealandStake100Locks dealGammMaxHoney {
+  function testInsufficientBorrowLimit() public dealandStake100Locks dealGammMaxHoney {
     vm.expectRevert(InsufficientBorrowLimitSelector);
     borrow.borrow(borrowAmount + 1);
   }

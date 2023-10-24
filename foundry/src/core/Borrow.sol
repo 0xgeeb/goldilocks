@@ -68,7 +68,6 @@ contract Borrow {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  error NotAdmin();
   error InsufficientBorrowLimit();
   error ExcessiveRepay();
 
