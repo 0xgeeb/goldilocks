@@ -43,13 +43,12 @@ contract PorridgeTest is Test {
 
   function setUp() public {
     Porridge porridgeComputed = Porridge(address(this).computeAddress(4));
+    Borrow borrowComputed = Borrow(address(this).computeAddress(3));
     Goldilend goldilendComputed = Goldilend(address(this).computeAddress(11));
     honey = new Honey();
-    gamm = new GAMM(address(this), address(porridgeComputed), address(honey));
+    gamm = new GAMM(address(this), address(porridgeComputed), address(borrowComputed), address(honey));
     borrow = new Borrow(address(gamm), address(porridgeComputed), address(honey));
     porridge = new Porridge(address(gamm), address(borrow), address(goldilendComputed), address(this), address(honey));
-
-    gamm.setBorrowAddress(address(borrow));
 
     bera = new Bera();
     honeycomb = new HoneyComb();
@@ -108,11 +107,6 @@ contract PorridgeTest is Test {
   modifier dealGammMaxHoney() {
     deal(address(honey), address(gamm), type(uint256).max);
     _;
-  }
-
-  function testSanity() public {
-    console.log(address(goldilend));
-    console.log(porridge.goldilendAddress());
   }
 
   function testNotGoldilend() public { 

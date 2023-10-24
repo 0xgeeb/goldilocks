@@ -59,10 +59,17 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
   /// @notice Constructor of this contract
   /// @param _adminAddress Address of the GoldilocksDAO multisig
   /// @param _porridgeAddress Address of Porridge
+  /// @param _borrowAddress Address of Borrow
   /// @param _honeyAddress Address of $HONEY
-  constructor(address _adminAddress, address _porridgeAddress, address _honeyAddress) {
+  constructor(
+    address _adminAddress,
+    address _porridgeAddress,
+    address _borrowAddress,
+    address _honeyAddress
+  ) {
     adminAddress = _adminAddress;
     porridgeAddress = _porridgeAddress;
+    borrowAddress = _borrowAddress;
     honeyAddress = _honeyAddress;
     lastFloorRaise = block.timestamp;
     lastFloorDecrease = block.timestamp;
@@ -351,12 +358,6 @@ contract GAMM is ERC20("Locks Token", "LOCKS") {
   /// @param amount Amount of minted $LOCKS tokens
   function porridgeMint(address to, uint256 amount) external onlyPorridge {
     _mint(to, amount);
-  }
-
-  /// @notice Set address of Borrow contract
-  /// @param _borrowAddress Address of Borrow contract
-  function setBorrowAddress(address _borrowAddress) external onlyAdmin {
-    borrowAddress = _borrowAddress;
   }
 
   /// @notice Allows the DAO to inject liquidity into the GAMM

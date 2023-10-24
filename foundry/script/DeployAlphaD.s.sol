@@ -23,15 +23,14 @@ contract DeployDScript is Script {
   function run() external {
     vm.startBroadcast(deployerPrivateKey);
 
-    Porridge porridgeComputed = Porridge(address(this).computeAddress(2));
-    Goldilend goldilendComputed = Goldilend(address(this).computeAddress(13));
+    Porridge porridgeComputed = Porridge(address(this).computeAddress(4));
+    Borrow borrowComputed = Borrow(address(this).computeAddress(3));
+    Goldilend goldilendComputed = Goldilend(address(this).computeAddress(69));
 
     honey = new Honey();
-    gamm = new GAMM(address(admin), address(porridgeComputed), address(honey));
+    gamm = new GAMM(address(admin), address(porridgeComputed), address(borrowComputed), address(honey));
     borrow = new Borrow(address(gamm), address(porridgeComputed), address(honey));
     porridge = new Porridge(address(gamm), address(borrow), address(goldilendComputed), address(admin), address(honey));
-    
-    gamm.setBorrowAddress(address(borrow));
     
     vm.stopBroadcast();
   }

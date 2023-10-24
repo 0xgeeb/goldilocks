@@ -50,6 +50,7 @@ contract GoldilendTest is Test, IERC721Receiver {
 
   function setUp() public {
     Porridge porridgeComputed = Porridge(address(this).computeAddress(10));
+    Borrow borrowComputed = Borrow(address(this).computeAddress(9));
     Goldilend goldilendComputed = Goldilend(address(this).computeAddress(11));
     honey = new Honey();
     bera = new Bera();
@@ -59,11 +60,9 @@ contract GoldilendTest is Test, IERC721Receiver {
     bandbear = new BandBear();
     consensusvault = new ConsensusVault(address(bera));
   
-    gamm = new GAMM(address(this), address(porridgeComputed), address(honey));
+    gamm = new GAMM(address(this), address(porridgeComputed), address(borrowComputed), address(honey));
     borrow = new Borrow(address(gamm), address(porridgeComputed), address(honey));
     porridge = new Porridge(address(gamm), address(borrow), address(goldilendComputed), address(this), address(honey));
-
-    gamm.setBorrowAddress(address(borrow));
 
     uint256 startingPoolSize = 1000e18;
     uint256 protocolInterestRate = 1e17;

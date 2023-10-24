@@ -29,13 +29,12 @@ contract GAMMTest is Test {
 
   function setUp() public {
     Porridge porridgeComputed = Porridge(address(this).computeAddress(4));
-    Goldilend goldilendComputed = Goldilend(address(this).computeAddress(13));
+    Borrow borrowComputed = Borrow(address(this).computeAddress(3));
+    Goldilend goldilendComputed = Goldilend(address(this).computeAddress(11));
     honey = new Honey();
-    gamm = new GAMM(address(this), address(porridgeComputed), address(honey));
+    gamm = new GAMM(address(this), address(porridgeComputed), address(borrowComputed), address(honey));
     borrow = new Borrow(address(gamm), address(porridgeComputed), address(honey));
     porridge = new Porridge(address(gamm), address(borrow), address(goldilendComputed), address(this), address(honey));
-
-    gamm.setBorrowAddress(address(borrow));
   }
 
   modifier dealandApproveUserHoney() {
@@ -171,12 +170,6 @@ contract GAMMTest is Test {
     require(data.length == 0 || abi.decode(data, (bool)), 'transfer failed');
     assertEq(true, success);
     assertEq(gamm.balanceOf(address(0x01)), 5e18);
-  }
-
-  function testSetBorrowAddress() public {
-    gamm.setBorrowAddress(address(borrow));
-
-    assertEq(address(borrow), gamm.borrowAddress());
   }
 
   function testFloorReduce() public {
