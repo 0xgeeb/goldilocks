@@ -34,11 +34,18 @@ contract GoldilendTest is Test, IERC721Receiver {
   BondBear bondbear;
   BandBear bandbear;
 
-  bytes4 InvalidLoanAmountSelector = 0x56976661;
+  bytes4 NotAdminSelector = 0x7bfa4b9f;
+  bytes4 ArrayMismatchSelector = 0xb7c1140d;
   bytes4 InvalidBoostSelector = 0xe4c30186;
+  bytes4 InvalidBoostNFTSelector = 0x38646c53;
+  bytes4 BoostNotExpiredSelector = 0xf2299d81;
   bytes4 InvalidUnstakeSelector = 0x280cf628;
-  bytes4 LoanNotFoundSelector = 0x0e7e621d;
+  bytes4 InvalidDurationSelector = 0x76166401;
+  bytes4 InvalidLoanAmountSelector = 0x56976661;
+  bytes4 InvalidCollateralSelector = 0xd1ef4cea;
+  bytes4 BorrowLimitExceededSelector = 0x5d615d32;
   bytes4 ExcessiveRepaySelector = 0x7bc3c3ef;
+  bytes4 LoanNotFoundSelector = 0x0e7e621d;
   bytes4 LoanExpiredSelector = 0x5dc919ca;
   bytes4 UnliquidatableSelector = 0x13d94799;
 
@@ -123,14 +130,22 @@ contract GoldilendTest is Test, IERC721Receiver {
     _;
   }
 
-  function testInvalidLoanAmount() public {
-    vm.expectRevert(InvalidLoanAmountSelector);
-    goldilend.borrow(101e18, 1209600, address(bondbear), 1);
+  function testNotAdmin() public {
+    vm.prank(address(0x01));
+    vm.expectRevert(NotAdminSelector);
+    goldilend.emergencyWithdraw();
   }
 
-  function testLoanNotFound() public {
-    vm.expectRevert(LoanNotFoundSelector);
-    goldilend.lookupLoan(address(this), 1);
+  function testArrayMismatch() public {
+    address[] memory nfts = new address[](2);
+    nfts[0] = address(honeycomb);
+    nfts[1] = address(beradrome);
+    uint256[] memory boosts = new uint256[](3);
+    boosts[0] = 6;
+    boosts[1] = 9;
+    boosts[2] = 50;
+    vm.expectRevert(ArrayMismatchSelector);
+    goldilend.boost(nfts, boosts, 69e18);
   }
 
   function testInvalidBoost() public {
@@ -138,15 +153,75 @@ contract GoldilendTest is Test, IERC721Receiver {
     goldilend.withdrawBoost();
   }
 
-  function testInvalidStake() public {
+  function testInvalidBoostNFT() public {
+    address[] memory nfts = new address[](2);
+    nfts[0] = address(bondbear);
+    nfts[1] = address(bandbear);
+    uint256[] memory values = new uint256[](2);
+    values[0] = 50;
+    values[1] = 50;
+    vm.expectRevert(InvalidBoostNFTSelector);
+    goldilend.boost(nfts, values, 69e18);
+  }
+
+  function testBoostNotExpired() public dealUserPartnerNFTs {
+    address[] memory nfts = new address[](2);
+    nfts[0] = address(honeycomb);
+    nfts[1] = address(beradrome);
+    uint256[] memory ids = new uint256[](2);
+    ids[0] = 1;
+    ids[1] = 1;
+    goldilend.boost(nfts, ids, goldilend.MONTH_DAYS() + 1);
+    vm.expectRevert(BoostNotExpiredSelector);
+    goldilend.withdrawBoost();
+  }
+
+  function testInvalidUnstake() public {
     vm.expectRevert(InvalidUnstakeSelector);
     goldilend.unstake(69e18);
+  }
+
+  function testInvalidDuration() public {
+    address[] memory nfts = new address[](2);
+    nfts[0] = address(honeycomb);
+    nfts[1] = address(beradrome);
+    uint256[] memory ids = new uint256[](2);
+    ids[0] = 1;
+    ids[1] = 1;
+    vm.expectRevert(InvalidDurationSelector);
+    goldilend.boost(nfts, ids, 5);
+  }
+
+  function testInvalidLoanAmount() public {
+    vm.expectRevert(InvalidLoanAmountSelector);
+    goldilend.borrow(101e18, 1209600, address(bondbear), 1);
+  }
+
+  function testInvalidCollateral() public {
+    address[] memory nfts = new address[](2);
+    nfts[0] = address(honeycomb);
+    nfts[1] = address(beradrome);
+    uint256[] memory ids = new uint256[](2);
+    ids[0] = 1;
+    ids[1] = 1;
+    vm.expectRevert(InvalidCollateralSelector);
+    goldilend.borrow(69e18, 69e18, nfts, ids);
+  }
+
+  function testBorrowLimitExceeded() public dealUserBeras {
+    vm.expectRevert(BorrowLimitExceededSelector);
+    goldilend.borrow(100e18, 1209600, address(bondbear), 1);
   }
 
   function testExcessiveRepay() public dealUserBeras {
     goldilend.borrow(1e18, 1209600, address(bondbear), 1);
     vm.expectRevert(ExcessiveRepaySelector);
     goldilend.repay(2e18, 1);
+  }
+
+  function testLoanNotFound() public {
+    vm.expectRevert(LoanNotFoundSelector);
+    goldilend.lookupLoan(address(this), 1);
   }
 
   function testLoanExpired() public dealUserBeras {

@@ -139,14 +139,13 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  error ShortExpiration();
+  error NotAdmin();
   error ArrayMismatch();
   error InvalidBoost();
   error InvalidBoostNFT();
   error BoostNotExpired();
-  error NotAdmin();
   error InvalidUnstake();
-  error InvalidLoanDuration();
+  error InvalidDuration();
   error InvalidLoanAmount();
   error InvalidCollateral();
   error BorrowLimitExceeded();
@@ -253,7 +252,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     uint256 partnerNFTId, 
     uint256 expiry
   ) external {
-    if(expiry < block.timestamp + MONTH_DAYS) revert ShortExpiration();
+    if(expiry < block.timestamp + MONTH_DAYS) revert InvalidDuration();
     if(partnerNFTBoosts[partnerNFT] == 0) revert InvalidBoostNFT();
     boosts[msg.sender] = _buildBoost(partnerNFT, partnerNFTId, expiry);
     IERC721(partnerNFT).safeTransferFrom(msg.sender, address(this), partnerNFTId);
@@ -269,7 +268,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     uint256[] calldata partnerNFTIds, 
     uint256 expiry
   ) external validateBoost(partnerNFTs) {
-    if(expiry < block.timestamp + MONTH_DAYS) revert ShortExpiration();
+    if(expiry < block.timestamp + MONTH_DAYS) revert InvalidDuration();
     if(partnerNFTs.length != partnerNFTIds.length) revert ArrayMismatch();    
     boosts[msg.sender] = _buildBoost(partnerNFTs, partnerNFTIds, expiry);
     for(uint8 i; i < partnerNFTs.length; i++) {
@@ -281,7 +280,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
   /// @param newExpiry New expiration of the boost
   function extendBoost(uint256 newExpiry) external {
     if(boosts[msg.sender].expiry == 0) revert InvalidBoost();
-    if(newExpiry < block.timestamp + MONTH_DAYS) revert ShortExpiration();
+    if(newExpiry < block.timestamp + MONTH_DAYS) revert InvalidDuration();
     boosts[msg.sender].expiry = newExpiry;
   }
 
@@ -360,7 +359,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     address collateralNFT,
     uint256 collateralNFTId
   ) external {
-    if(duration < FORTNITE || duration > ONE_YEAR) revert InvalidLoanDuration();
+    if(duration < FORTNITE || duration > ONE_YEAR) revert InvalidDuration();
     if(borrowAmount > poolSize / 10) revert InvalidLoanAmount();
     if(nftFairValues[collateralNFT] == 0) revert InvalidCollateral();
     uint256 fairValue = nftFairValues[collateralNFT] * totalValuation / 100;
@@ -407,7 +406,7 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     address[] calldata collateralNFTs, 
     uint256[] calldata collateralNFTIds
   ) external validateBorrow(collateralNFTs) {
-    if(duration < FORTNITE || duration > ONE_YEAR) revert InvalidLoanDuration();
+    if(duration < FORTNITE || duration > ONE_YEAR) revert InvalidDuration();
     if(borrowAmount > poolSize / 10) revert InvalidLoanAmount();
     if(collateralNFTs.length != collateralNFTIds.length) revert ArrayMismatch();
     uint256 fairValue = _calculateFairValue(collateralNFTs);
