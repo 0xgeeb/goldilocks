@@ -17,7 +17,7 @@ pragma solidity ^0.8.19;
 // ==============================================================================================
 
 
-import { ERC20 } from "../../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import { ERC20 } from "../../lib/solady/src/tokens/ERC20.sol";
 import { SafeTransferLib } from "../../lib/solady/src/utils/SafeTransferLib.sol";
 import { FixedPointMathLib } from "../../lib/solady/src/utils/FixedPointMathLib.sol";
 import { IBorrow } from "../interfaces/IBorrow.sol";
@@ -28,7 +28,7 @@ import { IGAMM } from "../interfaces/IGAMM.sol";
 /// @notice Staking of the $LOCKS token to earn $PRG
 /// @author geeb
 /// @author ampnoob
-contract Porridge is ERC20("Porridge Token", "PRG") {
+contract Porridge is ERC20() {
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -72,6 +72,14 @@ contract Porridge is ERC20("Porridge Token", "PRG") {
     goldilendAddress = _goldilendAddress;
     adminAddress = _adminAddress;
     honeyAddress = _honeyAddress;
+  }
+
+  function name() public view override returns (string memory) {
+    return "Porridge Token";
+  }
+
+  function symbol() public view override returns (string memory) {
+    return "PRG";
   }
 
 

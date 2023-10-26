@@ -130,6 +130,14 @@ contract PorridgeTest is Test {
     porridge.unstake(1e18);
   }
 
+  function testPRGName() public {
+    assertEq(porridge.name(), "Porridge Token");
+  }
+
+  function testPRGSymbol() public {
+    assertEq(porridge.symbol(), "PRG");
+  }
+
   function testCalculateHalfDayofYield() public dealandStake100Locks {
     vm.warp(block.timestamp + (porridge.DAYS_SECONDS() / 2));
     porridge.claim();

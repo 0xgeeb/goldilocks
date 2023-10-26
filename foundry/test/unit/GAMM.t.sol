@@ -79,6 +79,14 @@ contract GAMMTest is Test {
     gamm.sell(69e18, type(uint256).max);
   }
 
+  function testLocksName() public {
+    assertEq(gamm.name(), "Locks Token");
+  }
+
+  function testLocksSymbol() public {
+    assertEq(gamm.symbol(), "LOCKS");
+  }
+
   function testFloorPrice() public {
     uint256 floorPrice = gamm.floorPrice();
     string[] memory inputs = new string[](2);
