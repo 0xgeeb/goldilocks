@@ -92,9 +92,9 @@ contract GAMMTest is Test {
   }
 
   function testRandomFloorPrice() public {
-    vm.store(address(gamm), bytes32(uint256(5)), bytes32(uint256(23457745e18)));
-    vm.store(address(gamm), bytes32(uint256(6)), bytes32(uint256(8340957e18)));
-    vm.store(address(gamm), bytes32(uint256(7)), bytes32(uint256(4374e18)));
+    vm.store(address(gamm), bytes32(uint256(0)), bytes32(uint256(23457745e18)));
+    vm.store(address(gamm), bytes32(uint256(1)), bytes32(uint256(8340957e18)));
+    vm.store(address(gamm), bytes32(uint256(2)), bytes32(uint256(4374e18)));
     uint256 floorPrice = gamm.floorPrice();
     string[] memory inputs = new string[](2);
     inputs[0] = "python3";
@@ -119,9 +119,9 @@ contract GAMMTest is Test {
   }
 
   function testRandomMarketPrice() public {
-    vm.store(address(gamm), bytes32(uint256(5)), bytes32(uint256(23457745e18)));
-    vm.store(address(gamm), bytes32(uint256(6)), bytes32(uint256(8340957e18)));
-    vm.store(address(gamm), bytes32(uint256(7)), bytes32(uint256(4374e18)));
+    vm.store(address(gamm), bytes32(uint256(0)), bytes32(uint256(23457745e18)));
+    vm.store(address(gamm), bytes32(uint256(1)), bytes32(uint256(8340957e18)));
+    vm.store(address(gamm), bytes32(uint256(2)), bytes32(uint256(4374e18)));
     uint256 marketPrice = gamm.marketPrice();
     string[] memory inputs = new string[](2);
     inputs[0] = "python3";
@@ -173,10 +173,10 @@ contract GAMMTest is Test {
   }
 
   function testFloorReduce() public {
-    vm.store(address(gamm), bytes32(uint256(5)), bytes32(uint256(12424533327755417665454800)));
-    vm.store(address(gamm), bytes32(uint256(6)), bytes32(uint256(6069210257394481945730874)));
-    vm.store(address(gamm), bytes32(uint256(7)), bytes32(uint256(8402860035123450385400)));
-    vm.store(address(gamm), bytes32(uint256(9)), bytes32(uint256(1692551675)));
+    vm.store(address(gamm), bytes32(uint256(0)), bytes32(uint256(12424533327755417665454800)));
+    vm.store(address(gamm), bytes32(uint256(1)), bytes32(uint256(6069210257394481945730874)));
+    vm.store(address(gamm), bytes32(uint256(2)), bytes32(uint256(8402860035123450385400)));
+    vm.store(address(gamm), bytes32(uint256(4)), bytes32(uint256(1692551675)));
 
     deal(address(honey), address(this), 1251210488977958997148919);
     deal(address(gamm), address(this), 543082473864185130000);
@@ -189,10 +189,10 @@ contract GAMMTest is Test {
   }
 
   function testMaxFloorReduce() public {
-    vm.store(address(gamm), bytes32(uint256(5)), bytes32(uint256(12424533327755417665454800)));
-    vm.store(address(gamm), bytes32(uint256(6)), bytes32(uint256(6069210257394481945730874)));
-    vm.store(address(gamm), bytes32(uint256(7)), bytes32(uint256(8402860035123450385400)));
-    vm.store(address(gamm), bytes32(uint256(9)), bytes32(uint256(1692551675)));
+    vm.store(address(gamm), bytes32(uint256(0)), bytes32(uint256(12424533327755417665454800)));
+    vm.store(address(gamm), bytes32(uint256(1)), bytes32(uint256(6069210257394481945730874)));
+    vm.store(address(gamm), bytes32(uint256(2)), bytes32(uint256(8402860035123450385400)));
+    vm.store(address(gamm), bytes32(uint256(4)), bytes32(uint256(1692551675)));
 
     deal(address(honey), address(this), 1251210488977958997148919);
     deal(address(gamm), address(this), 543082473864185130000);

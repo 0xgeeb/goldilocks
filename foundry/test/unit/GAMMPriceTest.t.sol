@@ -96,9 +96,9 @@ contract GAMMPriceTest is Test {
   }
 
   function testPurchase4() public dealandApproveUserHoney {
-    vm.store(address(gamm), bytes32(uint256(5)), bytes32(uint256(8700000e18)));
-    vm.store(address(gamm), bytes32(uint256(6)), bytes32(uint256(1900000e18)));
-    vm.store(address(gamm), bytes32(uint256(7)), bytes32(uint256(2364e18)));
+    vm.store(address(gamm), bytes32(uint256(0)), bytes32(uint256(8700000e18)));
+    vm.store(address(gamm), bytes32(uint256(1)), bytes32(uint256(1900000e18)));
+    vm.store(address(gamm), bytes32(uint256(2)), bytes32(uint256(2364e18)));
     uint256 bought;
     while(bought < 8000) {
       gamm.buy(40e18, type(uint256).max);
@@ -116,7 +116,7 @@ contract GAMMPriceTest is Test {
   }
 
   function testMixed1() public dealandApproveUserHoney dealUserLocks dealGammHoney {
-    vm.store(address(gamm), bytes32(uint256(2)), bytes32(uint256(100e18)));
+    vm.store(address(gamm), bytes32(uint256(0x05345cdf77eb68f44c)), bytes32(uint256(100e18)));
     gamm.buy(38e18, type(uint256).max);
     gamm.sell(45e18, 0);
     gamm.sell(30e18, 0);
@@ -149,7 +149,7 @@ contract GAMMPriceTest is Test {
   }
 
   function testMixed2() public dealandApproveUserHoney dealUserLocks dealGammHoney {
-    vm.store(address(gamm), bytes32(uint256(2)), bytes32(uint256(100e18)));
+    vm.store(address(gamm), bytes32(uint256(0x05345cdf77eb68f44c)), bytes32(uint256(100e18)));
     gamm.buy(65e17, type(uint256).max);
     gamm.redeem(71e17);
     gamm.buy(32e17, type(uint256).max);
@@ -173,10 +173,10 @@ contract GAMMPriceTest is Test {
   }
 
   function testMixed3() public dealandApproveUserHoney dealUserLocks dealGammHoney {
-    vm.store(address(gamm), bytes32(uint256(2)), bytes32(uint256(100e18)));
-    vm.store(address(gamm), bytes32(uint256(5)), bytes32(uint256(973000e18)));
-    vm.store(address(gamm), bytes32(uint256(6)), bytes32(uint256(360000e18)));
-    vm.store(address(gamm), bytes32(uint256(7)), bytes32(uint256(6780e18)));
+    vm.store(address(gamm), bytes32(uint256(0x05345cdf77eb68f44c)), bytes32(uint256(100e18)));
+    vm.store(address(gamm), bytes32(uint256(0)), bytes32(uint256(973000e18)));
+    vm.store(address(gamm), bytes32(uint256(1)), bytes32(uint256(360000e18)));
+    vm.store(address(gamm), bytes32(uint256(2)), bytes32(uint256(6780e18)));
     gamm.buy(6523e17, type(uint256).max);
     gamm.redeem(719e17);
     gamm.buy(32e18, type(uint256).max);
@@ -273,9 +273,9 @@ contract GAMMPriceTest is Test {
 
   function testSale3() public dealUserLocks dealGammHoney {
     vm.store(address(gamm), bytes32(uint256(2)), bytes32(uint256(25000e18)));
-    vm.store(address(gamm), bytes32(uint256(5)), bytes32(uint256(800000e18)));
-    vm.store(address(gamm), bytes32(uint256(6)), bytes32(uint256(200000e18)));
-    vm.store(address(gamm), bytes32(uint256(7)), bytes32(uint256(1000e18)));
+    vm.store(address(gamm), bytes32(uint256(0)), bytes32(uint256(800000e18)));
+    vm.store(address(gamm), bytes32(uint256(1)), bytes32(uint256(200000e18)));
+    vm.store(address(gamm), bytes32(uint256(2)), bytes32(uint256(1000e18)));
     uint256 sold;
     while(sold < 975e18) {
       gamm.sell(25e18, 0);
@@ -294,9 +294,9 @@ contract GAMMPriceTest is Test {
 
   function testSale4() public dealUserLocks dealGammHoney {
     vm.store(address(gamm), bytes32(uint256(2)), bytes32(uint256(25000e18)));
-    vm.store(address(gamm), bytes32(uint256(5)), bytes32(uint256(6300000e18)));
-    vm.store(address(gamm), bytes32(uint256(6)), bytes32(uint256(3100000e18)));
-    vm.store(address(gamm), bytes32(uint256(7)), bytes32(uint256(3124e18)));
+    vm.store(address(gamm), bytes32(uint256(0)), bytes32(uint256(6300000e18)));
+    vm.store(address(gamm), bytes32(uint256(1)), bytes32(uint256(3100000e18)));
+    vm.store(address(gamm), bytes32(uint256(2)), bytes32(uint256(3124e18)));
     uint256 sold;
     while(sold < 2000e18) {
       gamm.sell(285e17, 0);
