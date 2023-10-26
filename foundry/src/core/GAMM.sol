@@ -19,7 +19,7 @@ pragma solidity ^0.8.19;
 
 import { FixedPointMathLib } from "../../lib/solady/src/utils/FixedPointMathLib.sol";
 import { SafeTransferLib } from "../../lib/solady/src/utils/SafeTransferLib.sol";
-import { ERC20 } from "../../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import { ERC20 } from "../../lib/solady/src/tokens/ERC20.sol";
 
 
 /// @title Goldilocks AMM (GAMM)

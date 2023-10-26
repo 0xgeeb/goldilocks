@@ -18,7 +18,6 @@ pragma solidity ^0.8.19;
 
 
 import { ERC20 } from "../../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
-import { ReentrancyGuard } from "../../lib/openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
 import { SafeTransferLib } from "../../lib/solady/src/utils/SafeTransferLib.sol";
 import { FixedPointMathLib } from "../../lib/solady/src/utils/FixedPointMathLib.sol";
 import { IBorrow } from "../interfaces/IBorrow.sol";
@@ -29,7 +28,7 @@ import { IGAMM } from "../interfaces/IGAMM.sol";
 /// @notice Staking of the $LOCKS token to earn $PRG
 /// @author geeb
 /// @author ampnoob
-contract Porridge is ERC20("Porridge Token", "PRG"), ReentrancyGuard {
+contract Porridge is ERC20("Porridge Token", "PRG") {
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -141,7 +140,7 @@ contract Porridge is ERC20("Porridge Token", "PRG"), ReentrancyGuard {
 
   /// @notice stakes $LOCKS to begin earning $PRG
   /// @param amount Amount of $LOCKS to stake
-  function stake(uint256 amount) external nonReentrant {
+  function stake(uint256 amount) external {
     if(staked[msg.sender] > 0) {
       _stakeClaim();
     }
@@ -153,7 +152,7 @@ contract Porridge is ERC20("Porridge Token", "PRG"), ReentrancyGuard {
 
   /// @notice unstakes $LOCKS and claims $PRG rewards
   /// @param amount Amount of $LOCKS to unstake
-  function unstake(uint256 amount) external nonReentrant {
+  function unstake(uint256 amount) external {
     if(amount > staked[msg.sender]) revert InvalidUnstake();
     if(amount > staked[msg.sender] - IBorrow(borrowAddress).getLocked(msg.sender)) revert LocksBorrowedAgainst();
     uint256 stakedAmount = staked[msg.sender];
@@ -165,7 +164,7 @@ contract Porridge is ERC20("Porridge Token", "PRG"), ReentrancyGuard {
 
   /// @notice Burns $PRG to buy $LOCKS at floor price
   /// @param amount Amount of $PRG to burn
-  function realize(uint256 amount) external nonReentrant {
+  function realize(uint256 amount) external {
     _burn(msg.sender, amount);
     SafeTransferLib.safeTransferFrom(honeyAddress, msg.sender, gammAddress, FixedPointMathLib.mulWad(amount, IGAMM(gammAddress).floorPrice()));
     IGAMM(gammAddress).porridgeMint(msg.sender, amount);
@@ -173,7 +172,7 @@ contract Porridge is ERC20("Porridge Token", "PRG"), ReentrancyGuard {
   }
 
   /// @notice Claim $PRG rewards
-  function claim() external nonReentrant {
+  function claim() external {
     uint256 stakedAmount = staked[msg.sender];
     _claim(stakedAmount);
   }
