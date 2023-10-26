@@ -238,6 +238,14 @@ contract GoldilendTest is Test, IERC721Receiver {
     goldilend.liquidate(address(this), 1);
   }
 
+  function testLocksName() public {
+    assertEq(goldilend.name(), "gBERA Token");
+  }
+
+  function testLocksSymbol() public {
+    assertEq(goldilend.symbol(), "gBERA");
+  }
+
   function testLookupLoans() public dealUserBeras {
     uint256 duration = 1209600;
     goldilend.borrow(1e18, duration, address(bondbear), 1);
@@ -255,8 +263,8 @@ contract GoldilendTest is Test, IERC721Receiver {
     deal(address(bera), address(this), 11157e16);
     bera.approve(address(goldilend), type(uint256).max);
     goldilend.lock(100e18);
-    vm.store(address(goldilend), bytes32(uint256(2)), bytes32(uint256(100e18)));
-    vm.store(address(goldilend), bytes32(uint256(18)), bytes32(uint256(1000e18)));
+    vm.store(address(goldilend), bytes32(uint256(0x05345cdf77eb68f44c)), bytes32(uint256(100e18)));
+    vm.store(address(goldilend), bytes32(uint256(13)), bytes32(uint256(1000e18)));
 
     uint256 gBERARatio = goldilend.getgBERARatio();
 

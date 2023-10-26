@@ -19,7 +19,7 @@ pragma solidity ^0.8.19;
 
 import { FixedPointMathLib } from "../../lib/solady/src/utils/FixedPointMathLib.sol";
 import { SafeTransferLib } from "../../lib/solady/src/utils/SafeTransferLib.sol";
-import { ERC20 } from "../../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import { ERC20 } from "../../lib/solady/src/tokens/ERC20.sol";
 import { IERC20 } from "../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import { IERC721 } from "../../lib/openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
 import { IERC721Receiver } from "../../lib/openzeppelin-contracts/contracts/token/ERC721/IERC721Receiver.sol";
@@ -31,7 +31,7 @@ import { IConsensusVault } from "../mock/IConsensusVault.sol";
 /// @notice Berachain NFT Lending
 /// @author ampnoob
 /// @author geeb
-contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
+contract Goldilend is ERC20, IERC721Receiver {
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -131,6 +131,14 @@ contract Goldilend is ERC20("gBERA Token", "gBERA"), IERC721Receiver {
     for(uint8 i; i < _partnerNFTs.length; i++) {
       partnerNFTBoosts[_partnerNFTs[i]] = _partnerNFTBoosts[i];
     }
+  }
+
+  function name() public view override returns (string memory) {
+    return "gBERA Token";
+  }
+
+  function symbol() public view override returns (string memory) {
+    return "gBERA";
   }
 
 

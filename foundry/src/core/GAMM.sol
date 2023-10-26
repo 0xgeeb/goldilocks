@@ -26,7 +26,7 @@ import { ERC20 } from "../../lib/solady/src/tokens/ERC20.sol";
 /// @notice Novel AMM & Facilitator of $LOCKS token 
 /// @author geeb
 /// @author ampnoob
-contract GAMM is ERC20() {
+contract GAMM is ERC20 {
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/

@@ -28,7 +28,7 @@ import { IGAMM } from "../interfaces/IGAMM.sol";
 /// @notice Staking of the $LOCKS token to earn $PRG
 /// @author geeb
 /// @author ampnoob
-contract Porridge is ERC20() {
+contract Porridge is ERC20 {
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
