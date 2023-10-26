@@ -1,6 +1,7 @@
 # Compiler files
 foundry/cache/
 foundry/out/
+foundry/lib/
 
 foundry/broadcast
 foundry/.vscode
