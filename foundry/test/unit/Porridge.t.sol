@@ -33,7 +33,11 @@ contract PorridgeTest is Test {
   BondBear bondbear;
   BandBear bandbear;
 
-  uint256 OneDayofYield = 5e17;
+
+  uint256 HalfDayofYield = 83333333333333333;
+  uint256 OneDayofYield = 166666666666666666;
+  uint256 OneDayandHalfofYield = 249999999999999999;
+  uint256 TwoDaysofYield = 333333333333333332;
   uint256 twoMonthsOfGoldilendStakingYield = 43e18;
   uint256 borrowAmount = 280e20;
 
@@ -130,30 +134,27 @@ contract PorridgeTest is Test {
     vm.warp(block.timestamp + (porridge.DAYS_SECONDS() / 2));
     porridge.claim();
 
-    uint256 halfDayofYield = 25e16;
     uint256 prgBalance = porridge.balanceOf(address(this));
     
-    assertEq(prgBalance, halfDayofYield);
+    assertEq(prgBalance, HalfDayofYield);
   }
 
   function testCalculate1DayofYield() public dealandStake100Locks {
     vm.warp(block.timestamp + porridge.DAYS_SECONDS());
     porridge.claim();
 
-    uint256 oneDayofYield = 5e17;
     uint256 prgBalance = porridge.balanceOf(address(this));
 
-    assertEq(prgBalance, oneDayofYield);
+    assertEq(prgBalance, OneDayofYield);
   }
 
   function testCalculate1andHalfDayofYield() public dealandStake100Locks {
     vm.warp(block.timestamp + porridge.DAYS_SECONDS() + (porridge.DAYS_SECONDS() / 2));
     porridge.claim();
 
-    uint256 oneDayandHalfofYield = 75e16;
     uint256 prgBalance = porridge.balanceOf(address(this));
     
-    assertEq(prgBalance, oneDayandHalfofYield);
+    assertEq(prgBalance, OneDayandHalfofYield);
   }
 
   function testStake() public dealandStake100Locks {
@@ -200,7 +201,7 @@ contract PorridgeTest is Test {
   function testRealize() public dealandStake100Locks dealUser280Honey {
     vm.warp(block.timestamp + (2 * porridge.DAYS_SECONDS()));
     porridge.unstake(100e18);
-    porridge.realize(1e18);
+    porridge.realize(TwoDaysofYield);
 
     uint256 userBalanceofPrg = porridge.balanceOf(address(this));
     uint256 userBalanceofLocks = gamm.balanceOf(address(this));
@@ -208,9 +209,9 @@ contract PorridgeTest is Test {
     uint256 gammBalanceofHoney = honey.balanceOf(address(gamm));
 
     assertEq(userBalanceofPrg, 0);
-    assertEq(userBalanceofLocks, 101e18);
-    assertEq(userBalanceofHoney, 0);
-    assertEq(gammBalanceofHoney, 280e18);
+    assertEq(userBalanceofLocks, 100333333333333333332);
+    assertEq(userBalanceofHoney, 186666666666666667040);
+    assertEq(gammBalanceofHoney, 93333333333333332960);
   }
 
   function testClaim() public dealandStake100Locks {

@@ -38,7 +38,7 @@ contract Porridge is ERC20("Porridge Token", "PRG"), ReentrancyGuard {
 
 
   uint32 public immutable DAYS_SECONDS = 86400;
-  uint8 public immutable DAILY_EMISSISION_RATE = 200;
+  uint16 public immutable DAILY_EMISSISION_RATE = 600;
 
   mapping(address => uint256) public staked;
   mapping(address => uint256) public stakeStartTime;
