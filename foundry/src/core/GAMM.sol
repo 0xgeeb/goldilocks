@@ -75,10 +75,12 @@ contract GAMM is ERC20 {
     lastFloorDecrease = block.timestamp;
   }
 
+  /// @notice Returns the name of the $LOCKS Token
   function name() public view override returns (string memory) {
     return "Locks Token";
   }
 
+  /// @notice Returns the symbol of the $LOCKS token
   function symbol() public view override returns (string memory) {
     return "LOCKS";
   }
@@ -134,13 +136,13 @@ contract GAMM is ERC20 {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  /// @notice View the $LOCKS floor price
+  /// @notice Returns the $LOCKS floor price
   /// @return $LOCKS floor price
   function floorPrice() external view returns (uint256) {
     return _floorPrice(fsl, supply);
   }
 
-  /// @notice View the $LOCKS market price
+  /// @notice Returns the $LOCKS market price
   /// @return $LOCKS market price
   function marketPrice() external view returns (uint256) {
     return _marketPrice(fsl, psl, supply);
@@ -163,15 +165,15 @@ contract GAMM is ERC20 {
       uint256 __psl, 
       uint256 __fsl, 
       uint256 __supply, 
-      uint256 __purchasePrice
+      uint256 __buyPrice
     ) = _buyLoop(_psl, _fsl, _supply, amount);
-    uint256 tax = (__purchasePrice / 1000) * 3;
-    if(__purchasePrice + tax > maxAmount) revert ExcessiveSlippage();
+    uint256 tax = (__buyPrice / 1000) * 3;
+    if(__buyPrice + tax > maxAmount) revert ExcessiveSlippage();
     fsl = __fsl + tax;
     psl = __psl;
     supply = __supply;
     _floorRaise();
-    SafeTransferLib.safeTransferFrom(honeyAddress, msg.sender, address(this), __purchasePrice + tax);
+    SafeTransferLib.safeTransferFrom(honeyAddress, msg.sender, address(this), __buyPrice + tax);
     _mint(msg.sender, amount);
     emit Buy(msg.sender, amount);
   }
@@ -219,6 +221,7 @@ contract GAMM is ERC20 {
 
 
   /// @notice Calculates floor price of $LOCKS
+  /// @dev fsl / supply
   /// @param _fsl Current fsl
   /// @param _supply Current supply
   /// @return floor $LOCKS floor price
@@ -227,6 +230,7 @@ contract GAMM is ERC20 {
   }
   
   /// @notice Calculates market price of $LOCKS
+  /// @dev (fsl / supply) + ((psl / supply) * ((psl + fsl) / fsl)**5)
   /// @param _fsl Current fsl
   /// @param _psl Current psl
   /// @param _supply Current supply
@@ -235,20 +239,20 @@ contract GAMM is ERC20 {
     market = FixedPointMathLib.divWad(_fsl, _supply) + FixedPointMathLib.mulWad(FixedPointMathLib.divWad(_psl, _supply), _pow(FixedPointMathLib.divWad(_psl + _fsl, _fsl), 5));
   }
 
-  /// @notice Loops through the amount of $LOCKS tokens to purchase and calculates purchase price
+  /// @notice Loops through the amount of $LOCKS tokens to buy and calculates total price
   /// @param _psl Temporary variable for PSL
   /// @param _fsl Temporary variable for FSL
   /// @param _supply Temporary variable for Supply
-  /// @param _leftover Temporary variable for amount of $LOCKS tokens to purchase
-  /// @return (PSL, FSL, supply and purchase price)
+  /// @param _leftover Temporary variable for amount of $LOCKS tokens
+  /// @return (PSL, FSL, supply and buy price)
   function _buyLoop(uint256 _psl, uint256 _fsl, uint256 _supply, uint256 _leftover) internal pure returns (uint256, uint256, uint256, uint256) {
     uint256 _market;
     uint256 _floor;
-    uint256 _purchasePrice;
+    uint256 _buyPrice;
     while(_leftover >= 1e18) {
       _market = _marketPrice(_fsl, _psl, _supply);
       _floor = _floorPrice(_fsl, _supply);
-      _purchasePrice += _market;
+      _buyPrice += _market;
       _supply += 1e18;
       if (_psl * 100 >= _fsl * 50) {
         _fsl += _market;
@@ -262,7 +266,7 @@ contract GAMM is ERC20 {
     if (_leftover > 0) {
       _market = _marketPrice(_fsl, _psl, _supply);
       _floor = _floorPrice(_fsl, _supply);
-      _purchasePrice += FixedPointMathLib.mulWad(_market, _leftover);
+      _buyPrice += FixedPointMathLib.mulWad(_market, _leftover);
       _supply += _leftover;
       if (_psl * 100 >= _fsl * 50) {
         _fsl += FixedPointMathLib.mulWad(_market, _leftover);
@@ -272,7 +276,7 @@ contract GAMM is ERC20 {
         _fsl += FixedPointMathLib.mulWad(_floor, _leftover);
       }
     }
-    return (_psl, _fsl, _supply, _purchasePrice);
+    return (_psl, _fsl, _supply, _buyPrice);
   }
 
   /// @notice Loops through the amount of $LOCKS tokens to sell and calculates sale amount
@@ -305,7 +309,8 @@ contract GAMM is ERC20 {
     return (_psl, _fsl, _supply, _saleAmount);
   }
 
-  /// @notice Raises x to the power of y, from PRBMath
+  /// @notice from PRBMath (https://github.com/PaulRBerg/prb-math) by @PaulRBerg
+  /// @notice Raises x to the power of y
   /// @param x Base number
   /// @param y Exponent
   /// @return result Calculated value
@@ -319,7 +324,9 @@ contract GAMM is ERC20 {
     }
   }
 
-  /// @notice If targetRatio is exceeded, raise the FSL 
+  /// @notice If targetRatio of PSL and FSL is exceeded, increases the FSL and target ratio and decrease the FSL
+  /// @dev raiseAmount = (psl / fsl) * (psl / 32)
+  /// @dev targetRatio increases by targetRatio / 50
   function _floorRaise() internal {
     if(FixedPointMathLib.divWad(psl, fsl) >= targetRatio) {
       uint256 raiseAmount = FixedPointMathLib.mulWad(FixedPointMathLib.divWad(psl, fsl), psl / 32);
@@ -330,7 +337,9 @@ contract GAMM is ERC20 {
     }
   }
 
-  /// @notice If a day has elapsed since, reduces the FSL
+  /// @notice If a day has elapsed since the last floor increase and decrease, decrease the target ratio
+  /// @dev decrease factor is days since last floor increase
+  /// @dev max floor reduce is 5%
   function _floorReduce() internal {
     uint256 elapsedRaise = block.timestamp - lastFloorRaise;
     uint256 elapsedDrop = block.timestamp - lastFloorDecrease;
@@ -353,6 +362,7 @@ contract GAMM is ERC20 {
 
 
   /// @notice Transfers $HONEY to user who is borrowing against their locks
+  /// @dev Only Borrow contract can call this function
   /// @param to Address to transfer $HONEY to
   /// @param amount Amount of $HONEY to transfer
   /// @param fee Fee that is sent to treasury
@@ -361,7 +371,8 @@ contract GAMM is ERC20 {
     SafeTransferLib.safeTransfer(honeyAddress, adminAddress, fee);
   }
 
-  /// @notice Porridge contract will call this function when users realize $PRG tokens
+  /// @notice Mints $PRG tokens from $PRG token realization
+  /// @dev Only Porridge contract can call this function
   /// @param to Recipient of minted $LOCKS tokens
   /// @param amount Amount of minted $LOCKS tokens
   function porridgeMint(address to, uint256 amount) external onlyPorridge {
@@ -375,19 +386,6 @@ contract GAMM is ERC20 {
     fsl += fslAddition;
     psl += pslAddition;
     SafeTransferLib.safeTransferFrom(honeyAddress, msg.sender, address(this), fslAddition + pslAddition);
-  }
-
-
-  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-  /*                  IMPLEMENTATION FUNCTIONS                  */
-  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
-
-
-  function _beforeTokenTransfer(
-    address from,
-    address to,
-    uint256 amount
-  ) internal override {
   }
 
 }
