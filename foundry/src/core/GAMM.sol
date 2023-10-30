@@ -154,7 +154,7 @@ contract GAMM is ERC20 {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  /// @notice Purchases $LOCKS tokens with $HONEY tokens
+  /// @notice Buys $LOCKS tokens with $HONEY tokens
   /// @param amount Amount of $LOCKS to buy
   /// @param maxAmount Maximum amount of $HONEY to spend
   function buy(uint256 amount, uint256 maxAmount) external {
@@ -338,7 +338,7 @@ contract GAMM is ERC20 {
   }
 
   /// @notice If a day has elapsed since the last floor increase and decrease, decrease the target ratio
-  /// @dev decrease factor is days since last floor increase
+  /// @dev decreaseFactor is days since last floor increase
   /// @dev max floor reduce is 5%
   function _floorReduce() internal {
     uint256 elapsedRaise = block.timestamp - lastFloorRaise;

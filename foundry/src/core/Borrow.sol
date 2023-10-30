@@ -86,21 +86,21 @@ contract Borrow {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  /// @notice View locked $LOCKS tokens of a user
+  /// @notice Returns the locked $LOCKS of a user
   /// @param user Address of user
   /// @return locked $LOCKS of user
   function getLocked(address user) external view returns (uint256) {
     return lockedLocks[user];
   }
 
-  /// @notice View borrowed $HONEY of a user
+  /// @notice Returns the borrowed $HONEY of a user
   /// @param user Address of user
   /// @return borrowed $HONEY of user
   function getBorrowed(address user) external view returns (uint256) {
     return borrowedHoney[user];
   }
 
-  /// @notice View borrow limit of a user
+  /// @notice Returns the borrow limit of a user
   /// @param user Address of user
   /// @return limit Limit of user
   function borrowLimit(address user) external view returns (uint256) {
@@ -114,7 +114,8 @@ contract Borrow {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  /// @notice Using staked $LOCKS as collateral, lends $HONEY
+  /// @notice Lends out $HONEY using staked $LOCKS as collateral
+  /// @dev borrowLimit is floor price of $LOCKS * amount of available staked $LOCKS
   /// @param amount Amount of $HONEY to borrow
   function borrow(uint256 amount) external {
     uint256 floorPrice = IGAMM(gammAddress).floorPrice();
@@ -126,7 +127,7 @@ contract Borrow {
     emit Borrowed(msg.sender, amount);
   }
 
-  /// @notice Repays $HONEY loans
+  /// @notice Settles $HONEY loans
   /// @param amount Amount of $HONEY to repay
   function repay(uint256 amount) external {
     if(borrowedHoney[msg.sender] < amount) revert ExcessiveRepay();
@@ -144,6 +145,7 @@ contract Borrow {
 
 
   /// @notice Calculates the amount of $LOCKS to return to users
+  /// @dev repaidLocks = (repaid $HONEY / borrowed $HONEY) * locked $LOCKS
   /// @param amount Amount of $HONEY user is repaying with
   /// @return repaidLocks Amount of $LOCKS that is returned to user
   function _calcRepayingLocks(uint256 amount) internal view returns (uint256 repaidLocks) {
@@ -160,6 +162,7 @@ contract Borrow {
   }
 
   /// @notice Checks if the user has enough borrowing power
+  /// @dev limit = $LOCKS floor price * available staked $LOCKS
   /// @param user Address of user
   /// @param floorPrice Current floor price of $LOCKS
   /// @return limit Returns the borrowing power of the user
@@ -170,6 +173,7 @@ contract Borrow {
   }
 
   /// @notice Calculates the fee for borrowing
+  /// @dev 3% fee
   /// @param amount Amount of $HONEY the user is requesting to borrow
   /// @return fee Fee that user pays for borrowing
   function _calcFee(uint256 amount) internal pure returns (uint256 fee) {
