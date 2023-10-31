@@ -133,10 +133,12 @@ contract Goldilend is ERC20, IERC721Receiver {
     }
   }
 
+  /// @notice Returns the name of the $gBERA token
   function name() public view override returns (string memory) {
     return "gBERA Token";
   }
 
+  /// @notice Returns the symbol of the $gBERA token
   function symbol() public view override returns (string memory) {
     return "gBERA";
   }
@@ -210,37 +212,37 @@ contract Goldilend is ERC20, IERC721Receiver {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  /// @notice View the details of all loans originated from user
+  /// @notice Returns the details of all loans originated from user
   /// @param user Originator of loan
   function lookupLoans(address user) external view returns (Loan[] memory userLoans) {
     userLoans = loans[user];
   }
 
-  /// @notice View the details of a loan
+  /// @notice Returns the details of a specific loan
   /// @param user Originator of loan
   /// @param userLoanId Id of loan
   function lookupLoan(address user, uint256 userLoanId) external view returns (Loan memory loan) {
     (loan, ) = _lookupLoan(user, userLoanId);
   }
   
-  /// @notice View the details of a boost
+  /// @notice Returns the details of a boost
   /// @param user Owner of boost
   function lookupBoost(address user) external view returns (Boost memory userBoost) {
     userBoost = boosts[user];
   }
 
-  /// @notice View the claimable $PRG of $gBERA staker
+  /// @notice Returns the claimable $PRG of $gBERA staker
   /// @param user $gBERA staker
   function getClaimable(address user) external view returns (uint256) {
     return _calculateClaim(stakes[user]);
   }
 
-  /// @notice View the current $gBERA ratio
+  /// @notice Returns the current $gBERA ratio
   function getgBERARatio() external view returns (uint256) {
     return _gberaRatio();
   }
 
-  /// @notice View the fair value of NFTs
+  /// @notice Returns the fair value of NFTs
   function getFairValues(address[] calldata collateralNFTs) external view returns (uint256) {
     return _calculateFairValue(collateralNFTs);
   }
@@ -252,11 +254,11 @@ contract Goldilend is ERC20, IERC721Receiver {
 
 
   /// @notice Locks partner NFT to receive boost on staking yield and discounted borrowing rates
-  /// @param partnerNFT NFT addresse to transfer to this contract
+  /// @param partnerNFT NFT address to transfer to this contract
   /// @param partnerNFTId Token ID of NFT to be transferred
   /// @param expiry Expiration date of the boost
   function boost(
-    address partnerNFT, 
+    address partnerNFT,
     uint256 partnerNFTId, 
     uint256 expiry
   ) external {
@@ -292,7 +294,7 @@ contract Goldilend is ERC20, IERC721Receiver {
     boosts[msg.sender].expiry = newExpiry;
   }
 
-  /// @notice Claims tokens from expired boosts
+  /// @notice Claims NFTs from expired boosts
   function withdrawBoost() external {
     Boost memory userBoost = boosts[msg.sender];
     if(userBoost.expiry == 0) revert InvalidBoost();
@@ -496,7 +498,7 @@ contract Goldilend is ERC20, IERC721Receiver {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  /// @notice Calculates and distributes claiming rewards
+  /// @notice Calculates and distributes $PRG rewards
   function _claim() internal {
     Stake memory userStake = stakes[msg.sender];
     uint256 claimed = _calculateClaim(userStake);
@@ -504,7 +506,8 @@ contract Goldilend is ERC20, IERC721Receiver {
     IPorridge(porridgeAddress).goldilendMint(msg.sender, claimed);
   }
 
-  /// @notice Calculates claiming rewards
+  /// @notice Calculates claimable $PRG
+  /// @dev porridgeEarned = time staked * rate * amount staked
   /// @param userStake Struct of the user's current stake information
   function _calculateClaim(Stake memory userStake) internal view returns (uint256 porridgeEarned) {    
     uint256 timeStaked = (block.timestamp - userStake.lastClaim) > SIX_MONTHS ? SIX_MONTHS : block.timestamp - userStake.lastClaim;
@@ -521,6 +524,7 @@ contract Goldilend is ERC20, IERC721Receiver {
   }
 
   /// @notice Calculates the rate of $PRG emissions
+  /// @dev rate = porridgeMultiple - (porridgeMultiple * (average of emissions start & lastClaim / 6 months))
   /// @param lastClaim Last timestamp user claimed
   function _calculateRate(uint256 lastClaim) internal view returns (uint256 rate) {
     uint256 emissionsPeriod = block.timestamp - emissionsStart;
@@ -571,7 +575,7 @@ contract Goldilend is ERC20, IERC721Receiver {
   }
 
   /// @notice Stakes $BERA in Berachain Consensus Vault, 
-  /// claims existing vault rewards, and updates poolSize
+  /// @dev Claims existing vault rewards and updates poolSize
   /// @param beraAmount Amount of $BERA to stake
   function _refreshBera(uint256 beraAmount) internal {
     IERC20(beraAddress).approve(vaultAddress, beraAmount);

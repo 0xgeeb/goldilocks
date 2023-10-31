@@ -75,7 +75,7 @@ contract GAMM is ERC20 {
     lastFloorDecrease = block.timestamp;
   }
 
-  /// @notice Returns the name of the $LOCKS Token
+  /// @notice Returns the name of the $LOCKS token
   function name() public view override returns (string memory) {
     return "Locks Token";
   }

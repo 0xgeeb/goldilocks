@@ -74,12 +74,12 @@ contract Porridge is ERC20 {
     honeyAddress = _honeyAddress;
   }
 
-  /// @notice Returns the name of the $PRG Token
+  /// @notice Returns the name of the $PRG token
   function name() public view override returns (string memory) {
     return "Porridge Token";
   }
 
-  /// @notice Returns the symbol of the $PRG Token
+  /// @notice Returns the symbol of the $PRG token
   function symbol() public view override returns (string memory) {
     return "PRG";
   }
