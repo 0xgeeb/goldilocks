@@ -74,10 +74,12 @@ contract Porridge is ERC20 {
     honeyAddress = _honeyAddress;
   }
 
+  /// @notice Returns the name of the $PRG Token
   function name() public view override returns (string memory) {
     return "Porridge Token";
   }
 
+  /// @notice Returns the symbol of the $PRG Token
   function symbol() public view override returns (string memory) {
     return "PRG";
   }
@@ -121,19 +123,19 @@ contract Porridge is ERC20 {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  /// @notice View the staked $LOCKS of an address
+  /// @notice Returns the staked $LOCKS of an address
   /// @param user Address to view staked $LOCKS
   function getStaked(address user) external view returns (uint256) {
     return staked[user];
   }
 
-  /// @notice View the stake start time of an address
+  /// @notice Returns the stake start time of an address
   /// @param user Address to view stake start time
   function getStakeStartTime(address user) external view returns (uint256) {
     return stakeStartTime[user];
   }
 
-  /// @notice View the claimable yield of an address
+  /// @notice Returns the claimable yield of an address
   /// @param user Address to view claimable yield
   function getClaimable(address user) external view returns (uint256) {
     uint256 stakedAmount = staked[user];
@@ -146,7 +148,7 @@ contract Porridge is ERC20 {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  /// @notice stakes $LOCKS to begin earning $PRG
+  /// @notice Stakes $LOCKS and begins earning $PRG
   /// @param amount Amount of $LOCKS to stake
   function stake(uint256 amount) external {
     if(staked[msg.sender] > 0) {
@@ -158,7 +160,7 @@ contract Porridge is ERC20 {
     emit Staked(msg.sender, amount);
   }
 
-  /// @notice unstakes $LOCKS and claims $PRG rewards
+  /// @notice Unstakes $LOCKS and claims $PRG 
   /// @param amount Amount of $LOCKS to unstake
   function unstake(uint256 amount) external {
     if(amount > staked[msg.sender]) revert InvalidUnstake();
@@ -213,6 +215,7 @@ contract Porridge is ERC20 {
   }
     
   /// @notice Calculates claimable yield
+  /// @dev claimable = (staked $LOCKS / daily emission rate) * days staked
   /// @param user Address of staker to calculate yield
   /// @param stakedAmount Amount of $LOCKS the user has staked in the contract
   /// @return yield Amount of $PRG earned by staker
@@ -234,11 +237,12 @@ contract Porridge is ERC20 {
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
-  /*                   PERMISSIONED FUNCTIONS                   */
+  /*                   PERMISSIONED FUNCTION                    */
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  /// @notice Goldilend contract will call this function when users claim $PRG tokens
+  /// @notice Mints $PRG to user who is staking $gBERA
+  /// @dev Only Goldilend contract can call this function
   /// @param to Recipient of minted $PRG tokens
   /// @param amount Amount of minted $PRG tokens
   function goldilendMint(address to, uint256 amount) external onlyGoldilend {
