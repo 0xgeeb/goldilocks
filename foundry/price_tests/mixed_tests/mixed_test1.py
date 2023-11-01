@@ -9,7 +9,6 @@ supply = 5000
 floor_price = fsl/supply
 market_price = floor_price + ((psl/supply)*((psl+fsl)/fsl)**5)
 target = 0.36
-invested = 0
 
 transactions = [
   (buy, 38),
@@ -47,9 +46,9 @@ transactions = [
 
 for transaction, amount in transactions:
   if transaction == floor_raise:
-    target, invested, fsl, psl, supply, floor_price, market_price = transaction(target, invested, fsl, psl, supply, floor_price, market_price)
+    target, fsl, psl, supply, floor_price, market_price = transaction(target, fsl, psl, supply, floor_price, market_price)
   else:
-    invested, fsl, psl, supply, floor_price, market_price = transaction(amount, invested, fsl, psl, supply, floor_price, market_price)
+    fsl, psl, supply, floor_price, market_price = transaction(amount, fsl, psl, supply, floor_price, market_price)
 
 market_price *= (10 ** 18)
 enc = encode(['uint256'], [int(market_price)])
