@@ -15,7 +15,6 @@ import { Beradrome } from "../../src/mock/Beradrome.sol";
 import { BondBear } from "../../src/mock/BondBear.sol";
 import { BandBear } from "../../src/mock/BandBear.sol";
 
-
 contract PorridgeTest is Test {
 
   using LibRLP for address;
@@ -33,12 +32,12 @@ contract PorridgeTest is Test {
   BondBear bondbear;
   BandBear bandbear;
 
-
   uint256 HalfDayofYield = 83333333333333333;
   uint256 OneDayofYield = 166666666666666666;
   uint256 OneDayandHalfofYield = 249999999999999999;
   uint256 TwoDaysofYield = 333333333333333332;
   uint256 twoMonthsOfGoldilendStakingYield = 43e18;
+  uint256 locksAmount = 100e18;
   uint256 borrowAmount = 280e20;
 
   bytes4 NotGoldilendSelector = 0xc81d51dc;
@@ -90,15 +89,15 @@ contract PorridgeTest is Test {
     values[0] = 50;
     values[1] = 50;
 
-    goldilend.setValue(100e18, nfts, values);
+    goldilend.setValue(locksAmount, nfts, values);
     deal(address(bera), address(goldilend), startingPoolSize);
     deal(address(bera), address(consensusvault), type(uint256).max / 2);
   }
 
   modifier dealandStake100Locks() {
-    deal(address(gamm), address(this), 100e18);
-    gamm.approve(address(porridge), 100e18);
-    porridge.stake(100e18);
+    deal(address(gamm), address(this), locksAmount);
+    gamm.approve(address(porridge), locksAmount);
+    porridge.stake(locksAmount);
     _;
   }
 
@@ -121,7 +120,7 @@ contract PorridgeTest is Test {
 
   function testInvalidUnstake() public dealandStake100Locks {
     vm.expectRevert(InvalidUnstakeSelector);
-    porridge.unstake(100e18 + 1);
+    porridge.unstake(locksAmount + 1);
   }
 
   function testLocksBorrowedAgainst() public dealandStake100Locks dealGammMaxHoney {
@@ -171,44 +170,44 @@ contract PorridgeTest is Test {
     uint256 getStakedUserBalance = porridge.getStaked(address(this));
 
     assertEq(userBalanceofLocks, 0);
-    assertEq(contractBalance, 100e18);
-    assertEq(getStakedUserBalance, 100e18);
+    assertEq(contractBalance, locksAmount);
+    assertEq(getStakedUserBalance, locksAmount);
   }
 
   function testDoubleStake() public dealandStake100Locks {
-    deal(address(gamm), address(this), 100e18);
-    gamm.approve(address(porridge), 100e18);
-    porridge.stake(100e18);
+    deal(address(gamm), address(this), locksAmount);
+    gamm.approve(address(porridge), locksAmount);
+    porridge.stake(locksAmount);
   }
 
   function testUnstake() public dealandStake100Locks {
     vm.warp(block.timestamp + porridge.DAYS_SECONDS());
-    porridge.unstake(100e18);
+    porridge.unstake(locksAmount);
 
     uint256 userBalanceofLocks = gamm.balanceOf(address(this));
     uint256 contractBalance = gamm.balanceOf(address(porridge));
     uint256 getStakedUserBalance = porridge.getStaked(address(this));
     uint256 prgBalance = porridge.balanceOf(address(this));
 
-    assertEq(userBalanceofLocks, 100e18);
+    assertEq(userBalanceofLocks, locksAmount);
     assertEq(contractBalance, 0);
     assertEq(getStakedUserBalance, 0);
     assertEq(prgBalance, OneDayofYield);
   }
 
   function testStakeUnstake() public dealandStake100Locks {
-    porridge.unstake(100e18);
+    porridge.unstake(locksAmount);
 
     uint256 userBalanceofLocks = gamm.balanceOf(address(this));
     uint256 getStakedUserBalance = porridge.getStaked(address(this));
 
-    assertEq(userBalanceofLocks, 100e18);
+    assertEq(userBalanceofLocks, locksAmount);
     assertEq(getStakedUserBalance, 0);
   }
 
   function testRealize() public dealandStake100Locks dealUser280Honey {
     vm.warp(block.timestamp + (2 * porridge.DAYS_SECONDS()));
-    porridge.unstake(100e18);
+    porridge.unstake(locksAmount);
     porridge.realize(TwoDaysofYield);
 
     uint256 userBalanceofPrg = porridge.balanceOf(address(this));
@@ -230,7 +229,7 @@ contract PorridgeTest is Test {
     uint256 userStakedLocks = porridge.getStaked(address(this));
 
     assertEq(userBalanceofPrg, OneDayofYield);
-    assertEq(userStakedLocks, 100e18);
+    assertEq(userStakedLocks, locksAmount);
   }
 
   function testStakeClaim() public dealandStake100Locks {
@@ -247,14 +246,14 @@ contract PorridgeTest is Test {
   function testGetStaked() public dealandStake100Locks{
     uint256 userStakedLocks = porridge.getStaked(address(this));
 
-    assertEq(userStakedLocks, 100e18);
+    assertEq(userStakedLocks, locksAmount);
   }
 
   function testGetStakeStartTime() public {
     vm.warp(69);
-    deal(address(gamm), address(this), 100e18);
-    gamm.approve(address(porridge), 100e18);
-    porridge.stake(100e18);
+    deal(address(gamm), address(this), locksAmount);
+    gamm.approve(address(porridge), locksAmount);
+    porridge.stake(locksAmount);
 
     uint256 timestamp = porridge.getStakeStartTime(address(this));
 

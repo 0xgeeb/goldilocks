@@ -18,6 +18,7 @@ contract BorrowTest is Test {
   Borrow borrow;
   Porridge porridge;
 
+  uint256 locksAmount = 100e18;
   uint256 borrowAmount = 280e20;
 
   bytes4 NotAdminSelector = 0x7bfa4b9f;
@@ -35,9 +36,9 @@ contract BorrowTest is Test {
   }
 
   modifier dealandStake100Locks() {
-    deal(address(gamm), address(this), 100e18);
-    gamm.approve(address(porridge), 100e18);
-    porridge.stake(100e18);
+    deal(address(gamm), address(this), locksAmount);
+    gamm.approve(address(porridge), locksAmount);
+    porridge.stake(locksAmount);
     _;
   }
 
@@ -73,13 +74,13 @@ contract BorrowTest is Test {
 
     assertEq(gammHoneyBalance, type(uint256).max - borrowAmount);
     assertEq(userHoneyBalance, borrowAmount);
-    assertEq(locked, 100e18);
+    assertEq(locked, locksAmount);
     assertEq(borrowed, borrowAmount);
   }
 
   function testRepay() public dealandStake100Locks dealGammMaxHoney {
     borrow.borrow(borrowAmount);
-    honey.approve(address(borrow), 280e20);
+    honey.approve(address(borrow), borrowAmount);
     borrow.repay(borrowAmount);
 
     uint256 locked = borrow.getLocked(address(this));
@@ -90,16 +91,16 @@ contract BorrowTest is Test {
     assertEq(locked, 0);
     assertEq(borrowed, 0);
     assertEq(userHoneyBalance, 0);
-    assertEq(userStakedLocksBalance, 100e18);
+    assertEq(userStakedLocksBalance, locksAmount);
   }
 
   function testLockedAfterRepay() public dealGammMaxHoney {
-    deal(address(gamm), address(this), 696969e18);
-    gamm.approve(address(porridge), 696969e18);
-    porridge.stake(696969e18);
-    borrow.borrow(696969e18);
+    deal(address(gamm), address(this), locksAmount);
+    gamm.approve(address(porridge), locksAmount);
+    porridge.stake(locksAmount);
+    borrow.borrow(locksAmount);
     honey.approve(address(borrow), type(uint256).max);
-    borrow.repay(696969e18);
+    borrow.repay(locksAmount);
 
     uint256 locked = borrow.getLocked(address(this));
 
