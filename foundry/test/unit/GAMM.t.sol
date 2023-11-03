@@ -161,7 +161,7 @@ contract GAMMTest is Test {
     assertEq(userHoneyBalance, proceedsof10Locks);
   }
 
-  function testRedeemed() public dealLocks dealGammHoney{
+  function testRedeemed() public dealLocks dealGammHoney {
     gamm.redeem(txAmount);
 
     uint256 userLocksBalance = gamm.balanceOf(address(this));
@@ -223,6 +223,39 @@ contract GAMMTest is Test {
     assertEq(gamm.fsl(), fsltemp + injected);
     assertEq(gamm.psl(), psltemp + injected);
     assertEq(honey.balanceOf(address(gamm)), injected * 2);
+  }
+
+  function testDrainGamm() public {
+    uint256 milly = 1000000e18;
+    deal(address(honey), address(this), milly);
+    honey.approve(address(gamm), milly);
+    deal(address(honey), address(gamm), milly);
+
+    uint256 beforeGammLocks = gamm.balanceOf(address(gamm));
+    uint256 beforeGammHoney = honey.balanceOf(address(gamm));
+    uint256 beforeUserLocks = gamm.balanceOf(address(this));
+    uint256 beforeUserHoney = honey.balanceOf(address(this));
+    console.log("before: gamm $LOCKS balance", beforeGammLocks);
+    console.log("before: gamm $HONEY balance", beforeGammHoney);
+    console.log("before: user $LOCKS balance", beforeUserLocks);
+    console.log("before: user $HONEY balance", beforeUserHoney);
+    console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+
+
+
+    gamm.buy(10e18, type(uint256).max);
+
+
+
+    uint256 afterGammLocks = gamm.balanceOf(address(gamm));
+    uint256 afterGammHoney = honey.balanceOf(address(gamm));
+    uint256 afterUserLocks = gamm.balanceOf(address(this));
+    uint256 afterUserHoney = honey.balanceOf(address(this));
+    console.log("after: gamm $LOCKS balance", afterGammLocks);
+    console.log("after: gamm $HONEY balance", afterGammHoney);
+    console.log("after: user $LOCKS balance", afterUserLocks);
+    console.log("after: user $HONEY balance", afterUserHoney);
+    console.log(beforeUserHoney - afterUserHoney);
   }
 
 }
