@@ -26,9 +26,7 @@ import { Nonces } from "../../lib/openzeppelin-contracts/contracts/utils/Nonces.
 
 
 contract GovLocks is ERC20, ERC20Permit, ERC20Votes, ERC20Wrapper {
-  constructor(
-    IERC20 govlocks
-  ) ERC20("GovLocks", "gLocks") ERC20Permit("GovLocks") ERC20Wrapper(govlocks) {}
+  constructor(IERC20 govlocks) ERC20("GovLocks", "gLocks") ERC20Permit("GovLocks") ERC20Wrapper(govlocks) {}
 
   function decimals() public view override(ERC20, ERC20Wrapper) returns (uint8) {
     return super.decimals();
