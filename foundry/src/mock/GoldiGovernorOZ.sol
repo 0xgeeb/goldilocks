@@ -13,7 +13,7 @@ pragma solidity ^0.8.19;
 // |                                                                                            |
 // |============================================================================================|
 // ==============================================================================================
-// ===================================== GoldiGovernor ==========================================
+// =================================== GoldiGovernorOZ ==========================================
 // ==============================================================================================
 
 
@@ -26,7 +26,7 @@ import { GovernorVotes } from "../../lib/openzeppelin-contracts/contracts/govern
 import { GovernorVotesQuorumFraction } from "../../lib/openzeppelin-contracts/contracts/governance/extensions/GovernorVotesQuorumFraction.sol";
 import { GovernorTimelockControl } from "../../lib/openzeppelin-contracts/contracts/governance/extensions/GovernorTimelockControl.sol";
 
-contract GoldiGovernor is Governor, GovernorSettings, GovernorCountingSimple, GovernorVotes, GovernorVotesQuorumFraction, GovernorTimelockControl {
+contract GoldiGovernorOZ is Governor, GovernorSettings, GovernorCountingSimple, GovernorVotes, GovernorVotesQuorumFraction, GovernorTimelockControl {
   constructor(IVotes _token, TimelockController _timelock)
     Governor("GoldiGovernor")
     GovernorSettings(7200 /* 1 day */, 50400 /* 1 week */, 0)
