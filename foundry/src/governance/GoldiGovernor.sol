@@ -22,7 +22,7 @@ import { Timelock } from "./Timelock.sol";
 
 /// @title GoldiGovernor
 /// @notice Governance contract for Goldilocks Protocol & Goldilocks DAO
-/// @dev forked from Uniswap governance contracts
+/// @dev Forked from Uniswap governance contracts, https://etherscan.io/address/0x408ed6354d4973f66138c91495f2f2fcbd8724c3
 /// @author geeb
 contract GoldiGovernor {
 
@@ -34,10 +34,10 @@ contract GoldiGovernor {
 
   struct Proposal {
     address[] targets;    
-    address proposer;    
     string[] signatures;    
     bytes[] calldatas;    
     uint256[] values;    
+    address proposer;
     uint256 id;   
     uint256 eta;
     uint256 startBlock;    
@@ -45,9 +45,9 @@ contract GoldiGovernor {
     uint256 forVotes;    
     uint256 againstVotes;    
     uint256 abstainVotes;
-    bool canceled;    
+    bool cancelled;    
     bool executed;
-    // mapping (address => Receipt) receipts;
+    mapping (address => Receipt) receipts;
   }
 
   struct Receipt {
@@ -76,27 +76,20 @@ contract GoldiGovernor {
   string public constant name = "Uniswap Governor Bravo";
   uint256 public constant MIN_PROPOSAL_THRESHOLD = 1000000e18;
   uint256 public constant MAX_PROPOSAL_THRESHOLD = 10000000e18;
-  uint public constant MIN_VOTING_PERIOD = 5760; // About 24 hours
-  uint public constant MAX_VOTING_PERIOD = 80640; // About 2 weeks
-  uint public constant MIN_VOTING_DELAY = 1;
-  uint public constant MAX_VOTING_DELAY = 40320; // About 1 week
+  uint32 public constant MIN_VOTING_PERIOD = 5760; // About 24 hours
+  uint32 public constant MAX_VOTING_PERIOD = 80640; // About 2 weeks
+  uint32 public constant MIN_VOTING_DELAY = 1;
+  uint32 public constant MAX_VOTING_DELAY = 40320; // About 1 week
+  uint public constant quorumVotes = 40000000e18; // 40,000,000 = 4% of $LOCKS
+  uint public constant proposalMaxOperations = 10;
 
-  /// @notice The number of votes in support of a proposal required in order for a quorum to be reached and for a vote to succeed
-  uint public constant quorumVotes = 40000000e18; // 40,000,000 = 4% of Uni
-
-  /// @notice The maximum number of actions that can be included in a proposal
-  uint public constant proposalMaxOperations = 10; // 10 actions
-
-  /// @notice The EIP-712 typehash for the contract's domain
   bytes32 public constant DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)");
-
-  /// @notice The EIP-712 typehash for the ballot struct used by the contract
   bytes32 public constant BALLOT_TYPEHASH = keccak256("Ballot(uint256 proposalId,uint8 support)");
 
   address public timelock;
+  address public locks;
   address public admin;
   address public pendingAdmin;
-  address public locks;
 
   mapping (uint256 => Proposal) public proposals;
   mapping (address => uint256) public latestProposalIds;
@@ -104,7 +97,6 @@ contract GoldiGovernor {
   uint256 public votingDelay;
   uint256 public votingPeriod;
   uint256 public proposalThreshold;
-  uint256 public initialProposalId;
   uint256 public proposalCount;
 
 
@@ -113,7 +105,29 @@ contract GoldiGovernor {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  constructor() {}
+  /// @notice Constructor of this contract
+  /// @param _timelock Address of the Timelock
+  /// @param _locks Address of $LOCKS
+  /// @param _votingPeriod Duration of voting on a proposal, in blocks
+  /// @param _votingDelay Delay before voting on a proposal may take place, once proposed, in blocks
+  /// @param _proposalThreshold Number of votes required in order for a voter to become a proposer
+  constructor(
+    address _timelock,
+    address _locks,
+    uint256 _votingPeriod,
+    uint256 _votingDelay,
+    uint256 _proposalThreshold
+  ) {
+    if(_votingPeriod < MIN_VOTING_PERIOD || _votingPeriod > MAX_VOTING_PERIOD) revert InvalidVotingParameter();
+    if(_votingDelay < MIN_VOTING_DELAY || _votingDelay > MAX_VOTING_DELAY) revert InvalidVotingParameter();
+    if(_proposalThreshold < MIN_PROPOSAL_THRESHOLD || _proposalThreshold > MAX_PROPOSAL_THRESHOLD) revert InvalidVotingParameter();
+    timelock = _timelock;
+    locks = _locks;
+    votingPeriod = _votingPeriod;
+    votingDelay = _votingDelay;
+    proposalThreshold = _proposalThreshold;
+    Timelock(timelock).acceptAdmin();
+  }
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -121,45 +135,26 @@ contract GoldiGovernor {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
+  error ArrayMismatch();
+  error InvalidVotingParameter();
+  error InvalidProposalAction();
+  error AlreadyProposing();
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
   /*                           EVENTS                           */
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-  /// @notice An event emitted when a new proposal is created
-  event ProposalCreated(uint id, address proposer, address[] targets, uint[] values, string[] signatures, bytes[] calldatas, uint startBlock, uint endBlock, string description);
-
-  /// @notice An event emitted when a vote has been cast on a proposal
-  /// @param voter The address which casted a vote
-  /// @param proposalId The proposal id which was voted on
-  /// @param support Support value for the vote. 0=against, 1=for, 2=abstain
-  /// @param votes Number of votes which were cast by the voter
-  /// @param reason The reason given for the vote by the voter
+  
   event VoteCast(address indexed voter, uint proposalId, uint8 support, uint votes, string reason);
-
-  /// @notice An event emitted when a proposal has been canceled
-  event ProposalCanceled(uint id);
-
-  /// @notice An event emitted when a proposal has been queued in the Timelock
+  event ProposalCreated(uint id, address proposer, address[] targets, uint[] values, string[] signatures, bytes[] calldatas, uint startBlock, uint endBlock, string description);
   event ProposalQueued(uint id, uint eta);
-
-  /// @notice An event emitted when a proposal has been executed in the Timelock
   event ProposalExecuted(uint id);
-
-  /// @notice An event emitted when the voting delay is set
+  event ProposalCanceled(uint id);
   event VotingDelaySet(uint oldVotingDelay, uint newVotingDelay);
-
-  /// @notice An event emitted when the voting period is set
   event VotingPeriodSet(uint oldVotingPeriod, uint newVotingPeriod);
-
-  /// @notice Emitted when proposal threshold is set
   event ProposalThresholdSet(uint oldProposalThreshold, uint newProposalThreshold);
-
-  /// @notice Emitted when pendingAdmin is changed
   event NewPendingAdmin(address oldPendingAdmin, address newPendingAdmin);
-
-  /// @notice Emitted when pendingAdmin is accepted, which means admin is updated
   event NewAdmin(address oldAdmin, address newAdmin);
 
 
@@ -168,34 +163,26 @@ contract GoldiGovernor {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
+  /// @notice Return the state of a proposal
+  /// @param proposalId Id of the proposal
+  function getProposalState(uint proposalId) public view returns (ProposalState) {
+    return _getProposalState(proposalId);
+  }
+
+  /// @notice Returns the receipt for a voter on a given proposal
+  /// @param voter Address of voter
+  /// @param proposalId Id of proposal
+  function getReceipt(uint proposalId, address voter) external view returns (Receipt memory) {
+    return proposals[proposalId].receipts[voter];
+  }
+
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
   /*                      EXTERNAL FUNCTIONS                    */
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  /**
-    * @notice Used to initialize the contract during delegator contructor
-    * @param _timelock The address of the Timelock
-    * @param votingPeriod_ The initial voting period
-    * @param votingDelay_ The initial voting delay
-    * @param proposalThreshold_ The initial proposal threshold
-    */
-  function initialize(address _timelock, uint votingPeriod_, uint votingDelay_, uint proposalThreshold_) public {
-      require(address(timelock) == address(0), "GovernorBravo::initialize: can only initialize once");
-      require(msg.sender == admin, "GovernorBravo::initialize: admin only");
-      require(_timelock != address(0), "GovernorBravo::initialize: invalid timelock address");
-      // require(uni_ != address(0), "GovernorBravo::initialize: invalid uni address");
-      require(votingPeriod_ >= MIN_VOTING_PERIOD && votingPeriod_ <= MAX_VOTING_PERIOD, "GovernorBravo::initialize: invalid voting period");
-      require(votingDelay_ >= MIN_VOTING_DELAY && votingDelay_ <= MAX_VOTING_DELAY, "GovernorBravo::initialize: invalid voting delay");
-      require(proposalThreshold_ >= MIN_PROPOSAL_THRESHOLD && proposalThreshold_ <= MAX_PROPOSAL_THRESHOLD, "GovernorBravo::initialize: invalid proposal threshold");
 
-      timelock = _timelock;
-      // uni = UniInterface(uni_);
-      votingPeriod = votingPeriod_;
-      votingDelay = votingDelay_;
-      proposalThreshold = proposalThreshold_;
-  }
 
    /**
     * @notice Function used to propose a new proposal. Sender must have delegates above the proposal threshold
@@ -204,49 +191,48 @@ contract GoldiGovernor {
     * @param signatures Function signatures for proposal calls
     * @param calldatas Calldatas for proposal calls
     * @param description String description of the proposal
-    * @return Proposal id of new proposal
     */
-  function propose(address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas, string memory description) public returns (uint) {
-    // Reject proposals before initiating as Governor
-    require(initialProposalId != 0, "GovernorBravo::propose: Governor Bravo not active");
+  function propose(
+    address[] memory targets,
+    string[] memory signatures, 
+    bytes[] memory calldatas,
+    uint256[] memory values,
+    string memory description
+  ) external {
     // require(uni.getPriorVotes(msg.sender, sub256(block.number, 1)) > proposalThreshold, "GovernorBravo::propose: proposer votes below proposal threshold");
-    require(targets.length == values.length && targets.length == signatures.length && targets.length == calldatas.length, "GovernorBravo::propose: proposal function information arity mismatch");
-    require(targets.length != 0, "GovernorBravo::propose: must provide actions");
-    require(targets.length <= proposalMaxOperations, "GovernorBravo::propose: too many actions");
+    if(targets.length != values.length || targets.length != signatures.length || targets.length != calldatas.length) revert ArrayMismatch();
+    if(targets.length == 0) revert InvalidProposalAction();
+    if(targets.length > proposalMaxOperations) revert InvalidProposalAction();
 
-    uint latestProposalId = latestProposalIds[msg.sender];
+    uint256 latestProposalId = latestProposalIds[msg.sender];
     if (latestProposalId != 0) {
-      ProposalState proposersLatestProposalState = state(latestProposalId);
-      require(proposersLatestProposalState != ProposalState.Active, "GovernorBravo::propose: one live proposal per proposer, found an already active proposal");
-      require(proposersLatestProposalState != ProposalState.Pending, "GovernorBravo::propose: one live proposal per proposer, found an already pending proposal");
+      ProposalState proposersLatestProposalState = _getProposalState(latestProposalId);
+      if(proposersLatestProposalState == ProposalState.Active) revert AlreadyProposing();
+      if(proposersLatestProposalState == ProposalState.Pending) revert AlreadyProposing();
     }
 
-    uint startBlock = add256(block.number, votingDelay);
-    uint endBlock = add256(startBlock, votingPeriod);
+    uint256 startBlock = block.number + votingDelay;
+    uint256 endBlock = startBlock + votingPeriod;
+    
+    Proposal storage newProposal = proposals[proposalCount++];
+    newProposal.id = proposalCount;
+    newProposal.proposer = msg.sender;
+    newProposal.eta = 0;
+    newProposal.targets = targets;
+    newProposal.values = values;
+    newProposal.signatures = signatures;
+    newProposal.calldatas = calldatas;
+    newProposal.startBlock = startBlock;
+    newProposal.endBlock = endBlock;
+    newProposal.forVotes = 0;
+    newProposal.againstVotes = 0;
+    newProposal.abstainVotes = 0;
+    newProposal.cancelled = false;
+    newProposal.executed = false;
+    
+    latestProposalIds[msg.sender] = proposalCount;
 
-    proposalCount++;
-    Proposal memory newProposal = Proposal({
-      id: proposalCount,
-      proposer: msg.sender,
-      eta: 0,
-      targets: targets,
-      values: values,
-      signatures: signatures,
-      calldatas: calldatas,
-      startBlock: startBlock,
-      endBlock: endBlock,
-      forVotes: 0,
-      againstVotes: 0,
-      abstainVotes: 0,
-      canceled: false,
-      executed: false
-    });
-
-    proposals[newProposal.id] = newProposal;
-    latestProposalIds[newProposal.proposer] = newProposal.id;
-
-    emit ProposalCreated(newProposal.id, msg.sender, targets, values, signatures, calldatas, startBlock, endBlock, description);
-    return newProposal.id;
+    // emit ProposalCreated(proposalCount, msg.sender, targets, values, signatures, calldatas, startBlock, endBlock, description);    
   }
 
   /**
@@ -254,7 +240,7 @@ contract GoldiGovernor {
     * @param proposalId The id of the proposal to queue
     */
   function queue(uint proposalId) external {
-      require(state(proposalId) == ProposalState.Succeeded, "GovernorBravo::queue: proposal can only be queued if it is succeeded");
+      require(_getProposalState(proposalId) == ProposalState.Succeeded, "GovernorBravo::queue: proposal can only be queued if it is succeeded");
       Proposal storage proposal = proposals[proposalId];
       uint eta = add256(block.timestamp, Timelock(timelock).delay());
       for (uint i = 0; i < proposal.targets.length; i++) {
@@ -269,7 +255,7 @@ contract GoldiGovernor {
     * @param proposalId The id of the proposal to execute
     */
   function execute(uint proposalId) external payable {
-      require(state(proposalId) == ProposalState.Queued, "GovernorBravo::execute: proposal can only be executed if it is queued");
+      require(_getProposalState(proposalId) == ProposalState.Queued, "GovernorBravo::execute: proposal can only be executed if it is queued");
       Proposal storage proposal = proposals[proposalId];
       proposal.executed = true;
       for (uint i = 0; i < proposal.targets.length; i++) {
@@ -283,12 +269,12 @@ contract GoldiGovernor {
     * @param proposalId The id of the proposal to cancel
     */
   function cancel(uint proposalId) external {
-      require(state(proposalId) != ProposalState.Executed, "GovernorBravo::cancel: cannot cancel executed proposal");
+      require(_getProposalState(proposalId) != ProposalState.Executed, "GovernorBravo::cancel: cannot cancel executed proposal");
 
       Proposal storage proposal = proposals[proposalId];
       // require(msg.sender == proposal.proposer || uni.getPriorVotes(proposal.proposer, sub256(block.number, 1)) < proposalThreshold, "GovernorBravo::cancel: proposer above threshold");
 
-      proposal.canceled = true;
+      proposal.cancelled = true;
       for (uint i = 0; i < proposal.targets.length; i++) {
           Timelock(timelock).cancelTransaction(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], proposal.eta);
       }
@@ -324,56 +310,34 @@ contract GoldiGovernor {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-
-
-   function queueOrRevertInternal(address target, uint value, string memory signature, bytes memory data, uint eta) internal {
-      require(!Timelock(timelock).queuedTransactions(keccak256(abi.encode(target, value, signature, data, eta))), "GovernorBravo::queueOrRevertInternal: identical proposal action already queued at eta");
-      Timelock(timelock).queueTransaction(target, value, signature, data, eta);
+  /// @notice Returns the state of a proposal
+  /// @param proposalId Id of the proposal
+  function _getProposalState(uint proposalId) internal view returns (ProposalState) {
+    Proposal storage proposal = proposals[proposalId];
+    if (proposal.cancelled) return ProposalState.Canceled;
+    else if (block.number <= proposal.startBlock) return ProposalState.Pending; 
+    else if (block.number <= proposal.endBlock) return ProposalState.Active;
+    else if (proposal.eta == 0) return ProposalState.Succeeded;
+    else if (proposal.executed) return ProposalState.Executed;
+    else if (proposal.forVotes <= proposal.againstVotes || proposal.forVotes < quorumVotes) {
+      return ProposalState.Defeated;
+    } 
+    else if (block.timestamp >= proposal.eta + Timelock(timelock).GRACE_PERIOD()) {
+      return ProposalState.Expired;
+    } 
+    else {
+      return ProposalState.Queued;
+    }
   }
 
 
 
-  function getActions(uint proposalId) external view returns (address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas) {
-      Proposal storage p = proposals[proposalId];
-      return (p.targets, p.values, p.signatures, p.calldatas);
+  function queueOrRevertInternal(address target, uint value, string memory signature, bytes memory data, uint eta) internal {
+    require(!Timelock(timelock).queuedTransactions(keccak256(abi.encode(target, value, signature, data, eta))), "GovernorBravo::queueOrRevertInternal: identical proposal action already queued at eta");
+    Timelock(timelock).queueTransaction(target, value, signature, data, eta);
   }
 
-  // /**
-  //   * @notice Gets the receipt for a voter on a given proposal
-  //   * @param proposalId the id of proposal
-  //   * @param voter The address of the voter
-  //   * @return The voting receipt
-  //   */
-  // function getReceipt(uint proposalId, address voter) external view returns (Receipt memory) {
-  //     return proposals[proposalId].receipts[voter];
-  // }
 
-  /**
-    * @notice Gets the state of a proposal
-    * @param proposalId The id of the proposal
-    * @return Proposal state
-    */
-  function state(uint proposalId) public view returns (ProposalState) {
-      require(proposalCount >= proposalId && proposalId > initialProposalId, "GovernorBravo::state: invalid proposal id");
-      Proposal storage proposal = proposals[proposalId];
-      if (proposal.canceled) {
-          return ProposalState.Canceled;
-      } else if (block.number <= proposal.startBlock) {
-          return ProposalState.Pending;
-      } else if (block.number <= proposal.endBlock) {
-          return ProposalState.Active;
-      } else if (proposal.forVotes <= proposal.againstVotes || proposal.forVotes < quorumVotes) {
-          return ProposalState.Defeated;
-      } else if (proposal.eta == 0) {
-          return ProposalState.Succeeded;
-      } else if (proposal.executed) {
-          return ProposalState.Executed;
-      } else if (block.timestamp >= add256(proposal.eta, Timelock(timelock).GRACE_PERIOD())) {
-          return ProposalState.Expired;
-      } else {
-          return ProposalState.Queued;
-      }
-  }
 
   /**
     * @notice Cast a vote for a proposal
@@ -414,7 +378,7 @@ contract GoldiGovernor {
     * @return The number of votes cast
     */
   function castVoteInternal(uint proposalId, uint8 support) internal returns (uint96) {
-      require(state(proposalId) == ProposalState.Active, "GovernorBravo::castVoteInternal: voting is closed");
+      require(_getProposalState(proposalId) == ProposalState.Active, "GovernorBravo::castVoteInternal: voting is closed");
       require(support <= 2, "GovernorBravo::castVoteInternal: invalid vote type");
       Proposal storage proposal = proposals[proposalId];
       // Receipt storage receipt = proposal.receipts[voter];
@@ -477,17 +441,7 @@ contract GoldiGovernor {
       emit ProposalThresholdSet(oldProposalThreshold, proposalThreshold);
   }
 
-  /**
-    * @notice Initiate the GovernorBravo contract
-    * @dev Admin only. Sets initial proposal id which initiates the contract, ensuring a continuous proposal id count
-    * @param proposalCountage proposal id to initialize from
-    */
-  function _initiate(uint proposalCountage) external {
-      require(msg.sender == admin, "GovernorBravo::_initiate: admin only");
-      require(initialProposalId == 0, "GovernorBravo::_initiate: can only initiate once");
-      initialProposalId = proposalCountage;
-      Timelock(timelock).acceptAdmin();
-  }
+
 
   /**
     * @notice Begins transfer of admin rights. The newPendingAdmin must call `_acceptAdmin` to finalize the transfer.

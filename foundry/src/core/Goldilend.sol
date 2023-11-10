@@ -568,7 +568,8 @@ contract Goldilend is ERC20, IERC721Receiver {
     address user, 
     uint256 userLoanId
   ) internal view returns (Loan memory userLoan, uint256 index) {
-    for(uint256 i; i < loans[user].length; i++) {
+    uint256 loanLength = loans[user].length;
+    for(uint256 i; i < loanLength; i++) {
       if(loans[user][i].loanId == userLoanId) return (loans[user][i], i);
     }
     revert LoanNotFound();
