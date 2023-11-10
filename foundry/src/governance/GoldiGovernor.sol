@@ -138,6 +138,7 @@ contract GoldiGovernor {
   error ArrayMismatch();
   error AlreadyProposing();
   error AlreadyQueued();
+  error AlreadyVoted();
   error InvalidVotingParameter();
   error InvalidProposalAction();
   error InvalidProposalState();
@@ -314,14 +315,14 @@ contract GoldiGovernor {
   /// @param voter Address that is casting the vote
   /// @param proposalId Id of the proposal to vote on
   /// @param support Support value for the vote. 0=against, 1=for, 2=abstain
-  function _castVoteInternal(address voter, uint256 proposalId, uint8 support) internal returns (uint96) {
+  function _castVoteInternal(address voter, uint256 proposalId, uint8 support) internal returns (uint256) {
     if(_getProposalState(proposalId) != ProposalState.Active) revert InvalidProposalState();
     if(support > 2) revert InvalidVoteType();
     Proposal storage proposal = proposals[proposalId];
     Receipt storage receipt = proposal.receipts[voter];
-    // require(receipt.hasVoted == false, "GovernorBravo::castVoteInternal: voter already voted");
+    if(receipt.hasVoted != false) revert AlreadyVoted();
     // uint96 votes = uni.getPriorVotes(voter, proposal.startBlock);
-    uint96 votes = 0;
+    uint256 votes = 0;
     if (support == 0) {
       proposal.againstVotes = proposal.againstVotes + votes;
     } else if (support == 1) {
