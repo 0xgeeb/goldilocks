@@ -80,8 +80,8 @@ contract GoldiGovernor {
   uint32 public constant MAX_VOTING_PERIOD = 80640; // About 2 weeks
   uint32 public constant MIN_VOTING_DELAY = 1;
   uint32 public constant MAX_VOTING_DELAY = 40320; // About 1 week
-  uint public constant quorumVotes = 40000000e18; // 40,000,000 = 4% of $LOCKS
-  uint public constant proposalMaxOperations = 10;
+  uint32 public constant proposalMaxOperations = 10;
+  uint256 public constant quorumVotes = 40000000e18; // 40,000,000 = 4% of $LOCKS
 
   bytes32 public constant DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)");
   bytes32 public constant BALLOT_TYPEHASH = keccak256("Ballot(uint256 proposalId,uint8 support)");
@@ -141,6 +141,8 @@ contract GoldiGovernor {
   error InvalidVotingParameter();
   error InvalidProposalAction();
   error InvalidProposalState();
+  error NotPendingAdmin();
+  error InvalidVoteType();
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -148,14 +150,14 @@ contract GoldiGovernor {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
   
-  event VoteCast(address indexed voter, uint proposalId, uint8 support, uint votes, string reason);
-  event ProposalCreated(uint id, address proposer, address[] targets, uint[] values, string[] signatures, bytes[] calldatas, uint startBlock, uint endBlock, string description);
-  event ProposalQueued(uint id, uint eta);
-  event ProposalExecuted(uint id);
-  event ProposalCanceled(uint id);
-  event VotingDelaySet(uint oldVotingDelay, uint newVotingDelay);
-  event VotingPeriodSet(uint oldVotingPeriod, uint newVotingPeriod);
-  event ProposalThresholdSet(uint oldProposalThreshold, uint newProposalThreshold);
+  event VoteCast(address indexed voter, uint256 proposalId, uint8 support, uint256 votes, string reason);
+  event ProposalCreated(uint256 id, address proposer, address[] targets, uint[] values, string[] signatures, bytes[] calldatas, uint256 startBlock, uint256 endBlock, string description);
+  event ProposalQueued(uint256 id, uint256 eta);
+  event ProposalExecuted(uint256 id);
+  event ProposalCanceled(uint256 id);
+  event VotingDelaySet(uint256 oldVotingDelay, uint256 newVotingDelay);
+  event VotingPeriodSet(uint256 oldVotingPeriod, uint256 newVotingPeriod);
+  event ProposalThresholdSet(uint256 oldProposalThreshold, uint256 newProposalThreshold);
   event NewPendingAdmin(address oldPendingAdmin, address newPendingAdmin);
   event NewAdmin(address oldAdmin, address newAdmin);
 
@@ -167,14 +169,14 @@ contract GoldiGovernor {
 
   /// @notice Return the state of a proposal
   /// @param proposalId Id of the proposal
-  function getProposalState(uint proposalId) public view returns (ProposalState) {
+  function getProposalState(uint256 proposalId) public view returns (ProposalState) {
     return _getProposalState(proposalId);
   }
 
   /// @notice Returns the receipt for a voter on a given proposal
   /// @param voter Address of voter
   /// @param proposalId Id of proposal
-  function getReceipt(uint proposalId, address voter) external view returns (Receipt memory) {
+  function getReceipt(uint256 proposalId, address voter) external view returns (Receipt memory) {
     return proposals[proposalId].receipts[voter];
   }
 
@@ -230,7 +232,7 @@ contract GoldiGovernor {
   
   /// @notice Queues a proposal of state succeeded
   /// @param proposalId Id of the proposal to queue
-  function queue(uint proposalId) external {
+  function queue(uint256 proposalId) external {
     if(_getProposalState(proposalId) != ProposalState.Succeeded) revert InvalidProposalState();
     Proposal storage proposal = proposals[proposalId];
     uint256 eta = block.timestamp + Timelock(timelock).delay();
@@ -244,7 +246,7 @@ contract GoldiGovernor {
 
   /// @notice Executes a queued proposal if eta has passed
   /// @param proposalId Id of the proposal to execute
-  function execute(uint proposalId) external payable {
+  function execute(uint256 proposalId) external payable {
     if(_getProposalState(proposalId) != ProposalState.Queued) revert InvalidProposalState();
     Proposal storage proposal = proposals[proposalId];
     proposal.executed = true;
@@ -257,7 +259,7 @@ contract GoldiGovernor {
 
   /// @notice Cancels a proposal only if sender is the proposer, or proposer delegates dropped below proposal threshold
   /// @param proposalId Id of the proposal to cancel
-  function cancel(uint proposalId) external {
+  function cancel(uint256 proposalId) external {
     if(_getProposalState(proposalId) == ProposalState.Executed) revert InvalidProposalState();
     Proposal storage proposal = proposals[proposalId];
     // require(msg.sender == proposal.proposer || uni.getPriorVotes(proposal.proposer, block.number - 1) < proposalThreshold, "GovernorBravo::cancel: proposer above threshold");
@@ -269,24 +271,11 @@ contract GoldiGovernor {
     emit ProposalCanceled(proposalId);
   }
 
-  /// @notice Accepts transfer of admin rights. msg.sender must be pendingAdmin
-  /// @dev Admin function for pending admin to accept role and update admin
-  function _acceptAdmin() external {
-    // Check caller is pendingAdmin and pendingAdmin ≠ address(0)
-    require(msg.sender == pendingAdmin && msg.sender != address(0), "GovernorBravo:_acceptAdmin: pending admin only");
-
-    // Save current values for inclusion in log
-    address oldAdmin = admin;
-    address oldPendingAdmin = pendingAdmin;
-
-    // Store admin with value pendingAdmin
-    admin = pendingAdmin;
-
-    // Clear the pending value
-    pendingAdmin = address(0);
-
-    emit NewAdmin(oldAdmin, admin);
-    emit NewPendingAdmin(oldPendingAdmin, pendingAdmin);
+  /// @notice Cast a vote for a proposal
+  /// @param proposalId Id of the proposal to vote on
+  /// @param support Support value for the vote. 0=against, 1=for, 2=abstain
+  function castVote(uint256 proposalId, uint8 support) external {
+    emit VoteCast(msg.sender, proposalId, support, _castVoteInternal(msg.sender, proposalId, support), "");
   }
 
 
@@ -297,7 +286,7 @@ contract GoldiGovernor {
 
   /// @notice Returns the state of a proposal
   /// @param proposalId Id of the proposal
-  function _getProposalState(uint proposalId) internal view returns (ProposalState) {
+  function _getProposalState(uint256 proposalId) internal view returns (ProposalState) {
     Proposal storage proposal = proposals[proposalId];
     if (proposal.cancelled) return ProposalState.Canceled;
     else if (block.number <= proposal.startBlock) return ProposalState.Pending; 
@@ -315,51 +304,24 @@ contract GoldiGovernor {
     }
   }
 
-  /// @notice Queues 
-  function _queueOrRevertInternal(address target, uint value, string memory signature, bytes memory data, uint eta) internal {
+  /// @notice Queues transaction if not already queued
+  function _queueOrRevertInternal(address target, uint256 value, string memory signature, bytes memory data, uint256 eta) internal {
     if(Timelock(timelock).queuedTransactions(keccak256(abi.encode(target, value, signature, data, eta)))) revert AlreadyQueued();
     Timelock(timelock).queueTransaction(target, value, signature, data, eta);
   }
 
-  /// @notice Cast a vote for a proposal
-  /// @param proposalId The id of the proposal to vote on
-  /// @param support The support value for the vote. 0=against, 1=for, 2=abstain
-  function castVote(uint proposalId, uint8 support) external {
-      emit VoteCast(msg.sender, proposalId, support, castVoteInternal(proposalId, support), "");
-  }
-
-  /// @notice Cast a vote for a proposal with a reason
-  /// @param proposalId The id of the proposal to vote on
-  /// @param support The support value for the vote. 0=against, 1=for, 2=abstain
-  /// @param reason The reason given for the vote by the voter
-  function castVoteWithReason(uint proposalId, uint8 support, string calldata reason) external {
-    emit VoteCast(msg.sender, proposalId, support, castVoteInternal(proposalId, support), reason);
-  }
-
-  /// @notice Cast a vote for a proposal by signature
-  /// @dev External function that accepts EIP-712 signatures for voting on proposals.  
-  function castVoteBySig(uint proposalId, uint8 support, uint8 v, bytes32 r, bytes32 s) external {
-    bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(name)), getChainIdInternal(), address(this)));
-    bytes32 structHash = keccak256(abi.encode(BALLOT_TYPEHASH, proposalId, support));
-    bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
-    address signatory = ecrecover(digest, v, r, s);
-    require(signatory != address(0), "GovernorBravo::castVoteBySig: invalid signature");
-    emit VoteCast(signatory, proposalId, support, castVoteInternal(proposalId, support), "");
-  }
-
-  /// @notice Internal function that caries out voting logic
-  /// @param proposalId The id of the proposal to vote on
-  /// @param support The support value for the vote. 0=against, 1=for, 2=abstain
-  /// @return The number of votes cast
-  function castVoteInternal(uint proposalId, uint8 support) internal returns (uint96) {
-    require(_getProposalState(proposalId) == ProposalState.Active, "GovernorBravo::castVoteInternal: voting is closed");
-    require(support <= 2, "GovernorBravo::castVoteInternal: invalid vote type");
+  /// @notice Casts a vote
+  /// @param voter Address that is casting the vote
+  /// @param proposalId Id of the proposal to vote on
+  /// @param support Support value for the vote. 0=against, 1=for, 2=abstain
+  function _castVoteInternal(address voter, uint256 proposalId, uint8 support) internal returns (uint96) {
+    if(_getProposalState(proposalId) != ProposalState.Active) revert InvalidProposalState();
+    if(support > 2) revert InvalidVoteType();
     Proposal storage proposal = proposals[proposalId];
-    // Receipt storage receipt = proposal.receipts[voter];
+    Receipt storage receipt = proposal.receipts[voter];
     // require(receipt.hasVoted == false, "GovernorBravo::castVoteInternal: voter already voted");
     // uint96 votes = uni.getPriorVotes(voter, proposal.startBlock);
     uint96 votes = 0;
-
     if (support == 0) {
       proposal.againstVotes = proposal.againstVotes + votes;
     } else if (support == 1) {
@@ -367,31 +329,50 @@ contract GoldiGovernor {
     } else if (support == 2) {
       proposal.abstainVotes = proposal.abstainVotes + votes;
     }
-
-    // receipt.hasVoted = true;
-    // receipt.support = support;
-    // receipt.votes = votes;
-
+    receipt.hasVoted = true;
+    receipt.support = support;
+    receipt.votes = votes;
     return votes;
   }
+
+  /// @notice Cast a vote for a proposal with a reason
+  /// @param proposalId The id of the proposal to vote on
+  /// @param support The support value for the vote. 0=against, 1=for, 2=abstain
+  /// @param reason The reason given for the vote by the voter
+  function castVoteWithReason(uint256 proposalId, uint8 support, string calldata reason) external {
+    emit VoteCast(msg.sender, proposalId, support, _castVoteInternal(msg.sender, proposalId, support), reason);
+  }
+
+  /// @notice Cast a vote for a proposal by signature
+  /// @dev External function that accepts EIP-712 signatures for voting on proposals.  
+  function castVoteBySig(uint256 proposalId, uint8 support, uint8 v, bytes32 r, bytes32 s) external {
+    bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(name)), getChainIdInternal(), address(this)));
+    bytes32 structHash = keccak256(abi.encode(BALLOT_TYPEHASH, proposalId, support));
+    bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
+    address signatory = ecrecover(digest, v, r, s);
+    require(signatory != address(0), "GovernorBravo::castVoteBySig: invalid signature");
+    emit VoteCast(signatory, proposalId, support, _castVoteInternal(msg.sender, proposalId, support), "");
+  }
+
+
 
 
   /// @notice Admin function for setting the voting delay
   /// @param newVotingDelay new voting delay, in blocks
-  function _setVotingDelay(uint newVotingDelay) external {
+  function _setVotingDelay(uint256 newVotingDelay) external {
     require(msg.sender == admin, "GovernorBravo::_setVotingDelay: admin only");
     require(newVotingDelay >= MIN_VOTING_DELAY && newVotingDelay <= MAX_VOTING_DELAY, "GovernorBravo::_setVotingDelay: invalid voting delay");
-    uint oldVotingDelay = votingDelay;
+    uint256 oldVotingDelay = votingDelay;
     votingDelay = newVotingDelay;
     emit VotingDelaySet(oldVotingDelay,votingDelay);
   }
 
   /// @notice Admin function for setting the voting period
   /// @param newVotingPeriod new voting period, in blocks
-  function _setVotingPeriod(uint newVotingPeriod) external {
+  function _setVotingPeriod(uint256 newVotingPeriod) external {
     require(msg.sender == admin, "GovernorBravo::_setVotingPeriod: admin only");
     require(newVotingPeriod >= MIN_VOTING_PERIOD && newVotingPeriod <= MAX_VOTING_PERIOD, "GovernorBravo::_setVotingPeriod: invalid voting period");
-    uint oldVotingPeriod = votingPeriod;
+    uint256 oldVotingPeriod = votingPeriod;
     votingPeriod = newVotingPeriod;
     emit VotingPeriodSet(oldVotingPeriod, votingPeriod);
   }
@@ -399,10 +380,10 @@ contract GoldiGovernor {
   /// @notice Admin function for setting the proposal threshold
   /// @dev newProposalThreshold must be greater than the hardcoded min
   /// @param newProposalThreshold new proposal threshold
-  function _setProposalThreshold(uint newProposalThreshold) external {
+  function _setProposalThreshold(uint256 newProposalThreshold) external {
     require(msg.sender == admin, "GovernorBravo::_setProposalThreshold: admin only");
     require(newProposalThreshold >= MIN_PROPOSAL_THRESHOLD && newProposalThreshold <= MAX_PROPOSAL_THRESHOLD, "GovernorBravo::_setProposalThreshold: invalid proposal threshold");
-    uint oldProposalThreshold = proposalThreshold;
+    uint256 oldProposalThreshold = proposalThreshold;
     proposalThreshold = newProposalThreshold;
     emit ProposalThresholdSet(oldProposalThreshold, proposalThreshold);
   }
@@ -426,9 +407,26 @@ contract GoldiGovernor {
 
   /// @notice Returns the chain ID
   function getChainIdInternal() internal view returns (uint) {
-    uint chainId;
+    uint256 chainId;
     assembly { chainId := chainid() }
     return chainId;
+  }
+
+
+  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+  /*                    PERMISSIONED FUNCTIONS                  */
+  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+
+  /// @notice Accepts transfer of admin rights
+  function acceptAdmin() external {
+    if(msg.sender != pendingAdmin || msg.sender == address(0)) revert NotPendingAdmin();
+    address oldAdmin = admin;
+    address oldPendingAdmin = pendingAdmin;
+    admin = pendingAdmin;
+    pendingAdmin = address(0);
+    emit NewAdmin(oldAdmin, admin);
+    emit NewPendingAdmin(oldPendingAdmin, pendingAdmin);
   }
 
 }
