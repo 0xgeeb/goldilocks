@@ -136,9 +136,10 @@ contract GoldiGovernor {
 
 
   error ArrayMismatch();
+  error AlreadyProposing();
   error InvalidVotingParameter();
   error InvalidProposalAction();
-  error AlreadyProposing();
+  error InvalidProposalState();
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -182,16 +183,12 @@ contract GoldiGovernor {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-
-
-   /**
-    * @notice Function used to propose a new proposal. Sender must have delegates above the proposal threshold
-    * @param targets Target addresses for proposal calls
-    * @param values Eth values for proposal calls
-    * @param signatures Function signatures for proposal calls
-    * @param calldatas Calldatas for proposal calls
-    * @param description String description of the proposal
-    */
+  /// @notice Proposes a new proposal, proposer must have delegates above the proposal threshold
+  /// @param targets Target addresses for proposal calls
+  /// @param signatures Function signatures for proposal calls
+  /// @param calldatas Calldatas for proposal calls
+  /// @param values Eth values for proposal calls
+  /// @param description String description of the proposal
   function propose(
     address[] memory targets,
     string[] memory signatures, 
@@ -199,21 +196,18 @@ contract GoldiGovernor {
     uint256[] memory values,
     string memory description
   ) external {
-    // require(uni.getPriorVotes(msg.sender, sub256(block.number, 1)) > proposalThreshold, "GovernorBravo::propose: proposer votes below proposal threshold");
+    // require(uni.getPriorVotes(msg.sender, block.number - 1) > proposalThreshold, "GovernorBravo::propose: proposer votes below proposal threshold");
     if(targets.length != values.length || targets.length != signatures.length || targets.length != calldatas.length) revert ArrayMismatch();
     if(targets.length == 0) revert InvalidProposalAction();
     if(targets.length > proposalMaxOperations) revert InvalidProposalAction();
-
     uint256 latestProposalId = latestProposalIds[msg.sender];
     if (latestProposalId != 0) {
       ProposalState proposersLatestProposalState = _getProposalState(latestProposalId);
       if(proposersLatestProposalState == ProposalState.Active) revert AlreadyProposing();
       if(proposersLatestProposalState == ProposalState.Pending) revert AlreadyProposing();
     }
-
     uint256 startBlock = block.number + votingDelay;
     uint256 endBlock = startBlock + votingPeriod;
-    
     Proposal storage newProposal = proposals[proposalCount++];
     newProposal.id = proposalCount;
     newProposal.proposer = msg.sender;
@@ -229,57 +223,49 @@ contract GoldiGovernor {
     newProposal.abstainVotes = 0;
     newProposal.cancelled = false;
     newProposal.executed = false;
-    
     latestProposalIds[msg.sender] = proposalCount;
-
     // emit ProposalCreated(proposalCount, msg.sender, targets, values, signatures, calldatas, startBlock, endBlock, description);    
   }
-
-  /**
-    * @notice Queues a proposal of state succeeded
-    * @param proposalId The id of the proposal to queue
-    */
+  
+  /// @notice Queues a proposal of state succeeded
+  /// @param proposalId Id of the proposal to queue
   function queue(uint proposalId) external {
-      require(_getProposalState(proposalId) == ProposalState.Succeeded, "GovernorBravo::queue: proposal can only be queued if it is succeeded");
-      Proposal storage proposal = proposals[proposalId];
-      uint eta = add256(block.timestamp, Timelock(timelock).delay());
-      for (uint i = 0; i < proposal.targets.length; i++) {
-          queueOrRevertInternal(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], eta);
-      }
-      proposal.eta = eta;
-      emit ProposalQueued(proposalId, eta);
+    if(_getProposalState(proposalId) != ProposalState.Succeeded) revert InvalidProposalState();
+    Proposal storage proposal = proposals[proposalId];
+    uint256 eta = block.timestamp + Timelock(timelock).delay();
+    uint256 targetsLength = proposal.targets.length;
+    for (uint256 i = 0; i < targetsLength; i++) {
+      queueOrRevertInternal(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], eta);
+    }
+    proposal.eta = eta;
+    emit ProposalQueued(proposalId, eta);
   }
 
-  /**
-    * @notice Executes a queued proposal if eta has passed
-    * @param proposalId The id of the proposal to execute
-    */
+  /// @notice Executes a queued proposal if eta has passed
+  /// @param proposalId Id of the proposal to execute
   function execute(uint proposalId) external payable {
-      require(_getProposalState(proposalId) == ProposalState.Queued, "GovernorBravo::execute: proposal can only be executed if it is queued");
-      Proposal storage proposal = proposals[proposalId];
-      proposal.executed = true;
-      for (uint i = 0; i < proposal.targets.length; i++) {
-          Timelock(timelock).executeTransaction{ value: proposal.values[i] }(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], proposal.eta);
-      }
-      emit ProposalExecuted(proposalId);
+    if(_getProposalState(proposalId) != ProposalState.Queued) revert InvalidProposalState();
+    Proposal storage proposal = proposals[proposalId];
+    proposal.executed = true;
+    uint256 targetsLength = proposal.targets.length;
+    for (uint256 i = 0; i < targetsLength; i++) {
+      Timelock(timelock).executeTransaction{ value: proposal.values[i] }(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], proposal.eta);
+    }
+    emit ProposalExecuted(proposalId);
   }
 
-  /**
-    * @notice Cancels a proposal only if sender is the proposer, or proposer delegates dropped below proposal threshold
-    * @param proposalId The id of the proposal to cancel
-    */
+  /// @notice Cancels a proposal only if sender is the proposer, or proposer delegates dropped below proposal threshold
+  /// @param proposalId Id of the proposal to cancel
   function cancel(uint proposalId) external {
-      require(_getProposalState(proposalId) != ProposalState.Executed, "GovernorBravo::cancel: cannot cancel executed proposal");
-
-      Proposal storage proposal = proposals[proposalId];
-      // require(msg.sender == proposal.proposer || uni.getPriorVotes(proposal.proposer, sub256(block.number, 1)) < proposalThreshold, "GovernorBravo::cancel: proposer above threshold");
-
-      proposal.cancelled = true;
-      for (uint i = 0; i < proposal.targets.length; i++) {
-          Timelock(timelock).cancelTransaction(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], proposal.eta);
-      }
-
-      emit ProposalCanceled(proposalId);
+    if(_getProposalState(proposalId) == ProposalState.Executed) revert InvalidProposalState();
+    Proposal storage proposal = proposals[proposalId];
+    // require(msg.sender == proposal.proposer || uni.getPriorVotes(proposal.proposer, block.number - 1) < proposalThreshold, "GovernorBravo::cancel: proposer above threshold");
+    proposal.cancelled = true;
+    uint256 targetsLength = proposal.targets.length;
+    for (uint256 i = 0; i < targetsLength; i++) {
+      Timelock(timelock).cancelTransaction(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], proposal.eta);
+    }
+    emit ProposalCanceled(proposalId);
   }
 
   /**
@@ -387,11 +373,11 @@ contract GoldiGovernor {
       uint96 votes = 0;
 
       if (support == 0) {
-          proposal.againstVotes = add256(proposal.againstVotes, votes);
+          proposal.againstVotes = proposal.againstVotes + votes;
       } else if (support == 1) {
-          proposal.forVotes = add256(proposal.forVotes, votes);
+          proposal.forVotes = proposal.forVotes + votes;
       } else if (support == 2) {
-          proposal.abstainVotes = add256(proposal.abstainVotes, votes);
+          proposal.abstainVotes = proposal.abstainVotes + votes;
       }
 
       // receipt.hasVoted = true;
@@ -460,19 +446,6 @@ contract GoldiGovernor {
 
       // Emit NewPendingAdmin(oldPendingAdmin, newPendingAdmin)
       emit NewPendingAdmin(oldPendingAdmin, newPendingAdmin);
-  }
-
-
-
-  function add256(uint256 a, uint256 b) internal pure returns (uint) {
-      uint c = a + b;
-      require(c >= a, "addition overflow");
-      return c;
-  }
-
-  function sub256(uint256 a, uint256 b) internal pure returns (uint) {
-      require(b <= a, "subtraction underflow");
-      return a - b;
   }
 
   function getChainIdInternal() internal view returns (uint) {
