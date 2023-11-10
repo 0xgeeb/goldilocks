@@ -96,6 +96,7 @@ contract GoldiGovernor {
   address public timelock;
   address public admin;
   address public pendingAdmin;
+  address public locks;
 
   mapping (uint256 => Proposal) public proposals;
   mapping (address => uint256) public latestProposalIds;
