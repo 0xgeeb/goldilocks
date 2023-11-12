@@ -134,12 +134,12 @@ contract Goldilend is ERC20, IERC721Receiver {
   }
 
   /// @notice Returns the name of the $gBERA token
-  function name() public view override returns (string memory) {
+  function name() public pure override returns (string memory) {
     return "gBERA Token";
   }
 
   /// @notice Returns the symbol of the $gBERA token
-  function symbol() public view override returns (string memory) {
+  function symbol() public pure override returns (string memory) {
     return "gBERA";
   }
 

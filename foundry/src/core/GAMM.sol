@@ -76,12 +76,12 @@ contract GAMM is ERC20 {
   }
 
   /// @notice Returns the name of the $LOCKS token
-  function name() public view override returns (string memory) {
+  function name() public pure override returns (string memory) {
     return "Locks Token";
   }
 
   /// @notice Returns the symbol of the $LOCKS token
-  function symbol() public view override returns (string memory) {
+  function symbol() public pure override returns (string memory) {
     return "LOCKS";
   }
 
