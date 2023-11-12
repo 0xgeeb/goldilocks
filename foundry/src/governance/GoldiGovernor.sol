@@ -142,8 +142,9 @@ contract GoldiGovernor {
   error InvalidVotingParameter();
   error InvalidProposalAction();
   error InvalidProposalState();
-  error NotPendingAdmin();
   error InvalidVoteType();
+  error NotPendingAdmin();
+  error NotAdmin();
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -279,6 +280,25 @@ contract GoldiGovernor {
     emit VoteCast(msg.sender, proposalId, support, _castVoteInternal(msg.sender, proposalId, support), "");
   }
 
+  /// @notice Cast a vote for a proposal with a reason
+  /// @param proposalId Id of the proposal to vote on
+  /// @param support Support value for the vote. 0=against, 1=for, 2=abstain
+  /// @param reason Reason given for the vote by the voter
+  function castVoteWithReason(uint256 proposalId, uint8 support, string calldata reason) external {
+    emit VoteCast(msg.sender, proposalId, support, _castVoteInternal(msg.sender, proposalId, support), reason);
+  }
+
+  /// @notice Cast a vote for a proposal by signature
+  /// @dev Accepts EIP-712 signatures for voting on proposals
+  function castVoteBySig(uint256 proposalId, uint8 support, uint8 v, bytes32 r, bytes32 s) external {
+    bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(name)), _getChainId(), address(this)));
+    bytes32 structHash = keccak256(abi.encode(BALLOT_TYPEHASH, proposalId, support));
+    bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
+    address signatory = ecrecover(digest, v, r, s);
+    require(signatory != address(0), "GovernorBravo::castVoteBySig: invalid signature");
+    emit VoteCast(signatory, proposalId, support, _castVoteInternal(msg.sender, proposalId, support), "");
+  }
+
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
   /*                      INTERNAL FUNCTIONS                    */
@@ -336,78 +356,8 @@ contract GoldiGovernor {
     return votes;
   }
 
-  /// @notice Cast a vote for a proposal with a reason
-  /// @param proposalId The id of the proposal to vote on
-  /// @param support The support value for the vote. 0=against, 1=for, 2=abstain
-  /// @param reason The reason given for the vote by the voter
-  function castVoteWithReason(uint256 proposalId, uint8 support, string calldata reason) external {
-    emit VoteCast(msg.sender, proposalId, support, _castVoteInternal(msg.sender, proposalId, support), reason);
-  }
-
-  /// @notice Cast a vote for a proposal by signature
-  /// @dev External function that accepts EIP-712 signatures for voting on proposals.  
-  function castVoteBySig(uint256 proposalId, uint8 support, uint8 v, bytes32 r, bytes32 s) external {
-    bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(name)), getChainIdInternal(), address(this)));
-    bytes32 structHash = keccak256(abi.encode(BALLOT_TYPEHASH, proposalId, support));
-    bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
-    address signatory = ecrecover(digest, v, r, s);
-    require(signatory != address(0), "GovernorBravo::castVoteBySig: invalid signature");
-    emit VoteCast(signatory, proposalId, support, _castVoteInternal(msg.sender, proposalId, support), "");
-  }
-
-
-
-
-  /// @notice Admin function for setting the voting delay
-  /// @param newVotingDelay new voting delay, in blocks
-  function _setVotingDelay(uint256 newVotingDelay) external {
-    require(msg.sender == admin, "GovernorBravo::_setVotingDelay: admin only");
-    require(newVotingDelay >= MIN_VOTING_DELAY && newVotingDelay <= MAX_VOTING_DELAY, "GovernorBravo::_setVotingDelay: invalid voting delay");
-    uint256 oldVotingDelay = votingDelay;
-    votingDelay = newVotingDelay;
-    emit VotingDelaySet(oldVotingDelay,votingDelay);
-  }
-
-  /// @notice Admin function for setting the voting period
-  /// @param newVotingPeriod new voting period, in blocks
-  function _setVotingPeriod(uint256 newVotingPeriod) external {
-    require(msg.sender == admin, "GovernorBravo::_setVotingPeriod: admin only");
-    require(newVotingPeriod >= MIN_VOTING_PERIOD && newVotingPeriod <= MAX_VOTING_PERIOD, "GovernorBravo::_setVotingPeriod: invalid voting period");
-    uint256 oldVotingPeriod = votingPeriod;
-    votingPeriod = newVotingPeriod;
-    emit VotingPeriodSet(oldVotingPeriod, votingPeriod);
-  }
-
-  /// @notice Admin function for setting the proposal threshold
-  /// @dev newProposalThreshold must be greater than the hardcoded min
-  /// @param newProposalThreshold new proposal threshold
-  function _setProposalThreshold(uint256 newProposalThreshold) external {
-    require(msg.sender == admin, "GovernorBravo::_setProposalThreshold: admin only");
-    require(newProposalThreshold >= MIN_PROPOSAL_THRESHOLD && newProposalThreshold <= MAX_PROPOSAL_THRESHOLD, "GovernorBravo::_setProposalThreshold: invalid proposal threshold");
-    uint256 oldProposalThreshold = proposalThreshold;
-    proposalThreshold = newProposalThreshold;
-    emit ProposalThresholdSet(oldProposalThreshold, proposalThreshold);
-  }
-
-  /// @notice Begins transfer of admin rights. The newPendingAdmin must call `_acceptAdmin` to finalize the transfer.
-  /// @dev Admin function to begin change of admin. The newPendingAdmin must call `_acceptAdmin` to finalize the transfer.
-  /// @param newPendingAdmin New pending admin.
-  function _setPendingAdmin(address newPendingAdmin) external {
-    // Check caller = admin
-    require(msg.sender == admin, "GovernorBravo:_setPendingAdmin: admin only");
-
-    // Save current value, if any, for inclusion in log
-    address oldPendingAdmin = pendingAdmin;
-
-    // Store pendingAdmin with value newPendingAdmin
-    pendingAdmin = newPendingAdmin;
-
-    // Emit NewPendingAdmin(oldPendingAdmin, newPendingAdmin)
-    emit NewPendingAdmin(oldPendingAdmin, newPendingAdmin);
-  }
-
-  /// @notice Returns the chain ID
-  function getChainIdInternal() internal view returns (uint) {
+  /// @notice Returns the chain Id
+  function _getChainId() internal view returns (uint256) {
     uint256 chainId;
     assembly { chainId := chainid() }
     return chainId;
@@ -419,6 +369,16 @@ contract GoldiGovernor {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
+  /// @notice Begins transfer of admin rights
+  /// @dev The newPendingAdmin must call `acceptAdmin` to finalize the transfer
+  /// @param newPendingAdmin New pending admin
+  function setPendingAdmin(address newPendingAdmin) external {
+    if(msg.sender != admin) revert NotAdmin();
+    address oldPendingAdmin = pendingAdmin;
+    pendingAdmin = newPendingAdmin;
+    emit NewPendingAdmin(oldPendingAdmin, newPendingAdmin);
+  }
+
   /// @notice Accepts transfer of admin rights
   function acceptAdmin() external {
     if(msg.sender != pendingAdmin || msg.sender == address(0)) revert NotPendingAdmin();
@@ -428,6 +388,36 @@ contract GoldiGovernor {
     pendingAdmin = address(0);
     emit NewAdmin(oldAdmin, admin);
     emit NewPendingAdmin(oldPendingAdmin, pendingAdmin);
+  }
+
+  /// @notice Sets the voting delay
+  /// @param newVotingDelay New voting delay, in blocks
+  function setVotingDelay(uint256 newVotingDelay) external {
+    if(msg.sender != admin) revert NotAdmin();
+    if(newVotingDelay < MIN_VOTING_DELAY || newVotingDelay > MAX_VOTING_DELAY) revert InvalidVotingParameter();
+    uint256 oldVotingDelay = votingDelay;
+    votingDelay = newVotingDelay;
+    emit VotingDelaySet(oldVotingDelay, votingDelay);
+  }
+
+  /// @notice Set the voting period
+  /// @param newVotingPeriod New voting period, in blocks
+  function setVotingPeriod(uint256 newVotingPeriod) external {
+    if(msg.sender != admin) revert NotAdmin();
+    if(newVotingPeriod < MIN_VOTING_PERIOD || newVotingPeriod > MAX_VOTING_PERIOD) revert InvalidVotingParameter();
+    uint256 oldVotingPeriod = votingPeriod;
+    votingPeriod = newVotingPeriod;
+    emit VotingPeriodSet(oldVotingPeriod, votingPeriod);
+  }
+
+  /// @notice Sets the proposal threshold
+  /// @param newProposalThreshold New proposal threshold
+  function setProposalThreshold(uint256 newProposalThreshold) external {
+    if(msg.sender != admin) revert NotAdmin();
+    if(newProposalThreshold < MIN_PROPOSAL_THRESHOLD || newProposalThreshold > MAX_PROPOSAL_THRESHOLD) revert InvalidVotingParameter();
+    uint256 oldProposalThreshold = proposalThreshold;
+    proposalThreshold = newProposalThreshold;
+    emit ProposalThresholdSet(oldProposalThreshold, proposalThreshold);
   }
 
 }
