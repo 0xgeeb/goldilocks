@@ -91,8 +91,8 @@ contract GoldiGovernor {
   address public admin;
   address public pendingAdmin;
 
-  mapping (uint256 => Proposal) public proposals;
-  mapping (address => uint256) public latestProposalIds;
+  mapping(uint256 => Proposal) public proposals;
+  mapping(address => uint256) public latestProposalIds;
 
   uint256 public votingDelay;
   uint256 public votingPeriod;
@@ -232,7 +232,7 @@ contract GoldiGovernor {
     // emit ProposalCreated(proposalCount, msg.sender, targets, values, signatures, calldatas, startBlock, endBlock, description);    
   }
   
-  /// @notice Queues a proposal of state succeeded
+  /// @notice Queues a proposal if successful
   /// @param proposalId Id of the proposal to queue
   function queue(uint256 proposalId) external {
     if(_getProposalState(proposalId) != ProposalState.Succeeded) revert InvalidProposalState();
@@ -254,7 +254,7 @@ contract GoldiGovernor {
     proposal.executed = true;
     uint256 targetsLength = proposal.targets.length;
     for (uint256 i = 0; i < targetsLength; i++) {
-      Timelock(timelock).executeTransaction{ value: proposal.values[i] }(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], proposal.eta);
+      Timelock(timelock).executeTransaction{ value: proposal.values[i] }(proposal.targets[i], proposal.eta, proposal.values[i], proposal.calldatas[i], proposal.signatures[i]);
     }
     emit ProposalExecuted(proposalId);
   }
@@ -268,7 +268,7 @@ contract GoldiGovernor {
     proposal.cancelled = true;
     uint256 targetsLength = proposal.targets.length;
     for (uint256 i = 0; i < targetsLength; i++) {
-      Timelock(timelock).cancelTransaction(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], proposal.eta);
+      Timelock(timelock).cancelTransaction(proposal.targets[i], proposal.eta, proposal.values[i], proposal.calldatas[i], proposal.signatures[i]);
     }
     emit ProposalCanceled(proposalId);
   }
@@ -328,7 +328,7 @@ contract GoldiGovernor {
   /// @notice Queues transaction if not already queued
   function _queueOrRevertInternal(address target, uint256 value, string memory signature, bytes memory data, uint256 eta) internal {
     if(Timelock(timelock).queuedTransactions(keccak256(abi.encode(target, value, signature, data, eta)))) revert AlreadyQueued();
-    Timelock(timelock).queueTransaction(target, value, signature, data, eta);
+    Timelock(timelock).queueTransaction(target, eta, value, data, signature);
   }
 
   /// @notice Casts a vote
@@ -370,7 +370,7 @@ contract GoldiGovernor {
 
 
   /// @notice Begins transfer of admin rights
-  /// @dev The newPendingAdmin must call `acceptAdmin` to finalize the transfer
+  /// @dev newPendingAdmin must call `acceptAdmin` to finalize the transfer
   /// @param newPendingAdmin New pending admin
   function setPendingAdmin(address newPendingAdmin) external {
     if(msg.sender != admin) revert NotAdmin();
@@ -400,7 +400,7 @@ contract GoldiGovernor {
     emit VotingDelaySet(oldVotingDelay, votingDelay);
   }
 
-  /// @notice Set the voting period
+  /// @notice Sets the voting period
   /// @param newVotingPeriod New voting period, in blocks
   function setVotingPeriod(uint256 newVotingPeriod) external {
     if(msg.sender != admin) revert NotAdmin();
