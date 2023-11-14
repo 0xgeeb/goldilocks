@@ -76,6 +76,7 @@ contract LGE {
   error HardcapHit();
   error PresaleOver();
   error ExcessiveContribution();
+  error NoContribution();
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -133,6 +134,13 @@ contract LGE {
     // psl += (totalContribution * 15)/100;
     // //update concluded status
     // concluded = true;
+  }
+
+  /// @notice Mints $LOCKS based on presale contribution
+  function claimLocks() external {
+    uint256 contribution = contributions[msg.sender];
+    if(contribution == 0) revert NoContribution();
+    
   }
 
   function fundGAMM() external onlyMultisig {
