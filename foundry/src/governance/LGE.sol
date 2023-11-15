@@ -18,6 +18,7 @@ pragma solidity ^0.8.19;
 
 
 import { SafeTransferLib } from "../../lib/solady/src/utils/SafeTransferLib.sol";
+import { FixedPointMathLib } from "../../lib/solady/src/utils/FixedPointMathLib.sol";
 import { MerkleProofLib } from "../../lib/solady/src/utils/MerkleProofLib.sol";
 
 
@@ -40,6 +41,7 @@ contract LGE {
   uint256 public maxContribution = 20000e18;
 
   address public honey;
+  address public locks;
   address public multisig; 
 
   bool public presaleOver = false;
@@ -61,8 +63,12 @@ contract LGE {
 
   /// is it possible to mint the teams' LOCKS allowance in here? If possible, would like to mint team tokens as soon as presale contract is initiated
   /// @notice Constructor of this contract
-  constructor() {
+  /// @param _honey Address of $HONEY
+  /// @param _locks Address of $LOCKS
+  constructor(address _honey, address _locks) {
     startTime = block.timestamp;
+    honey = _honey;
+    locks = _locks;
   }
 
 
@@ -136,15 +142,14 @@ contract LGE {
     // concluded = true;
   }
 
-  /// @notice Mints $LOCKS based on presale contribution
-  function claimLocks() external {
+  /// @notice Claims $LOCKS based on presale contribution
+  /// @dev share = contribution / total contribution
+  function claim() external {
     uint256 contribution = contributions[msg.sender];
     if(contribution == 0) revert NoContribution();
-    
-  }
-
-  function fundGAMM() external onlyMultisig {
-    
+    uint256 share = FixedPointMathLib.divWad(contribution, totalContribution);
+    contributions[msg.sender] -= contribution;
+    SafeTransferLib.safeTransfer(locks, msg.sender, share);
   }
 
   //function to send 10% of raised funds to a designated treasury wallet (to be called after a vote by token holders)
