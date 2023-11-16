@@ -7,6 +7,7 @@ import { Honey } from "../../src/mock/Honey.sol";
 import { Porridge } from "../../src/core/Porridge.sol";
 import { Borrow } from "../../src/core/Borrow.sol";
 import { GAMM } from "../../src/core/GAMM.sol";
+import { LGE } from "../../src/governance/LGE.sol";
 
 contract GAMMInvariantTest is Test { 
 
@@ -18,7 +19,8 @@ contract GAMMInvariantTest is Test {
   function setUp() public {
     Porridge porridgeComputed = Porridge(address(this).computeAddress(2));
     Borrow borrowComputed = Borrow(address(this).computeAddress(3));
+    LGE lgeComputed = LGE(address(this).computeAddress(4));
     honey = new Honey();
-    gamm = new GAMM(address(this), address(porridgeComputed), address(borrowComputed), address(honey));
+    gamm = new GAMM(address(this), address(porridgeComputed), address(borrowComputed), address(lgeComputed), address(honey));
   }
 }

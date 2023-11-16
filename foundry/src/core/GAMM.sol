@@ -45,9 +45,10 @@ contract GAMM is ERC20 {
   uint256 public lastFloorRaise;
   uint256 public lastFloorDecrease;
 
+  address public multisig;
   address public porridge;
   address public borrow;
-  address public multisig;
+  address public lge;
   address public honey;
 
 
@@ -60,16 +61,19 @@ contract GAMM is ERC20 {
   /// @param _multisig Address of the GoldilocksDAO multisig
   /// @param _porridge Address of Porridge
   /// @param _borrow Address of Borrow
+  /// @param _lge Address of LGE
   /// @param _honey Address of $HONEY
   constructor(
     address _multisig,
     address _porridge,
     address _borrow,
+    address _lge,
     address _honey
   ) {
     multisig = _multisig;
     porridge = _porridge;
     borrow = _borrow;
+    lge = _lge;
     honey = _honey;
     lastFloorRaise = block.timestamp;
     lastFloorDecrease = block.timestamp;
@@ -92,6 +96,7 @@ contract GAMM is ERC20 {
 
 
   error NotMultisig();
+  error NotLGE();
   error NotPorridge();
   error NotBorrow();
   error ExcessiveSlippage();
@@ -380,12 +385,22 @@ contract GAMM is ERC20 {
   }
 
   /// @notice Allows the DAO to inject liquidity into the GAMM
-  /// @param fslAddition Liquidity added to FSL
-  /// @param pslAddition Liquidity added to PSL
-  function injectLiquidity(uint256 fslAddition, uint256 pslAddition) external onlyMultisig {
-    fsl += fslAddition;
-    psl += pslAddition;
-    SafeTransferLib.safeTransferFrom(honey, msg.sender, address(this), fslAddition + pslAddition);
+  /// @param fslLiq Liquidity added to FSL
+  /// @param pslLiq Liquidity added to PSL
+  function injectLiquidity(uint256 fslLiq, uint256 pslLiq) external onlyMultisig {
+    fsl += fslLiq;
+    psl += pslLiq;
+    SafeTransferLib.safeTransferFrom(honey, msg.sender, address(this), fslLiq + pslLiq);
+  }
+
+  /// @notice Allows the LGE to initiate the presale
+  function initiatePresaleClaim(uint256 fslLiq, uint256 pslLiq) external {
+    if(msg.sender != lge) revert NotLGE();
+    uint256 presale = 10000e18;
+    _mint(msg.sender, presale);
+    fsl = fslLiq;
+    psl = pslLiq;
+    supply = presale;
   }
 
 }

@@ -131,7 +131,8 @@ contract Timelock {
     bytes memory callData;
     if (bytes(signature).length == 0) {
       callData = data;
-    } else {
+    } 
+    else {
       callData = abi.encodePacked(bytes4(keccak256(bytes(signature))), data);
     }
     (bool success, ) = target.call{ value: value }(callData);    
