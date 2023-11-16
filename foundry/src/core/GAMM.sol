@@ -45,10 +45,10 @@ contract GAMM is ERC20 {
   uint256 public lastFloorRaise;
   uint256 public lastFloorDecrease;
 
-  address public porridgeAddress;
-  address public borrowAddress;
-  address public adminAddress;
-  address public honeyAddress;
+  address public porridge;
+  address public borrow;
+  address public multisig;
+  address public honey;
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -57,20 +57,20 @@ contract GAMM is ERC20 {
 
 
   /// @notice Constructor of this contract
-  /// @param _adminAddress Address of the GoldilocksDAO multisig
-  /// @param _porridgeAddress Address of Porridge
-  /// @param _borrowAddress Address of Borrow
-  /// @param _honeyAddress Address of $HONEY
+  /// @param _multisig Address of the GoldilocksDAO multisig
+  /// @param _porridge Address of Porridge
+  /// @param _borrow Address of Borrow
+  /// @param _honey Address of $HONEY
   constructor(
-    address _adminAddress,
-    address _porridgeAddress,
-    address _borrowAddress,
-    address _honeyAddress
+    address _multisig,
+    address _porridge,
+    address _borrow,
+    address _honey
   ) {
-    adminAddress = _adminAddress;
-    porridgeAddress = _porridgeAddress;
-    borrowAddress = _borrowAddress;
-    honeyAddress = _honeyAddress;
+    multisig = _multisig;
+    porridge = _porridge;
+    borrow = _borrow;
+    honey = _honey;
     lastFloorRaise = block.timestamp;
     lastFloorDecrease = block.timestamp;
   }
@@ -91,7 +91,7 @@ contract GAMM is ERC20 {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  error NotAdmin();
+  error NotMultisig();
   error NotPorridge();
   error NotBorrow();
   error ExcessiveSlippage();
@@ -112,21 +112,21 @@ contract GAMM is ERC20 {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  /// @notice Ensures msg.sender is the admin address
-  modifier onlyAdmin() {
-    if(msg.sender != adminAddress) revert NotAdmin();
+  /// @notice Ensures msg.sender is GoldilocksDAO multisig
+  modifier onlyMultisig() {
+    if(msg.sender != multisig) revert NotMultisig();
     _;
   }
 
   /// @notice Ensures msg.sender is the porridge address
   modifier onlyPorridge() {
-    if(msg.sender != porridgeAddress) revert NotPorridge();
+    if(msg.sender != porridge) revert NotPorridge();
     _;
   }
 
   /// @notice Ensures msg.sender is the borrow address
   modifier onlyBorrow() {
-    if(msg.sender != borrowAddress) revert NotBorrow();
+    if(msg.sender != borrow) revert NotBorrow();
     _;
   }
 
@@ -173,7 +173,7 @@ contract GAMM is ERC20 {
     psl = __psl;
     supply = __supply;
     _floorRaise();
-    SafeTransferLib.safeTransferFrom(honeyAddress, msg.sender, address(this), __buyPrice + tax);
+    SafeTransferLib.safeTransferFrom(honey, msg.sender, address(this), __buyPrice + tax);
     _mint(msg.sender, amount);
     emit Buy(msg.sender, amount);
   }
@@ -198,7 +198,7 @@ contract GAMM is ERC20 {
     supply = __supply;
     _floorReduce();
     _burn(msg.sender, amount);
-    SafeTransferLib.safeTransfer(honeyAddress, msg.sender, __saleAmount - tax);
+    SafeTransferLib.safeTransfer(honey, msg.sender, __saleAmount - tax);
     emit Sale(msg.sender, amount);
   }
 
@@ -210,7 +210,7 @@ contract GAMM is ERC20 {
     fsl -= _rawTotal;
     _floorRaise();
     _burn(msg.sender, amount);
-    SafeTransferLib.safeTransfer(honeyAddress, msg.sender, _rawTotal);
+    SafeTransferLib.safeTransfer(honey, msg.sender, _rawTotal);
     emit Redeem(msg.sender, amount);
   }
 
@@ -367,8 +367,8 @@ contract GAMM is ERC20 {
   /// @param amount Amount of $HONEY to transfer
   /// @param fee Fee that is sent to treasury
   function borrowTransfer(address to, uint256 amount, uint256 fee) external onlyBorrow {
-    SafeTransferLib.safeTransfer(honeyAddress, to, amount - fee);
-    SafeTransferLib.safeTransfer(honeyAddress, adminAddress, fee);
+    SafeTransferLib.safeTransfer(honey, to, amount - fee);
+    SafeTransferLib.safeTransfer(honey, multisig, fee);
   }
 
   /// @notice Mints $PRG tokens from $PRG token realization
@@ -382,10 +382,10 @@ contract GAMM is ERC20 {
   /// @notice Allows the DAO to inject liquidity into the GAMM
   /// @param fslAddition Liquidity added to FSL
   /// @param pslAddition Liquidity added to PSL
-  function injectLiquidity(uint256 fslAddition, uint256 pslAddition) external onlyAdmin {
+  function injectLiquidity(uint256 fslAddition, uint256 pslAddition) external onlyMultisig {
     fsl += fslAddition;
     psl += pslAddition;
-    SafeTransferLib.safeTransferFrom(honeyAddress, msg.sender, address(this), fslAddition + pslAddition);
+    SafeTransferLib.safeTransferFrom(honey, msg.sender, address(this), fslAddition + pslAddition);
   }
 
 }

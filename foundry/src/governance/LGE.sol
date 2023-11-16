@@ -41,10 +41,10 @@ contract LGE {
   uint256 public maxContribution = 20000e18;
 
   address public honey;
-  address public locks;
+  address public gamm;
   address public multisig; 
 
-  bool public presaleOver = false;
+  bool public claimPeriod = false;
     
   mapping(address => uint256) public contributions;
     
@@ -64,11 +64,11 @@ contract LGE {
   /// is it possible to mint the teams' LOCKS allowance in here? If possible, would like to mint team tokens as soon as presale contract is initiated
   /// @notice Constructor of this contract
   /// @param _honey Address of $HONEY
-  /// @param _locks Address of $LOCKS
-  constructor(address _honey, address _locks) {
+  /// @param _gamm Address of $LOCKS
+  constructor(address _honey, address _gamm) {
     startTime = block.timestamp;
     honey = _honey;
-    locks = _locks;
+    gamm = _gamm;
   }
 
 
@@ -79,6 +79,7 @@ contract LGE {
 
   error NotWhitelisted();
   error NotMultisig();
+  error NotClaimPeriod();
   error HardcapHit();
   error PresaleOver();
   error ExcessiveContribution();
@@ -98,7 +99,7 @@ contract LGE {
     _;
   }
 
-  /// @notice Ensures msg.sender is Goldilocks DAO multisig
+  /// @notice Ensures msg.sender is GoldilocksDAO multisig
   modifier onlyMultisig() {
     if(msg.sender != multisig) revert NotMultisig();
     _;
@@ -145,11 +146,18 @@ contract LGE {
   /// @notice Claims $LOCKS based on presale contribution
   /// @dev share = contribution / total contribution
   function claim() external {
+    if(!claimPeriod) revert NotClaimPeriod();
     uint256 contribution = contributions[msg.sender];
     if(contribution == 0) revert NoContribution();
     uint256 share = FixedPointMathLib.divWad(contribution, totalContribution);
     contributions[msg.sender] -= contribution;
-    SafeTransferLib.safeTransfer(locks, msg.sender, share);
+    SafeTransferLib.safeTransfer(gamm, msg.sender, share);
+  }
+
+  /// @notice Initiates the presale
+  function initiate() external onlyMultisig {
+    claimPeriod = true;
+    
   }
 
   //function to send 10% of raised funds to a designated treasury wallet (to be called after a vote by token holders)

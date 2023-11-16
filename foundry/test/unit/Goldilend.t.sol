@@ -34,7 +34,7 @@ contract GoldilendTest is Test, IERC721Receiver {
   BondBear bondbear;
   BandBear bandbear;
 
-  bytes4 NotAdminSelector = 0x7bfa4b9f;
+  bytes4 NotMultisigSelector = 0xf05e412b;
   bytes4 ArrayMismatchSelector = 0xb7c1140d;
   bytes4 InvalidBoostSelector = 0xe4c30186;
   bytes4 InvalidBoostNFTSelector = 0x38646c53;
@@ -69,7 +69,7 @@ contract GoldilendTest is Test, IERC721Receiver {
   
     gamm = new GAMM(address(this), address(porridgeComputed), address(borrowComputed), address(honey));
     borrow = new Borrow(address(gamm), address(porridgeComputed), address(honey));
-    porridge = new Porridge(address(gamm), address(borrow), address(goldilendComputed), address(this), address(honey));
+    porridge = new Porridge(address(gamm), address(borrow), address(goldilendComputed), address(honey));
 
     uint256 startingPoolSize = 1000e18;
     uint256 protocolInterestRate = 1e17;
@@ -130,9 +130,9 @@ contract GoldilendTest is Test, IERC721Receiver {
     _;
   }
 
-  function testNotAdmin() public {
+  function testNotMultisig() public {
     vm.prank(address(0x01));
-    vm.expectRevert(NotAdminSelector);
+    vm.expectRevert(NotMultisigSelector);
     goldilend.emergencyWithdraw();
   }
 

@@ -229,7 +229,7 @@ contract GoldiGovernor {
     newProposal.cancelled = false;
     newProposal.executed = false;
     latestProposalIds[msg.sender] = proposalCount;
-    // emit ProposalCreated(proposalCount, msg.sender, targets, values, signatures, calldatas, startBlock, endBlock, description);    
+    emit ProposalCreated(proposalCount, msg.sender, targets, values, signatures, calldatas, startBlock, endBlock, description);    
   }
   
   /// @notice Queues a proposal if successful

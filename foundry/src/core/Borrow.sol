@@ -38,9 +38,9 @@ contract Borrow {
   mapping(address => uint256) public lockedLocks;
   mapping(address => uint256) public borrowedHoney;
 
-  address public gammAddress;
-  address public porridgeAddress;
-  address public honeyAddress;
+  address public gamm;
+  address public porridge;
+  address public honey;
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -49,17 +49,17 @@ contract Borrow {
 
 
   /// @notice Constructor of this contract
-  /// @param _gammAddress Address of the GAMM
-  /// @param _porridgeAddress Address of Porridge
-  /// @param _honeyAddress Address of the HONEY contract
+  /// @param _gamm Address of the GAMM
+  /// @param _porridge Address of Porridge
+  /// @param _honey Address of the HONEY contract
   constructor(
-    address _gammAddress,
-    address _porridgeAddress,
-    address _honeyAddress 
+    address _gamm,
+    address _porridge,
+    address _honey 
   ) {
-    gammAddress = _gammAddress;
-    porridgeAddress = _porridgeAddress;
-    honeyAddress = _honeyAddress;
+    gamm = _gamm;
+    porridge = _porridge;
+    honey = _honey;
   }
 
 
@@ -104,7 +104,7 @@ contract Borrow {
   /// @param user Address of user
   /// @return limit Limit of user
   function borrowLimit(address user) external view returns (uint256) {
-    uint256 floorPrice = IGAMM(gammAddress).floorPrice();
+    uint256 floorPrice = IGAMM(gamm).floorPrice();
     return _borrowLimit(user, floorPrice);
   }
 
@@ -118,12 +118,12 @@ contract Borrow {
   /// @dev borrowLimit is floor price of $LOCKS * amount of available staked $LOCKS
   /// @param amount Amount of $HONEY to borrow
   function borrow(uint256 amount) external {
-    uint256 floorPrice = IGAMM(gammAddress).floorPrice();
+    uint256 floorPrice = IGAMM(gamm).floorPrice();
     if(!_borrowLimitCheck(amount, floorPrice)) revert InsufficientBorrowLimit();
     lockedLocks[msg.sender] += FixedPointMathLib.divWad(amount, floorPrice);
     borrowedHoney[msg.sender] += amount;
     uint256 fee = _calcFee(amount);
-    IGAMM(gammAddress).borrowTransfer(msg.sender, amount, fee);
+    IGAMM(gamm).borrowTransfer(msg.sender, amount, fee);
     emit Borrowed(msg.sender, amount);
   }
 
@@ -134,7 +134,7 @@ contract Borrow {
     uint256 repaidLocks = _calcRepayingLocks(amount);
     lockedLocks[msg.sender] -= repaidLocks;
     borrowedHoney[msg.sender] -= amount;
-    SafeTransferLib.safeTransferFrom(honeyAddress, msg.sender, gammAddress, amount);
+    SafeTransferLib.safeTransferFrom(honey, msg.sender, gamm, amount);
     emit Repaid(msg.sender, amount);
   }
 
@@ -167,7 +167,7 @@ contract Borrow {
   /// @param floorPrice Current floor price of $LOCKS
   /// @return limit Returns the borrowing power of the user
   function _borrowLimit(address user, uint256 floorPrice) internal view returns (uint256 limit) {
-    uint256 staked = IPorridge(porridgeAddress).getStaked(user);
+    uint256 staked = IPorridge(porridge).getStaked(user);
     uint256 locked = lockedLocks[user];
     limit = FixedPointMathLib.mulWad(floorPrice, staked - locked);
   }

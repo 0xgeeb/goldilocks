@@ -74,10 +74,10 @@ contract Goldilend is ERC20, IERC721Receiver {
   uint32 public constant SIX_MONTHS = MONTH_DAYS * 6;
   uint32 public constant ONE_YEAR = MONTH_DAYS * 12;
 
-  address public porridgeAddress;
-  address public adminAddress;
-  address public beraAddress;
-  address public vaultAddress;
+  address public porridge;
+  address public multisig;
+  address public bera;
+  address public vault;
 
   mapping(address => Boost) public boosts;
   mapping(address => Stake) public stakes;
@@ -103,30 +103,30 @@ contract Goldilend is ERC20, IERC721Receiver {
   /// @param _startingPoolSize Starting size of the lending pool
   /// @param _protocolInterestRate Interest rate of the protocol
   /// @param _porridgeMultiple Boost for earning $PRG
-  /// @param _porridgeAddress Address of $PRG
-  /// @param _adminAddress Address of the GoldilocksDAO multisig
-  /// @param _beraAddress Address of $BERA
-  /// @param _vaultAddress Address of Consensus Vault
+  /// @param _porridge Address of $PRG
+  /// @param _multisig Address of the GoldilocksDAO multisig
+  /// @param _bera Address of $BERA
+  /// @param _vault Address of Consensus Vault
   /// @param _partnerNFTs Partnership NFTs
   /// @param _partnerNFTBoosts Partnership NFTs Boosts
   constructor(
     uint256 _startingPoolSize,
     uint256 _protocolInterestRate,
     uint256 _porridgeMultiple,
-    address _porridgeAddress,
-    address _adminAddress,
-    address _beraAddress, 
-    address _vaultAddress,
+    address _porridge,
+    address _multisig,
+    address _bera, 
+    address _vault,
     address[] memory _partnerNFTs, 
     uint8[] memory _partnerNFTBoosts
   ) {
     poolSize = _startingPoolSize;
     protocolInterestRate = _protocolInterestRate;
     porridgeMultiple = _porridgeMultiple;
-    porridgeAddress = _porridgeAddress;
-    adminAddress = _adminAddress;
-    beraAddress = _beraAddress;
-    vaultAddress = _vaultAddress;
+    porridge = _porridge;
+    multisig = _multisig;
+    bera = _bera;
+    vault = _vault;
     emissionsStart = block.timestamp;
     for(uint8 i; i < _partnerNFTs.length; i++) {
       partnerNFTBoosts[_partnerNFTs[i]] = _partnerNFTBoosts[i];
@@ -149,7 +149,7 @@ contract Goldilend is ERC20, IERC721Receiver {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  error NotAdmin();
+  error NotMultisig();
   error ArrayMismatch();
   error InvalidBoost();
   error InvalidBoostNFT();
@@ -183,8 +183,8 @@ contract Goldilend is ERC20, IERC721Receiver {
 
 
   /// @notice Ensures msg.sender is the treasury address
-  modifier onlyAdmin() {
-    if(msg.sender != adminAddress) revert NotAdmin();
+  modifier onlyMultisig() {
+    if(msg.sender != multisig) revert NotMultisig();
     _;
   }
 
@@ -317,7 +317,7 @@ contract Goldilend is ERC20, IERC721Receiver {
   /// @param lockAmount Amount of $BERA to lock
   function lock(uint256 lockAmount) external {
     poolSize += lockAmount;
-    SafeTransferLib.safeTransferFrom(beraAddress, msg.sender, address(this), lockAmount);
+    SafeTransferLib.safeTransferFrom(bera, msg.sender, address(this), lockAmount);
     _refreshBera(lockAmount);
     _mint(msg.sender, _gberaMintAmount(lockAmount));
     emit BeraLock(msg.sender, lockAmount);
@@ -401,7 +401,7 @@ contract Goldilend is ERC20, IERC721Receiver {
     });
     loans[msg.sender].push(loan);
     IERC721(collateralNFT).safeTransferFrom(msg.sender, address(this), collateralNFTId);
-    SafeTransferLib.safeTransfer(beraAddress, msg.sender, borrowAmount);
+    SafeTransferLib.safeTransfer(bera, msg.sender, borrowAmount);
     emit Borrow(msg.sender, borrowAmount);
   }
 
@@ -446,7 +446,7 @@ contract Goldilend is ERC20, IERC721Receiver {
     for(uint256 i; i < collateralNFTs.length; i++) {
       IERC721(collateralNFTs[i]).safeTransferFrom(msg.sender, address(this), collateralNFTIds[i]);
     } 
-    SafeTransferLib.safeTransfer(beraAddress, msg.sender, borrowAmount);
+    SafeTransferLib.safeTransfer(bera, msg.sender, borrowAmount);
     emit Borrow(msg.sender, borrowAmount);
   }
 
@@ -469,8 +469,8 @@ contract Goldilend is ERC20, IERC721Receiver {
       }
     }
     _refreshBera(repayAmount);
-    SafeTransferLib.safeTransfer(beraAddress, adminAddress, (interest / 100) * 5);
-    SafeTransferLib.safeTransferFrom(beraAddress, msg.sender, address(this), repayAmount);
+    SafeTransferLib.safeTransfer(bera, multisig, (interest / 100) * 5);
+    SafeTransferLib.safeTransferFrom(bera, msg.sender, address(this), repayAmount);
     emit Repay(msg.sender, repayAmount);
   }
 
@@ -487,8 +487,8 @@ contract Goldilend is ERC20, IERC721Receiver {
     for(uint256 i; i < userLoan.collateralNFTs.length; i++) {
       IERC721(userLoan.collateralNFTs[i]).safeTransferFrom(address(this), msg.sender, userLoan.collateralNFTIds[i]);
     }
-    SafeTransferLib.safeTransfer(beraAddress, adminAddress, (userLoan.interest / 100) * 5);
-    SafeTransferLib.safeTransferFrom(beraAddress, msg.sender, address(this), userLoan.borrowedAmount);
+    SafeTransferLib.safeTransfer(bera, multisig, (userLoan.interest / 100) * 5);
+    SafeTransferLib.safeTransferFrom(bera, msg.sender, address(this), userLoan.borrowedAmount);
     emit Liquidation(msg.sender, user, userLoan.borrowedAmount);
   }
 
@@ -503,7 +503,7 @@ contract Goldilend is ERC20, IERC721Receiver {
     Stake memory userStake = stakes[msg.sender];
     uint256 claimed = _calculateClaim(userStake);
     stakes[msg.sender].lastClaim = block.timestamp;
-    IPorridge(porridgeAddress).goldilendMint(msg.sender, claimed);
+    IPorridge(porridge).goldilendMint(msg.sender, claimed);
   }
 
   /// @notice Calculates claimable $PRG
@@ -579,8 +579,8 @@ contract Goldilend is ERC20, IERC721Receiver {
   /// @dev Claims existing vault rewards and updates poolSize
   /// @param beraAmount Amount of $BERA to stake
   function _refreshBera(uint256 beraAmount) internal {
-    IERC20(beraAddress).approve(vaultAddress, beraAmount);
-    uint256 rewards = IConsensusVault(vaultAddress).deposit(beraAmount);
+    IERC20(bera).approve(vault, beraAmount);
+    uint256 rewards = IConsensusVault(vault).deposit(beraAmount);
     poolSize += rewards;
   }
 
@@ -690,7 +690,7 @@ contract Goldilend is ERC20, IERC721Receiver {
     uint256 _totalValuation, 
     address[] calldata _nfts,
     uint256[] calldata _nftFairValues
-  ) external onlyAdmin {
+  ) external onlyMultisig {
     totalValuation = _totalValuation;
     for(uint256 i; i < _nftFairValues.length; i++) {
       nftFairValues[_nfts[i]] = _nftFairValues[i];
@@ -699,13 +699,13 @@ contract Goldilend is ERC20, IERC721Receiver {
 
   /// @notice Allows the DAO to adjust the interest rate for the protocol
   /// @param _protocolInterestRate New interest rate
-  function setProtocolInterestRate(uint256 _protocolInterestRate) external onlyAdmin {
+  function setProtocolInterestRate(uint256 _protocolInterestRate) external onlyMultisig {
     protocolInterestRate = _protocolInterestRate;
   }
 
   /// @notice Allows the DAO to withdraw $BERA in case of emergency
-  function emergencyWithdraw() external onlyAdmin {
-    SafeTransferLib.safeTransfer(beraAddress, adminAddress, poolSize - outstandingDebt);
+  function emergencyWithdraw() external onlyMultisig {
+    SafeTransferLib.safeTransfer(bera, multisig, poolSize - outstandingDebt);
   }
 
 

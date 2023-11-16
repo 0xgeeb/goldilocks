@@ -22,7 +22,7 @@ contract GAMMTest is Test {
   uint256 costOf10Locks = 5641049601535046139648;
   uint256 proceedsof10Locks = 5300673535135953225736;
 
-  bytes4 NotAdminSelector = 0x7bfa4b9f;
+  bytes4 NotMultisigSelector = 0xf05e412b;
   bytes4 NotPorridgeSelector = 0x0da7dbfb;
   bytes4 NotBorrowSelector = 0x5a2d193d;
   bytes4 ExcessiveSlippageSelector = 0x97c7f537;
@@ -34,7 +34,7 @@ contract GAMMTest is Test {
     honey = new Honey();
     gamm = new GAMM(address(this), address(porridgeComputed), address(borrowComputed), address(honey));
     borrow = new Borrow(address(gamm), address(porridgeComputed), address(honey));
-    porridge = new Porridge(address(gamm), address(borrow), address(goldilendComputed), address(this), address(honey));
+    porridge = new Porridge(address(gamm), address(borrow), address(goldilendComputed), address(honey));
   }
 
   modifier dealandApproveUserHoney() {
@@ -53,9 +53,9 @@ contract GAMMTest is Test {
     _;
   }
 
-  function testNotAdmin() public {
+  function testNotMultisig() public {
     vm.prank(address(0x01));
-    vm.expectRevert(NotAdminSelector);
+    vm.expectRevert(NotMultisigSelector);
     gamm.injectLiquidity(69e18, 69e18);
   }
 

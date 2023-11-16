@@ -42,11 +42,10 @@ contract Porridge is ERC20 {
   mapping(address => uint256) public staked;
   mapping(address => uint256) public stakeStartTime;
 
-  address public gammAddress;
-  address public borrowAddress;
-  address public goldilendAddress;
-  address public adminAddress;
-  address public honeyAddress;
+  address public gamm;
+  address public borrow;
+  address public goldilend;
+  address public honey;
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -55,23 +54,20 @@ contract Porridge is ERC20 {
 
 
   /// @notice Constructor of this contract
-  /// @param _gammAddress Address of the GAMM
-  /// @param _borrowAddress Address of the Borrow contract
-  /// @param _goldilendAddress Address of the Goldilend contract
-  /// @param _adminAddress Address of the GoldilocksDAO multisig
-  /// @param _honeyAddress Address of the HONEY contract
+  /// @param _gamm Address of the GAMM
+  /// @param _borrow Address of the Borrow contract
+  /// @param _goldilend Address of the Goldilend contract
+  /// @param _honey Address of the HONEY contract
   constructor(
-    address _gammAddress, 
-    address _borrowAddress,
-    address _goldilendAddress,
-    address _adminAddress, 
-    address _honeyAddress
+    address _gamm, 
+    address _borrow,
+    address _goldilend,
+    address _honey
   ) {
-    gammAddress = _gammAddress;
-    borrowAddress = _borrowAddress;
-    goldilendAddress = _goldilendAddress;
-    adminAddress = _adminAddress;
-    honeyAddress = _honeyAddress;
+    gamm = _gamm;
+    borrow = _borrow;
+    goldilend = _goldilend;
+    honey = _honey;
   }
 
   /// @notice Returns the name of the $PRG token
@@ -113,7 +109,7 @@ contract Porridge is ERC20 {
 
   /// @notice Ensures msg.sender is the goldilend address
   modifier onlyGoldilend() {
-    if(msg.sender != goldilendAddress) revert NotGoldilend();
+    if(msg.sender != goldilend) revert NotGoldilend();
     _;
   }
 
@@ -156,7 +152,7 @@ contract Porridge is ERC20 {
     }
     stakeStartTime[msg.sender] = block.timestamp;
     staked[msg.sender] += amount;
-    SafeTransferLib.safeTransferFrom(gammAddress, msg.sender, address(this), amount);
+    SafeTransferLib.safeTransferFrom(gamm, msg.sender, address(this), amount);
     emit Staked(msg.sender, amount);
   }
 
@@ -164,11 +160,11 @@ contract Porridge is ERC20 {
   /// @param amount Amount of $LOCKS to unstake
   function unstake(uint256 amount) external {
     if(amount > staked[msg.sender]) revert InvalidUnstake();
-    if(amount > staked[msg.sender] - IBorrow(borrowAddress).getLocked(msg.sender)) revert LocksBorrowedAgainst();
+    if(amount > staked[msg.sender] - IBorrow(borrow).getLocked(msg.sender)) revert LocksBorrowedAgainst();
     uint256 stakedAmount = staked[msg.sender];
     staked[msg.sender] -= amount;
     _claim(stakedAmount);
-    SafeTransferLib.safeTransfer(gammAddress, msg.sender, amount);
+    SafeTransferLib.safeTransfer(gamm, msg.sender, amount);
     emit Unstaked(msg.sender, amount);
   }
 
@@ -176,8 +172,8 @@ contract Porridge is ERC20 {
   /// @param amount Amount of $PRG to burn
   function realize(uint256 amount) external {
     _burn(msg.sender, amount);
-    SafeTransferLib.safeTransferFrom(honeyAddress, msg.sender, gammAddress, FixedPointMathLib.mulWad(amount, IGAMM(gammAddress).floorPrice()));
-    IGAMM(gammAddress).porridgeMint(msg.sender, amount);
+    SafeTransferLib.safeTransferFrom(honey, msg.sender, gamm, FixedPointMathLib.mulWad(amount, IGAMM(gamm).floorPrice()));
+    IGAMM(gamm).porridgeMint(msg.sender, amount);
     emit Realized(msg.sender, amount);
   }
 
