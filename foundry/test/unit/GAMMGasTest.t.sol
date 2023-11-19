@@ -23,6 +23,10 @@ contract GAMMGasTest is Test {
   uint256 mediumTxAmount = 100e18;
   uint256 largeTxAmount = 1000e18;
 
+  uint256 gas10Buy = 10e18;
+  uint256 gas100Buy = 10e18;
+  uint256 gas1000Buy = 10e18;
+
   function setUp() public {
     Porridge porridgeComputed = Porridge(address(this).computeAddress(4));
     Borrow borrowComputed = Borrow(address(this).computeAddress(3));
@@ -50,23 +54,38 @@ contract GAMMGasTest is Test {
     _;
   }
 
+  // gasused = 119360, actual = 114264
   function test10Buy() public dealandApproveUserHoney {
+    uint256 gasStart = gasleft();
     gamm.buy(txAmount, type(uint256).max);
+    uint256 gasEnd = gasleft();
+    uint256 gasUsed = gasStart - gasEnd;
+    assert(gasUsed <= 119360);
   }
 
+  // gasused = 301430, actual = 296334
   function test100Buy() public dealandApproveUserHoney {
+    uint256 gasStart = gasleft();
     gamm.buy(mediumTxAmount, type(uint256).max);
+    uint256 gasEnd = gasleft();
+    uint256 gasUsed = gasStart - gasEnd;
+    assert(gasUsed <= 310430);
   }
 
+  // gasused = 2110494, actual = 2105398
   function test1000Buy() public dealandApproveUserHoney {
+    uint256 gasStart = gasleft();
     gamm.buy(largeTxAmount, type(uint256).max);
+    uint256 gasEnd = gasleft();
+    uint256 gasUsed = gasStart - gasEnd;
+    assert(gasUsed <= 2110494);
   }
 
-  // 10buy -    114349   | cost - 5641049601535046139648
+  // 10buy -    114264   | cost - 5641049601535046139648
 
-  // 100buy -   297769   | cost - 57852097809804339185412
+  // 100buy -   296334   | cost - 57852097809804339185412
 
-  // 1000buy -  2120343  | cost - 935738532191833460868212
+  // 1000buy -  2105398  | cost - 935738532191833460868212
 
   // 7   / 5641   = 0.001240915
   // 18  / 57852  = 0.000311139
