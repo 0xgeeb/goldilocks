@@ -18,12 +18,14 @@ contract GAMMTest is Test {
   GAMM gamm;
   Borrow borrow;
   Porridge porridge;
+  LGE lge;
 
   uint256 txAmount = 10e18;
   uint256 costOf10Locks = 5641049601535046139648;
   uint256 proceedsof10Locks = 5300673535135953225736;
 
   bytes4 NotMultisigSelector = 0xf05e412b;
+  bytes4 NotLGESelector = 0x8ec76d49;
   bytes4 NotPorridgeSelector = 0x0da7dbfb;
   bytes4 NotBorrowSelector = 0x5a2d193d;
   bytes4 ExcessiveSlippageSelector = 0x97c7f537;
@@ -32,11 +34,12 @@ contract GAMMTest is Test {
     Porridge porridgeComputed = Porridge(address(this).computeAddress(4));
     Borrow borrowComputed = Borrow(address(this).computeAddress(3));
     Goldilend goldilendComputed = Goldilend(address(this).computeAddress(11));
-    LGE lgeComputed = LGE(address(this).computeAddress(4));
+    LGE lgeComputed = LGE(address(this).computeAddress(5));
     honey = new Honey();
     gamm = new GAMM(address(this), address(porridgeComputed), address(borrowComputed), address(lgeComputed), address(honey));
     borrow = new Borrow(address(gamm), address(porridgeComputed), address(honey));
     porridge = new Porridge(address(gamm), address(borrow), address(goldilendComputed), address(honey));
+    lge = new LGE(address(honey), address(gamm), address(this));
   }
 
   modifier dealandApproveUserHoney() {
@@ -59,6 +62,11 @@ contract GAMMTest is Test {
     vm.prank(address(0x01));
     vm.expectRevert(NotMultisigSelector);
     gamm.injectLiquidity(69e18, 69e18);
+  }
+
+  function testNotLGE() public {
+    vm.expectRevert(NotLGESelector);
+    gamm.initiatePresaleClaim(69, 69);
   }
 
   function testNotPorridge() public {
@@ -225,6 +233,20 @@ contract GAMMTest is Test {
     assertEq(gamm.fsl(), fsltemp + injected);
     assertEq(gamm.psl(), psltemp + injected);
     assertEq(honey.balanceOf(address(gamm)), injected * 2);
+  }
+
+  function testInitiatePresale() public {
+    vm.store(address(lge), bytes32(uint256(1)), bytes32(uint256(500000e18)));
+    deal(address(honey), address(lge), 500000e18);
+    vm.warp(block.timestamp + 25 hours);
+    lge.initiate();
+
+    assertEq(450000e18, honey.balanceOf(address(gamm)));
+    assertEq(50000e18, honey.balanceOf(address(this)));
+    assertEq(7000e18, gamm.balanceOf(address(lge)));
+    assertEq(3000e18, gamm.balanceOf(address(this)));
+    assertEq(375000e18, gamm.fsl());
+    assertEq(75000e18, gamm.psl());
   }
 
   function testDrainGamm() public {

@@ -73,7 +73,7 @@ contract GoldiGovernor {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  string public constant name = "Uniswap Governor Bravo";
+  string public constant name = "GoldiGovernor";
   uint256 public constant MIN_PROPOSAL_THRESHOLD = 1000000e18;
   uint256 public constant MAX_PROPOSAL_THRESHOLD = 10000000e18;
   uint32 public constant MIN_VOTING_PERIOD = 5760; // About 24 hours
@@ -143,6 +143,7 @@ contract GoldiGovernor {
   error InvalidProposalAction();
   error InvalidProposalState();
   error InvalidVoteType();
+  error InvalidSignature();
   error NotPendingAdmin();
   error NotAdmin();
 
@@ -295,7 +296,7 @@ contract GoldiGovernor {
     bytes32 structHash = keccak256(abi.encode(BALLOT_TYPEHASH, proposalId, support));
     bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
     address signatory = ecrecover(digest, v, r, s);
-    require(signatory != address(0), "GovernorBravo::castVoteBySig: invalid signature");
+    if(signatory == address(0)) revert InvalidSignature();
     emit VoteCast(signatory, proposalId, support, _castVoteInternal(msg.sender, proposalId, support), "");
   }
 

@@ -59,7 +59,7 @@ contract GAMMGasTest is Test {
     uint256 gasStart = gasleft();
     gamm.buy(txAmount, type(uint256).max);
     uint256 gasEnd = gasleft();
-    uint256 gasUsed = gasStart - gasEnd;
+    uint256 gasUsed = gasStart   - gasEnd;
     assert(gasUsed <= 119360);
   }
 

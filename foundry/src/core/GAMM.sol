@@ -397,10 +397,10 @@ contract GAMM is ERC20 {
   function initiatePresaleClaim(uint256 fslLiq, uint256 pslLiq) external {
     if(msg.sender != lge) revert NotLGE();
     uint256 presale = 10000e18;
-    _mint(msg.sender, presale);
     fsl = fslLiq;
     psl = pslLiq;
     supply = presale;
+    _mint(msg.sender, presale);
   }
 
 }

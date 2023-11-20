@@ -60,10 +60,12 @@ contract LGE {
   /// @notice Constructor of this contract
   /// @param _honey Address of $HONEY
   /// @param _gamm Address of $LOCKS
-  constructor(address _honey, address _gamm) {
+  /// @param _multisig Address of the GoldilocksDAO multisig
+  constructor(address _honey, address _gamm, address _multisig) {
     startTime = block.timestamp;
     honey = _honey;
     gamm = _gamm;
+    multisig = _multisig;
   }
 
 
@@ -132,7 +134,7 @@ contract LGE {
 
   /// @notice Initiates the claim period of the presale
   function initiate() external onlyMultisig {
-    if(block.timestamp - startTime < 24 hours || totalContribution == hardCap) revert NotClaimPeriod();
+    if(block.timestamp - startTime < 24 hours) revert NotClaimPeriod();
     claimPeriod = true;
     (
       uint256 fslLiq,
@@ -142,6 +144,7 @@ contract LGE {
     IGAMM(gamm).initiatePresaleClaim(fslLiq, pslLiq);
     SafeTransferLib.safeTransfer(honey, gamm, fslLiq + pslLiq);
     SafeTransferLib.safeTransfer(honey, multisig, treasuryLiq);
+    SafeTransferLib.safeTransfer(gamm, multisig, 3000e18);
   }
 
 
