@@ -102,7 +102,7 @@ contract Goldilend is ERC20, IERC721Receiver {
   /// @notice Constructor of this contract
   /// @param _startingPoolSize Starting size of the lending pool
   /// @param _protocolInterestRate Interest rate of the protocol
-  /// @param _porridgeMultiple Boost for earning $PRG
+  /// @param _porridgeMultiple Emissions rate of $PRG for $BERA in lending pool
   /// @param _porridge Address of $PRG
   /// @param _multisig Address of the GoldilocksDAO multisig
   /// @param _bera Address of $BERA
