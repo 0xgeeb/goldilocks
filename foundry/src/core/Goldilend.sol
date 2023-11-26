@@ -112,6 +112,7 @@ contract Goldilend is ERC20, IERC721Receiver {
   constructor(
     uint256 _startingPoolSize,
     uint256 _protocolInterestRate,
+    // uint256 _totalValuation, 
     uint256 _porridgeMultiple,
     address _porridge,
     address _multisig,
@@ -119,9 +120,12 @@ contract Goldilend is ERC20, IERC721Receiver {
     address _vault,
     address[] memory _partnerNFTs, 
     uint8[] memory _partnerNFTBoosts
+    // address[] memory _nfts,
+    // uint256[] memory _nftFairValues
   ) {
     poolSize = _startingPoolSize;
     protocolInterestRate = _protocolInterestRate;
+    // totalValuation = _totalValuation;
     porridgeMultiple = _porridgeMultiple;
     porridge = _porridge;
     multisig = _multisig;
@@ -131,6 +135,9 @@ contract Goldilend is ERC20, IERC721Receiver {
     for(uint8 i; i < _partnerNFTs.length; i++) {
       partnerNFTBoosts[_partnerNFTs[i]] = _partnerNFTBoosts[i];
     }
+    // for(uint256 i; i < _nftFairValues.length; i++) {
+    //   nftFairValues[_nfts[i]] = _nftFairValues[i];
+    // }
   }
 
   /// @notice Returns the name of the $gBERA token
@@ -683,9 +690,9 @@ contract Goldilend is ERC20, IERC721Receiver {
 
 
   /// @notice Allows the DAO to adjust the valuation of the NFTs to borrow against
-  /// @param _totalValuation The total valuation of all NFTs able to be borrowed against
+  /// @param _totalValuation Total valuation of all NFTs able to be borrowed against
   /// @param _nfts NFTs that are able to be borrowed against
-  /// @param _nftFairValues The percentage each NFT is valued as a porportion of the total valuation
+  /// @param _nftFairValues Percentage each NFT is valued as a porportion of the total valuation
   function setValue(
     uint256 _totalValuation, 
     address[] calldata _nfts,
