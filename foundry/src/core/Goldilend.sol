@@ -76,6 +76,7 @@ contract Goldilend is ERC20, IERC721Receiver {
 
   address public porridge;
   address public multisig;
+  address public hj;
   address public bera;
   address public vault;
 
@@ -92,6 +93,8 @@ contract Goldilend is ERC20, IERC721Receiver {
   uint256 public outstandingDebt;
   uint256 public poolSize;
   uint256 public porridgeMultiple;
+  uint256 public multisigClaims;
+  uint256 public honeyjarClaims;
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -105,6 +108,7 @@ contract Goldilend is ERC20, IERC721Receiver {
   /// @param _porridgeMultiple Emissions rate of $PRG for $BERA in lending pool
   /// @param _porridge Address of $PRG
   /// @param _multisig Address of the GoldilocksDAO multisig
+  /// @param _hj Address of Honeyjar
   /// @param _bera Address of $BERA
   /// @param _vault Address of Consensus Vault
   /// @param _partnerNFTs Partnership NFTs
@@ -112,32 +116,27 @@ contract Goldilend is ERC20, IERC721Receiver {
   constructor(
     uint256 _startingPoolSize,
     uint256 _protocolInterestRate,
-    // uint256 _totalValuation, 
     uint256 _porridgeMultiple,
     address _porridge,
     address _multisig,
+    address _hj,
     address _bera, 
     address _vault,
     address[] memory _partnerNFTs, 
     uint8[] memory _partnerNFTBoosts
-    // address[] memory _nfts,
-    // uint256[] memory _nftFairValues
   ) {
     poolSize = _startingPoolSize;
     protocolInterestRate = _protocolInterestRate;
-    // totalValuation = _totalValuation;
     porridgeMultiple = _porridgeMultiple;
     porridge = _porridge;
     multisig = _multisig;
+    hj = _hj;
     bera = _bera;
     vault = _vault;
     emissionsStart = block.timestamp;
     for(uint8 i; i < _partnerNFTs.length; i++) {
       partnerNFTBoosts[_partnerNFTs[i]] = _partnerNFTBoosts[i];
     }
-    // for(uint256 i; i < _nftFairValues.length; i++) {
-    //   nftFairValues[_nfts[i]] = _nftFairValues[i];
-    // }
   }
 
   /// @notice Returns the name of the $gBERA token
@@ -157,6 +156,7 @@ contract Goldilend is ERC20, IERC721Receiver {
 
 
   error NotMultisig();
+  error NotHoneyjar();
   error ArrayMismatch();
   error InvalidBoost();
   error InvalidBoostNFT();
@@ -476,7 +476,8 @@ contract Goldilend is ERC20, IERC721Receiver {
       }
     }
     _refreshBera(repayAmount);
-    SafeTransferLib.safeTransfer(bera, multisig, (interest / 100) * 5);
+    _updateInterestClaims(interest);
+    // SafeTransferLib.safeTransfer(bera, multisig, (interest / 1000) * 5);
     SafeTransferLib.safeTransferFrom(bera, msg.sender, address(this), repayAmount);
     emit Repay(msg.sender, repayAmount);
   }
@@ -683,6 +684,14 @@ contract Goldilend is ERC20, IERC721Receiver {
     }
   }
 
+  /// @notice Update internal variables tracking amount of interest for multisig and honeyjar
+  /// @dev Multisig can claim 4.5% and honeyjar can claim 0.5% of interest paid
+  /// @param interest Interest paid during repayment
+  function _updateInterestClaims(uint256 interest) internal {
+    multisigClaims += (interest / 1000) * 45;
+    honeyjarClaims += (interest / 1000) * 5;
+  }
+
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
   /*                    PERMISSIONED FUNCTIONS                  */
@@ -713,6 +722,23 @@ contract Goldilend is ERC20, IERC721Receiver {
   /// @notice Allows the DAO to withdraw $BERA in case of emergency
   function emergencyWithdraw() external onlyMultisig {
     SafeTransferLib.safeTransfer(bera, multisig, poolSize - outstandingDebt);
+  }
+
+  /// @notice Allows the multisig to claim interest
+  /// @dev 4.5% of all protocol interest
+  function multisigInterestClaim() external onlyMultisig {
+    uint256 interestClaim = multisigClaims;
+    multisigClaims = 0;
+    SafeTransferLib.safeTransfer(bera, multisig, interestClaim);
+  }
+
+  /// @notice Allows the honeyjar to claim interest
+  /// @dev 0.5% of all protocol interest
+  function honeyjarInterestClaim() external {
+    if(msg.sender != hj) revert NotHoneyjar();
+    uint256 interestClaim = honeyjarClaims;
+    honeyjarClaims = 0;
+    SafeTransferLib.safeTransfer(bera, hj, interestClaim);
   }
 
 

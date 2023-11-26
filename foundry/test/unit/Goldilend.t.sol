@@ -36,6 +36,7 @@ contract GoldilendTest is Test, IERC721Receiver {
   BandBear bandbear;
 
   bytes4 NotMultisigSelector = 0xf05e412b;
+  bytes4 NotHoneyjarSelector = 0x10f6cbdb;
   bytes4 ArrayMismatchSelector = 0xb7c1140d;
   bytes4 InvalidBoostSelector = 0xe4c30186;
   bytes4 InvalidBoostNFTSelector = 0x38646c53;
@@ -55,6 +56,8 @@ contract GoldilendTest is Test, IERC721Receiver {
   uint256 singleBorrowInterest = 4646574074074073;
   uint256 singleBorrowInterestBoosted = 4367779629629560;
   uint256 singleBorrowInterestMaxBoost = 2323287037037000;
+
+  address honeyjar = address(0x69420);
 
   function setUp() public {
     Porridge porridgeComputed = Porridge(address(this).computeAddress(10));
@@ -92,6 +95,7 @@ contract GoldilendTest is Test, IERC721Receiver {
       porridgeMultiple,
       address(porridge),
       address(this),
+      honeyjar,
       address(bera),
       address(consensusvault),
       boostNfts,
@@ -136,6 +140,11 @@ contract GoldilendTest is Test, IERC721Receiver {
     vm.prank(address(0x01));
     vm.expectRevert(NotMultisigSelector);
     goldilend.emergencyWithdraw();
+  }
+
+  function testNotHoneyjar() public {
+    vm.expectRevert(NotHoneyjarSelector);
+    goldilend.honeyjarInterestClaim();
   }
 
   function testArrayMismatch() public {
@@ -266,7 +275,7 @@ contract GoldilendTest is Test, IERC721Receiver {
     bera.approve(address(goldilend), type(uint256).max);
     goldilend.lock(100e18);
     vm.store(address(goldilend), bytes32(uint256(0x05345cdf77eb68f44c)), bytes32(uint256(100e18)));
-    vm.store(address(goldilend), bytes32(uint256(13)), bytes32(uint256(1000e18)));
+    vm.store(address(goldilend), bytes32(uint256(14)), bytes32(uint256(1000e18)));
 
     uint256 gBERARatio = goldilend.getgBERARatio();
 
@@ -820,6 +829,38 @@ contract GoldilendTest is Test, IERC721Receiver {
     assertEq(userLoan.liquidated, true);
     assertEq(goldilendBondBalance, 0);
     assertEq(userBondBalance, 1);
+  }
+
+  function testMultisigInterestClaim() public dealUserBera dealUserBeras {
+    goldilend.borrow(1e18, 1209600, address(bondbear), 1);
+    Goldilend.Loan memory userLoanBefore = goldilend.lookupLoan(address(this), 1);
+    goldilend.repay(1e18+userLoanBefore.interest, 1);
+    uint256 goldilendBeraBalance = bera.balanceOf(address(goldilend));
+    uint256 multisigBeraBalance = bera.balanceOf(address(this));
+
+    uint256 claim = 209095833333330;
+    goldilend.multisigInterestClaim();
+    
+    assertEq(goldilend.multisigClaims(), 0);
+    assertEq(bera.balanceOf(address(this)), multisigBeraBalance + claim);
+    assertEq(bera.balanceOf(address(goldilend)), goldilendBeraBalance - claim);
+    
+  }
+
+  function testHoneyjarInterestClaim() public dealUserBera dealUserBeras {
+    goldilend.borrow(1e18, 1209600, address(bondbear), 1);
+    Goldilend.Loan memory userLoanBefore = goldilend.lookupLoan(address(this), 1);
+    goldilend.repay(1e18+userLoanBefore.interest, 1);
+    uint256 goldilendBeraBalance = bera.balanceOf(address(goldilend));
+    uint256 honeyjarBeraBalance = bera.balanceOf(honeyjar);
+
+    uint256 claim = 23232870370370;
+    vm.prank(honeyjar);
+    goldilend.honeyjarInterestClaim();
+
+    assertEq(goldilend.honeyjarClaims(), 0);
+    assertEq(bera.balanceOf(honeyjar), honeyjarBeraBalance + claim);
+    assertEq(bera.balanceOf(address(goldilend)), goldilendBeraBalance - claim);
   }
 
   function onERC721Received(

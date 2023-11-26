@@ -62,8 +62,9 @@ contract PorridgeTest is Test {
     bandbear = new BandBear();
     consensusvault = new ConsensusVault(address(bera));
 
-    uint256 startingPoolSize = 1e18;
-    uint256 protocolInterestRate = 15;
+    address honeyjar = address(0x69420);
+    uint256 startingPoolSize = 1000e18;
+    uint256 protocolInterestRate = 1e17;
     uint256 porridgeMultiple = 1e13;
     address[] memory boostNfts = new address[](2);
     boostNfts[0] = address(honeycomb);
@@ -78,6 +79,7 @@ contract PorridgeTest is Test {
       porridgeMultiple,
       address(porridge),
       address(this),
+      honeyjar,
       address(bera),
       address(consensusvault),
       boostNfts,
