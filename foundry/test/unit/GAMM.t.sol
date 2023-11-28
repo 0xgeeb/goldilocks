@@ -39,7 +39,7 @@ contract GAMMTest is Test {
     gamm = new GAMM(address(this), address(porridgeComputed), address(borrowComputed), address(lgeComputed), address(honey));
     borrow = new Borrow(address(gamm), address(porridgeComputed), address(honey));
     porridge = new Porridge(address(gamm), address(borrow), address(goldilendComputed), address(honey));
-    lge = new LGE(address(honey), address(gamm), address(this));
+    lge = new LGE(address(honey), address(gamm), address(this), bytes32(""));
   }
 
   modifier dealandApproveUserHoney() {

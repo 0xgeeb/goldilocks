@@ -40,7 +40,7 @@ contract LGE {
   uint256 public totalContribution;
   uint256 public startTime;
   uint256 public hardCap = 500000e18;
-  uint256 public maxContribution = 20000e18;
+  uint256 public maxContribution = 200000e18;
   uint256 public locksPresaleSupply = 7000e18;
 
   address public honey;
@@ -61,11 +61,13 @@ contract LGE {
   /// @param _honey Address of $HONEY
   /// @param _gamm Address of $LOCKS
   /// @param _multisig Address of the GoldilocksDAO multisig
-  constructor(address _honey, address _gamm, address _multisig) {
+  /// @param _root Root of whitelist merkle tree
+  constructor(address _honey, address _gamm, address _multisig, bytes32 _root) {
     startTime = block.timestamp;
     honey = _honey;
     gamm = _gamm;
     multisig = _multisig;
+    root = _root;
   }
 
 
