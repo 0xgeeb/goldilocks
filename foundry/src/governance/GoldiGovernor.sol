@@ -88,8 +88,7 @@ contract GoldiGovernor {
 
   address public timelock;
   address public locks;
-  address public admin;
-  address public pendingAdmin;
+  address public multisig;
 
   mapping(uint256 => Proposal) public proposals;
   mapping(address => uint256) public latestProposalIds;
@@ -126,7 +125,6 @@ contract GoldiGovernor {
     votingPeriod = _votingPeriod;
     votingDelay = _votingDelay;
     proposalThreshold = _proposalThreshold;
-    Timelock(timelock).acceptAdmin();
   }
 
 
@@ -144,8 +142,7 @@ contract GoldiGovernor {
   error InvalidProposalState();
   error InvalidVoteType();
   error InvalidSignature();
-  error NotPendingAdmin();
-  error NotAdmin();
+  error NotMultisig();
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -161,7 +158,6 @@ contract GoldiGovernor {
   event VotingDelaySet(uint256 oldVotingDelay, uint256 newVotingDelay);
   event VotingPeriodSet(uint256 oldVotingPeriod, uint256 newVotingPeriod);
   event ProposalThresholdSet(uint256 oldProposalThreshold, uint256 newProposalThreshold);
-  event NewPendingAdmin(address oldPendingAdmin, address newPendingAdmin);
   event NewAdmin(address oldAdmin, address newAdmin);
 
 
@@ -370,31 +366,20 @@ contract GoldiGovernor {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  /// @notice Begins transfer of admin rights
-  /// @dev newPendingAdmin must call `acceptAdmin` to finalize the transfer
-  /// @param newPendingAdmin New pending admin
-  function setPendingAdmin(address newPendingAdmin) external {
-    if(msg.sender != admin) revert NotAdmin();
-    address oldPendingAdmin = pendingAdmin;
-    pendingAdmin = newPendingAdmin;
-    emit NewPendingAdmin(oldPendingAdmin, newPendingAdmin);
-  }
-
-  /// @notice Accepts transfer of admin rights
-  function acceptAdmin() external {
-    if(msg.sender != pendingAdmin || msg.sender == address(0)) revert NotPendingAdmin();
-    address oldAdmin = admin;
-    address oldPendingAdmin = pendingAdmin;
-    admin = pendingAdmin;
-    pendingAdmin = address(0);
-    emit NewAdmin(oldAdmin, admin);
-    emit NewPendingAdmin(oldPendingAdmin, pendingAdmin);
+  /// @notice Changes the address of the multisig address
+  /// @dev Used after deployment by deployment address
+  /// @param _multisig Address of the multisig
+  function setMultisig(address _multisig) external {
+    if(msg.sender != multisig) revert NotMultisig();
+    address oldMultisig = multisig;
+    multisig = _multisig;
+    emit NewAdmin(oldMultisig, multisig);
   }
 
   /// @notice Sets the voting delay
   /// @param newVotingDelay New voting delay, in blocks
   function setVotingDelay(uint256 newVotingDelay) external {
-    if(msg.sender != admin) revert NotAdmin();
+    if(msg.sender != multisig) revert NotMultisig();
     if(newVotingDelay < MIN_VOTING_DELAY || newVotingDelay > MAX_VOTING_DELAY) revert InvalidVotingParameter();
     uint256 oldVotingDelay = votingDelay;
     votingDelay = newVotingDelay;
@@ -404,7 +389,7 @@ contract GoldiGovernor {
   /// @notice Sets the voting period
   /// @param newVotingPeriod New voting period, in blocks
   function setVotingPeriod(uint256 newVotingPeriod) external {
-    if(msg.sender != admin) revert NotAdmin();
+    if(msg.sender != multisig) revert NotMultisig();
     if(newVotingPeriod < MIN_VOTING_PERIOD || newVotingPeriod > MAX_VOTING_PERIOD) revert InvalidVotingParameter();
     uint256 oldVotingPeriod = votingPeriod;
     votingPeriod = newVotingPeriod;
@@ -414,7 +399,7 @@ contract GoldiGovernor {
   /// @notice Sets the proposal threshold
   /// @param newProposalThreshold New proposal threshold
   function setProposalThreshold(uint256 newProposalThreshold) external {
-    if(msg.sender != admin) revert NotAdmin();
+    if(msg.sender != multisig) revert NotMultisig();
     if(newProposalThreshold < MIN_PROPOSAL_THRESHOLD || newProposalThreshold > MAX_PROPOSAL_THRESHOLD) revert InvalidVotingParameter();
     uint256 oldProposalThreshold = proposalThreshold;
     proposalThreshold = newProposalThreshold;

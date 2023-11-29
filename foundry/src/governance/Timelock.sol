@@ -64,7 +64,6 @@ contract Timelock {
   error InvalidDelay();
   error InvalidETA();
   error NotAdmin();
-  error NotPendingAdmin();
   error TxNotQueued();
   error TxLocked();
   error TxStale();
@@ -77,7 +76,6 @@ contract Timelock {
 
 
   event NewAdmin(address indexed newAdmin);
-  event NewPendingAdmin(address indexed newPendingAdmin);
   event NewDelay(uint indexed newDelay);
   event CancelTransaction(bytes32 indexed txHash, address indexed target, uint value, string signature,  bytes data, uint eta);
   event ExecuteTransaction(bytes32 indexed txHash, address indexed target, uint value, string signature,  bytes data, uint eta);
@@ -159,20 +157,11 @@ contract Timelock {
     emit CancelTransaction(txHash, target, value, signature, data, eta);
   }
 
-  /// @notice Begins transfer of admin rights
-  /// @dev newPendingAdmin must call `acceptAdmin` to finalize the transfer
-  /// @param newPendingAdmin New pending admin
-  function setPendingAdmin(address newPendingAdmin) public {
-    require(msg.sender == address(this), "call must come from Timelock.");
-    pendingAdmin = newPendingAdmin;
-    emit NewPendingAdmin(pendingAdmin);
-  }
-
-  /// @notice Accepts transfer of admin rights
-  function acceptAdmin() public {
-    if(msg.sender != pendingAdmin) revert NotPendingAdmin();
-    admin = msg.sender;
-    pendingAdmin = address(0);
+  /// @notice Changes the address of the admin address
+  /// @param _admin Address of the GoldiGovernor contract
+  function setAdmin(address _admin) external {
+    if(msg.sender != admin) revert NotAdmin();
+    admin = _admin;
     emit NewAdmin(admin);
   }
 
