@@ -393,6 +393,13 @@ contract GAMM is ERC20 {
     SafeTransferLib.safeTransferFrom(honey, msg.sender, address(this), fslLiq + pslLiq);
   }
 
+  /// @notice Changes the address of the multisig address
+  /// @dev Used after deployment by deployment address
+  /// @param _multisig Address of the multisig
+  function setMultisig(address _multisig) external onlyMultisig {
+    multisig = _multisig;
+  }
+
   /// @notice Allows the LGE to initiate the presale
   function initiatePresaleClaim(uint256 fslLiq, uint256 pslLiq) external {
     if(msg.sender != lge) revert NotLGE();

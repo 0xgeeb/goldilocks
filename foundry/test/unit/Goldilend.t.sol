@@ -831,6 +831,18 @@ contract GoldilendTest is Test, IERC721Receiver {
     assertEq(userBondBalance, 1);
   }
 
+  function testSetMultisigFail() public {
+    vm.prank(address(0x69));
+    vm.expectRevert(NotMultisigSelector);
+    goldilend.setMultisig(address(0x69));
+  }
+
+  function testSetMultisig() public {
+    goldilend.setMultisig(address(0x69));
+    
+    assertEq(goldilend.multisig(), address(0x69));
+  }
+
   function testMultisigInterestClaim() public dealUserBera dealUserBeras {
     goldilend.borrow(1e18, 1209600, address(bondbear), 1);
     Goldilend.Loan memory userLoanBefore = goldilend.lookupLoan(address(this), 1);

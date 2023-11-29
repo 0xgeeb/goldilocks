@@ -732,6 +732,13 @@ contract Goldilend is ERC20, IERC721Receiver {
     SafeTransferLib.safeTransfer(bera, multisig, interestClaim);
   }
 
+  /// @notice Changes the address of the multisig address
+  /// @dev Used after deployment by deployment address
+  /// @param _multisig Address of the multisig
+  function setMultisig(address _multisig) external onlyMultisig {
+    multisig = _multisig;
+  }
+
   /// @notice Allows the honeyjar to claim interest
   /// @dev 0.5% of all protocol interest
   function honeyjarInterestClaim() external {

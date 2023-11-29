@@ -166,4 +166,18 @@ contract LGE {
     treasuryLiq = (_totalContribution / 100) * 10;
   }
 
+
+  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+  /*                   PERMISSIONED FUNCTION                    */
+  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+
+  /// @notice Changes the address of the multisig address
+  /// @dev Used after deployment by deployment address
+  /// @param _multisig Address of the multisig
+  function setMultisig(address _multisig) external onlyMultisig {
+    multisig = _multisig;
+  }
+
+
 }

@@ -151,4 +151,16 @@ contract LGETest is Test {
     assertEq(75000e18, gamm.psl());
   }
 
+  function testSetMultisigFail() public {
+    vm.prank(address(0x69));
+    vm.expectRevert(NotMultisigSelector);
+    lge.setMultisig(address(0x69));
+  }
+
+  function testSetMultisig() public {
+    lge.setMultisig(address(0x69));
+    
+    assertEq(lge.multisig(), address(0x69));
+  }
+
 }

@@ -235,6 +235,18 @@ contract GAMMTest is Test {
     assertEq(honey.balanceOf(address(gamm)), injected * 2);
   }
 
+  function testSetMultisigFail() public {
+    vm.prank(address(0x69));
+    vm.expectRevert(NotMultisigSelector);
+    gamm.setMultisig(address(0x69));
+  }
+
+  function testSetMultisig() public {
+    gamm.setMultisig(address(0x69));
+    
+    assertEq(gamm.multisig(), address(0x69));
+  }
+
   function testInitiatePresale() public {
     vm.store(address(lge), bytes32(uint256(1)), bytes32(uint256(500000e18)));
     deal(address(honey), address(lge), 500000e18);
