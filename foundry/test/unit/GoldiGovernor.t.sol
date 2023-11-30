@@ -312,6 +312,48 @@ contract GoldiGovernorTest is Test {
     assertEq(432001, eta);
   }
 
+  function testExecuteFail() public {
+    address[] memory targets = new address[](2);
+    targets[0] = address(0x69);
+    targets[1] = address(0x69);
+    string[] memory signatures = new string[](2);
+    signatures[0] = "hello";
+    signatures[1] = "helloagain";
+    bytes[] memory calldatas = new bytes[](2);
+    calldatas[0] = hex"8eed55d1";
+    calldatas[1] = hex"8eed55d1";
+    uint256[] memory values = new uint256[](2);
+    values[0] = 69;
+    values[1] = 69;
+    goldigov.propose(targets, signatures, calldatas, values, "");
+    vm.roll(71);
+    goldigov.castVote(1, 1);
+    vm.expectRevert(InvalidProposalStateSelector);
+    goldigov.execute(1);
+  }
+
+  // function testExecute() public {
+  //   address[] memory targets = new address[](2);
+  //   targets[0] = address(0x69);
+  //   targets[1] = address(0x69);
+  //   string[] memory signatures = new string[](2);
+  //   signatures[0] = "hello";
+  //   signatures[1] = "helloagain";
+  //   bytes[] memory calldatas = new bytes[](2);
+  //   calldatas[0] = hex"8eed55d1";
+  //   calldatas[1] = hex"8eed55d1";
+  //   uint256[] memory values = new uint256[](2);
+  //   values[0] = 69;
+  //   values[1] = 69;
+  //   goldigov.propose(targets, signatures, calldatas, values, "");
+  //   vm.roll(71);
+  //   goldigov.castVote(1, 1);
+  //   vm.roll(5900);
+  //   goldigov.queue(1);
+  //   goldigov.execute(1);
+  //   (, , uint256 eta, , , , , , ,) = goldigov.proposals(1);
+  // }
+
   function testSetMultisigFail() public {
     vm.prank(address(0x69));
     vm.expectRevert(NotMultisigSelector);
