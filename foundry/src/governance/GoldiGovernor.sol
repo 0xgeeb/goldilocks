@@ -107,12 +107,14 @@ contract GoldiGovernor {
   /// @notice Constructor of this contract
   /// @param _timelock Address of the Timelock
   /// @param _locks Address of $LOCKS
+  /// @param _multisig Address of the GoldilocksDAO multisig
   /// @param _votingPeriod Duration of voting on a proposal, in blocks
   /// @param _votingDelay Delay before voting on a proposal may take place, once proposed, in blocks
   /// @param _proposalThreshold Number of votes required in order for a voter to become a proposer
   constructor(
     address _timelock,
     address _locks,
+    address _multisig,
     uint256 _votingPeriod,
     uint256 _votingDelay,
     uint256 _proposalThreshold
@@ -122,6 +124,7 @@ contract GoldiGovernor {
     if(_proposalThreshold < MIN_PROPOSAL_THRESHOLD || _proposalThreshold > MAX_PROPOSAL_THRESHOLD) revert InvalidVotingParameter();
     timelock = _timelock;
     locks = _locks;
+    multisig = _multisig;
     votingPeriod = _votingPeriod;
     votingDelay = _votingDelay;
     proposalThreshold = _proposalThreshold;
@@ -210,7 +213,8 @@ contract GoldiGovernor {
     }
     uint256 startBlock = block.number + votingDelay;
     uint256 endBlock = startBlock + votingPeriod;
-    Proposal storage newProposal = proposals[proposalCount++];
+    proposalCount++;
+    Proposal storage newProposal = proposals[proposalCount];
     newProposal.id = proposalCount;
     newProposal.proposer = msg.sender;
     newProposal.eta = 0;

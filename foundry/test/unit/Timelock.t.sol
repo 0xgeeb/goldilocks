@@ -28,7 +28,7 @@ contract TimelockTest is Test {
     honey = new Honey();
     gamm = new GAMM(address(this), address(porridgeComputed), address(borrowComputed), address(lgeComputed), address(honey));
     timelock = new Timelock(address(goldigovComputed), 5 days);
-    goldigov = new GoldiGovernor(address(timelock), address(gamm), 5761, 69, 1000000e18);
+    goldigov = new GoldiGovernor(address(timelock), address(gamm), address(this), 5761, 69, 1000000e18);
   }
 
   function testHello() public {

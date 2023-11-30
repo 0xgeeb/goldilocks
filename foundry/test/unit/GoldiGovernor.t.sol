@@ -29,8 +29,7 @@ contract GoldiGovernorTest is Test {
   bytes4 InvalidProposalStateSelector = 0xb4372803;
   bytes4 InvalidVoteTypeSelector = 0x8eed55d1;
   bytes4 InvalidSignatureSelector = 0x8baa579f;
-  bytes4 NotPendingAdminSelector = 0x058d9a1b;
-  bytes4 NotAdminSelector = 0x7bfa4b9f;
+  bytes4 NotMultisigSelector = 0xf05e412b;
 
   function setUp() public {
     Porridge porridgeComputed = Porridge(address(this).computeAddress(4));
@@ -40,25 +39,89 @@ contract GoldiGovernorTest is Test {
     honey = new Honey();
     gamm = new GAMM(address(this), address(porridgeComputed), address(borrowComputed), address(lgeComputed), address(honey));
     timelock = new Timelock(address(goldigovComputed), 5 days);
-    goldigov = new GoldiGovernor(address(timelock), address(gamm), 5761, 69, 1000000e18);
+    goldigov = new GoldiGovernor(address(timelock), address(gamm), address(this), 5761, 69, 1000000e18);
   }
 
   function testArrayMismatch() public {
-    // address[] memory targets = new address[](3);
-    // targets[0] = address(0x69);
-    // targets[1] = address(0x69);
-    // targets[2] = address(0x69);
-    // string[] memory signatures = new string[](2);
-    // signatures[0] = "hello";
-    // signatures[1] = "hello";
-    // bytes[] memory calldatas = new bytes[](2);
-    // calldatas[0] = hex"8eed55d1";
-    // calldatas[1] = hex"8eed55d1";
-    // uint256[] memory values = new uint256[](2);
-    // values[0] = 69;
-    // values[1] = 69;
-    // vm.expectRevert(ArrayMismatchSelector);
-    // goldigov.propose(targets, signatures, calldatas, values, "");
+    address[] memory targets = new address[](3);
+    targets[0] = address(0x69);
+    targets[1] = address(0x69);
+    targets[2] = address(0x69);
+    string[] memory signatures = new string[](2);
+    signatures[0] = "hello";
+    signatures[1] = "hello";
+    bytes[] memory calldatas = new bytes[](2);
+    calldatas[0] = hex"8eed55d1";
+    calldatas[1] = hex"8eed55d1";
+    uint256[] memory values = new uint256[](2);
+    values[0] = 69;
+    values[1] = 69;
+    vm.expectRevert(ArrayMismatchSelector);
+    goldigov.propose(targets, signatures, calldatas, values, "");
+  }
+
+  function testAlreadyProposing() public {
+    address[] memory targets = new address[](2);
+    targets[0] = address(0x69);
+    targets[1] = address(0x69);
+    string[] memory signatures = new string[](2);
+    signatures[0] = "hello";
+    signatures[1] = "hello";
+    bytes[] memory calldatas = new bytes[](2);
+    calldatas[0] = hex"8eed55d1";
+    calldatas[1] = hex"8eed55d1";
+    uint256[] memory values = new uint256[](2);
+    values[0] = 69;
+    values[1] = 69;
+    goldigov.propose(targets, signatures, calldatas, values, "");
+    vm.expectRevert(AlreadyProposingSelector);
+    goldigov.propose(targets, signatures, calldatas, values, "");
+  }
+
+  function testAlreadyQueued() public {
+    address[] memory targets = new address[](2);
+    targets[0] = address(0x69);
+    targets[1] = address(0x69);
+    string[] memory signatures = new string[](2);
+    signatures[0] = "hello";
+    signatures[1] = "hello";
+    bytes[] memory calldatas = new bytes[](2);
+    calldatas[0] = hex"8eed55d1";
+    calldatas[1] = hex"8eed55d1";
+    uint256[] memory values = new uint256[](2);
+    values[0] = 69;
+    values[1] = 69;
+    goldigov.propose(targets, signatures, calldatas, values, "");
+    vm.roll(71);
+    goldigov.castVote(1, 1);
+    vm.roll(5900);
+    vm.expectRevert(AlreadyQueuedSelector);
+    goldigov.queue(1);
+  }
+
+  function testAlreadyVoted() public {
+    address[] memory targets = new address[](2);
+    targets[0] = address(0x69);
+    targets[1] = address(0x69);
+    string[] memory signatures = new string[](2);
+    signatures[0] = "hello";
+    signatures[1] = "hello";
+    bytes[] memory calldatas = new bytes[](2);
+    calldatas[0] = hex"8eed55d1";
+    calldatas[1] = hex"8eed55d1";
+    uint256[] memory values = new uint256[](2);
+    values[0] = 69;
+    values[1] = 69;
+    goldigov.propose(targets, signatures, calldatas, values, "");
+    vm.roll(71);
+    goldigov.castVote(1, 1);
+    vm.expectRevert(AlreadyVotedSelector);
+    goldigov.castVote(1, 1);
+  }
+
+  function testInvalidVotingParameter() public {
+    vm.expectRevert(InvalidVotingParameterSelector);
+    goldigov.setVotingDelay(0);
   }
 
 }

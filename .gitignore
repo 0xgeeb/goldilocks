@@ -5,7 +5,7 @@ foundry/out/
 foundry/broadcast
 foundry/.vscode
 foundry/coverage
-foundry/whitelist/node_modules/
+foundry/whitelist/node_modules
 
 
 # Dotenv file

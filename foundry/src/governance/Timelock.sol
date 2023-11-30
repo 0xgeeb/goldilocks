@@ -34,7 +34,6 @@ contract Timelock {
   uint32 public constant MAXIMUM_DELAY = 30 days;
 
   address public admin;
-  address public pendingAdmin;
 
   mapping(bytes32 => bool) public queuedTransactions;
 
