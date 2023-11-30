@@ -212,4 +212,151 @@ contract GoldiGovernorTest is Test {
     goldigov.setVotingPeriod(69);
   }
 
+  function testGetProposalState() public {
+    (
+      address[] memory targets,
+      string[] memory signatures,
+      bytes[] memory calldatas,
+      uint256[] memory values
+    ) = proposy();
+    goldigov.propose(targets, signatures, calldatas, values, "");
+    vm.roll(71);
+    GoldiGovernor.ProposalState state = goldigov.getProposalState(1);
+
+    assertEq(uint256(state), 1);
+  }
+
+  function testGetReceipt() public {
+    (
+      address[] memory targets,
+      string[] memory signatures,
+      bytes[] memory calldatas,
+      uint256[] memory values
+    ) = proposy();
+    goldigov.propose(targets, signatures, calldatas, values, "");
+    vm.roll(71);
+    goldigov.castVote(1, 1);
+    GoldiGovernor.Receipt memory receipt = goldigov.getReceipt(1, address(this));
+
+    assertEq(receipt.support, 1);
+    assertEq(receipt.votes, 0);
+    assertEq(receipt.hasVoted, true);
+  }
+
+  function testCastVoteWithReason() public {
+    (
+      address[] memory targets,
+      string[] memory signatures,
+      bytes[] memory calldatas,
+      uint256[] memory values
+    ) = proposy();
+    goldigov.propose(targets, signatures, calldatas, values, "");
+    vm.roll(71);
+    goldigov.castVoteWithReason(1, 1, "reason");
+  }
+
+  function testCastVoteAgainst() public {
+    (
+      address[] memory targets,
+      string[] memory signatures,
+      bytes[] memory calldatas,
+      uint256[] memory values
+    ) = proposy();
+    goldigov.propose(targets, signatures, calldatas, values, "");
+    vm.roll(71);
+    goldigov.castVote(1, 0);
+    GoldiGovernor.Receipt memory receipt = goldigov.getReceipt(1, address(this));
+
+    assertEq(receipt.support, 0);
+    assertEq(receipt.votes, 0);
+    assertEq(receipt.hasVoted, true);
+  }
+
+  function testCastVoteAbstain() public {
+    (
+      address[] memory targets,
+      string[] memory signatures,
+      bytes[] memory calldatas,
+      uint256[] memory values
+    ) = proposy();
+    goldigov.propose(targets, signatures, calldatas, values, "");
+    vm.roll(71);
+    goldigov.castVote(1, 2);
+    GoldiGovernor.Receipt memory receipt = goldigov.getReceipt(1, address(this));
+
+    assertEq(receipt.support, 2);
+    assertEq(receipt.votes, 0);
+    assertEq(receipt.hasVoted, true);
+  }
+
+  function testQueueEta() public {
+    address[] memory targets = new address[](2);
+    targets[0] = address(0x69);
+    targets[1] = address(0x69);
+    string[] memory signatures = new string[](2);
+    signatures[0] = "hello";
+    signatures[1] = "helloagain";
+    bytes[] memory calldatas = new bytes[](2);
+    calldatas[0] = hex"8eed55d1";
+    calldatas[1] = hex"8eed55d1";
+    uint256[] memory values = new uint256[](2);
+    values[0] = 69;
+    values[1] = 69;
+    goldigov.propose(targets, signatures, calldatas, values, "");
+    vm.roll(71);
+    goldigov.castVote(1, 1);
+    vm.roll(5900);
+    goldigov.queue(1);
+    (, , uint256 eta, , , , , , ,) = goldigov.proposals(1);
+    
+    assertEq(432001, eta);
+  }
+
+  function testSetMultisigFail() public {
+    vm.prank(address(0x69));
+    vm.expectRevert(NotMultisigSelector);
+    goldigov.setMultisig(address(0x69));
+  }
+
+  function testSetMultisig() public {
+    goldigov.setMultisig(address(0x69));
+
+    assertEq(address(0x69), goldigov.multisig());
+  }
+
+  function testSetVotingDelay() public {
+    goldigov.setVotingDelay(2);
+    
+    assertEq(2, goldigov.votingDelay());
+  }
+
+  function testSetVotingPeriodFail() public {
+    vm.expectRevert(InvalidVotingParameterSelector);
+    goldigov.setVotingPeriod(5000);
+  }
+
+  function testSetVotingPeriod() public {
+    goldigov.setVotingPeriod(6000);
+
+    assertEq(6000, goldigov.votingPeriod());
+  }
+
+  function testSetProposalThresholdMultisigFail() public {
+    vm.prank(address(0x69));
+    vm.expectRevert(NotMultisigSelector);
+    goldigov.setProposalThreshold(1000001e18);
+  }
+
+  function testSetProposalThresholdParameterFail() public {
+    vm.prank(address(0x69));
+    vm.expectRevert(NotMultisigSelector);
+    goldigov.setProposalThreshold(999999e18);
+  }
+
+  function testSetProposalThreshold() public {
+    goldigov.setProposalThreshold(1000001e18);
+    
+    assertEq(1000001e18, goldigov.proposalThreshold());
+  }
+
 }
