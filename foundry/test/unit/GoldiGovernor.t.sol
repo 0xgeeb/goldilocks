@@ -333,6 +333,7 @@ contract GoldiGovernorTest is Test {
   }
 
   // function testExecute() public {
+  //   vm.store(address(goldigov), bytes32(uint256(2)), bytes32(uint256(5000e18)));
   //   address[] memory targets = new address[](2);
   //   targets[0] = address(0x69);
   //   targets[1] = address(0x69);
@@ -350,8 +351,9 @@ contract GoldiGovernorTest is Test {
   //   goldigov.castVote(1, 1);
   //   vm.roll(5900);
   //   goldigov.queue(1);
+  //   GoldiGovernor.ProposalState state = goldigov.getProposalState(1);
   //   goldigov.execute(1);
-  //   (, , uint256 eta, , , , , , ,) = goldigov.proposals(1);
+    // (, , uint256 eta, , , , , , ,) = goldigov.proposals(1);
   // }
 
   function testSetMultisigFail() public {

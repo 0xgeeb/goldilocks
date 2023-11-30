@@ -81,7 +81,7 @@ contract GoldiGovernor {
   uint32 public constant MIN_VOTING_DELAY = 1;
   uint32 public constant MAX_VOTING_DELAY = 40320; // About 1 week
   uint32 public constant proposalMaxOperations = 10;
-  uint256 public constant quorumVotes = 40000000e18; // 40,000,000 = 4% of $LOCKS
+  uint256 public constant quorumVotes = 400e18; // 4% of $LOCKS
 
   bytes32 public constant DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)");
   bytes32 public constant BALLOT_TYPEHASH = keccak256("Ballot(uint256 proposalId,uint8 support)");

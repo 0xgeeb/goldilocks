@@ -34,6 +34,7 @@ contract Timelock {
   uint32 public constant MAXIMUM_DELAY = 30 days;
 
   address public admin;
+  address public goldigov;
 
   mapping(bytes32 => bool) public queuedTransactions;
 
@@ -165,8 +166,8 @@ contract Timelock {
   }
 
   /// @notice Sets the Timelock delay
-  function setDelay(uint256 _delay) public {
-    require(msg.sender == address(this), "call must come from Timelock.");
+  function setDelay(uint256 _delay) external {
+    if(msg.sender != admin) revert NotAdmin();
     if(_delay < MINIMUM_DELAY || delay > MAXIMUM_DELAY) revert InvalidDelay();
     delay = _delay;
     emit NewDelay(delay);

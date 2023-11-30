@@ -31,8 +31,12 @@ contract TimelockTest is Test {
     goldigov = new GoldiGovernor(address(timelock), address(gamm), address(this), 5761, 69, 1000000e18);
   }
 
-  function testHello() public {
-    console.log('hello');
+  function testSetDelayFailAdmin() public {
+    
+  }
+
+  function testSetDelayFailDelay() public {
+
   }
 
 }
