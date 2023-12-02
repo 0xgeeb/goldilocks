@@ -36,6 +36,8 @@ contract govLOCKS is ERC20 {
   address public locks;
   address public goldigov;
 
+  mapping(address => address) public delegates;
+
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
   /*                          CONSTRUCTOR                       */
@@ -62,5 +64,66 @@ contract govLOCKS is ERC20 {
   function symbol() public pure override returns (string memory) {
     return "govLOCKS";
   }
+
+
+  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+  /*                           ERRORS                           */
+  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+
+
+
+
+  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+  /*                           EVENTS                           */
+  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+
+  event DelegateChanged(address indexed delegator, address indexed fromDelegate, address indexed toDelegate);
+
+
+  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+  /*                    EXTERNAL FUNCTIONS                      */
+  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+
+  /// @notice Delegates votes from msg.sender to delegatee
+  /// @param delegatee Address to delegate votes to
+  function delegate(address delegatee) external {
+    _delegate(msg.sender, delegatee);
+  }
+
+
+  /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
+  /*                      INTERNAL FUNCTIONS                    */
+  /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
+
+
+  function _delegate(address delegator, address delegatee) internal {
+    address currentDelegate = delegates[delegator];
+    uint256 delegatorBalance = balanceOf(delegator);
+    delegates[delegator] = delegatee;
+    _moveDelegates(currentDelegate, delegatee, delegatorBalance);
+    emit DelegateChanged(delegator, currentDelegate, delegatee);
+  }
+
+  function _moveDelegates(address srcRep, address dstRep, uint256 amt) internal {
+    if (srcRep != dstRep && amt > 0) {
+    //   if (srcRep != address(0)) {
+    //     uint32 srcRepNum = numCheckpoints[srcRep];
+    //     uint96 srcRepOld = srcRepNum > 0 ? checkpoints[srcRep][srcRepNum - 1].votes : 0;
+    //     uint96 srcRepNew = sub96(srcRepOld, amt, "Uni::_moveVotes: vote amount underflows");
+    //     _writeCheckpoint(srcRep, srcRepNum, srcRepOld, srcRepNew);
+    //   }
+    // if (dstRep != address(0)) {
+    //   uint32 dstRepNum = numCheckpoints[dstRep];
+    //   uint96 dstRepOld = dstRepNum > 0 ? checkpoints[dstRep][dstRepNum - 1].votes : 0;
+    //   uint96 dstRepNew = add96(dstRepOld, amt, "Uni::_moveVotes: vote amount overflows");
+    //   _writeCheckpoint(dstRep, dstRepNum, dstRepOld, dstRepNew);
+    // }
+
+    }
+  }
+
 
 }

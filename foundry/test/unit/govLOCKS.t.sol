@@ -35,7 +35,7 @@ contract govLOCKSTest is Test {
   }
 
   function testHello() public {
-    console.log("Hello");
+    
   }
 
 }
