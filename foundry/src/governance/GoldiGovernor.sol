@@ -18,6 +18,7 @@ pragma solidity ^0.8.19;
 
 
 import { Timelock } from "./Timelock.sol";
+import { govLOCKS } from "./govLOCKS.sol";
 
 
 /// @title GoldiGovernor
@@ -87,7 +88,7 @@ contract GoldiGovernor {
   bytes32 public constant BALLOT_TYPEHASH = keccak256("Ballot(uint256 proposalId,uint8 support)");
 
   address public timelock;
-  address public locks;
+  address public govlocks;
   address public multisig;
 
   mapping(uint256 => Proposal) public proposals;
@@ -106,14 +107,14 @@ contract GoldiGovernor {
 
   /// @notice Constructor of this contract
   /// @param _timelock Address of the Timelock
-  /// @param _locks Address of $LOCKS
+  /// @param _govlocks Address of $LOCKS
   /// @param _multisig Address of the GoldilocksDAO multisig
   /// @param _votingPeriod Duration of voting on a proposal, in blocks
   /// @param _votingDelay Delay before voting on a proposal may take place, once proposed, in blocks
   /// @param _proposalThreshold Number of votes required in order for a voter to become a proposer
   constructor(
     address _timelock,
-    address _locks,
+    address _govlocks,
     address _multisig,
     uint256 _votingPeriod,
     uint256 _votingDelay,
@@ -123,7 +124,7 @@ contract GoldiGovernor {
     if(_votingDelay < MIN_VOTING_DELAY || _votingDelay > MAX_VOTING_DELAY) revert InvalidVotingParameter();
     if(_proposalThreshold < MIN_PROPOSAL_THRESHOLD || _proposalThreshold > MAX_PROPOSAL_THRESHOLD) revert InvalidVotingParameter();
     timelock = _timelock;
-    locks = _locks;
+    govlocks = _govlocks;
     multisig = _multisig;
     votingPeriod = _votingPeriod;
     votingDelay = _votingDelay;
@@ -201,7 +202,7 @@ contract GoldiGovernor {
     uint256[] memory values,
     string memory description
   ) external {
-    // require(uni.getPriorVotes(msg.sender, block.number - 1) > proposalThreshold, "GovernorBravo::propose: proposer votes below proposal threshold");
+    require(govLOCKS(govlocks).getPriorVotes(msg.sender, block.number - 1) > proposalThreshold, "GovernorBravo::propose: proposer votes below proposal threshold");
     if(targets.length != values.length || targets.length != signatures.length || targets.length != calldatas.length) revert ArrayMismatch();
     if(targets.length == 0) revert InvalidProposalAction();
     if(targets.length > proposalMaxOperations) revert InvalidProposalAction();

@@ -24,6 +24,7 @@ import { ERC20 } from "../../lib/solady/src/tokens/ERC20.sol";
 
 /// @title Governance LOCKS
 /// @notice Governance wrapper for $LOCKS token
+/// @dev Forked from Uniswap token contract, https://etherscan.io/address/0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984
 /// @author geeb
 contract govLOCKS is ERC20 {
 
@@ -47,6 +48,7 @@ contract govLOCKS is ERC20 {
   address public locks;
   address public goldigov;
 
+  mapping(address => uint256) public deposits;
   mapping(address => address) public delegates;
   mapping(address => uint256) public numCheckpoints;
   mapping(address => mapping(uint256 => Checkpoint)) public checkpoints;
@@ -143,6 +145,20 @@ contract govLOCKS is ERC20 {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
+  function deposit(uint256 amount) external {
+    deposits[msg.sender] += amount;
+    _moveDelegates(address(0), msg.sender, amount);
+    SafeTransferLib.safeTransferFrom(locks, msg.sender, address(this), amount);
+    _mint(msg.sender, amount);
+  }
+
+  function withdraw(uint256 amount) external {
+    deposits[msg.sender] -= amount;
+    _moveDelegates(msg.sender, address(0), amount);
+    _burn(msg.sender, amount);
+    SafeTransferLib.safeTransfer(locks, msg.sender, amount);
+  }
+
   /// @notice Delegates votes from msg.sender to delegatee
   /// @param delegatee Address to delegate votes to
   function delegate(address delegatee) external {
@@ -201,8 +217,8 @@ contract govLOCKS is ERC20 {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  function _afterTokenTransfer(address from, address to, uint256 amt) internal override {
-    _moveDelegates(delegates[from], delegates[to], amt);
-  }
+  // function _afterTokenTransfer(address from, address to, uint256 amt) internal override {
+  //   _moveDelegates(delegates[from], delegates[to], amt);
+  // }
 
 }

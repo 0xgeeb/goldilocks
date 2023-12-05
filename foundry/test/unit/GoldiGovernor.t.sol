@@ -10,6 +10,7 @@ import { Porridge } from "../../src/core/Porridge.sol";
 import { GoldiGovernor } from "../../src/governance/GoldiGovernor.sol";
 import { Timelock } from "../../src/governance/Timelock.sol";
 import { LGE } from "../../src/governance/LGE.sol";
+import { govLOCKS } from "../../src/governance/govLOCKS.sol";
 
 contract GoldiGovernorTest is Test {
 
@@ -18,6 +19,7 @@ contract GoldiGovernorTest is Test {
   Honey honey;
   GAMM gamm;
   GoldiGovernor goldigov;
+  govLOCKS govlocks;
   Timelock timelock;
 
   bytes4 ArrayMismatchSelector = 0xb7c1140d;
@@ -36,10 +38,12 @@ contract GoldiGovernorTest is Test {
     Borrow borrowComputed = Borrow(address(this).computeAddress(3));
     LGE lgeComputed = LGE(address(this).computeAddress(5));
     GoldiGovernor goldigovComputed = GoldiGovernor(address(this).computeAddress(4));
+    govLOCKS govlocksComputed = govLOCKS(address(this).computeAddress(5));
     honey = new Honey();
     gamm = new GAMM(address(this), address(porridgeComputed), address(borrowComputed), address(lgeComputed), address(honey));
     timelock = new Timelock(address(goldigovComputed), 5 days);
-    goldigov = new GoldiGovernor(address(timelock), address(gamm), address(this), 5761, 69, 1000000e18);
+    goldigov = new GoldiGovernor(address(timelock), address(govlocksComputed), address(this), 5761, 69, 1000000e18);
+    govlocks = new govLOCKS(address(gamm), address(goldigov));
   }
 
   function proposy() public returns (address[] memory, string[] memory, bytes[] memory, uint256[] memory) {
@@ -96,6 +100,9 @@ contract GoldiGovernorTest is Test {
       bytes[] memory calldatas,
       uint256[] memory values
     ) = proposy();
+    deal(address(gamm), address(this), 5e18);
+    gamm.approve(address(govlocks), 5e18);
+    govlocks.deposit(5e18);
     goldigov.propose(targets, signatures, calldatas, values, "");
     vm.roll(71);
     goldigov.castVote(1, 1);
