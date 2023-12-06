@@ -34,8 +34,22 @@ contract govLOCKSTest is Test {
     govlocks = new govLOCKS(address(gamm), address(goldigov));
   }
 
-  function testHello() public {
-    
+  function testLocksName() public {
+    assertEq(govlocks.name(), "Governance Locks");
+  }
+
+  function testLocksSymbol() public {
+    assertEq(govlocks.symbol(), "govLOCKS");
+  }
+
+  function testGetCurrentVotes() public {
+    deal(address(gamm), address(this), 5e18);
+    gamm.approve(address(govlocks), 5e18);
+    govlocks.deposit(5e18);
+    vm.roll(2);
+    uint256 votes = govlocks.getCurrentVotes(address(this));
+
+    assertEq(votes, 5e18);
   }
 
 }

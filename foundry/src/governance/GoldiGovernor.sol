@@ -75,7 +75,7 @@ contract GoldiGovernor {
 
 
   string public constant name = "GoldiGovernor";
-  uint256 public constant MIN_PROPOSAL_THRESHOLD = 1000000e18;
+  uint256 public constant MIN_PROPOSAL_THRESHOLD = 1e18;
   uint256 public constant MAX_PROPOSAL_THRESHOLD = 10000000e18;
   uint32 public constant MIN_VOTING_PERIOD = 5760; // About 24 hours
   uint32 public constant MAX_VOTING_PERIOD = 80640; // About 2 weeks
@@ -266,7 +266,7 @@ contract GoldiGovernor {
   function cancel(uint256 proposalId) external {
     if(_getProposalState(proposalId) == ProposalState.Executed) revert InvalidProposalState();
     Proposal storage proposal = proposals[proposalId];
-    // require(msg.sender == proposal.proposer || uni.getPriorVotes(proposal.proposer, block.number - 1) < proposalThreshold, "GovernorBravo::cancel: proposer above threshold");
+    require(msg.sender == proposal.proposer || govLOCKS(govlocks).getPriorVotes(proposal.proposer, block.number - 1) < proposalThreshold, "GovernorBravo::cancel: proposer above threshold");
     proposal.cancelled = true;
     uint256 targetsLength = proposal.targets.length;
     for (uint256 i = 0; i < targetsLength; i++) {
