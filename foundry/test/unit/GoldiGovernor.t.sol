@@ -279,7 +279,7 @@ contract GoldiGovernorTest is Test {
     GoldiGovernor.Receipt memory receipt = goldigov.getReceipt(1, address(this));
 
     assertEq(receipt.support, 1);
-    assertEq(receipt.votes, 0);
+    assertEq(receipt.votes, 5e18);
     assertEq(receipt.hasVoted, true);
   }
 
@@ -316,7 +316,7 @@ contract GoldiGovernorTest is Test {
     GoldiGovernor.Receipt memory receipt = goldigov.getReceipt(1, address(this));
 
     assertEq(receipt.support, 0);
-    assertEq(receipt.votes, 0);
+    assertEq(receipt.votes, 5e18);
     assertEq(receipt.hasVoted, true);
   }
 
@@ -337,7 +337,7 @@ contract GoldiGovernorTest is Test {
     GoldiGovernor.Receipt memory receipt = goldigov.getReceipt(1, address(this));
 
     assertEq(receipt.support, 2);
-    assertEq(receipt.votes, 0);
+    assertEq(receipt.votes, 5e18);
     assertEq(receipt.hasVoted, true);
   }
 
@@ -392,29 +392,146 @@ contract GoldiGovernorTest is Test {
     goldigov.execute(1);
   }
 
-  // function testExecute() public {
-  //   vm.store(address(goldigov), bytes32(uint256(2)), bytes32(uint256(5000e18)));
-  //   address[] memory targets = new address[](2);
-  //   targets[0] = address(0x69);
-  //   targets[1] = address(0x69);
-  //   string[] memory signatures = new string[](2);
-  //   signatures[0] = "hello";
-  //   signatures[1] = "helloagain";
-  //   bytes[] memory calldatas = new bytes[](2);
-  //   calldatas[0] = hex"8eed55d1";
-  //   calldatas[1] = hex"8eed55d1";
-  //   uint256[] memory values = new uint256[](2);
-  //   values[0] = 69;
-  //   values[1] = 69;
-  //   goldigov.propose(targets, signatures, calldatas, values, "");
-  //   vm.roll(71);
-  //   goldigov.castVote(1, 1);
-  //   vm.roll(5900);
-  //   goldigov.queue(1);
-  //   GoldiGovernor.ProposalState state = goldigov.getProposalState(1);
-  //   goldigov.execute(1);
-    // (, , uint256 eta, , , , , , ,) = goldigov.proposals(1);
-  // }
+  function testExecuteSuccess() public {
+    address[] memory targets = new address[](2);
+    targets[0] = address(0x69);
+    targets[1] = address(0x69);
+    string[] memory signatures = new string[](2);
+    signatures[0] = "hello";
+    signatures[1] = "helloagain";
+    bytes[] memory calldatas = new bytes[](2);
+    calldatas[0] = hex"8eed55d1";
+    calldatas[1] = hex"8eed55d1";
+    uint256[] memory values = new uint256[](2);
+    values[0] = 0;
+    values[1] = 0;
+    deal(address(gamm), address(this), 401e18);
+    gamm.approve(address(govlocks), 401e18);
+    govlocks.deposit(401e18);
+    vm.roll(2);
+    goldigov.propose(targets, signatures, calldatas, values, "");
+    vm.roll(72);
+    goldigov.castVote(1, 1);
+    vm.roll(5900);
+    goldigov.queue(1);
+    vm.warp(6 days);
+    goldigov.execute(1);
+    (, , uint256 eta, , , uint256 forVotes, uint256 againstVotes, , , bool executed) = goldigov.proposals(1);
+
+    assertEq(executed, true);
+  }
+
+  function testDefeatedProposal() public {
+    address[] memory targets = new address[](2);
+    targets[0] = address(0x69);
+    targets[1] = address(0x69);
+    string[] memory signatures = new string[](2);
+    signatures[0] = "hello";
+    signatures[1] = "helloagain";
+    bytes[] memory calldatas = new bytes[](2);
+    calldatas[0] = hex"8eed55d1";
+    calldatas[1] = hex"8eed55d1";
+    uint256[] memory values = new uint256[](2);
+    values[0] = 0;
+    values[1] = 0;
+    deal(address(gamm), address(this), 399e18);
+    gamm.approve(address(govlocks), 399e18);
+    govlocks.deposit(399e18);
+    vm.roll(2);
+    goldigov.propose(targets, signatures, calldatas, values, "");
+    vm.roll(72);
+    goldigov.castVote(1, 1);
+    vm.roll(5900);
+    goldigov.queue(1);
+    GoldiGovernor.ProposalState state = goldigov.getProposalState(1);
+
+    assertEq(uint256(state), 3);
+  }
+
+  function testExpiredProposal() public {
+    address[] memory targets = new address[](2);
+    targets[0] = address(0x69);
+    targets[1] = address(0x69);
+    string[] memory signatures = new string[](2);
+    signatures[0] = "hello";
+    signatures[1] = "helloagain";
+    bytes[] memory calldatas = new bytes[](2);
+    calldatas[0] = hex"8eed55d1";
+    calldatas[1] = hex"8eed55d1";
+    uint256[] memory values = new uint256[](2);
+    values[0] = 0;
+    values[1] = 0;
+    deal(address(gamm), address(this), 401e18);
+    gamm.approve(address(govlocks), 401e18);
+    govlocks.deposit(401e18);
+    vm.roll(2);
+    goldigov.propose(targets, signatures, calldatas, values, "");
+    vm.roll(72);
+    goldigov.castVote(1, 1);
+    vm.roll(5900);
+    goldigov.queue(1);
+    vm.warp(69 days);
+    GoldiGovernor.ProposalState state = goldigov.getProposalState(1);
+
+    assertEq(uint256(state), 6);
+  }
+
+  function testCancelFail() public {
+    address[] memory targets = new address[](2);
+    targets[0] = address(0x69);
+    targets[1] = address(0x69);
+    string[] memory signatures = new string[](2);
+    signatures[0] = "hello";
+    signatures[1] = "helloagain";
+    bytes[] memory calldatas = new bytes[](2);
+    calldatas[0] = hex"8eed55d1";
+    calldatas[1] = hex"8eed55d1";
+    uint256[] memory values = new uint256[](2);
+    values[0] = 0;
+    values[1] = 0;
+    deal(address(gamm), address(this), 401e18);
+    gamm.approve(address(govlocks), 401e18);
+    govlocks.deposit(401e18);
+    vm.roll(2);
+    goldigov.propose(targets, signatures, calldatas, values, "");
+    vm.roll(72);
+    goldigov.castVote(1, 1);
+    vm.roll(5900);
+    goldigov.queue(1);
+    vm.warp(6 days);
+    goldigov.execute(1);
+    vm.expectRevert(InvalidProposalStateSelector);
+    goldigov.cancel(1);
+  }
+
+  function testCancelSuccess() public {
+    address[] memory targets = new address[](2);
+    targets[0] = address(0x69);
+    targets[1] = address(0x69);
+    string[] memory signatures = new string[](2);
+    signatures[0] = "hello";
+    signatures[1] = "helloagain";
+    bytes[] memory calldatas = new bytes[](2);
+    calldatas[0] = hex"8eed55d1";
+    calldatas[1] = hex"8eed55d1";
+    uint256[] memory values = new uint256[](2);
+    values[0] = 0;
+    values[1] = 0;
+    deal(address(gamm), address(this), 401e18);
+    gamm.approve(address(govlocks), 401e18);
+    govlocks.deposit(401e18);
+    vm.roll(2);
+    goldigov.propose(targets, signatures, calldatas, values, "");
+    vm.roll(72);
+    goldigov.castVote(1, 1);
+    vm.roll(5900);
+    goldigov.queue(1);
+    goldigov.cancel(1);
+
+    (, , uint256 eta, , , uint256 forVotes, uint256 againstVotes, , bool cancelled, bool executed) = goldigov.proposals(1);
+
+    assertEq(cancelled, true);
+  }
 
   function testSetMultisigFail() public {
     vm.prank(address(0x69));

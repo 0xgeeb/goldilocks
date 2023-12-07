@@ -39,7 +39,7 @@ contract GoldiGovernor {
     bytes[] calldatas;    
     uint256[] values;    
     address proposer;
-    uint256 id;   
+    uint256 id;
     uint256 eta;
     uint256 startBlock;    
     uint256 endBlock;    
@@ -343,8 +343,7 @@ contract GoldiGovernor {
     Proposal storage proposal = proposals[proposalId];
     Receipt storage receipt = proposal.receipts[voter];
     if(receipt.hasVoted != false) revert AlreadyVoted();
-    // uint96 votes = uni.getPriorVotes(voter, proposal.startBlock);
-    uint256 votes = 0;
+    uint256 votes = govLOCKS(govlocks).getPriorVotes(voter, proposal.startBlock);
     if (support == 0) {
       proposal.againstVotes = proposal.againstVotes + votes;
     } else if (support == 1) {
