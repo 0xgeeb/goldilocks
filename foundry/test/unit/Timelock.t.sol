@@ -89,7 +89,7 @@ contract TimelockTest is Test {
     timelock.setDelay(1 days);
   }
 
-  function setDelaySuccess() public {
+  function testSetDelaySuccess() public {
     uint256 delay = 3 days;
     vm.prank(address(goldigov));
     timelock.setDelay(delay);

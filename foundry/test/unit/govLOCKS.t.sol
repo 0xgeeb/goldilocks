@@ -22,6 +22,8 @@ contract govLOCKSTest is Test {
   Timelock timelock;
   govLOCKS govlocks;
 
+  bytes4 NoSuchBlockSelector = 0xfd8d4168;
+
   function setUp() public {
     Porridge porridgeComputed = Porridge(address(this).computeAddress(4));
     Borrow borrowComputed = Borrow(address(this).computeAddress(3));
@@ -42,6 +44,34 @@ contract govLOCKSTest is Test {
     assertEq(govlocks.symbol(), "govLOCKS");
   }
 
+  function testDeposit() public {
+    deal(address(gamm), address(this), 5e18);
+    gamm.approve(address(govlocks), 5e18);
+    govlocks.deposit(5e18);
+
+    assertEq(gamm.balanceOf(address(this)), 0);
+    assertEq(govlocks.balanceOf(address(this)), 5e18);
+  }
+
+  function testWithdraw() public {
+    deal(address(gamm), address(this), 5e18);
+    gamm.approve(address(govlocks), 5e18);
+    govlocks.deposit(5e18);
+    govlocks.withdraw(5e18);
+
+    assertEq(gamm.balanceOf(address(this)), 5e18);
+    assertEq(govlocks.balanceOf(address(this)), 0);
+  }
+
+  function testNoSuchBlock() public {
+    deal(address(gamm), address(this), 5e18);
+    gamm.approve(address(govlocks), 5e18);
+    govlocks.deposit(5e18);
+    vm.roll(2);
+    vm.expectRevert(NoSuchBlockSelector);
+    govlocks.getPriorVotes(address(this), 2);
+  }
+
   function testGetCurrentVotes() public {
     deal(address(gamm), address(this), 5e18);
     gamm.approve(address(govlocks), 5e18);
@@ -51,5 +81,127 @@ contract govLOCKSTest is Test {
 
     assertEq(votes, 5e18);
   }
+
+  function testGetPriorVotesNone() public {
+    vm.roll(2);
+    uint256 votes = govlocks.getPriorVotes(address(this), 1);
+
+    assertEq(votes, 0);
+  }
+
+  function testGetPriorVotes() public {
+    deal(address(gamm), address(this), 5e18);
+    gamm.approve(address(govlocks), 5e18);
+    govlocks.deposit(5e18);
+    vm.roll(2);
+    uint256 votes = govlocks.getPriorVotes(address(this), 1);
+
+    assertEq(votes, 5e18);
+  }
+
+  function testGetPriorVotesImplicitZero() public {
+    vm.roll(69);
+    deal(address(gamm), address(this), 5e18);
+    gamm.approve(address(govlocks), 5e18);
+    govlocks.deposit(5e18);
+    vm.roll(420);
+    uint256 votes = govlocks.getPriorVotes(address(this), 40);
+
+    assertEq(votes, 0);
+  }
+
+  function testGetPriorVotesNotMostRecentBalance() public {
+    vm.roll(69);
+    deal(address(gamm), address(this), 5e18);
+    gamm.approve(address(govlocks), 5e18);
+    govlocks.deposit(5e18);
+    vm.roll(420);
+    deal(address(gamm), address(this), 5e18);
+    gamm.approve(address(govlocks), 5e18);
+    govlocks.deposit(5e18);
+    vm.roll(500);
+    uint256 votes = govlocks.getPriorVotes(address(this), 80);
+
+    assertEq(votes, 5e18);
+  }
+
+  function testGetPriorVotesNotMostRecentBalanceEqual() public {
+    vm.roll(69);
+    deal(address(gamm), address(this), 5e18);
+    gamm.approve(address(govlocks), 5e18);
+    govlocks.deposit(5e18);
+    vm.roll(420);
+    deal(address(gamm), address(this), 5e18);
+    gamm.approve(address(govlocks), 5e18);
+    govlocks.deposit(5e18);
+    vm.roll(500);
+    deal(address(gamm), address(this), 5e18);
+    gamm.approve(address(govlocks), 5e18);
+    govlocks.deposit(5e18);
+    vm.roll(1000);
+    deal(address(gamm), address(this), 5e18);
+    gamm.approve(address(govlocks), 5e18);
+    govlocks.deposit(5e18);
+    uint256 votes = govlocks.getPriorVotes(address(this), 420);
+
+    assertEq(votes, 10e18);
+  }
+
+  function testGetPriorVotesNotMostRecentBalanceLower() public {
+    vm.roll(69);
+    deal(address(gamm), address(this), 5e18);
+    gamm.approve(address(govlocks), 5e18);
+    govlocks.deposit(5e18);
+    vm.roll(420);
+    deal(address(gamm), address(this), 5e18);
+    gamm.approve(address(govlocks), 5e18);
+    govlocks.deposit(5e18);
+    vm.roll(500);
+    deal(address(gamm), address(this), 5e18);
+    gamm.approve(address(govlocks), 5e18);
+    govlocks.deposit(5e18);
+    vm.roll(1000);
+    deal(address(gamm), address(this), 5e18);
+    gamm.approve(address(govlocks), 5e18);
+    govlocks.deposit(5e18);
+    uint256 votes = govlocks.getPriorVotes(address(this), 421);
+
+    assertEq(votes, 10e18);
+  }
+
+  function testDelegate() public {
+    address user = address(0x69);
+    deal(address(gamm), address(this), 5e18);
+    gamm.approve(address(govlocks), 5e18);
+    govlocks.deposit(5e18);
+    vm.roll(2);
+    govlocks.delegate(user);
+    vm.roll(3);
+    uint256 userVotes = govlocks.getPriorVotes(user, block.number - 1);
+    uint256 thisVotes = govlocks.getPriorVotes(address(this), block.number - 1);
+
+    assertEq(userVotes, 5e18);
+    assertEq(thisVotes, 5e18);
+  }
+
+  function testDelegateDelegate() public {
+    address user = address(0x69);
+    address user2 = address(0x420);
+    deal(address(gamm), address(this), 5e18);
+    gamm.approve(address(govlocks), 5e18);
+    govlocks.deposit(5e18);
+    vm.roll(2);
+    govlocks.delegate(user);
+    vm.roll(3);
+    govlocks.delegate(user2);
+    vm.roll(4);
+    uint256 userVotes = govlocks.getPriorVotes(user, block.number - 1);
+    uint256 user2Votes = govlocks.getPriorVotes(user2, block.number - 1);
+    uint256 thisVotes = govlocks.getPriorVotes(address(this), block.number - 1);
+
+    assertEq(userVotes, 0);
+    assertEq(user2Votes, 5e18);
+    assertEq(thisVotes, 5e18);
+  }  
 
 }

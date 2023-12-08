@@ -216,8 +216,8 @@ contract govLOCKS is ERC20 {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  // function _afterTokenTransfer(address from, address to, uint256 amt) internal override {
-  //   _moveDelegates(delegates[from], delegates[to], amt);
-  // }
+  function _afterTokenTransfer(address from, address to, uint256 amt) internal override {
+    _moveDelegates(delegates[from], delegates[to], amt);
+  }
 
 }
