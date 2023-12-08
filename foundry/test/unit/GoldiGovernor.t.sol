@@ -341,6 +341,43 @@ contract GoldiGovernorTest is Test {
     assertEq(receipt.hasVoted, true);
   }
 
+  function testCastVoteBySig() public {
+    address[] memory targets = new address[](2);
+    targets[0] = address(0x69);
+    targets[1] = address(0x69);
+    string[] memory signatures = new string[](2);
+    signatures[0] = "hello";
+    signatures[1] = "helloagain";
+    bytes[] memory calldatas = new bytes[](2);
+    calldatas[0] = hex"8eed55d1";
+    calldatas[1] = hex"8eed55d1";
+    uint256[] memory values = new uint256[](2);
+    values[0] = 0;
+    values[1] = 0;
+    address admin = 0x50A7dd4778724FbED41aCe9B3d3056a7B36E874C;
+    deal(address(gamm), address(admin), 5e18);
+    vm.prank(admin);
+    gamm.approve(address(govlocks), 5e18);
+    vm.prank(admin);
+    govlocks.deposit(5e18);
+    deal(address(gamm), address(this), 401e18);
+    gamm.approve(address(govlocks), 401e18);
+    govlocks.deposit(401e18);
+    vm.roll(2);
+    goldigov.propose(targets, signatures, calldatas, values, "");
+    vm.roll(72);
+    uint8 v = 28;
+    bytes32 r = 0x16b88e27f61da00072600b9b04049403f9f064b451d34a5b07aacd7dc48b1f9f;
+    bytes32 s = 0x6613e63d75d423834a24b707d13a34304f3b66c6f2eaacb611b327550761215d;
+    vm.prank(admin);
+    goldigov.castVoteBySig(1, 1, v, r, s);
+    GoldiGovernor.Receipt memory receipt = goldigov.getReceipt(1, address(admin));
+
+    assertEq(receipt.support, 1);
+    assertEq(receipt.votes, 5e18);
+    assertEq(receipt.hasVoted, true);
+  }
+
   function testQueueEta() public {
     address[] memory targets = new address[](2);
     targets[0] = address(0x69);

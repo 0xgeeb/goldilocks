@@ -172,7 +172,7 @@ contract GoldiGovernor {
 
   /// @notice Return the state of a proposal
   /// @param proposalId Id of the proposal
-  function getProposalState(uint256 proposalId) public view returns (ProposalState) {
+  function getProposalState(uint256 proposalId) external view returns (ProposalState) {
     return _getProposalState(proposalId);
   }
 

@@ -10,7 +10,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "ethers": "^6.9.0",
     "keccak256": "^1.0.6",
-    "merkletreejs": "^0.3.11"
+    "merkletreejs": "^0.3.11",
+    "web3": "^4.3.0"
   }
 }
