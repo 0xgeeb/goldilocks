@@ -1,6 +1,6 @@
 const ethers = require('ethers')
 
-const privateKey = 'aa51197bf4c7787932b83963dcffd401ed5b67096f86413ca3b3863843fd0723'
+const privateKey = ''
 
 const proposalId = 1
 const support = 1
