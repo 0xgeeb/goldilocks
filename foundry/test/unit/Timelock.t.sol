@@ -114,4 +114,103 @@ contract TimelockTest is Test {
     timelock.executeTransaction(address(0x69), 69, 69, "69", "69");
   }
 
+  function testExecuteLockedFail() public {
+    address[] memory targets = new address[](2);
+    targets[0] = address(0x69);
+    targets[1] = address(0x69);
+    string[] memory signatures = new string[](2);
+    signatures[0] = "hello";
+    signatures[1] = "helloagain";
+    bytes[] memory calldatas = new bytes[](2);
+    calldatas[0] = hex"8eed55d1";
+    calldatas[1] = hex"8eed55d1";
+    uint256[] memory values = new uint256[](2);
+    values[0] = 0;
+    values[1] = 0;
+    deal(address(gamm), address(this), 401e18);
+    gamm.approve(address(govlocks), 401e18);
+    govlocks.deposit(401e18);
+    vm.roll(2);
+    goldigov.propose(targets, signatures, calldatas, values, "");
+    vm.roll(72);
+    goldigov.castVote(1, 1);
+    vm.roll(5900);
+    goldigov.queue(1);
+    vm.expectRevert(TxLockedSelector);
+    goldigov.execute(1);
+  }
+
+  function testExecuteStaleFail() public {
+    address[] memory targets = new address[](2);
+    targets[0] = address(0x69);
+    targets[1] = address(0x69);
+    string[] memory signatures = new string[](2);
+    signatures[0] = "hello";
+    signatures[1] = "helloagain";
+    bytes[] memory calldatas = new bytes[](2);
+    calldatas[0] = hex"8eed55d1";
+    calldatas[1] = hex"8eed55d1";
+    uint256[] memory values = new uint256[](2);
+    values[0] = 0;
+    values[1] = 0;
+    deal(address(gamm), address(this), 401e18);
+    gamm.approve(address(govlocks), 401e18);
+    govlocks.deposit(401e18);
+    vm.roll(2);
+    goldigov.propose(targets, signatures, calldatas, values, "");
+    vm.roll(72);
+    goldigov.castVote(1, 1);
+    vm.roll(5900);
+    goldigov.queue(1);
+    vm.warp(690 days);
+    vm.prank(address(goldigov));
+    vm.expectRevert(TxStaleSelector);
+    timelock.executeTransaction(targets[0], 432001, values[0], calldatas[0], signatures[0]);
+  }
+
+  function testExecuteRevertFail() public {
+    // deal(address(goldigov), 1 ether);
+    address[] memory targets = new address[](2);
+    targets[0] = address(0x69);
+    targets[1] = address(0x69);
+    string[] memory signatures = new string[](2);
+    signatures[0] = "hello";
+    signatures[1] = "helloagain";
+    bytes[] memory calldatas = new bytes[](2);
+    calldatas[0] = hex"8eed55d1";
+    calldatas[1] = hex"8eed55d1";
+    uint256[] memory values = new uint256[](2);
+    values[0] = 69;
+    values[1] = 0;
+    deal(address(gamm), address(this), 401e18);
+    gamm.approve(address(govlocks), 401e18);
+    govlocks.deposit(401e18);
+    vm.roll(2);
+    goldigov.propose(targets, signatures, calldatas, values, "");
+    vm.roll(72);
+    goldigov.castVote(1, 1);
+    vm.roll(5900);
+    goldigov.queue(1);
+    vm.warp(6 days);
+    vm.prank(address(goldigov));
+    vm.expectRevert(TxRevertedSelector);
+    timelock.executeTransaction(targets[0], 432001, 69, calldatas[0], signatures[0]);
+  }
+
+  function testCancelAdminFail() public {
+    vm.expectRevert(NotAdminSelector);
+    timelock.cancelTransaction(address(0x69), 69, 69, "", "");
+  }
+
+  function testQueueAdminFail() public {
+    vm.expectRevert(NotAdminSelector);
+    timelock.queueTransaction(address(0x69), 69, 69, "", "");
+  }
+
+  function testQueueETAFail() public {
+    vm.prank(address(goldigov));
+    vm.expectRevert(InvalidETASelector);
+    timelock.queueTransaction(address(0x69), 0, 69, "", "");
+  }
+
 }

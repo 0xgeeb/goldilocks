@@ -477,7 +477,6 @@ contract Goldilend is ERC20, IERC721Receiver {
     }
     _refreshBera(repayAmount);
     _updateInterestClaims(interest);
-    // SafeTransferLib.safeTransfer(bera, multisig, (interest / 1000) * 5);
     SafeTransferLib.safeTransferFrom(bera, msg.sender, address(this), repayAmount);
     emit Repay(msg.sender, repayAmount);
   }
@@ -495,7 +494,7 @@ contract Goldilend is ERC20, IERC721Receiver {
     for(uint256 i; i < userLoan.collateralNFTs.length; i++) {
       IERC721(userLoan.collateralNFTs[i]).safeTransferFrom(address(this), msg.sender, userLoan.collateralNFTIds[i]);
     }
-    SafeTransferLib.safeTransfer(bera, multisig, (userLoan.interest / 100) * 5);
+    _updateInterestClaims(userLoan.interest);
     SafeTransferLib.safeTransferFrom(bera, msg.sender, address(this), userLoan.borrowedAmount);
     emit Liquidation(msg.sender, user, userLoan.borrowedAmount);
   }
