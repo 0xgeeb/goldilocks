@@ -16,7 +16,7 @@ pragma solidity ^0.8.19;
 // ========================================== Borrow ============================================
 // ==============================================================================================
 
-
+//todo: fix balanceOf check to use checkpoints instead
 import { SafeTransferLib } from "../../lib/solady/src/utils/SafeTransferLib.sol";
 import { FixedPointMathLib } from "../../lib/solady/src/utils/FixedPointMathLib.sol";
 import { IGAMM } from "../interfaces/IGAMM.sol";

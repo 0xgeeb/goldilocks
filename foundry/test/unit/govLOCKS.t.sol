@@ -202,6 +202,20 @@ contract govLOCKSTest is Test {
     assertEq(userVotes, 0);
     assertEq(user2Votes, 5e18);
     assertEq(thisVotes, 5e18);
-  }  
+  }
+
+  function testDelegateDelegateCheck() public {
+    address user = address(0x69);
+    address user2 = address(0x420);
+    deal(address(gamm), address(this), 5e18);
+    gamm.approve(address(govlocks), 5e18);
+    govlocks.deposit(5e18);
+    vm.roll(5);
+    govlocks.delegate(user);
+    vm.roll(10);
+    address currentDelegate = govlocks.delegates(address(this));
+    uint256 balance = govlocks.balanceOf(address(this));
+    govlocks.delegate(user2);
+  }
 
 }

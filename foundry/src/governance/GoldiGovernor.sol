@@ -141,12 +141,15 @@ contract GoldiGovernor {
   error AlreadyProposing();
   error AlreadyQueued();
   error AlreadyVoted();
+  error AboveThreshold();
+  error BelowThreshold();
   error InvalidVotingParameter();
   error InvalidProposalAction();
   error InvalidProposalState();
   error InvalidVoteType();
   error InvalidSignature();
   error NotMultisig();
+  error NotProposer();
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -202,7 +205,7 @@ contract GoldiGovernor {
     uint256[] memory values,
     string memory description
   ) external {
-    require(govLOCKS(govlocks).getPriorVotes(msg.sender, block.number - 1) > proposalThreshold, "GovernorBravo::propose: proposer votes below proposal threshold");
+    if(govLOCKS(govlocks).getPriorVotes(msg.sender, block.number - 1) <= proposalThreshold) revert BelowThreshold();
     if(targets.length != values.length || targets.length != signatures.length || targets.length != calldatas.length) revert ArrayMismatch();
     if(targets.length == 0) revert InvalidProposalAction();
     if(targets.length > proposalMaxOperations) revert InvalidProposalAction();
@@ -266,7 +269,8 @@ contract GoldiGovernor {
   function cancel(uint256 proposalId) external {
     if(_getProposalState(proposalId) == ProposalState.Executed) revert InvalidProposalState();
     Proposal storage proposal = proposals[proposalId];
-    require(msg.sender == proposal.proposer || govLOCKS(govlocks).getPriorVotes(proposal.proposer, block.number - 1) < proposalThreshold, "GovernorBravo::cancel: proposer above threshold");
+    if(msg.sender != proposal.proposer) revert NotProposer();
+    if(govLOCKS(govlocks).getPriorVotes(proposal.proposer, block.number - 1) > proposalThreshold) revert AboveThreshold();
     proposal.cancelled = true;
     uint256 targetsLength = proposal.targets.length;
     for (uint256 i = 0; i < targetsLength; i++) {

@@ -22,8 +22,13 @@ contract TimelockTest is Test {
   govLOCKS govlocks;
   Timelock timelock;
 
-  bytes4 NotAdminSelector = 0x7bfa4b9f;
   bytes4 InvalidDelaySelector = 0x4fbe5dba;
+  bytes4 InvalidETASelector = 0x50076458;
+  bytes4 NotAdminSelector = 0x7bfa4b9f;
+  bytes4 TxNotQueuedSelector = 0xccc85ba3;
+  bytes4 TxLockedSelector = 0x30f4d404;
+  bytes4 TxStaleSelector = 0x961c3199;
+  bytes4 TxRevertedSelector = 0x51188255;
 
   function setUp() public {
     Porridge porridgeComputed = Porridge(address(this).computeAddress(4));
@@ -95,6 +100,18 @@ contract TimelockTest is Test {
     timelock.setDelay(delay);
 
     assertEq(timelock.delay(), delay);
+  }
+
+  function testExecuteTxAdminFail() public {
+    vm.prank(address(0x69));
+    vm.expectRevert(NotAdminSelector);
+    timelock.executeTransaction(address(0x69), 69, 69, "69", "69");
+  }
+
+  function testExecuteTxNotQueuedFail() public {
+    vm.prank(address(goldigov));
+    vm.expectRevert(TxNotQueuedSelector);
+    timelock.executeTransaction(address(0x69), 69, 69, "69", "69");
   }
 
 }

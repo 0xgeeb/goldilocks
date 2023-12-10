@@ -17,6 +17,7 @@ pragma solidity ^0.8.19;
 // ==============================================================================================
 
 
+//todo: fix reentrancy bug
 import { ERC20 } from "../../lib/solady/src/tokens/ERC20.sol";
 import { SafeTransferLib } from "../../lib/solady/src/utils/SafeTransferLib.sol";
 import { FixedPointMathLib } from "../../lib/solady/src/utils/FixedPointMathLib.sol";
