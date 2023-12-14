@@ -3,7 +3,7 @@ export const HomeTitle = () => {
   return (
     <div className="absolute top-[30%] left-[9%] 2xl:left-[11%] py-4 font-acme">
       <h1 className="text-[3rem] 2xl:text-[4rem]">cooking up porridge for beras</h1>
-      <h3 className="text-[1.3rem] 2xl:text-[1.5rem]">DAO governed defi infrastructure for Berachain</h3>
+      <h3 className="text-[1.3rem] 2xl:text-[1.5rem]">DAO governed defi on Berachain</h3>
       <div className="mt-5 flex flex-row items-center">
         <a href="https://goldilocks-1.gitbook.io/goldidocs/" target="_blank">
           <button 

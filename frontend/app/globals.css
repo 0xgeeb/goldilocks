@@ -35,6 +35,11 @@
   background: linear-gradient(0deg, rgba(255,255,255,1) 26%, rgba(255,255,0,0.27298669467787116) 100%);
 }
 
+#reverse-page-div {
+  background: rgb(255, 255, 255);
+  background: linear-gradient(0deg, rgba(255,255,0,0.27298669467787116) 26%, rgba(255,255,255,1) 100%);
+}
+
 #amm-button {
   background: rgb(255,255,255);
   background: linear-gradient(90deg, rgba(255,255,255,1) 22%, rgba(255,255,0,0.99298669467787116) 100%);
@@ -117,6 +122,19 @@
 #hide-scrollbar {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
+}
+
+body::-webkit-scrollbar {
+  width: 0 !important;
+}
+
+/* Hide scrollbar for Firefox */
+body {
+  scrollbar-width: none !important;
+}
+
+body {
+  -ms-overflow-style: none; /* Hide scrollbar for IE and Edge */
 }
 
 /* Chrome, Safari, Edge, Opera */

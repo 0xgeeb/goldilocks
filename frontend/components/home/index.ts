@@ -1,3 +1,6 @@
 export * from './homeNav'
 export * from './homeTitle'
 export * from './homeImages'
+export * from './landing'
+export * from './products'
+export * from './discord'
