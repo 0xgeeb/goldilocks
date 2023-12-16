@@ -2,9 +2,14 @@ export const Products = () => {
   return (
     <div className="w-screen h-screen relative">
       <img
-        className="h-[55%] w-[40%] lg:h-[60%] lg:w-[40%] absolute left-0 bottom-[15%] scale-x-[-1]"
+        className="h-[55%] w-[40%] lg:h-[60%] lg:w-[40%] absolute left-0 bottom-[15%] scale-x-[-1] z-20"
         src="/real.png"
         alt="real"
+      />
+      <img 
+        className="w-[100%] absolute right-[0] bottom-[23%]"
+        src="/yellowdesign.png" 
+        alt="yellow"
       />
       <h1 className="absolute top-[15%] left-[43%] font-acme text-[3.5rem]">Goldilocks AMM (GAMM)</h1>
       <div className="absolute h-[16%] w-[42%] top-[24%] left-[43.5%] font-acme text-[1.5rem] flex flex-row justify-between">
@@ -32,7 +37,7 @@ export const Products = () => {
         <div className="h-[100%] w-[30%] border-2 border-slate-700 rounded-md bg-white bg-grid-slate-200">
           <div className="h-[100%] flex flex-col justify-center items-center text-center rounded-md">
             <p>bong bera & rebase</p>
-            <p>nft lending</p>
+            <p>nft loans</p>
           </div>
         </div>
         <div className="h-[100%] w-[30%] border-2 border-slate-700 rounded-md bg-white bg-grid-slate-200">
