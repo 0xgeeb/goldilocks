@@ -1,6 +1,6 @@
 import { getContract, writeContract, waitForTransaction } from "@wagmi/core"
 import { parseEther, formatEther } from "viem"
-import { contracts } from "../../../utils/addressi"
+import { contracts } from "../../utils/addressi"
 
 export const useBorrowingTx = () => {
 

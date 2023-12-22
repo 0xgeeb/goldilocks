@@ -1,8 +1,8 @@
 import { getContract, writeContract, waitForTransaction } from "@wagmi/core"
 import { parseEther, formatEther } from "viem"
-import { contracts } from "../../../utils/addressi"
-import { BeraInfo, LoanData, PartnerInfo } from "../../../utils/interfaces"
-import { useWallet } from "../../../providers"
+import { contracts } from "../../utils/addressi"
+import { BeraInfo, LoanData, PartnerInfo } from "../../utils/interfaces"
+import { useWallet } from "../../providers"
 
 export const useGoldilendTx = () => {
 
