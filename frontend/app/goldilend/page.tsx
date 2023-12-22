@@ -10,7 +10,7 @@ import {
 
 export const metadata: Metadata = {
   title: "mf goldilend",
-  description: "testing yo"
+  description: "Bera NFT Liquidity"
 }
 
 export default function Borrowing() {

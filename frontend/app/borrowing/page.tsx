@@ -10,7 +10,7 @@ import {
 
 export const metadata: Metadata = {
   title: "mf borrowing",
-  description: "testing yo"
+  description: "$LOCKS Liquidity"
 }
 
 export default function Borrowing() {

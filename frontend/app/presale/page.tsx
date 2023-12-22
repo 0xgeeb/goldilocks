@@ -1,28 +1,28 @@
 import type { Metadata } from 'next'
-import { StakingPage } from "../../components/staking"
+import { PresalePage } from "../../components/presale"
 import { NotificationManager } from "../../components/utils"
 import {
   NotificationProvider,
   WagmiProvider,
   WalletProvider,
-  StakingProvider
+  PresaleProvider
 } from "../../providers"
 
 export const metadata: Metadata = {
-  title: "mf staking",
-  description: "$LOCKS Staking"
+  title: "mf presale",
+  description: "Liquidity Generation Event Contributions"
 }
 
-export default function Staking() {
+export default function Presale() {
 
   return (
     <NotificationProvider>
       <WagmiProvider>
         <WalletProvider>
-          <StakingProvider>
-            <StakingPage />
+          <PresaleProvider>
+            <PresalePage />
             <NotificationManager />
-          </StakingProvider>
+          </PresaleProvider>
         </WalletProvider>
       </WagmiProvider>
     </NotificationProvider>

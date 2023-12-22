@@ -10,7 +10,7 @@ import {
 
 export const metadata: Metadata = {
   title: "mf gamm",
-  description: "testing yo"
+  description: "Goldilocks AMM"
 }
 
 export default function Gamm() {
