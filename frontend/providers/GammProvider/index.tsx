@@ -3,7 +3,7 @@
 import { createContext, PropsWithChildren, useContext, useState } from "react"
 import { formatEther } from "viem"
 import { useWallet } from ".."
-import { useDebounce, useGammMath } from "../../hooks/gamm"
+import { useDebounce, useGammMath } from "../../hooks"
 import { getContract, getPublicClient } from "@wagmi/core"
 import { contracts } from "../../utils/addressi"
 import { GammInitialState, GammInfo, NewInfo, Slippage } from "../../utils/interfaces"

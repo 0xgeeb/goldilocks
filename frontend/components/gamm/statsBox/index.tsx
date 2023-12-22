@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useGammMath, useFormatDate } from "../../../hooks/gamm"
+import { useGammMath, useFormatDate } from "../../../hooks"
 import { useGamm } from "../../../providers"
 
 export const StatsBox = () => {

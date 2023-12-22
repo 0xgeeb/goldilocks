@@ -4,7 +4,7 @@ import {
   useNotification
 } from "../../../providers"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
-import { useBorrowingTx } from "../../../hooks/borrowing"
+import { useBorrowingTx } from "../../../hooks"
 
 export const BorrowButton = () => {
 

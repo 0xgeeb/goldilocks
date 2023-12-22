@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
 import { useGoldilend, useNotification, useWallet } from "../../../providers"
-import { useGoldilendTx } from "../../../hooks/goldilend"
+import { useGoldilendTx } from "../../../hooks"
 import { contracts } from "../../../utils/addressi"
 
 export const BoostTab = () => {

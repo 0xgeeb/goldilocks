@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { StakingMainBox, RealizePopup } from "../../staking"
+import { StakingMainBox, RealizePopup } from "../"
 import { 
   NavBar, 
   AccountPopup,

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
 import { useGoldilend, useNotification } from "../../../providers"
-import { useGoldilendTx } from "../../../hooks/goldilend"
+import { useGoldilendTx } from "../../../hooks"
 
 export const StakeTab = () => {
 

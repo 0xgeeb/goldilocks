@@ -1,5 +1,5 @@
 import { useGoldilend, useNotification } from "../../../providers"
-import { useGoldilendTx } from "../../../hooks/goldilend"
+import { useGoldilendTx } from "../../../hooks"
 
 type PopupProp = {
   setPopupToggle: (_bool: boolean) => void;

@@ -4,7 +4,7 @@ import {
   useNotification
 } from "../../../providers"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
-import { useGammTx } from "../../../hooks/gamm"
+import { useGammTx } from "../../../hooks"
 
 export const GammButton = () => {
 

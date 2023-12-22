@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
-import { useGoldilendTx } from "../../../hooks/goldilend"
+import { useGoldilendTx } from "../../../hooks"
 import { useGoldilend, useWallet } from "../../../providers"
 import { contracts } from "../../../utils/addressi"
 

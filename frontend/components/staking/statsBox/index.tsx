@@ -7,7 +7,7 @@ import {
   useNotification
 } from "../../../providers"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
-import { useStakingTx } from "../../../hooks/staking"
+import { useStakingTx } from "../../../hooks"
 
 export const StatsBox = () => {
 

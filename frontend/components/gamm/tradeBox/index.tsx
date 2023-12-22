@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useGammMath } from "../../../hooks/gamm"
+import { useGammMath } from "../../../hooks"
 import { useGamm, useWallet } from "../../../providers"
 import { GammButton, PercentageButtons } from "../../gamm"
 
