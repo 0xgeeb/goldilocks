@@ -7,3 +7,6 @@
 [submodule "foundry/lib/solady"]
 	path = foundry/lib/solady
 	url = https://github.com/Vectorized/solady
+[submodule "foundry/lib/foundry-huff"]
+	path = foundry/lib/foundry-huff
+	url = https://github.com/huff-language/foundry-huff
