@@ -70,7 +70,7 @@ contract YieldSplitter {
     _claim();
     SafeTransferLib.safeTransferFrom(honey, msg.sender, address(this), amount);
     ot.mint(msg.sender, amount);
-    yt.mint(msg.sender, amount * timeshare);
+    yt.mint(msg.sender, FixedPointMathLib.mulWad(amount, timeshare));
   }
 
   /// @notice Concludes the vault at expiry
@@ -79,10 +79,10 @@ contract YieldSplitter {
     if(concluded) revert AlreadyConcluded();
     concluded = true;
     concludeTime = block.timestamp;
-    uint256 finalYield = (ERC20(ibgt).balanceOf(address(this)) / 100) * 98;
     SafeTransferLib.safeTransfer(ibgt, treasury, (ERC20(ibgt).balanceOf(address(this)) / 100) * 2);
     //code to unstake all honey from the vault (and, if not done automatically, claim outstanding yield and convert it to IBGT)
     //code to unstake all the contract's IBGT (and send any outstanding IBGT staking rewards to treasury)
+    finalYield = ERC20(ibgt).balanceOf(address(this));
   }
 
   /// @notice Redeems yield tokens for share of yield accrued to vault
@@ -90,11 +90,8 @@ contract YieldSplitter {
   function redeemYield(uint256 amount) external {
     if(block.timestamp < concludeTime + 36 hours || !concluded) revert NotConcluded();
     uint256 yieldShare = FixedPointMathLib.mulWad(amount, ERC20(yt).totalSupply());
-    //todo: ask
-    uint256 rawYield = 0;
-    uint256 claimable = FixedPointMathLib.divWad(rawYield, yieldShare);
+    uint256 claimable = FixedPointMathLib.divWad(finalYield, yieldShare);
     YT(yt).burn(msg.sender, amount);
-
     SafeTransferLib.safeTransferFrom(ibgt, address(this), msg.sender, claimable);
   }
 
@@ -107,16 +104,15 @@ contract YieldSplitter {
     OT(ot).burn(msg.sender, amount);
     YT(yt).burn(msg.sender, FixedPointMathLib.divWad(amount, totalTimeDurationRatio));
     if(remainingTime == 0) {
-      SafeTransferLib.safeTransferFrom(honey, address(this), msg.sender, (amount / 100) * 98);
-      SafeTransferLib.safeTransferFrom(honey, address(this), treasury, (amount / 100) * 2);
+      SafeTransferLib.safeTransfer(honey, msg.sender, (amount / 1000) * 995);
+      SafeTransferLib.safeTransfer(honey, treasury, (amount / 1000) * 5);
     }
     else {
-      SafeTransferLib.safeTransferFrom(honey, address(this), msg.sender, amount);
+      SafeTransferLib.safeTransfer(honey, msg.sender, amount);
     }
   }
 
   /// @notice Renews a concluded vault after users have chance to claim
-  //todo: ask about amount
   function renew() external {
     if(block.timestamp < concludeTime + 2 weeks || !concluded) revert NotConcluded();
     startTime = block.timestamp;
@@ -128,5 +124,8 @@ contract YieldSplitter {
     //code for claiming BGT yield from vaults
     //code for using BGT to mint IBGT and stake it
     //code for claiming IBGT staking rewards and sending them to the treasury
+    //use yield earned to vote
   }
+
+  // function directBGTEmissions() external onlyGoldiGov {}
 }

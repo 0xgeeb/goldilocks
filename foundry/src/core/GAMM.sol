@@ -249,19 +249,19 @@ contract GAMM is ERC20 {
     uint256 _market;
     uint256 _floor;
     uint256 _buyPrice;
-    while(_leftover >= 1e18) {
+    while(_leftover >= 1000e18) {
       _market = _marketPrice(_fsl, _psl, _supply);
       _floor = _floorPrice(_fsl, _supply);
-      _buyPrice += _market;
-      _supply += 1e18;
+      _buyPrice += _market*1000;
+      _supply += 1000e18;
       if (_psl * 100 >= _fsl * 50) {
-        _fsl += _market;
+        _fsl += _market*1000;
       }
       else {
-        _psl += _market - _floor;
-        _fsl += _floor;
+        _psl += (_market - _floor)*1000;
+        _fsl += _floor*1000;
       }
-      _leftover -= 1e18;
+      _leftover -= 1000e18;
     }
     if (_leftover > 0) {
       _market = _marketPrice(_fsl, _psl, _supply);
@@ -289,14 +289,14 @@ contract GAMM is ERC20 {
     uint256 _market;
     uint256 _floor;
     uint256 _saleAmount;
-    while(_leftover >= 1e18) {
+    while(_leftover >= 1000e18) {
       _market = _marketPrice(_fsl, _psl, _supply);
       _floor = _floorPrice(_fsl, _supply);
-      _saleAmount += _market;
-      _psl -= _market - _floor;
-      _fsl -= _floor;
-      _supply -= 1e18;
-      _leftover -= 1e18;
+      _saleAmount += _market*1000;
+      _psl -= (_market - _floor)*1000;
+      _fsl -= _floor*1000;
+      _supply -= 1000e18;
+      _leftover -= 1000e18;
     }
     if (_leftover > 0) {
       _market = _marketPrice(_fsl, _psl, _supply);
