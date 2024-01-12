@@ -47,8 +47,7 @@ contract GAMM is ERC20 {
 
   address public multisig;
   address public porridge;
-  address public borrow;
-  address public lge;
+  address public borrow;  
   address public honey;
 
 
@@ -61,19 +60,16 @@ contract GAMM is ERC20 {
   /// @param _multisig Address of the GoldilocksDAO multisig
   /// @param _porridge Address of Porridge
   /// @param _borrow Address of Borrow
-  /// @param _lge Address of LGE
   /// @param _honey Address of $HONEY
   constructor(
     address _multisig,
     address _porridge,
     address _borrow,
-    address _lge,
     address _honey
   ) {
     multisig = _multisig;
     porridge = _porridge;
     borrow = _borrow;
-    lge = _lge;
     honey = _honey;
     lastFloorRaise = block.timestamp;
     lastFloorDecrease = block.timestamp;
@@ -96,7 +92,6 @@ contract GAMM is ERC20 {
 
 
   error NotMultisig();
-  error NotLGE();
   error NotPorridge();
   error NotBorrow();
   error ExcessiveSlippage();
@@ -400,9 +395,9 @@ contract GAMM is ERC20 {
     multisig = _multisig;
   }
 
-  /// @notice Allows the LGE to initiate the presale
+  //todo: check the msg.sender
+  /// @notice Allows someone? to initiate the presale
   function initiatePresaleClaim(uint256 fslLiq, uint256 pslLiq) external {
-    if(msg.sender != lge) revert NotLGE();
     uint256 presale = 10000e18;
     fsl = fslLiq;
     psl = pslLiq;
