@@ -19,8 +19,10 @@ contract GAMMTest is Test {
   Porridge porridge;
 
   uint256 txAmount = 10e18;
-  uint256 costOf10Locks = 5641049601535046139648;
-  uint256 proceedsof10Locks = 5300673535135953225736;
+  // uint256 costOf10Locks = 5641049601535046139648;
+  uint256 costOf10Locks = 5627518081751651091792;
+  // uint256 proceedsof10Locks = 5300673535135953225736;
+  uint256 proceedsof10Locks = 5313319664425536973008;
 
   bytes4 NotMultisigSelector = 0xf05e412b;
   bytes4 NotPorridgeSelector = 0x0da7dbfb;

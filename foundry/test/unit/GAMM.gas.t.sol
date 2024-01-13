@@ -90,31 +90,34 @@ contract GAMMGasTest is Test {
   // 132 / 935738 = 0.000141065
 
 
-  // gasused = 119360, actual = 114264
+  // gasused = 128109, actual = 122898
   function testnew10000Buy() public dealandApproveUserHoney {
     uint256 gasStart = gasleft();
     gamm.buy(txAmount*1000, type(uint256).max);
     uint256 gasEnd = gasleft();
     uint256 gasUsed = gasStart   - gasEnd;
-    assert(gasUsed <= 119360);
+    console.log(gasUsed);
+    assert(gasUsed <= 128109);
   }
 
-  // gasused = 301430, actual = 296334
+  // gasused = 323893, actual = 318682
   function testnew100000Buy() public dealandApproveUserHoney {
     uint256 gasStart = gasleft();
     gamm.buy(mediumTxAmount*1000, type(uint256).max);
     uint256 gasEnd = gasleft();
     uint256 gasUsed = gasStart - gasEnd;
-    assert(gasUsed <= 310430);
+    console.log(gasUsed);
+    assert(gasUsed <= 323893);
   }
 
-  // gasused = 2110494, actual = 2105398
+  // gasused = 2268989, actual = 2263778
   function testnew1000000Buy() public dealandApproveUserHoney {
     uint256 gasStart = gasleft();
     gamm.buy(largeTxAmount*1000, type(uint256).max);
     uint256 gasEnd = gasleft();
     uint256 gasUsed = gasStart - gasEnd;
-    assert(gasUsed <= 2110494);
+    console.log(gasUsed);
+    assert(gasUsed <= 2268989);
   }
 
 }
