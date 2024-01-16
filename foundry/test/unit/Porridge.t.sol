@@ -271,4 +271,13 @@ contract PorridgeTest is Test {
     assertEq(userPrgBalance, twoMonthsOfGoldilendStakingYield);
   }
 
+  function testNewClaimable() public {
+    deal(address(gamm), address(this), 10e18);
+    gamm.approve(address(porridge), 10e18);
+    porridge.stake(10e18);
+    vm.warp(block.timestamp + porridge.DAYS_SECONDS());
+    uint256 yield = porridge._calculateClaimable(address(this), 10e18);
+    console.log(yield);
+  }
+
 }

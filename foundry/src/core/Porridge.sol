@@ -17,7 +17,8 @@ pragma solidity ^0.8.19;
 // ==============================================================================================
 
 
-//todo: fix reentrancy bug
+//todo: fix unweighted stake bug
+//todo: add checkpoints
 import { ERC20 } from "../../lib/solady/src/tokens/ERC20.sol";
 import { SafeTransferLib } from "../../lib/solady/src/utils/SafeTransferLib.sol";
 import { FixedPointMathLib } from "../../lib/solady/src/utils/FixedPointMathLib.sol";
@@ -44,11 +45,10 @@ contract Porridge is ERC20 {
 
 
   uint32 public immutable DAYS_SECONDS = 86400;
-  uint16 public immutable DAILY_EMISSISION_RATE = 600;
+  // uint16 public immutable DAILY_EMISSISION_RATE = 600;
+  uint256 public immutable ANNUAL_PORRIDGE_EMISSIONS = 5e17;
 
-  // mapping(address => uint256) public staked;
   mapping(address => Stake) public stakes;
-  // mapping(address => uint256) public stakeStartTime;
 
   address public gamm;
   address public borrow;
@@ -220,10 +220,12 @@ contract Porridge is ERC20 {
   function _calculateClaimable(
     address user, 
     uint256 stakedAmount
-  ) internal view returns (uint256 yield) {
+  ) public view returns (uint256 yield) {
     uint256 timeStaked = _timeStaked(user);
-    uint256 yieldPortion = stakedAmount / DAILY_EMISSISION_RATE;
-    yield = FixedPointMathLib.mulWad(yieldPortion, FixedPointMathLib.divWad(timeStaked, DAYS_SECONDS));
+    uint256 claimablePRG = FixedPointMathLib.mulWad(ANNUAL_PORRIDGE_EMISSIONS, stakedAmount);
+    yield = FixedPointMathLib.mulWad(claimablePRG, FixedPointMathLib.divWad(timeStaked, 365 days));
+    // uint256 yieldPortion = stakedAmount / DAILY_EMISSISION_RATE;
+    // yield = FixedPointMathLib.mulWad(yieldPortion, FixedPointMathLib.divWad(timeStaked, DAYS_SECONDS));
   }
 
   /// @notice Calculates time staked of a staker
