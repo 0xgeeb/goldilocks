@@ -32,6 +32,12 @@ import { IGAMM } from "../interfaces/IGAMM.sol";
 contract Porridge is ERC20 {
 
 
+  struct Stake {
+    uint256 lastClaim;
+    uint256 stakedBalance;
+  }
+
+
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
   /*                      STATE VARIABLES                       */
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
@@ -40,8 +46,9 @@ contract Porridge is ERC20 {
   uint32 public immutable DAYS_SECONDS = 86400;
   uint16 public immutable DAILY_EMISSISION_RATE = 600;
 
-  mapping(address => uint256) public staked;
-  mapping(address => uint256) public stakeStartTime;
+  // mapping(address => uint256) public staked;
+  mapping(address => Stake) public stakes;
+  // mapping(address => uint256) public stakeStartTime;
 
   address public gamm;
   address public borrow;
@@ -123,19 +130,22 @@ contract Porridge is ERC20 {
   /// @notice Returns the staked $LOCKS of an address
   /// @param user Address to view staked $LOCKS
   function getStaked(address user) external view returns (uint256) {
-    return staked[user];
+    Stake memory userStake = stakes[user];
+    return userStake.stakedBalance;
   }
 
   /// @notice Returns the stake start time of an address
   /// @param user Address to view stake start time
   function getStakeStartTime(address user) external view returns (uint256) {
-    return stakeStartTime[user];
+    Stake memory userStake = stakes[user];
+    return userStake.lastClaim;
   }
 
   /// @notice Returns the claimable yield of an address
   /// @param user Address to view claimable yield
   function getClaimable(address user) external view returns (uint256) {
-    uint256 stakedAmount = staked[user];
+    Stake memory userStake = stakes[user];
+    uint256 stakedAmount = userStake.stakedBalance;
     return _calculateClaimable(user, stakedAmount);
   }
 
@@ -148,11 +158,11 @@ contract Porridge is ERC20 {
   /// @notice Stakes $LOCKS and begins earning $PRG
   /// @param amount Amount of $LOCKS to stake
   function stake(uint256 amount) external {
-    if(staked[msg.sender] > 0) {
-      _stakeClaim();
-    }
-    stakeStartTime[msg.sender] = block.timestamp;
-    staked[msg.sender] += amount;
+    Stake memory userStake = Stake({
+      lastClaim: block.timestamp,
+      stakedBalance: stakes[msg.sender].stakedBalance + amount
+    });
+    stakes[msg.sender] = userStake;
     SafeTransferLib.safeTransferFrom(gamm, msg.sender, address(this), amount);
     emit Staked(msg.sender, amount);
   }
@@ -160,10 +170,11 @@ contract Porridge is ERC20 {
   /// @notice Unstakes $LOCKS and claims $PRG 
   /// @param amount Amount of $LOCKS to unstake
   function unstake(uint256 amount) external {
-    if(amount > staked[msg.sender]) revert InvalidUnstake();
-    if(amount > staked[msg.sender] - IBorrow(borrow).getLocked(msg.sender)) revert LocksBorrowedAgainst();
-    uint256 stakedAmount = staked[msg.sender];
-    staked[msg.sender] -= amount;
+    Stake memory userStake = stakes[msg.sender];
+    if(amount > userStake.stakedBalance) revert InvalidUnstake();
+    if(amount > userStake.stakedBalance - IBorrow(borrow).getLocked(msg.sender)) revert LocksBorrowedAgainst();
+    uint256 stakedAmount = userStake.stakedBalance;
+    stakes[msg.sender].stakedBalance -= amount;
     _claim(stakedAmount);
     SafeTransferLib.safeTransfer(gamm, msg.sender, amount);
     emit Unstaked(msg.sender, amount);
@@ -180,8 +191,8 @@ contract Porridge is ERC20 {
 
   /// @notice Claim $PRG rewards
   function claim() external {
-    uint256 stakedAmount = staked[msg.sender];
-    _claim(stakedAmount);
+    Stake memory userStake = stakes[msg.sender];
+    _claim(userStake.stakedBalance);
   }
 
 
@@ -195,17 +206,7 @@ contract Porridge is ERC20 {
   function _claim(uint256 stakedAmount) internal {
     uint256 claimable = _calculateClaimable(msg.sender, stakedAmount);
     if(claimable > 0) {
-      stakeStartTime[msg.sender] = block.timestamp;
-      _mint(msg.sender, claimable);
-      emit Claimed(msg.sender, claimable);
-    }
-  }
-
-  /// @notice Calculates and distributes yield from stake function
-  function _stakeClaim() internal {
-    uint256 stakedAmount = staked[msg.sender];
-    uint256 claimable = _calculateClaimable(msg.sender, stakedAmount);
-    if(claimable > 0) {
+      stakes[msg.sender].lastClaim = block.timestamp;
       _mint(msg.sender, claimable);
       emit Claimed(msg.sender, claimable);
     }
@@ -229,7 +230,8 @@ contract Porridge is ERC20 {
   /// @param user Address of staker to find time staked
   /// @return timeStaked staked of an address
   function _timeStaked(address user) internal view returns (uint256 timeStaked) {
-    timeStaked = block.timestamp - stakeStartTime[user];
+    Stake memory userStake = stakes[user];
+    timeStaked = block.timestamp - userStake.lastClaim;
   }
 
 

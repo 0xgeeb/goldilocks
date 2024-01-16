@@ -234,17 +234,6 @@ contract PorridgeTest is Test {
     assertEq(userStakedLocks, locksAmount);
   }
 
-  function testStakeClaim() public dealandStake100Locks {
-    vm.warp(block.timestamp + porridge.DAYS_SECONDS());
-    deal(address(gamm), address(this), 1e18);
-    gamm.approve(address(porridge), 1e18);
-    porridge.stake(1e18);
-
-    uint256 userBalanceofPrg = porridge.balanceOf(address(this));
-
-    assertEq(userBalanceofPrg, OneDayofYield);
-  }
-
   function testGetStaked() public dealandStake100Locks{
     uint256 userStakedLocks = porridge.getStaked(address(this));
 
