@@ -44,7 +44,7 @@ contract Porridge is ERC20 {
   /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
 
-  uint32 public immutable DAYS_SECONDS = 86400;
+  // uint32 public immutable DAYS_SECONDS = 86400;
   // uint16 public immutable DAILY_EMISSISION_RATE = 600;
   uint256 public immutable ANNUAL_PORRIDGE_EMISSIONS = 5e17;
 
@@ -213,7 +213,7 @@ contract Porridge is ERC20 {
   }
     
   /// @notice Calculates claimable yield
-  /// @dev claimable = (staked $LOCKS / daily emission rate) * days staked
+  /// @dev claimablePRG = (staked $LOCKS * 0.5 $PRG) * (days staked / 365 days)
   /// @param user Address of staker to calculate yield
   /// @param stakedAmount Amount of $LOCKS the user has staked in the contract
   /// @return yield Amount of $PRG earned by staker

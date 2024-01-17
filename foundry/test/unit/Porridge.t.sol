@@ -32,13 +32,13 @@ contract PorridgeTest is Test {
   BondBear bondbear;
   BandBear bandbear;
 
-  uint256 HalfDayofYield = 83333333333333333;
-  uint256 OneDayofYield = 166666666666666666;
-  uint256 OneDayandHalfofYield = 249999999999999999;
-  uint256 TwoDaysofYield = 333333333333333332;
-  uint256 twoMonthsOfGoldilendStakingYield = 43e18;
   uint256 locksAmount = 100e18;
   uint256 borrowAmount = 280e20;
+  uint256 HalfDayofYield = 68493150684931500;
+  uint256 OneDayofYield = 136986301369863000;
+  uint256 OneDayandHalfofYield = 205479452054794500;
+  uint256 TwoDaysofYield = 273972602739726000;
+  uint256 twoMonthsOfGoldilendStakingYield = 43e18;
 
   bytes4 NotGoldilendSelector = 0xc81d51dc;
   bytes4 InvalidUnstakeSelector = 0x280cf628;
@@ -140,7 +140,7 @@ contract PorridgeTest is Test {
   }
 
   function testCalculateHalfDayofYield() public dealandStake100Locks {
-    vm.warp(block.timestamp + (porridge.DAYS_SECONDS() / 2));
+    vm.warp(block.timestamp + (1 days / 2));
     porridge.claim();
 
     uint256 prgBalance = porridge.balanceOf(address(this));
@@ -149,7 +149,7 @@ contract PorridgeTest is Test {
   }
 
   function testCalculate1DayofYield() public dealandStake100Locks {
-    vm.warp(block.timestamp + porridge.DAYS_SECONDS());
+    vm.warp(block.timestamp + 1 days);
     porridge.claim();
 
     uint256 prgBalance = porridge.balanceOf(address(this));
@@ -158,7 +158,7 @@ contract PorridgeTest is Test {
   }
 
   function testCalculate1andHalfDayofYield() public dealandStake100Locks {
-    vm.warp(block.timestamp + porridge.DAYS_SECONDS() + (porridge.DAYS_SECONDS() / 2));
+    vm.warp(block.timestamp + 1 days + (1 days / 2));
     porridge.claim();
 
     uint256 prgBalance = porridge.balanceOf(address(this));
@@ -183,7 +183,7 @@ contract PorridgeTest is Test {
   }
 
   function testUnstake() public dealandStake100Locks {
-    vm.warp(block.timestamp + porridge.DAYS_SECONDS());
+    vm.warp(block.timestamp + 1 days);
     porridge.unstake(locksAmount);
 
     uint256 userBalanceofLocks = gamm.balanceOf(address(this));
@@ -208,7 +208,7 @@ contract PorridgeTest is Test {
   }
 
   function testRealize() public dealandStake100Locks dealUser280Honey {
-    vm.warp(block.timestamp + (2 * porridge.DAYS_SECONDS()));
+    vm.warp(block.timestamp + (2 * 1 days));
     porridge.unstake(locksAmount);
     porridge.realize(TwoDaysofYield);
 
@@ -218,13 +218,13 @@ contract PorridgeTest is Test {
     uint256 gammBalanceofHoney = honey.balanceOf(address(gamm));
 
     assertEq(userBalanceofPrg, 0);
-    assertEq(userBalanceofLocks, 100333333333333333332);
-    assertEq(userBalanceofHoney, 186666666666666667040);
-    assertEq(gammBalanceofHoney, 93333333333333332960);
+    assertEq(userBalanceofLocks, 100273972602739726000);
+    assertEq(userBalanceofHoney, 203287671232876720000);
+    assertEq(gammBalanceofHoney, 76712328767123280000);
   }
 
   function testClaim() public dealandStake100Locks {
-    vm.warp(block.timestamp + porridge.DAYS_SECONDS());
+    vm.warp(block.timestamp + 1 days);
     porridge.claim();
 
     uint256 userBalanceofPrg = porridge.balanceOf(address(this));
@@ -252,7 +252,7 @@ contract PorridgeTest is Test {
   }
 
   function testGetClaimable() public dealandStake100Locks {
-    vm.warp(block.timestamp + porridge.DAYS_SECONDS());
+    vm.warp(block.timestamp + 1 days);
 
     uint256 claimable = porridge.getClaimable(address(this));
 
@@ -269,15 +269,6 @@ contract PorridgeTest is Test {
     uint256 userPrgBalance = porridge.balanceOf(address(this));
 
     assertEq(userPrgBalance, twoMonthsOfGoldilendStakingYield);
-  }
-
-  function testNewClaimable() public {
-    deal(address(gamm), address(this), 10e18);
-    gamm.approve(address(porridge), 10e18);
-    porridge.stake(10e18);
-    vm.warp(block.timestamp + porridge.DAYS_SECONDS());
-    uint256 yield = porridge._calculateClaimable(address(this), 10e18);
-    console.log(yield);
   }
 
 }
