@@ -4,7 +4,7 @@ pragma solidity ^0.8.19;
 import "../../lib/forge-std/src/Test.sol";
 import { LibRLP } from "../../lib/solady/src/utils/LibRLP.sol";
 import { Honey } from "../../src/mock/Honey.sol";
-import { GAMM } from "../../src/core/GAMM.sol";
+import { Goldiswap } from "../../src/core/Goldiswap.sol";
 import { Borrow } from "../../src/core/Borrow.sol";
 import { Porridge } from "../../src/core/Porridge.sol";
 import { Goldilend } from "../../src/core/Goldilend.sol";
@@ -14,7 +14,7 @@ contract GAMMTest is Test {
   using LibRLP for address;
 
   Honey honey;
-  GAMM gamm;
+  Goldiswap goldiswap;
   Borrow borrow;
   Porridge porridge;
 
@@ -34,63 +34,63 @@ contract GAMMTest is Test {
     Borrow borrowComputed = Borrow(address(this).computeAddress(3));
     Goldilend goldilendComputed = Goldilend(address(this).computeAddress(11));
     honey = new Honey();
-    gamm = new GAMM(address(this), address(porridgeComputed), address(borrowComputed), address(honey));
-    borrow = new Borrow(address(gamm), address(porridgeComputed), address(honey));
-    porridge = new Porridge(address(gamm), address(borrow), address(goldilendComputed), address(honey));
+    goldiswap = new Goldiswap(address(this), address(porridgeComputed), address(borrowComputed), address(honey));
+    borrow = new Borrow(address(goldiswap), address(porridgeComputed), address(honey));
+    porridge = new Porridge(address(goldiswap), address(borrow), address(goldilendComputed), address(honey));
   }
 
   modifier dealandApproveUserHoney() {
     deal(address(honey), address(this), type(uint256).max / 2);
-    honey.approve(address(gamm), type(uint256).max / 2);
+    honey.approve(address(goldiswap), type(uint256).max / 2);
     _;
   }
 
   modifier dealLocks() {
-    deal(address(gamm), address(this), txAmount);
+    deal(address(goldiswap), address(this), txAmount);
     _;
   }
 
   modifier dealGammHoney() {
-    deal(address(honey), address(gamm), type(uint256).max);
+    deal(address(honey), address(goldiswap), type(uint256).max);
     _;
   }
 
   function testNotMultisig() public {
     vm.prank(address(0x01));
     vm.expectRevert(NotMultisigSelector);
-    gamm.injectLiquidity(69e18, 69e18);
+    goldiswap.injectLiquidity(69e18, 69e18);
   }
 
   function testNotPorridge() public {
     vm.expectRevert(NotPorridgeSelector);
-    gamm.porridgeMint(address(0x01), 69e18);
+    goldiswap.porridgeMint(address(0x01), 69e18);
   }
 
   function testNotBorrow() public {
     vm.expectRevert(NotBorrowSelector);
-    gamm.borrowTransfer(address(0x01), 69e18, 69e18);
+    goldiswap.borrowTransfer(address(0x01), 69e18, 69e18);
   }
 
   function testExcessiveSlippageBuy() public {
     vm.expectRevert(ExcessiveSlippageSelector);
-    gamm.buy(69e18, 0);
+    goldiswap.buy(69e18, 0);
   }
 
   function testExcessiveSlippageSell() public {
     vm.expectRevert(ExcessiveSlippageSelector);
-    gamm.sell(69e18, type(uint256).max);
+    goldiswap.sell(69e18, type(uint256).max);
   }
 
   function testLocksName() public {
-    assertEq(gamm.name(), "Locks Token");
+    assertEq(goldiswap.name(), "Locks Token");
   }
 
   function testLocksSymbol() public {
-    assertEq(gamm.symbol(), "LOCKS");
+    assertEq(goldiswap.symbol(), "LOCKS");
   }
 
   function testFloorPrice() public {
-    uint256 floorPrice = gamm.floorPrice();
+    uint256 floorPrice = goldiswap.floorPrice();
     string[] memory inputs = new string[](2);
     inputs[0] = "python3";
     inputs[1] = "price_tests/floor_test/test.py";
@@ -102,10 +102,10 @@ contract GAMMTest is Test {
   }
 
   function testRandomFloorPrice() public {
-    vm.store(address(gamm), bytes32(uint256(0)), bytes32(uint256(23457745e18)));
-    vm.store(address(gamm), bytes32(uint256(1)), bytes32(uint256(8340957e18)));
-    vm.store(address(gamm), bytes32(uint256(2)), bytes32(uint256(4374e18)));
-    uint256 floorPrice = gamm.floorPrice();
+    vm.store(address(goldiswap), bytes32(uint256(0)), bytes32(uint256(23457745e18)));
+    vm.store(address(goldiswap), bytes32(uint256(1)), bytes32(uint256(8340957e18)));
+    vm.store(address(goldiswap), bytes32(uint256(2)), bytes32(uint256(4374e18)));
+    uint256 floorPrice = goldiswap.floorPrice();
     string[] memory inputs = new string[](2);
     inputs[0] = "python3";
     inputs[1] = "price_tests/floor_test/random_test.py";
@@ -117,7 +117,7 @@ contract GAMMTest is Test {
   }
 
   function testMarketPrice() public {
-    uint256 marketPrice = gamm.marketPrice();
+    uint256 marketPrice = goldiswap.marketPrice();
     string[] memory inputs = new string[](2);
     inputs[0] = "python3";
     inputs[1] = "price_tests/market_test/test.py";
@@ -129,10 +129,10 @@ contract GAMMTest is Test {
   }
 
   function testRandomMarketPrice() public {
-    vm.store(address(gamm), bytes32(uint256(0)), bytes32(uint256(23457745e18)));
-    vm.store(address(gamm), bytes32(uint256(1)), bytes32(uint256(8340957e18)));
-    vm.store(address(gamm), bytes32(uint256(2)), bytes32(uint256(4374e18)));
-    uint256 marketPrice = gamm.marketPrice();
+    vm.store(address(goldiswap), bytes32(uint256(0)), bytes32(uint256(23457745e18)));
+    vm.store(address(goldiswap), bytes32(uint256(1)), bytes32(uint256(8340957e18)));
+    vm.store(address(goldiswap), bytes32(uint256(2)), bytes32(uint256(4374e18)));
+    uint256 marketPrice = goldiswap.marketPrice();
     string[] memory inputs = new string[](2);
     inputs[0] = "python3";
     inputs[1] = "price_tests/market_test/random_test.py";
@@ -144,9 +144,9 @@ contract GAMMTest is Test {
   }
 
   function testBuy() public dealandApproveUserHoney {
-    gamm.buy(txAmount, type(uint256).max);
+    goldiswap.buy(txAmount, type(uint256).max);
 
-    uint256 userLocksBalance = gamm.balanceOf(address(this));
+    uint256 userLocksBalance = goldiswap.balanceOf(address(this));
     uint256 userHoneyBalance = honey.balanceOf(address(this));
 
     assertEq(userLocksBalance, txAmount);
@@ -154,9 +154,9 @@ contract GAMMTest is Test {
   }
 
   function testSell() public dealLocks dealGammHoney {
-    gamm.sell(txAmount, 0);
+    goldiswap.sell(txAmount, 0);
 
-    uint256 userLocksBalance = gamm.balanceOf(address(this));
+    uint256 userLocksBalance = goldiswap.balanceOf(address(this));
     uint256 userHoneyBalance = honey.balanceOf(address(this));
 
     assertEq(userLocksBalance, 0);
@@ -164,11 +164,11 @@ contract GAMMTest is Test {
   }
 
   function testRedeemed() public dealLocks dealGammHoney {
-    gamm.redeem(txAmount);
+    goldiswap.redeem(txAmount);
 
-    uint256 userLocksBalance = gamm.balanceOf(address(this));
+    uint256 userLocksBalance = goldiswap.balanceOf(address(this));
     uint256 userHoneyBalance = honey.balanceOf(address(this));
-    uint256 floorPriceof10Locks = gamm.floorPrice() * 10;
+    uint256 floorPriceof10Locks = goldiswap.floorPrice() * 10;
 
     assertEq(userLocksBalance, 0);
     assertEq(userHoneyBalance, floorPriceof10Locks);
@@ -176,97 +176,97 @@ contract GAMMTest is Test {
 
   function testSuccessfulTransfer() public dealLocks {
     // bytes4(keccak256(bytes('transfer(address,uint256)')));
-    (bool success, bytes memory data) = address(gamm).call(abi.encodeWithSelector(0xa9059cbb, address(0x01), 5e18));
+    (bool success, bytes memory data) = address(goldiswap).call(abi.encodeWithSelector(0xa9059cbb, address(0x01), 5e18));
     require(data.length == 0 || abi.decode(data, (bool)), 'transfer failed');
     assertEq(true, success);
-    assertEq(gamm.balanceOf(address(0x01)), 5e18);
+    assertEq(goldiswap.balanceOf(address(0x01)), 5e18);
   }
 
   function testFloorReduce() public {
-    vm.store(address(gamm), bytes32(uint256(0)), bytes32(uint256(12424533327755417665454800)));
-    vm.store(address(gamm), bytes32(uint256(1)), bytes32(uint256(6069210257394481945730874)));
-    vm.store(address(gamm), bytes32(uint256(2)), bytes32(uint256(8402860035123450385400)));
-    vm.store(address(gamm), bytes32(uint256(4)), bytes32(uint256(1692551675)));
+    vm.store(address(goldiswap), bytes32(uint256(0)), bytes32(uint256(12424533327755417665454800)));
+    vm.store(address(goldiswap), bytes32(uint256(1)), bytes32(uint256(6069210257394481945730874)));
+    vm.store(address(goldiswap), bytes32(uint256(2)), bytes32(uint256(8402860035123450385400)));
+    vm.store(address(goldiswap), bytes32(uint256(4)), bytes32(uint256(1692551675)));
 
     deal(address(honey), address(this), 1251210488977958997148919);
-    deal(address(gamm), address(this), 543082473864185130000);
-    deal(address(honey), address(gamm), 16442576931719627115185675);
+    deal(address(goldiswap), address(this), 543082473864185130000);
+    deal(address(honey), address(goldiswap), 16442576931719627115185675);
 
     vm.warp(1692836841);
-    gamm.sell(5000000000000000000, 9886383387107016000000);
+    goldiswap.sell(5000000000000000000, 9886383387107016000000);
 
-    assertEq(gamm.targetRatio(), 348118083333333333);
+    assertEq(goldiswap.targetRatio(), 348118083333333333);
   }
 
   function testMaxFloorReduce() public {
-    vm.store(address(gamm), bytes32(uint256(0)), bytes32(uint256(12424533327755417665454800)));
-    vm.store(address(gamm), bytes32(uint256(1)), bytes32(uint256(6069210257394481945730874)));
-    vm.store(address(gamm), bytes32(uint256(2)), bytes32(uint256(8402860035123450385400)));
-    vm.store(address(gamm), bytes32(uint256(4)), bytes32(uint256(1692551675)));
+    vm.store(address(goldiswap), bytes32(uint256(0)), bytes32(uint256(12424533327755417665454800)));
+    vm.store(address(goldiswap), bytes32(uint256(1)), bytes32(uint256(6069210257394481945730874)));
+    vm.store(address(goldiswap), bytes32(uint256(2)), bytes32(uint256(8402860035123450385400)));
+    vm.store(address(goldiswap), bytes32(uint256(4)), bytes32(uint256(1692551675)));
 
     deal(address(honey), address(this), 1251210488977958997148919);
-    deal(address(gamm), address(this), 543082473864185130000);
-    deal(address(honey), address(gamm), 16442576931719627115185675);
+    deal(address(goldiswap), address(this), 543082473864185130000);
+    deal(address(honey), address(goldiswap), 16442576931719627115185675);
 
     vm.warp(1693936841);
-    gamm.sell(5000000000000000000, 9886383387107016000000);
+    goldiswap.sell(5000000000000000000, 9886383387107016000000);
 
-    assertEq(gamm.targetRatio(), 342000000000000000);
+    assertEq(goldiswap.targetRatio(), 342000000000000000);
   }
 
   function testInjectLiquidity() public {
-    uint256 fsltemp = gamm.fsl();
-    uint256 psltemp = gamm.psl();
+    uint256 fsltemp = goldiswap.fsl();
+    uint256 psltemp = goldiswap.psl();
     uint256 injected = 69e18;
     deal(address(honey), address(this), injected * 2);
-    honey.approve(address(gamm), injected * 2);
-    gamm.injectLiquidity(injected, injected);
+    honey.approve(address(goldiswap), injected * 2);
+    goldiswap.injectLiquidity(injected, injected);
 
-    assertEq(gamm.fsl(), fsltemp + injected);
-    assertEq(gamm.psl(), psltemp + injected);
-    assertEq(honey.balanceOf(address(gamm)), injected * 2);
+    assertEq(goldiswap.fsl(), fsltemp + injected);
+    assertEq(goldiswap.psl(), psltemp + injected);
+    assertEq(honey.balanceOf(address(goldiswap)), injected * 2);
   }
 
   function testSetMultisigFail() public {
     vm.prank(address(0x69));
     vm.expectRevert(NotMultisigSelector);
-    gamm.setMultisig(address(0x69));
+    goldiswap.setMultisig(address(0x69));
   }
 
   function testSetMultisig() public {
-    gamm.setMultisig(address(0x69));
+    goldiswap.setMultisig(address(0x69));
     
-    assertEq(gamm.multisig(), address(0x69));
+    assertEq(goldiswap.multisig(), address(0x69));
   }
 
   function testDrainGamm() public {
     uint256 milly = 1000000e18;
     deal(address(honey), address(this), milly);
-    honey.approve(address(gamm), milly);
-    deal(address(honey), address(gamm), milly);
+    honey.approve(address(goldiswap), milly);
+    deal(address(honey), address(goldiswap), milly);
 
-    uint256 beforeGammLocks = gamm.balanceOf(address(gamm));
-    uint256 beforeGammHoney = honey.balanceOf(address(gamm));
-    uint256 beforeUserLocks = gamm.balanceOf(address(this));
+    uint256 beforeGammLocks = goldiswap.balanceOf(address(goldiswap));
+    uint256 beforeGammHoney = honey.balanceOf(address(goldiswap));
+    uint256 beforeUserLocks = goldiswap.balanceOf(address(this));
     uint256 beforeUserHoney = honey.balanceOf(address(this));
-    console.log("before: gamm $LOCKS balance", beforeGammLocks);
-    console.log("before: gamm $HONEY balance", beforeGammHoney);
+    console.log("before: goldiswap $LOCKS balance", beforeGammLocks);
+    console.log("before: goldiswap $HONEY balance", beforeGammHoney);
     console.log("before: user $LOCKS balance", beforeUserLocks);
     console.log("before: user $HONEY balance", beforeUserHoney);
     console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
 
 
-    gamm.buy(10e18, type(uint256).max);
+    goldiswap.buy(10e18, type(uint256).max);
 
 
 
-    uint256 afterGammLocks = gamm.balanceOf(address(gamm));
-    uint256 afterGammHoney = honey.balanceOf(address(gamm));
-    uint256 afterUserLocks = gamm.balanceOf(address(this));
+    uint256 afterGammLocks = goldiswap.balanceOf(address(goldiswap));
+    uint256 afterGammHoney = honey.balanceOf(address(goldiswap));
+    uint256 afterUserLocks = goldiswap.balanceOf(address(this));
     uint256 afterUserHoney = honey.balanceOf(address(this));
-    console.log("after: gamm $LOCKS balance", afterGammLocks);
-    console.log("after: gamm $HONEY balance", afterGammHoney);
+    console.log("after: goldiswap $LOCKS balance", afterGammLocks);
+    console.log("after: goldiswap $HONEY balance", afterGammHoney);
     console.log("after: user $LOCKS balance", afterUserLocks);
     console.log("after: user $HONEY balance", afterUserHoney);
     console.log(beforeUserHoney - afterUserHoney);

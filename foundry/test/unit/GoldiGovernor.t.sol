@@ -4,7 +4,7 @@ pragma solidity ^0.8.19;
 import "../../lib/forge-std/src/Test.sol";
 import { LibRLP } from "../../lib/solady/src/utils/LibRLP.sol";
 import { Honey } from "../../src/mock/Honey.sol";
-import { GAMM } from "../../src/core/GAMM.sol";
+import { Goldiswap } from "../../src/core/Goldiswap.sol";
 import { Borrow } from "../../src/core/Borrow.sol";
 import { Porridge } from "../../src/core/Porridge.sol";
 import { GoldiGovernor } from "../../src/governance/GoldiGovernor.sol";
@@ -16,7 +16,7 @@ contract GoldiGovernorTest is Test {
   using LibRLP for address;
 
   Honey honey;
-  GAMM gamm;
+  Goldiswap goldiswap;
   GoldiGovernor goldigov;
   govLOCKS govlocks;
   Timelock timelock;
@@ -41,10 +41,10 @@ contract GoldiGovernorTest is Test {
     GoldiGovernor goldigovComputed = GoldiGovernor(address(this).computeAddress(4));
     govLOCKS govlocksComputed = govLOCKS(address(this).computeAddress(5));
     honey = new Honey();
-    gamm = new GAMM(address(this), address(porridgeComputed), address(borrowComputed), address(honey));
+    goldiswap = new Goldiswap(address(this), address(porridgeComputed), address(borrowComputed), address(honey));
     timelock = new Timelock(address(goldigovComputed), 5 days);
     goldigov = new GoldiGovernor(address(timelock), address(govlocksComputed), address(this), 5761, 69, 4e18);
-    govlocks = new govLOCKS(address(gamm), address(goldigov));
+    govlocks = new govLOCKS(address(goldiswap), address(goldigov));
   }
 
   function proposy() public returns (address[] memory, string[] memory, bytes[] memory, uint256[] memory) {
@@ -78,8 +78,8 @@ contract GoldiGovernorTest is Test {
     uint256[] memory values = new uint256[](2);
     values[0] = 69;
     values[1] = 69;
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(2);
     vm.expectRevert(ArrayMismatchSelector);
@@ -93,8 +93,8 @@ contract GoldiGovernorTest is Test {
       bytes[] memory calldatas,
       uint256[] memory values
     ) = proposy();
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(2);
     goldigov.propose(targets, signatures, calldatas, values, "");
@@ -109,8 +109,8 @@ contract GoldiGovernorTest is Test {
       bytes[] memory calldatas,
       uint256[] memory values
     ) = proposy();
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(2);
     goldigov.propose(targets, signatures, calldatas, values, "");
@@ -128,8 +128,8 @@ contract GoldiGovernorTest is Test {
       bytes[] memory calldatas,
       uint256[] memory values
     ) = proposy();
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(2);
     goldigov.propose(targets, signatures, calldatas, values, "");
@@ -193,8 +193,8 @@ contract GoldiGovernorTest is Test {
     values[8] = 69;
     values[9] = 69;
     values[10] = 69;
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(2);
     vm.expectRevert(InvalidProposalActionSelector);
@@ -208,8 +208,8 @@ contract GoldiGovernorTest is Test {
       bytes[] memory calldatas,
       uint256[] memory values
     ) = proposy();
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(2);    
     goldigov.propose(targets, signatures, calldatas, values, "");
@@ -224,8 +224,8 @@ contract GoldiGovernorTest is Test {
       bytes[] memory calldatas,
       uint256[] memory values
     ) = proposy();
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(2);
     goldigov.propose(targets, signatures, calldatas, values, "");
@@ -247,8 +247,8 @@ contract GoldiGovernorTest is Test {
     uint256[] memory values = new uint256[](2);
     values[0] = 0;
     values[1] = 0;
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(2);
     goldigov.propose(targets, signatures, calldatas, values, "");
@@ -281,8 +281,8 @@ contract GoldiGovernorTest is Test {
       bytes[] memory calldatas,
       uint256[] memory values
     ) = proposy();
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(2);    
     goldigov.propose(targets, signatures, calldatas, values, "");
@@ -299,8 +299,8 @@ contract GoldiGovernorTest is Test {
       bytes[] memory calldatas,
       uint256[] memory values
     ) = proposy();
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(2);
     goldigov.propose(targets, signatures, calldatas, values, "");
@@ -320,8 +320,8 @@ contract GoldiGovernorTest is Test {
       bytes[] memory calldatas,
       uint256[] memory values
     ) = proposy();
-    deal(address(gamm), address(this), 3e18);
-    gamm.approve(address(govlocks), 3e18);
+    deal(address(goldiswap), address(this), 3e18);
+    goldiswap.approve(address(govlocks), 3e18);
     govlocks.deposit(3e18);
     vm.roll(2);
     vm.expectRevert(BelowThresholdSelector);
@@ -333,8 +333,8 @@ contract GoldiGovernorTest is Test {
     string[] memory signatures = new string[](0);
     bytes[] memory calldatas = new bytes[](0);
     uint256[] memory values = new uint256[](0);
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(2);
     vm.expectRevert(InvalidProposalActionSelector);
@@ -354,8 +354,8 @@ contract GoldiGovernorTest is Test {
     uint256[] memory values = new uint256[](2);
     values[0] = 0;
     values[1] = 0;
-    deal(address(gamm), address(this), 401e18);
-    gamm.approve(address(govlocks), 401e18);
+    deal(address(goldiswap), address(this), 401e18);
+    goldiswap.approve(address(govlocks), 401e18);
     govlocks.deposit(401e18);
     vm.roll(2);
     goldigov.propose(targets, signatures, calldatas, values, "");
@@ -365,8 +365,8 @@ contract GoldiGovernorTest is Test {
     goldigov.queue(1);
     vm.warp(6 days);
     goldigov.execute(1);
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(6900);
     goldigov.propose(targets, signatures, calldatas, values, "");
@@ -385,8 +385,8 @@ contract GoldiGovernorTest is Test {
     uint256[] memory values = new uint256[](2);
     values[0] = 69;
     values[1] = 69;
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(2);
     goldigov.propose(targets, signatures, calldatas, values, "");
@@ -402,8 +402,8 @@ contract GoldiGovernorTest is Test {
       bytes[] memory calldatas,
       uint256[] memory values
     ) = proposy();
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(2);
     goldigov.propose(targets, signatures, calldatas, values, "");
@@ -418,8 +418,8 @@ contract GoldiGovernorTest is Test {
       bytes[] memory calldatas,
       uint256[] memory values
     ) = proposy();
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(2);
     goldigov.propose(targets, signatures, calldatas, values, "");
@@ -439,8 +439,8 @@ contract GoldiGovernorTest is Test {
       bytes[] memory calldatas,
       uint256[] memory values
     ) = proposy();
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(2);
     goldigov.propose(targets, signatures, calldatas, values, "");
@@ -467,13 +467,13 @@ contract GoldiGovernorTest is Test {
     values[0] = 0;
     values[1] = 0;
     address admin = 0x50A7dd4778724FbED41aCe9B3d3056a7B36E874C;
-    deal(address(gamm), address(admin), 5e18);
+    deal(address(goldiswap), address(admin), 5e18);
     vm.prank(admin);
-    gamm.approve(address(govlocks), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     vm.prank(admin);
     govlocks.deposit(5e18);
-    deal(address(gamm), address(this), 401e18);
-    gamm.approve(address(govlocks), 401e18);
+    deal(address(goldiswap), address(this), 401e18);
+    goldiswap.approve(address(govlocks), 401e18);
     govlocks.deposit(401e18);
     vm.roll(2);
     goldigov.propose(targets, signatures, calldatas, values, "");
@@ -503,8 +503,8 @@ contract GoldiGovernorTest is Test {
     uint256[] memory values = new uint256[](2);
     values[0] = 69;
     values[1] = 69;
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(2);
     goldigov.propose(targets, signatures, calldatas, values, "");
@@ -530,8 +530,8 @@ contract GoldiGovernorTest is Test {
     uint256[] memory values = new uint256[](2);
     values[0] = 69;
     values[1] = 69;
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(2);
     goldigov.propose(targets, signatures, calldatas, values, "");
@@ -554,8 +554,8 @@ contract GoldiGovernorTest is Test {
     uint256[] memory values = new uint256[](2);
     values[0] = 0;
     values[1] = 0;
-    deal(address(gamm), address(this), 401e18);
-    gamm.approve(address(govlocks), 401e18);
+    deal(address(goldiswap), address(this), 401e18);
+    goldiswap.approve(address(govlocks), 401e18);
     govlocks.deposit(401e18);
     vm.roll(2);
     goldigov.propose(targets, signatures, calldatas, values, "");
@@ -583,8 +583,8 @@ contract GoldiGovernorTest is Test {
     uint256[] memory values = new uint256[](2);
     values[0] = 0;
     values[1] = 0;
-    deal(address(gamm), address(this), 399e18);
-    gamm.approve(address(govlocks), 399e18);
+    deal(address(goldiswap), address(this), 399e18);
+    goldiswap.approve(address(govlocks), 399e18);
     govlocks.deposit(399e18);
     vm.roll(2);
     goldigov.propose(targets, signatures, calldatas, values, "");
@@ -610,8 +610,8 @@ contract GoldiGovernorTest is Test {
     uint256[] memory values = new uint256[](2);
     values[0] = 0;
     values[1] = 0;
-    deal(address(gamm), address(this), 401e18);
-    gamm.approve(address(govlocks), 401e18);
+    deal(address(goldiswap), address(this), 401e18);
+    goldiswap.approve(address(govlocks), 401e18);
     govlocks.deposit(401e18);
     vm.roll(2);
     goldigov.propose(targets, signatures, calldatas, values, "");
@@ -638,8 +638,8 @@ contract GoldiGovernorTest is Test {
     uint256[] memory values = new uint256[](2);
     values[0] = 0;
     values[1] = 0;
-    deal(address(gamm), address(this), 401e18);
-    gamm.approve(address(govlocks), 401e18);
+    deal(address(goldiswap), address(this), 401e18);
+    goldiswap.approve(address(govlocks), 401e18);
     govlocks.deposit(401e18);
     vm.roll(2);
     goldigov.propose(targets, signatures, calldatas, values, "");
@@ -666,8 +666,8 @@ contract GoldiGovernorTest is Test {
     uint256[] memory values = new uint256[](2);
     values[0] = 0;
     values[1] = 0;
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(2);
     goldigov.propose(targets, signatures, calldatas, values, "");
@@ -693,8 +693,8 @@ contract GoldiGovernorTest is Test {
     uint256[] memory values = new uint256[](2);
     values[0] = 0;
     values[1] = 0;
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(2);
     goldigov.propose(targets, signatures, calldatas, values, "");
@@ -719,8 +719,8 @@ contract GoldiGovernorTest is Test {
     uint256[] memory values = new uint256[](2);
     values[0] = 0;
     values[1] = 0;
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(2);
     goldigov.propose(targets, signatures, calldatas, values, "");

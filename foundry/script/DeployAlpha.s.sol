@@ -3,14 +3,14 @@ pragma solidity ^0.8.19;
 
 import { Script } from "../lib/forge-std/src/Script.sol";
 import { Porridge } from "../src/core/Porridge.sol";
-import { GAMM } from  "../src/core/GAMM.sol";
+import { Goldiswap } from  "../src/core/Goldiswap.sol";
 import { Borrow } from "../src/core/Borrow.sol";
 import { Honey } from "../src/mock/Honey.sol";
 
 contract DeployAlphaScript is Script {
 
   Porridge porridge;
-  GAMM gamm;
+  Goldiswap goldiswap;
   Borrow borrow;
   Honey honey;
   address admin = 0x50A7dd4778724FbED41aCe9B3d3056a7B36E874C;

@@ -4,7 +4,7 @@ pragma solidity ^0.8.19;
 import "../../lib/forge-std/src/Test.sol";
 import { LibRLP } from "../../lib/solady/src/utils/LibRLP.sol";
 import { Honey } from "../../src/mock/Honey.sol";
-import { GAMM } from "../../src/core/GAMM.sol";
+import { Goldiswap } from "../../src/core/Goldiswap.sol";
 import { Borrow } from "../../src/core/Borrow.sol";
 import { Porridge } from "../../src/core/Porridge.sol";
 import { Goldilend } from "../../src/core/Goldilend.sol";
@@ -14,7 +14,7 @@ contract GAMMGasTest is Test {
   using LibRLP for address;
 
   Honey honey;
-  GAMM gamm;
+  Goldiswap goldiswap;
   Borrow borrow;
   Porridge porridge;
 
@@ -31,31 +31,31 @@ contract GAMMGasTest is Test {
     Borrow borrowComputed = Borrow(address(this).computeAddress(3));
     Goldilend goldilendComputed = Goldilend(address(this).computeAddress(11));
     honey = new Honey();
-    gamm = new GAMM(address(this), address(porridgeComputed), address(borrowComputed), address(honey));
-    borrow = new Borrow(address(gamm), address(porridgeComputed), address(honey));
-    porridge = new Porridge(address(gamm), address(borrow), address(goldilendComputed), address(honey));
+    goldiswap = new Goldiswap(address(this), address(porridgeComputed), address(borrowComputed), address(honey));
+    borrow = new Borrow(address(goldiswap), address(porridgeComputed), address(honey));
+    porridge = new Porridge(address(goldiswap), address(borrow), address(goldilendComputed), address(honey));
   }
 
   modifier dealandApproveUserHoney() {
     deal(address(honey), address(this), type(uint256).max / 2);
-    honey.approve(address(gamm), type(uint256).max);
+    honey.approve(address(goldiswap), type(uint256).max);
     _;
   }
 
   modifier dealUserLocks() {
-    deal(address(gamm), address(this), type(uint256).max / 2);
+    deal(address(goldiswap), address(this), type(uint256).max / 2);
     _;
   }
 
   modifier dealGammHoney() {
-    deal(address(honey), address(gamm), type(uint256).max / 2);
+    deal(address(honey), address(goldiswap), type(uint256).max / 2);
     _;
   }
 
   // gasused = 119360, actual = 114264
   function test10Buy() public dealandApproveUserHoney {
     uint256 gasStart = gasleft();
-    gamm.buy(txAmount, type(uint256).max);
+    goldiswap.buy(txAmount, type(uint256).max);
     uint256 gasEnd = gasleft();
     uint256 gasUsed = gasStart   - gasEnd;
     assert(gasUsed <= 119360);
@@ -64,7 +64,7 @@ contract GAMMGasTest is Test {
   // gasused = 301430, actual = 296334
   function test100Buy() public dealandApproveUserHoney {
     uint256 gasStart = gasleft();
-    gamm.buy(mediumTxAmount, type(uint256).max);
+    goldiswap.buy(mediumTxAmount, type(uint256).max);
     uint256 gasEnd = gasleft();
     uint256 gasUsed = gasStart - gasEnd;
     assert(gasUsed <= 310430);
@@ -73,7 +73,7 @@ contract GAMMGasTest is Test {
   // gasused = 2110494, actual = 2105398
   function test1000Buy() public dealandApproveUserHoney {
     uint256 gasStart = gasleft();
-    gamm.buy(largeTxAmount, type(uint256).max);
+    goldiswap.buy(largeTxAmount, type(uint256).max);
     uint256 gasEnd = gasleft();
     uint256 gasUsed = gasStart - gasEnd;
     assert(gasUsed <= 2110494);
@@ -93,7 +93,7 @@ contract GAMMGasTest is Test {
   // gasused = 128109, actual = 122898
   function testnew10000Buy() public dealandApproveUserHoney {
     uint256 gasStart = gasleft();
-    gamm.buy(txAmount*1000, type(uint256).max);
+    goldiswap.buy(txAmount*1000, type(uint256).max);
     uint256 gasEnd = gasleft();
     uint256 gasUsed = gasStart   - gasEnd;
     console.log(gasUsed);
@@ -103,7 +103,7 @@ contract GAMMGasTest is Test {
   // gasused = 323893, actual = 318682
   function testnew100000Buy() public dealandApproveUserHoney {
     uint256 gasStart = gasleft();
-    gamm.buy(mediumTxAmount*1000, type(uint256).max);
+    goldiswap.buy(mediumTxAmount*1000, type(uint256).max);
     uint256 gasEnd = gasleft();
     uint256 gasUsed = gasStart - gasEnd;
     console.log(gasUsed);
@@ -113,7 +113,7 @@ contract GAMMGasTest is Test {
   // gasused = 2268989, actual = 2263778
   function testnew1000000Buy() public dealandApproveUserHoney {
     uint256 gasStart = gasleft();
-    gamm.buy(largeTxAmount*1000, type(uint256).max);
+    goldiswap.buy(largeTxAmount*1000, type(uint256).max);
     uint256 gasEnd = gasleft();
     uint256 gasUsed = gasStart - gasEnd;
     console.log(gasUsed);

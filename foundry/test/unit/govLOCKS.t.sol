@@ -4,7 +4,7 @@ pragma solidity ^0.8.19;
 import "../../lib/forge-std/src/Test.sol";
 import { LibRLP } from "../../lib/solady/src/utils/LibRLP.sol";
 import { Honey } from "../../src/mock/Honey.sol";
-import { GAMM } from "../../src/core/GAMM.sol";
+import { Goldiswap } from "../../src/core/Goldiswap.sol";
 import { Borrow } from "../../src/core/Borrow.sol";
 import { Porridge } from "../../src/core/Porridge.sol";
 import { GoldiGovernor } from "../../src/governance/GoldiGovernor.sol";
@@ -16,7 +16,7 @@ contract govLOCKSTest is Test {
   using LibRLP for address;
 
   Honey honey;
-  GAMM gamm;
+  Goldiswap goldiswap;
   GoldiGovernor goldigov;
   Timelock timelock;
   govLOCKS govlocks;
@@ -28,10 +28,10 @@ contract govLOCKSTest is Test {
     Borrow borrowComputed = Borrow(address(this).computeAddress(3));
     GoldiGovernor goldigovComputed = GoldiGovernor(address(this).computeAddress(4));
     honey = new Honey();
-    gamm = new GAMM(address(this), address(porridgeComputed), address(borrowComputed), address(honey));
+    goldiswap = new Goldiswap(address(this), address(porridgeComputed), address(borrowComputed), address(honey));
     timelock = new Timelock(address(goldigovComputed), 5 days);
-    goldigov = new GoldiGovernor(address(timelock), address(gamm), address(this), 5761, 69, 1000000e18);
-    govlocks = new govLOCKS(address(gamm), address(goldigov));
+    goldigov = new GoldiGovernor(address(timelock), address(goldiswap), address(this), 5761, 69, 1000000e18);
+    govlocks = new govLOCKS(address(goldiswap), address(goldigov));
   }
 
   function testLocksName() public {
@@ -43,27 +43,27 @@ contract govLOCKSTest is Test {
   }
 
   function testDeposit() public {
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
 
-    assertEq(gamm.balanceOf(address(this)), 0);
+    assertEq(goldiswap.balanceOf(address(this)), 0);
     assertEq(govlocks.balanceOf(address(this)), 5e18);
   }
 
   function testWithdraw() public {
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     govlocks.withdraw(5e18);
 
-    assertEq(gamm.balanceOf(address(this)), 5e18);
+    assertEq(goldiswap.balanceOf(address(this)), 5e18);
     assertEq(govlocks.balanceOf(address(this)), 0);
   }
 
   function testNoSuchBlock() public {
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(2);
     vm.expectRevert(NoSuchBlockSelector);
@@ -71,8 +71,8 @@ contract govLOCKSTest is Test {
   }
 
   function testGetCurrentVotes() public {
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(2);
     uint256 votes = govlocks.getCurrentVotes(address(this));
@@ -88,8 +88,8 @@ contract govLOCKSTest is Test {
   }
 
   function testGetPriorVotes() public {
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(2);
     uint256 votes = govlocks.getPriorVotes(address(this), 1);
@@ -99,8 +99,8 @@ contract govLOCKSTest is Test {
 
   function testGetPriorVotesImplicitZero() public {
     vm.roll(69);
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(420);
     uint256 votes = govlocks.getPriorVotes(address(this), 40);
@@ -110,12 +110,12 @@ contract govLOCKSTest is Test {
 
   function testGetPriorVotesNotMostRecentBalance() public {
     vm.roll(69);
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(420);
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(500);
     uint256 votes = govlocks.getPriorVotes(address(this), 80);
@@ -125,20 +125,20 @@ contract govLOCKSTest is Test {
 
   function testGetPriorVotesNotMostRecentBalanceEqual() public {
     vm.roll(69);
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(420);
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(500);
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(1000);
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     uint256 votes = govlocks.getPriorVotes(address(this), 420);
 
@@ -147,20 +147,20 @@ contract govLOCKSTest is Test {
 
   function testGetPriorVotesNotMostRecentBalanceLower() public {
     vm.roll(69);
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(420);
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(500);
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(1000);
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     uint256 votes = govlocks.getPriorVotes(address(this), 421);
 
@@ -169,8 +169,8 @@ contract govLOCKSTest is Test {
 
   function testDelegate() public {
     address user = address(0x69);
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(2);
     govlocks.delegate(user);
@@ -185,8 +185,8 @@ contract govLOCKSTest is Test {
   function testDelegateDelegate() public {
     address user = address(0x69);
     address user2 = address(0x420);
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(2);
     govlocks.delegate(user);
@@ -205,8 +205,8 @@ contract govLOCKSTest is Test {
   function testDelegateDelegateCheck() public {
     address user = address(0x69);
     address user2 = address(0x420);
-    deal(address(gamm), address(this), 5e18);
-    gamm.approve(address(govlocks), 5e18);
+    deal(address(goldiswap), address(this), 5e18);
+    goldiswap.approve(address(govlocks), 5e18);
     govlocks.deposit(5e18);
     vm.roll(5);
     govlocks.delegate(user);

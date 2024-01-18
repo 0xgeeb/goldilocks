@@ -4,7 +4,7 @@ pragma solidity ^0.8.19;
 import "../../lib/forge-std/src/Test.sol";
 import { LibRLP } from "../../lib/solady/src/utils/LibRLP.sol";
 import { Honey } from "../../src/mock/Honey.sol";
-import { GAMM } from "../../src/core/GAMM.sol";
+import { Goldiswap } from "../../src/core/Goldiswap.sol";
 import { Borrow } from "../../src/core/Borrow.sol";
 import { Porridge } from "../../src/core/Porridge.sol";
 import { Goldilend } from "../../src/core/Goldilend.sol";
@@ -20,7 +20,7 @@ contract PorridgeTest is Test {
   using LibRLP for address;
 
   Honey honey;
-  GAMM gamm;
+  Goldiswap goldiswap;
   Borrow borrow;
   Porridge porridge;
 
@@ -49,9 +49,9 @@ contract PorridgeTest is Test {
     Borrow borrowComputed = Borrow(address(this).computeAddress(3));
     Goldilend goldilendComputed = Goldilend(address(this).computeAddress(11));
     honey = new Honey();
-    gamm = new GAMM(address(this), address(porridgeComputed), address(borrowComputed), address(honey));
-    borrow = new Borrow(address(gamm), address(porridgeComputed), address(honey));
-    porridge = new Porridge(address(gamm), address(borrow), address(goldilendComputed), address(honey));
+    goldiswap = new Goldiswap(address(this), address(porridgeComputed), address(borrowComputed), address(honey));
+    borrow = new Borrow(address(goldiswap), address(porridgeComputed), address(honey));
+    porridge = new Porridge(address(goldiswap), address(borrow), address(goldilendComputed), address(honey));
 
     bera = new Bera();
     honeycomb = new HoneyComb();
@@ -97,8 +97,8 @@ contract PorridgeTest is Test {
   }
 
   modifier dealandStake100Locks() {
-    deal(address(gamm), address(this), locksAmount);
-    gamm.approve(address(porridge), locksAmount);
+    deal(address(goldiswap), address(this), locksAmount);
+    goldiswap.approve(address(porridge), locksAmount);
     porridge.stake(locksAmount);
     _;
   }
@@ -110,7 +110,7 @@ contract PorridgeTest is Test {
   }
 
   modifier dealGammMaxHoney() {
-    deal(address(honey), address(gamm), type(uint256).max);
+    deal(address(honey), address(goldiswap), type(uint256).max);
     _;
   }
 
@@ -167,8 +167,8 @@ contract PorridgeTest is Test {
   }
 
   function testStake() public dealandStake100Locks {
-    uint256 userBalanceofLocks = gamm.balanceOf(address(this));
-    uint256 contractBalance = gamm.balanceOf(address(porridge));
+    uint256 userBalanceofLocks = goldiswap.balanceOf(address(this));
+    uint256 contractBalance = goldiswap.balanceOf(address(porridge));
     uint256 getStakedUserBalance = porridge.getStaked(address(this));
 
     assertEq(userBalanceofLocks, 0);
@@ -177,8 +177,8 @@ contract PorridgeTest is Test {
   }
 
   function testDoubleStake() public dealandStake100Locks {
-    deal(address(gamm), address(this), locksAmount);
-    gamm.approve(address(porridge), locksAmount);
+    deal(address(goldiswap), address(this), locksAmount);
+    goldiswap.approve(address(porridge), locksAmount);
     porridge.stake(locksAmount);
   }
 
@@ -186,8 +186,8 @@ contract PorridgeTest is Test {
     vm.warp(block.timestamp + 1 days);
     porridge.unstake(locksAmount);
 
-    uint256 userBalanceofLocks = gamm.balanceOf(address(this));
-    uint256 contractBalance = gamm.balanceOf(address(porridge));
+    uint256 userBalanceofLocks = goldiswap.balanceOf(address(this));
+    uint256 contractBalance = goldiswap.balanceOf(address(porridge));
     uint256 getStakedUserBalance = porridge.getStaked(address(this));
     uint256 prgBalance = porridge.balanceOf(address(this));
 
@@ -200,7 +200,7 @@ contract PorridgeTest is Test {
   function testStakeUnstake() public dealandStake100Locks {
     porridge.unstake(locksAmount);
 
-    uint256 userBalanceofLocks = gamm.balanceOf(address(this));
+    uint256 userBalanceofLocks = goldiswap.balanceOf(address(this));
     uint256 getStakedUserBalance = porridge.getStaked(address(this));
 
     assertEq(userBalanceofLocks, locksAmount);
@@ -213,14 +213,14 @@ contract PorridgeTest is Test {
     porridge.realize(TwoDaysofYield);
 
     uint256 userBalanceofPrg = porridge.balanceOf(address(this));
-    uint256 userBalanceofLocks = gamm.balanceOf(address(this));
+    uint256 userBalanceofLocks = goldiswap.balanceOf(address(this));
     uint256 userBalanceofHoney = honey.balanceOf(address(this));
-    uint256 gammBalanceofHoney = honey.balanceOf(address(gamm));
+    uint256 goldiswapBalanceofHoney = honey.balanceOf(address(goldiswap));
 
     assertEq(userBalanceofPrg, 0);
     assertEq(userBalanceofLocks, 100273972602739726000);
     assertEq(userBalanceofHoney, 203287671232876720000);
-    assertEq(gammBalanceofHoney, 76712328767123280000);
+    assertEq(goldiswapBalanceofHoney, 76712328767123280000);
   }
 
   function testClaim() public dealandStake100Locks {
@@ -242,8 +242,8 @@ contract PorridgeTest is Test {
 
   function testGetStakeStartTime() public {
     vm.warp(69);
-    deal(address(gamm), address(this), locksAmount);
-    gamm.approve(address(porridge), locksAmount);
+    deal(address(goldiswap), address(this), locksAmount);
+    goldiswap.approve(address(porridge), locksAmount);
     porridge.stake(locksAmount);
 
     uint256 timestamp = porridge.getStakeStartTime(address(this));

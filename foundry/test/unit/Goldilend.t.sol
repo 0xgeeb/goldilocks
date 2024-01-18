@@ -8,7 +8,7 @@ import { IERC721Receiver } from "../../lib/openzeppelin-contracts/contracts/toke
 import { INFT } from "../../src/mock/INFT.sol";
 import { Goldilend } from "../../src/core/Goldilend.sol";
 import { Porridge } from "../../src/core/Porridge.sol";
-import { GAMM } from "../../src/core/GAMM.sol";
+import { Goldiswap } from "../../src/core/Goldiswap.sol";
 import { Borrow } from "../../src/core/Borrow.sol"; 
 import { Honey } from "../../src/mock/Honey.sol";
 import { ConsensusVault } from "../../src/mock/ConsensusVault.sol";
@@ -23,7 +23,7 @@ contract GoldilendTest is Test, IERC721Receiver {
   using LibRLP for address;
 
   Goldilend goldilend;
-  GAMM gamm;
+  Goldiswap goldiswap;
   Borrow borrow;
   Porridge porridge;
   Honey honey;
@@ -70,9 +70,9 @@ contract GoldilendTest is Test, IERC721Receiver {
     bandbear = new BandBear();
     consensusvault = new ConsensusVault(address(bera));
   
-    gamm = new GAMM(address(this), address(porridgeComputed), address(borrowComputed), address(honey));
-    borrow = new Borrow(address(gamm), address(porridgeComputed), address(honey));
-    porridge = new Porridge(address(gamm), address(borrow), address(goldilendComputed), address(honey));
+    goldiswap = new Goldiswap(address(this), address(porridgeComputed), address(borrowComputed), address(honey));
+    borrow = new Borrow(address(goldiswap), address(porridgeComputed), address(honey));
+    porridge = new Porridge(address(goldiswap), address(borrow), address(goldilendComputed), address(honey));
 
     uint256 startingPoolSize = 1000e18;
     uint256 protocolInterestRate = 1e17;

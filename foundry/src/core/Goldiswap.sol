@@ -13,7 +13,7 @@ pragma solidity ^0.8.19;
 // |                                                                                            |
 // |============================================================================================|
 // ==============================================================================================
-// =================================== Goldilocks AMM (GAMM) ====================================
+// ========================================== Goldiswap =========================================
 // ==============================================================================================
 
 
@@ -22,11 +22,11 @@ import { SafeTransferLib } from "../../lib/solady/src/utils/SafeTransferLib.sol"
 import { ERC20 } from "../../lib/solady/src/tokens/ERC20.sol";
 
 
-/// @title Goldilocks AMM (GAMM)
+/// @title Goldiswap
 /// @notice Novel AMM & Facilitator of $LOCKS token 
 /// @author geeb
 /// @author ampnoob
-contract GAMM is ERC20 {
+contract Goldiswap is ERC20 {
 
 
   /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -379,7 +379,7 @@ contract GAMM is ERC20 {
     _mint(to, amount);
   }
 
-  /// @notice Allows the DAO to inject liquidity into the GAMM
+  /// @notice Allows the DAO to inject liquidity into the contract
   /// @param fslLiq Liquidity added to FSL
   /// @param pslLiq Liquidity added to PSL
   function injectLiquidity(uint256 fslLiq, uint256 pslLiq) external onlyMultisig {

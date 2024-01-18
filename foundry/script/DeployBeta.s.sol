@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 import { Script } from "../lib/forge-std/src/Script.sol";
 import { Porridge } from "../src/core/Porridge.sol";
-import { GAMM } from  "../src/core/GAMM.sol";
+import { Goldiswap } from  "../src/core/Goldiswap.sol";
 import { Borrow } from "../src/core/Borrow.sol";
 import { Goldilend } from "../src/core/Goldilend.sol";
 import { Honey } from "../src/mock/Honey.sol";
@@ -19,7 +19,7 @@ contract DeployBetaScript is Script {
 
   Goldilend goldilend;
   Porridge porridge;
-  GAMM gamm;
+  Goldiswap goldiswap;
   Borrow borrow;
   Honey honey;
   Bera bera;
