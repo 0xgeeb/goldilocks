@@ -18,3 +18,5 @@ contract DeployTestnetScript is Script {
   }
 
 }
+
+//forge script DeployTestnetScript --rpc-url berapriv --broadcast --verify

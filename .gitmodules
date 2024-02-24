@@ -13,6 +13,3 @@
 [submodule "foundry/lib/SolPretty"]
 	path = foundry/lib/SolPretty
 	url = https://github.com/devtooligan/SolPretty
-[submodule "foundry/lib/solpretty"]
-	path = foundry/lib/solpretty
-	url = https://github.com/devtooligan/solpretty

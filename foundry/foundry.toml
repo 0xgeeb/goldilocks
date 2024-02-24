@@ -4,3 +4,9 @@ out = 'out'
 libs = ['lib']
 evm_version = 'shanghai'
 solc='0.8.20'
+
+[rpc_endpoints]
+berapriv = "${BERAPRIV_RPC_URL}"
+
+[etherscan]
+berapriv = { key = "x", chain = 2061, url = "https://scan-api.berachain-internal.com/api/"}
